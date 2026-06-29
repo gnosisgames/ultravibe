@@ -1,0 +1,51 @@
+{
+  "id": "Mewing",
+  "properties": {
+    "gameplayTags": [
+      "common"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scaling": {
+      "counters": {
+        "match5PlusLifetime": 0
+      },
+      "increments": [
+        {
+          "on": "resolve_step",
+          "from": "score.topologyMatch5PlusComponentCount",
+          "counter": "match5PlusLifetime"
+        }
+      ]
+    },
+    "scoreCalculations": [
+      {
+        "id": "mewing_scaling_match5_points",
+        "phase": "finalize",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.pointsTotal",
+            "value": "15 * {parameters.boonSlot.properties.scaling.counters.match5PlusLifetime}"
+          }
+        ],
+        "parameters": {}
+      }
+    ],
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonMewingName",
+    "descriptionKey": "boonMewingDescription",
+    "spriteId": "boonMewingSprite",
+    "tags": [
+      {
+        "tagType": "common",
+        "tagLocKey": "core__adjective__common"
+      }
+    ]
+  }
+}

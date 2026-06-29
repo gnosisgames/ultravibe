@@ -1,0 +1,19 @@
+{
+  "id": "pacedClimbUpgrade",
+  "metadata": {
+    "nameKey": "pacedClimbUpgradeName",
+    "descriptionKey": "pacedClimbUpgradeDescription",
+    "tags": [
+      {
+        "tagType": "upgrade",
+        "tagLocKey": "core__verb__upgrade"
+      }
+    ],
+    "spriteId": "runUpgradeGoldenEnergyDrinkSprite"
+  },
+  "properties": {
+    "maxCount": 15,
+    "applyInvocationsPerStack": true,
+    "invocations": []
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "id": "Slop",
+  "properties": {
+    "gameplayTags": [
+      "common"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "slop_rand_points_finalize",
+        "phase": "finalize",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.pointsTotal",
+            "value": "randInt(1, 48)"
+          }
+        ],
+        "parameters": {}
+      }
+    ],
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonSlopName",
+    "descriptionKey": "boonSlopDescription",
+    "spriteId": "boonSlopSprite",
+    "tags": [
+      {
+        "tagType": "common",
+        "tagLocKey": "core__adjective__common"
+      }
+    ]
+  }
+}

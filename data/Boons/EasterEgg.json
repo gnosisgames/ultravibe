@@ -1,0 +1,14 @@
+{
+  "id": "EasterEgg",
+  "properties": {
+    "gameplayTags": [],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": []
+  },
+  "metadata": {
+    "nameKey": "boonEasterEggName",
+    "descriptionKey": "boonEasterEggDescription",
+    "spriteId": "boonEasterEggSprite",
+    "tags": []
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "id": "Logomania",
+  "properties": {
+    "basePrice": 5,
+    "offerChancePermille": 80,
+    "invocations": [
+      {
+        "service": "Audio",
+        "function": "PlaySound",
+        "parameters": {
+          "clipId": "consumableSfx",
+          "track": "Sfx"
+        }
+      },
+      {
+        "service": "Consumable",
+        "function": "RollRandomConsumable",
+        "parameters": {
+          "bucketId": "default",
+          "requiredTag": "mania"
+        }
+      },
+      {
+        "service": "Consumable",
+        "function": "RollRandomConsumable",
+        "parameters": {
+          "bucketId": "default",
+          "requiredTag": "mania"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "mania",
+      "roundAction"
+    ]
+  },
+  "metadata": {
+    "nameKey": "consumableLogomaniaName",
+    "descriptionKey": "consumableLogomaniaDescription",
+    "spriteId": "consumableLogomaniaSprite",
+    "backgroundColor": "#540D81",
+    "tags": []
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "id": "olympus",
+  "metadata": {
+    "nameKey": "olympusLevelName",
+    "descriptionKey": "olympusLevelDescription",
+    "spriteId": "olympus",
+    "tags": [],
+    "startingLetter": "\\u039F",
+    "textColor": "#AF8A9F"
+  },
+  "properties": {
+    "themeId": "boss_olympus",
+    "onRoundStartInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "ApplyEffect",
+        "parameters": {
+          "effectId": "DisableDiscard",
+          "roundsLifetime": 1
+        }
+      }
+    ],
+    "onRoundEndInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "RemoveEffect",
+        "parameters": {
+          "effectId": "DisableDiscard"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "boss",
+      "easy",
+      "includeBosses",
+      "includeDiscards"
+    ],
+    "minimumTimeSec": 0
+  }
+}

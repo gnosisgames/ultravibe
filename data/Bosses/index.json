@@ -1,0 +1,100 @@
+{
+  "bosses": [
+    {
+      "id": "ares",
+      "path": "ares.json"
+    },
+    {
+      "id": "boreas",
+      "path": "boreas.json"
+    },
+    {
+      "id": "chaos",
+      "path": "chaos.json"
+    },
+    {
+      "id": "dionysus",
+      "path": "dionysus.json"
+    },
+    {
+      "id": "erebos",
+      "path": "erebos.json"
+    },
+    {
+      "id": "fates",
+      "path": "fates.json"
+    },
+    {
+      "id": "gaia",
+      "path": "gaia.json"
+    },
+    {
+      "id": "helios",
+      "path": "helios.json"
+    },
+    {
+      "id": "hypnos",
+      "path": "hypnos.json"
+    },
+    {
+      "id": "icarus",
+      "path": "icarus.json"
+    },
+    {
+      "id": "kronos",
+      "path": "kronos.json"
+    },
+    {
+      "id": "logos",
+      "path": "logos.json"
+    },
+    {
+      "id": "minotaur",
+      "path": "minotaur.json"
+    },
+    {
+      "id": "nemesis",
+      "path": "nemesis.json"
+    },
+    {
+      "id": "oceanus",
+      "path": "oceanus.json"
+    },
+    {
+      "id": "olympus",
+      "path": "olympus.json"
+    },
+    {
+      "id": "persephone",
+      "path": "persephone.json"
+    },
+    {
+      "id": "psyche",
+      "path": "psyche.json"
+    },
+    {
+      "id": "riza",
+      "path": "riza.json"
+    },
+    {
+      "id": "satyr",
+      "path": "satyr.json"
+    },
+    {
+      "id": "themis",
+      "path": "themis.json"
+    },
+    {
+      "id": "titanos",
+      "path": "titanos.json"
+    },
+    {
+      "id": "xenon",
+      "path": "xenon.json"
+    },
+    {
+      "id": "zeus",
+      "path": "zeus.json"
+    }
+  ]
+}

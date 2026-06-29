@@ -1,0 +1,15 @@
+{
+  "id": "velvet",
+  "background.main": "#E43636",
+  "background.subtle": "#E43636",
+  "background.on": "#660B05",
+  "accent.neon": "#DC2525",
+  "primary.main": "#E43636",
+  "primary.shade": "#A42727",
+  "grid.border": "#B80000",
+  "score.main": "#FF0000",
+  "score.glow": "#FF0000",
+  "background.grid.alpha": 32,
+  "grid.lines.alpha": 24,
+  "primary.neon": "#DC2525"
+}

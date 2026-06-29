@@ -1,0 +1,10 @@
+{
+  "id": "XShape5",
+  "displayName": "X Shape 5",
+  "prefabPath": "Prefabs/Ultravibes/Negative/XShape5",
+  "blocksCount": 5,
+  "tags": [
+    "vertical",
+    "symmetric"
+  ]
+}

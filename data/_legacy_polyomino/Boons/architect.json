@@ -1,0 +1,27 @@
+{
+  "id": "architect",
+  "metadata": {
+    "nameKey": "boonArchitectName",
+    "descriptionKey": "boonArchitectDescription",
+    "spriteId": "architect",
+    "tags": []
+  },
+  "properties": {
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "architect_add_multi_even_block_count_on_placement",
+        "phase": "on_placement",
+        "when": "{payload.placement.lockPieceBlockCount} > 0 && {payload.placement.lockPieceBlockCount} % 2 == 0",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.pendingMulti",
+            "value": "6"
+          }
+        ]
+      }
+    ]
+  }
+}

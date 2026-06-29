@@ -1,0 +1,19 @@
+{
+  "id": "cog",
+  "nameKey": "cogName",
+  "descriptionKey": "cogDescription",
+  "spriteId": "cogBlock",
+  "color": "8A8A8A",
+  "tags": [
+    "positive",
+    "hard",
+    "linked",
+    "sinking",
+    "gyroscopic",
+    "color_orange"
+  ],
+  "basePoints": 10,
+  "baseMulti": 4,
+  "pointsPerLevel": 6,
+  "multiPerLevel": 2
+}

@@ -1,0 +1,10 @@
+{
+  "id": "Rectangle8",
+  "displayName": "Rectangle 8",
+  "prefabPath": "Prefabs/Ultravibes/Negative/Rectangle8",
+  "blocksCount": 8,
+  "tags": [
+    "vertical",
+    "symmetric"
+  ]
+}

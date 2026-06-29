@@ -1,0 +1,17 @@
+{
+  "id": "mirror",
+  "metadata": {
+    "nameKey": "boonMirrorName",
+    "descriptionKey": "boonMirrorDescription",
+    "spriteId": "mirror",
+    "tags": []
+  },
+  "properties": {
+    "effectApplication": "perInstance",
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "gameplayTags": [
+      "includeSpecialUltravibes"
+    ]
+  }
+}

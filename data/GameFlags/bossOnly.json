@@ -1,0 +1,14 @@
+{
+  "id": "bossOnly",
+  "metadata": {
+    "nameKey": "gameFlags__enable__boss_only",
+    "tags": []
+  },
+  "properties": {
+    "flagKey": "bossOnly",
+    "defaultValue": false,
+    "kind": "only",
+    "settingsPath": "settings.overrides.fallingBlock.gameFlags.bossOnly",
+    "requiresFlag": "includeBosses"
+  }
+}

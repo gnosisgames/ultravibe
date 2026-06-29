@@ -1,0 +1,22 @@
+{
+  "id": "erebos",
+  "metadata": {
+    "nameKey": "erebosLevelName",
+    "descriptionKey": "erebosLevelDescription",
+    "spriteId": "erebos",
+    "tags": [],
+    "startingLetter": "\\u0395",
+    "textColor": "#8A3FFF"
+  },
+  "properties": {
+    "themeId": "boss_erebos",
+    "onRoundStartInvocations": [],
+    "onRoundEndInvocations": [],
+    "gameplayTags": [
+      "boss",
+      "easy",
+      "includeBosses"
+    ],
+    "minimumTimeSec": 0
+  }
+}

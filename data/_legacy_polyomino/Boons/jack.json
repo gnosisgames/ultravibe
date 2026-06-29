@@ -1,0 +1,28 @@
+{
+  "id": "jack",
+  "metadata": {
+    "nameKey": "boonJackName",
+    "descriptionKey": "boonJackDescription",
+    "spriteId": "jack",
+    "tags": []
+  },
+  "properties": {
+    "effectApplication": "perInstance",
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "jack_add_pending_multi_on_placement_jackpot",
+        "phase": "on_placement",
+        "when": "randInt(1, 5) == 1",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.pendingMulti",
+            "value": "20"
+          }
+        ]
+      }
+    ]
+  }
+}

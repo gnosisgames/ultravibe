@@ -1,0 +1,34 @@
+{
+  "id": "Doromania",
+  "properties": {
+    "basePrice": 5,
+    "offerChancePermille": 150,
+    "invocations": [
+      {
+        "service": "Audio",
+        "function": "PlaySound",
+        "parameters": {
+          "clipId": "consumableSfx",
+          "track": "Sfx"
+        }
+      },
+      {
+        "service": "Match3",
+        "function": "AddCoreShopFreeRerollCountDelta",
+        "parameters": {
+          "delta": 2
+        }
+      }
+    ],
+    "gameplayTags": [
+      "mania"
+    ]
+  },
+  "metadata": {
+    "nameKey": "consumableDoromaniaName",
+    "descriptionKey": "consumableDoromaniaDescription",
+    "spriteId": "consumableDoromaniaSprite",
+    "backgroundColor": "#540D81",
+    "tags": []
+  }
+}

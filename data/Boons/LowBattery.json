@@ -1,0 +1,40 @@
+{
+  "id": "LowBattery",
+  "properties": {
+    "gameplayTags": [
+      "common"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "low_battery_mult_small_clear",
+        "phase": "finalize",
+        "when": "{payload.score.destroyedCount} <= 3",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.multiTotal",
+            "value": "20"
+          }
+        ],
+        "parameters": {}
+      }
+    ],
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonLowBatteryName",
+    "descriptionKey": "boonLowBatteryDescription",
+    "spriteId": "boonLowBatterySprite",
+    "tags": [
+      {
+        "tagType": "common",
+        "tagLocKey": "core__adjective__common"
+      }
+    ]
+  }
+}

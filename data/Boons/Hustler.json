@@ -1,0 +1,39 @@
+{
+  "id": "Hustler",
+  "properties": {
+    "gameplayTags": [
+      "uncommon"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "hustler_mult_per_five_money",
+        "phase": "finalize",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.multiTotal",
+            "value": "2 * floor({ephemeral.currencies.money.currentValue} / 5)"
+          }
+        ],
+        "parameters": {}
+      }
+    ],
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonHustlerName",
+    "descriptionKey": "boonHustlerDescription",
+    "spriteId": "boonHustlerSprite",
+    "tags": [
+      {
+        "tagType": "uncommon",
+        "tagLocKey": "core__adjective__uncommon"
+      }
+    ]
+  }
+}

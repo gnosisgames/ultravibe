@@ -1,0 +1,27 @@
+{
+  "id": "ultra",
+  "metadata": {
+    "nameKey": "boonUltraName",
+    "descriptionKey": "boonUltraDescription",
+    "spriteId": "ultra",
+    "tags": []
+  },
+  "properties": {
+    "effectApplication": "perInstance",
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "ultra_add_multi_per_block_on_placement",
+        "phase": "on_placement",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.pendingMulti",
+            "value": "3 * {payload.placement.lockPieceBlockCount}"
+          }
+        ]
+      }
+    ]
+  }
+}

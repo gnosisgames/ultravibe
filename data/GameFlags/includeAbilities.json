@@ -1,0 +1,13 @@
+{
+  "id": "includeAbilities",
+  "metadata": {
+    "nameKey": "gameFlags__enable__include_abilities",
+    "tags": []
+  },
+  "properties": {
+    "flagKey": "includeAbilities",
+    "defaultValue": true,
+    "kind": "include",
+    "settingsPath": "settings.overrides.fallingBlock.gameFlags.includeAbilities"
+  }
+}

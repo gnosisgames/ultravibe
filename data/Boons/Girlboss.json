@@ -1,0 +1,14 @@
+{
+  "id": "Girlboss",
+  "properties": {
+    "gameplayTags": [],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": []
+  },
+  "metadata": {
+    "nameKey": "boonGirlbossName",
+    "descriptionKey": "boonGirlbossDescription",
+    "spriteId": "boonGirlbossSprite",
+    "tags": []
+  }
+}

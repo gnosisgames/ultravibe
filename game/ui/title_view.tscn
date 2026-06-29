@@ -1,0 +1,146 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://game/ui/title_view.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/logos/ultravibe_logo.png" id="3"]
+[ext_resource type="PackedScene" path="res://game/ui/widgets/rounded_square_btn.tscn" id="4"]
+[ext_resource type="Script" path="res://game/ui/components/container_tween.gd" id="5"]
+[ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/web.png" id="6"]
+[ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/discord.png" id="7"]
+[ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/scroll.png" id="8"]
+
+[node name="TitleView" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+view_id = "title"
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_bottom = -64.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Menu" type="VBoxContainer" parent="Center"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Logo" type="TextureRect" parent="Center/Menu"]
+custom_minimum_size = Vector2(1305, 551)
+layout_mode = 2
+texture = ExtResource("3")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="BtnContainers" type="VBoxContainer" parent="Center/Menu"]
+custom_minimum_size = Vector2(661, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/separation = 12
+script = ExtResource("5")
+delay_appear = 0.0
+delay_between_elements = 0.08
+
+[node name="ContinueButton" parent="Center/Menu/BtnContainers" instance=ExtResource("4")]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(420, 58)
+layout_mode = 2
+text = "core__verb__continue"
+
+[node name="PlayButton" parent="Center/Menu/BtnContainers" instance=ExtResource("4")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(420, 58)
+layout_mode = 2
+text = "core__verb__play"
+
+[node name="CollectionButton" parent="Center/Menu/BtnContainers" instance=ExtResource("4")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(420, 58)
+layout_mode = 2
+text = "ultravibe__ui__collection"
+
+[node name="SettingsButton" parent="Center/Menu/BtnContainers" instance=ExtResource("4")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(420, 58)
+layout_mode = 2
+text = "core__noun__settings"
+
+[node name="QuitButton" parent="Center/Menu/BtnContainers" instance=ExtResource("4")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(420, 58)
+layout_mode = 2
+text = "core__verb__exit"
+
+[node name="FooterLinks" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -344.0
+offset_top = -108.0
+offset_right = -32.0
+offset_bottom = -32.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_constants/separation = 12
+alignment = 2
+
+[node name="WebButton" parent="FooterLinks" instance=ExtResource("4")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 76)
+layout_mode = 2
+theme_override_colors/icon_normal_color = Color(0.992157, 0.894118, 0.72549, 1)
+theme_override_colors/icon_focus_color = Color(0.992157, 0.894118, 0.72549, 1)
+theme_override_colors/icon_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_pressed_color = Color(0.992157, 0.894118, 0.72549, 1)
+theme_override_constants/icon_max_width = 44
+tooltip_text = "ultravibe__ui__website"
+alignment = 1
+icon_alignment = 1
+vertical_icon_alignment = 1
+text = ""
+icon = ExtResource("6")
+expand_icon = true
+
+[node name="DiscordButton" parent="FooterLinks" instance=ExtResource("4")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 76)
+layout_mode = 2
+theme_override_colors/icon_normal_color = Color(0.992157, 0.894118, 0.72549, 1)
+theme_override_colors/icon_focus_color = Color(0.992157, 0.894118, 0.72549, 1)
+theme_override_colors/icon_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_pressed_color = Color(0.992157, 0.894118, 0.72549, 1)
+theme_override_constants/icon_max_width = 44
+tooltip_text = "ultravibe__ui__discord"
+alignment = 1
+icon_alignment = 1
+vertical_icon_alignment = 1
+text = ""
+icon = ExtResource("7")
+expand_icon = true
+
+[node name="CreditsButton" parent="FooterLinks" instance=ExtResource("4")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 76)
+layout_mode = 2
+theme_override_colors/icon_normal_color = Color(0.992157, 0.894118, 0.72549, 1)
+theme_override_colors/icon_focus_color = Color(0.992157, 0.894118, 0.72549, 1)
+theme_override_colors/icon_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_pressed_color = Color(0.992157, 0.894118, 0.72549, 1)
+theme_override_constants/icon_max_width = 44
+tooltip_text = "core__noun__credits"
+alignment = 1
+icon_alignment = 1
+vertical_icon_alignment = 1
+text = ""
+icon = ExtResource("8")
+expand_icon = true

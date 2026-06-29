@@ -1,0 +1,17 @@
+{
+  "id": "lucky",
+  "nameKey": "luckyName",
+  "descriptionKey": "luckyDescription",
+  "spriteId": "luckyBlock",
+  "color": "EA7100",
+  "tags": [
+    "positive",
+    "soft",
+    "lucky",
+    "color_orange"
+  ],
+  "basePoints": 0,
+  "baseMulti": 5,
+  "pointsPerLevel": 0,
+  "multiPerLevel": 3
+}

@@ -1,0 +1,19 @@
+{
+  "id": "boss_minotaur",
+  "background.main": "#5A3A1A",
+  "background.subtle": "#7A5A2A",
+  "background.on": "#2D1A0D",
+  "accent.neon": "#8B6F47",
+  "primary.main": "#6A4A2A",
+  "primary.shade": "#4C351E",
+  "grid.border": "#8A6A4A",
+  "score.main": "#8B6F47",
+  "score.glow": "#8B6F47",
+  "grid.main": "#8B6F47",
+  "environment.ground": "#5A3A1A",
+  "environment.parallax": "#8B6F47",
+  "material.id": "nightSky",
+  "background.grid.alpha": 64,
+  "grid.lines.alpha": 8,
+  "primary.neon": "#8B6F47"
+}

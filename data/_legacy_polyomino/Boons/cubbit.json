@@ -1,0 +1,35 @@
+{
+  "id": "cubbit",
+  "metadata": {
+    "nameKey": "boonCubbitName",
+    "descriptionKey": "boonCubbitDescription",
+    "spriteId": "cubbit",
+    "tags": []
+  },
+  "properties": {
+    "effectApplication": "perInstance",
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "spawnConversions": [
+      {
+        "id": "cubbit_big_to_small_poly",
+        "match": {
+          "ultravibeBlocksCountMin": 6
+        },
+        "set": {
+          "ultravibeIds": [
+            "Line2",
+            "Line3",
+            "Corner3"
+          ]
+        },
+        "chanceOneIn": 4
+      }
+    ],
+    "scoreCalculations": [],
+    "gameplayTags": [
+      "!originalOnly",
+      "includeSpecialUltravibes"
+    ]
+  }
+}

@@ -1,0 +1,11 @@
+{
+    "domains": [
+    "Dev/examples.json",
+    "FallingBlock/fallingBlock.json",
+    "FallingBlock/boon_spawn_variant_conversions.json",
+    "FallingBlock/boon_trigger_line_clear_extras.json",
+    "FallingBlock/boon_trigger_discard.json",
+    "FallingBlock/boon_spawn_negative_to_base_variant.json",
+    "FallingBlock/boss_effects.json"
+  ]
+}

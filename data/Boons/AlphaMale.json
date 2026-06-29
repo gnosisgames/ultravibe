@@ -1,0 +1,39 @@
+{
+  "id": "AlphaMale",
+  "properties": {
+    "gameplayTags": [
+      "uncommon"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "alpha_male_multi_from_other_sell",
+        "phase": "finalize",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.multiTotal",
+            "value": "{parameters.otherBoonsSellPriceSum}"
+          }
+        ],
+        "parameters": {}
+      }
+    ],
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonAlphaMaleName",
+    "descriptionKey": "boonAlphaMaleDescription",
+    "spriteId": "boonAlphaMaleSprite",
+    "tags": [
+      {
+        "tagType": "uncommon",
+        "tagLocKey": "core__adjective__uncommon"
+      }
+    ]
+  }
+}

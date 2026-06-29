@@ -1,0 +1,18 @@
+{
+  "fx.main": "#000000",
+  "rarity.common": "#B3B3B3",
+  "rarity.uncommon": "#33CC33",
+  "rarity.rare": "#3366E6",
+  "rarity.epic": "#B333E6",
+  "rarity.legendary": "#FF9900",
+  "reward.boon": "#3366E6",
+  "reward.consumable": "#FFB333",
+  "reward.upgrade": "#FF9900",
+  "reward.skip": "#CC99FF",
+  "reward.boss": "#E63333",
+  "primary.neon": "#FFFFFF",
+  "text.main": "#FFFFFF",
+  "primary.on": "#FFFFFF",
+  "score.main": "#FFFFFF",
+  "score.glow": "#00FFFF"
+}

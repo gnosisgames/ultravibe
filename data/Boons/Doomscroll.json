@@ -1,0 +1,39 @@
+{
+  "id": "Doomscroll",
+  "properties": {
+    "gameplayTags": [
+      "common"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "doomscroll_multi_per_remaining_move",
+        "phase": "finalize",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.multiTotal",
+            "value": "2 * max(0, {payload.score.movesRemaining})"
+          }
+        ],
+        "parameters": {}
+      }
+    ],
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonDoomscrollName",
+    "descriptionKey": "boonDoomscrollDescription",
+    "spriteId": "boonDoomscrollSprite",
+    "tags": [
+      {
+        "tagType": "common",
+        "tagLocKey": "core__adjective__common"
+      }
+    ]
+  }
+}

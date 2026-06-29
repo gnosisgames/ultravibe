@@ -1,0 +1,7 @@
+.godot/
+*.import
+_unity_staging/
+ultravibe_screenshot.png
+screenshots/
+.DS_Store
+**/.DS_Store

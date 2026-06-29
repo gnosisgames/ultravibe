@@ -1,0 +1,17 @@
+{
+  "id": "duplicator",
+  "metadata": {
+    "nameKey": "boonDuplicatorName",
+    "descriptionKey": "boonDuplicatorDescription",
+    "spriteId": "duplicator",
+    "tags": []
+  },
+  "properties": {
+    "effectApplication": "perInstance",
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "gameplayTags": [
+      "includeSpecialUltravibes"
+    ]
+  }
+}

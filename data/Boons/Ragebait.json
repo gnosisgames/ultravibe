@@ -1,0 +1,14 @@
+{
+  "id": "Ragebait",
+  "properties": {
+    "gameplayTags": [],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": []
+  },
+  "metadata": {
+    "nameKey": "boonRagebaitName",
+    "descriptionKey": "boonRagebaitDescription",
+    "spriteId": "boonRagebaitSprite",
+    "tags": []
+  }
+}

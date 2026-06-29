@@ -1,0 +1,41 @@
+{
+  "id": "shroomup",
+  "metadata": {
+    "nameKey": "boonShroomupName",
+    "descriptionKey": "boonShroomupDescription",
+    "spriteId": "shroomup",
+    "tags": []
+  },
+  "properties": {
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "shroomup_add_pending_multi_on_consumable_use",
+        "phase": "on_consumable_use",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.pendingMulti",
+            "value": "4 * {ephemeral.statistics.consumables.used.total}"
+          }
+        ]
+      },
+      {
+        "id": "shroomup_add_multi_per_consumable_used_on_line_clear",
+        "phase": "on_line_clear",
+        "when": "{payload.rawLinesCleared} >= 1",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.multiTotal",
+            "value": "4 * {ephemeral.statistics.consumables.used.total}"
+          }
+        ]
+      }
+    ],
+    "gameplayTags": [
+      "includeConsumables"
+    ]
+  }
+}

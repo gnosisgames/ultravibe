@@ -1,0 +1,39 @@
+{
+  "id": "Cancelled",
+  "properties": {
+    "gameplayTags": [
+      "common"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "cancelled_mult_per_shop_sale",
+        "phase": "finalize",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.multiTotal",
+            "value": "{ephemeral.statistics.match3.shop.sales.total}"
+          }
+        ],
+        "parameters": {}
+      }
+    ],
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonCancelledName",
+    "descriptionKey": "boonCancelledDescription",
+    "spriteId": "boonCancelledSprite",
+    "tags": [
+      {
+        "tagType": "common",
+        "tagLocKey": "core__adjective__common"
+      }
+    ]
+  }
+}

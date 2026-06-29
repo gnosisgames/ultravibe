@@ -1,0 +1,15 @@
+{
+  "id": "thief",
+  "nameKey": "thiefName",
+  "descriptionKey": "thiefDescription",
+  "spriteId": "thiefBlock",
+  "color": "3D0B49",
+  "tags": [
+    "negative",
+    "soft",
+    "undiscardable"
+  ],
+  "basePoints": -8,
+  "baseMulti": -1,
+  "placementDiscardDrainChancePercent": 2
+}

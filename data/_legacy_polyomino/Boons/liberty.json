@@ -1,0 +1,34 @@
+{
+  "id": "liberty",
+  "metadata": {
+    "nameKey": "boonLibertyName",
+    "descriptionKey": "boonLibertyDescription",
+    "spriteId": "liberty",
+    "tags": []
+  },
+  "properties": {
+    "effectApplication": "perInstance",
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "spawnConversions": [
+      {
+        "id": "liberty_blue_to_movement_specialty",
+        "match": {
+          "color": "blue"
+        },
+        "set": {
+          "variantIds": [
+            "moss",
+            "honeycomb",
+            "slime"
+          ]
+        },
+        "chanceOneIn": 4
+      }
+    ],
+    "scoreCalculations": [],
+    "gameplayTags": [
+      "includeSpecialUltravibes"
+    ]
+  }
+}

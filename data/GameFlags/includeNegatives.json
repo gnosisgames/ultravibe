@@ -1,0 +1,13 @@
+{
+  "id": "includeNegatives",
+  "metadata": {
+    "nameKey": "gameFlags__enable__include_negatives",
+    "tags": []
+  },
+  "properties": {
+    "flagKey": "includeNegatives",
+    "defaultValue": true,
+    "kind": "include",
+    "settingsPath": "settings.overrides.fallingBlock.gameFlags.includeNegatives"
+  }
+}

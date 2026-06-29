@@ -1,0 +1,14 @@
+{
+  "id": "UncannyValley",
+  "properties": {
+    "gameplayTags": [],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": []
+  },
+  "metadata": {
+    "nameKey": "boonUncannyValleyName",
+    "descriptionKey": "boonUncannyValleyDescription",
+    "spriteId": "boonUncannyValleySprite",
+    "tags": []
+  }
+}

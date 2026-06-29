@@ -1,0 +1,18 @@
+{
+  "id": "retro",
+  "metadata": {
+    "nameKey": "boonRetroName",
+    "descriptionKey": "boonRetroDescription",
+    "spriteId": "retro",
+    "tags": []
+  },
+  "properties": {
+    "effectApplication": "perInstance",
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [],
+    "gameplayTags": [
+      "includeAbilities"
+    ]
+  }
+}

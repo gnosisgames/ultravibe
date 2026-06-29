@@ -1,0 +1,34 @@
+{
+  "id": "Genomania",
+  "properties": {
+    "basePrice": 5,
+    "offerChancePermille": 40,
+    "invocations": [
+      {
+        "service": "Audio",
+        "function": "PlaySound",
+        "parameters": {
+          "clipId": "consumableSfx",
+          "track": "Sfx"
+        }
+      },
+      {
+        "service": "Match3",
+        "function": "DuplicateRandomEquippedBoon",
+        "parameters": {
+          "bucketId": "default"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "mania"
+    ]
+  },
+  "metadata": {
+    "nameKey": "consumableGenomaniaName",
+    "descriptionKey": "consumableGenomaniaDescription",
+    "spriteId": "consumableGenomaniaSprite",
+    "backgroundColor": "#540D81",
+    "tags": []
+  }
+}

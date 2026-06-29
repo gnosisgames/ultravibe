@@ -1,0 +1,142 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://game/ultravibe_bootstrap.gd" id="1"]
+[ext_resource type="PackedScene" path="res://game/ui/play_hud.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://addons/com.gnosisgames.gnosisengine/adapters/godot/debug/gnosis_engine_debug_panel.tscn" id="4"]
+[ext_resource type="PackedScene" path="res://game/ui/title_view.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://game/ui/settings_view.tscn" id="6"]
+[ext_resource type="PackedScene" path="res://game/ui/reward_selection_view.tscn" id="7"]
+[ext_resource type="PackedScene" path="res://game/ui/ultravibe_background.tscn" id="8"]
+[ext_resource type="Shader" path="res://assets/ui/crt.gdshader" id="9"]
+[ext_resource type="PackedScene" path="res://game/ui/collection_view.tscn" id="10"]
+[ext_resource type="PackedScene" path="res://game/ui/pause_view.tscn" id="11"]
+[ext_resource type="Script" path="res://game/adapters/gameplay_pause_bridge.gd" id="12"]
+[ext_resource type="Script" path="res://game/adapters/gameplay_input_router.gd" id="13"]
+[ext_resource type="PackedScene" path="res://game/ui/game_over_view.tscn" id="14"]
+[ext_resource type="PackedScene" path="res://game/ui/play_view.tscn" id="15"]
+[ext_resource type="PackedScene" path="res://game/ui/credits_view.tscn" id="18"]
+[ext_resource type="Script" path="res://game/ui/gameplay_view.gd" id="19"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_backdrop"]
+bg_color = Color(0.08, 0.13, 0.19, 0.82)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.32, 0.47, 0.63, 0.9)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+shadow_color = Color(0, 0, 0, 0.35)
+shadow_size = 18
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_crt"]
+shader = ExtResource("9")
+shader_parameter/overlay = true
+shader_parameter/scanlines_opacity = 0.1
+shader_parameter/scanlines_width = 0.25
+shader_parameter/grille_opacity = 0.0
+shader_parameter/resolution = Vector2(640, 480)
+shader_parameter/pixelate = false
+shader_parameter/roll = false
+shader_parameter/roll_speed = 8.0
+shader_parameter/roll_size = 15.0
+shader_parameter/roll_variation = 1.8
+shader_parameter/distort_intensity = 0.05
+shader_parameter/noise_opacity = 0.0
+shader_parameter/noise_speed = 5.0
+shader_parameter/static_noise_intensity = 0.0
+shader_parameter/aberration = 0.0
+shader_parameter/brightness = 1.05
+shader_parameter/discolor = false
+shader_parameter/warp_amount = 0.12
+shader_parameter/clip_warp = false
+shader_parameter/vignette_intensity = 0.3
+shader_parameter/vignette_opacity = 0.35
+
+[node name="Ultravibe" type="Node" unique_id=1048292381]
+script = ExtResource("1")
+startup_view_id = "title"
+
+[node name="Background" parent="." unique_id=1547908006 instance=ExtResource("8")]
+
+[node name="Adapters" type="Node" parent="." unique_id=1934726117]
+
+[node name="GameplayPauseBridge" type="Node" parent="Adapters" unique_id=1489410630]
+script = ExtResource("12")
+
+[node name="GameplayInputRouter" type="Node" parent="Adapters" unique_id=237626129]
+script = ExtResource("13")
+
+[node name="UI" type="CanvasLayer" parent="." unique_id=615439916]
+
+[node name="GameArea" type="Control" parent="UI" unique_id=139156566]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("19")
+view_id = "gameplay"
+default_in_transition_id = "slide_up"
+default_out_transition_id = "slide_up"
+default_in_duration = 0.35
+default_out_duration = 0.35
+
+[node name="Backdrop" type="Panel" parent="UI/GameArea" unique_id=1013068518]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_backdrop")
+
+[node name="Hud" parent="UI/GameArea" unique_id=491613428 instance=ExtResource("3")]
+layout_mode = 1
+
+[node name="EngineDebugPanel" parent="UI" unique_id=253038882 instance=ExtResource("4")]
+visible = false
+
+[node name="TitleView" parent="UI" unique_id=1991399643 instance=ExtResource("5")]
+visible = false
+
+[node name="SettingsView" parent="UI" unique_id=920900561 instance=ExtResource("6")]
+visible = false
+
+[node name="RewardSelectionView" parent="UI" unique_id=1294864095 instance=ExtResource("7")]
+visible = false
+
+[node name="CollectionView" parent="UI" unique_id=760480248 instance=ExtResource("10")]
+visible = false
+
+[node name="PlayView" parent="UI" unique_id=24072373 instance=ExtResource("15")]
+visible = false
+
+[node name="PauseView" parent="UI" unique_id=1869686917 instance=ExtResource("11")]
+visible = false
+
+[node name="GameOverView" parent="UI" unique_id=125485956 instance=ExtResource("14")]
+visible = false
+
+[node name="CreditsView" parent="UI" unique_id=471705893 instance=ExtResource("18")]
+visible = false
+
+[node name="CRTLayer" type="CanvasLayer" parent="." unique_id=1553969876]
+layer = 10
+
+[node name="CRT" type="ColorRect" parent="CRTLayer" unique_id=2003059817]
+visible = false
+material = SubResource("ShaderMaterial_crt")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2

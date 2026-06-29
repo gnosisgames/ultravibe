@@ -1,0 +1,14 @@
+{
+  "id": "Stack",
+  "properties": {
+    "gameplayTags": [],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": []
+  },
+  "metadata": {
+    "nameKey": "boonStackName",
+    "descriptionKey": "boonStackDescription",
+    "spriteId": "boonStackSprite",
+    "tags": []
+  }
+}

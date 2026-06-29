@@ -1,0 +1,54 @@
+{
+  "id": "balloon",
+  "metadata": {
+    "nameKey": "consumableBalloonName",
+    "descriptionKey": "consumableBalloonDescription",
+    "spriteId": "consumableBalloonSprite",
+    "tags": []
+  },
+  "properties": {
+    "invocations": [
+      {
+        "service": "FallingBlock",
+        "function": "ChangeFallSpeed",
+        "parameters": {
+          "deltaLevels": -4
+        }
+      },
+      {
+        "service": "Audio",
+        "function": "PlaySound",
+        "parameters": {
+          "clipId": "BalloonConsumable",
+          "track": "Sfx"
+        }
+      },
+      {
+        "service": "Haptic",
+        "function": "PlayPreset",
+        "parameters": {
+          "preset": "HeavyImpact"
+        }
+      },
+      {
+        "service": "Animation",
+        "function": "InstantiateParticle",
+        "parameters": {
+          "id": "balloonConsumable",
+          "poolId": "balloonConsumable",
+          "particlesPrefabId": "balloonConsumable",
+          "objectPoolSize": 3,
+          "transform": {
+            "x": 0,
+            "y": -10,
+            "z": 0
+          }
+        }
+      }
+    ],
+    "gameplayTags": [
+      "utilities",
+      "includeNegatives"
+    ]
+  }
+}

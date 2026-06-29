@@ -1,0 +1,12 @@
+{
+  "discardsAdded": { "clip": "trashcan_feedback", "volume": 0.95, "pitch": 1.0 },
+  "discardsRemoved": { "clip": "money_decrease_1", "volume": 0.9, "pitch": 1.0 },
+  "shuffle": { "clip": "dice", "volume": 1.0, "pitch": 1.0 },
+  "trashcan": { "clip": "trashcan_feedback", "volume": 1.0, "pitch": 1.0 },
+  "morph": { "clip": "morph", "volume": 1.0, "pitch": 1.0 },
+  "hammer": { "clip": "hammer", "volume": 1.0, "pitch": 1.0 },
+  "gum": { "clip": "poof", "volume": 0.95, "pitch": 1.0 },
+  "trophy": { "clip": "achievement_unlocked", "volume": 0.9, "pitch": 1.0 },
+  "axe": { "clip": "axe", "volume": 1.0, "pitch": 1.0 },
+  "luckyBlock": { "clip": "dice", "volume": 1.0, "pitch": 1.05 }
+}

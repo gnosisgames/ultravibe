@@ -1,0 +1,40 @@
+{
+  "id": "nemesis",
+  "metadata": {
+    "nameKey": "nemesisLevelName",
+    "descriptionKey": "nemesisLevelDescription",
+    "spriteId": "nemesis",
+    "tags": [],
+    "startingLetter": "\\u039D",
+    "textColor": "#AA2F5F"
+  },
+  "properties": {
+    "themeId": "boss_nemesis",
+    "onRoundStartInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "ApplyEffect",
+        "parameters": {
+          "effectId": "DisablePieceAfterDelay",
+          "delaySeconds": 5,
+          "roundsLifetime": 1
+        }
+      }
+    ],
+    "onRoundEndInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "RemoveEffect",
+        "parameters": {
+          "effectId": "DisablePieceAfterDelay"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "boss",
+      "hard",
+      "includeBosses"
+    ],
+    "minimumTimeSec": 480
+  }
+}

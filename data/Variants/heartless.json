@@ -1,0 +1,14 @@
+{
+  "id": "heartless",
+  "nameKey": "heartlessName",
+  "descriptionKey": "heartlessDescription",
+  "spriteId": "heartlessBlock",
+  "color": "3D0B49",
+  "tags": [
+    "negative",
+    "soft",
+    "poisoning"
+  ],
+  "basePoints": -8,
+  "baseMulti": -1
+}

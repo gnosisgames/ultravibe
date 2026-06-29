@@ -1,0 +1,55 @@
+{
+  "id": "leaf",
+  "metadata": {
+    "nameKey": "consumableLeafName",
+    "descriptionKey": "consumableLeafDescription",
+    "spriteId": "consumableLeafSprite",
+    "tags": []
+  },
+  "properties": {
+    "invocations": [
+      {
+        "service": "Deck",
+        "function": "ChangeNegativeUltravibeChance",
+        "parameters": {
+          "delta": -20
+        }
+      },
+      {
+        "service": "Audio",
+        "function": "PlaySound",
+        "parameters": {
+          "clipId": "LeafConsumable",
+          "track": "Sfx"
+        }
+      },
+      {
+        "service": "Haptic",
+        "function": "PlayPreset",
+        "parameters": {
+          "preset": "HeavyImpact"
+        }
+      },
+      {
+        "service": "Animation",
+        "function": "InstantiateParticle",
+        "parameters": {
+          "id": "leafConsumable",
+          "poolId": "leafConsumable",
+          "particlesPrefabId": "leafConsumable",
+          "objectPoolSize": 3,
+          "transform": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          }
+        }
+      }
+    ],
+    "gameplayTags": [
+      "deck",
+      "includeSpecialUltravibes",
+      "includeNegatives"
+    ]
+  }
+}

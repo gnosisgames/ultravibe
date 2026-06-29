@@ -1,0 +1,19 @@
+{
+  "id": "boss_persephone",
+  "background.main": "#8A6A1A",
+  "background.subtle": "#BFAF4A",
+  "background.on": "#4A3A0D",
+  "accent.neon": "#E6C200",
+  "primary.main": "#AFAF5A",
+  "primary.shade": "#7E7E41",
+  "grid.border": "#CFCF6A",
+  "score.main": "#E6C200",
+  "score.glow": "#E6C200",
+  "grid.main": "#E6C200",
+  "environment.ground": "#8A6A1A",
+  "environment.parallax": "#E6C200",
+  "material.id": "roat",
+  "background.grid.alpha": 64,
+  "grid.lines.alpha": 8,
+  "primary.neon": "#E6C200"
+}

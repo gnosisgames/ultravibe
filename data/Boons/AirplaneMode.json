@@ -1,0 +1,34 @@
+{
+  "id": "AirplaneMode",
+  "properties": {
+    "gameplayTags": [
+      "common"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scaling": {
+      "counters": {},
+      "increments": [
+        {
+          "on": "round_end",
+          "addSellPrice": 3
+        }
+      ]
+    },
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonAirplaneModeName",
+    "descriptionKey": "boonAirplaneModeDescription",
+    "spriteId": "boonAirplaneModeSprite",
+    "tags": [
+      {
+        "tagType": "common",
+        "tagLocKey": "core__adjective__common"
+      }
+    ]
+  }
+}

@@ -1,0 +1,128 @@
+{
+  "boons": [
+    {
+      "id": "ultraphant",
+      "path": "ultraphant.json"
+    },
+    {
+      "id": "dropper",
+      "path": "dropper.json"
+    },
+    {
+      "id": "eagle",
+      "path": "eagle.json"
+    },
+    {
+      "id": "doctor",
+      "path": "doctor.json"
+    },
+    {
+      "id": "duplicator",
+      "path": "duplicator.json"
+    },
+    {
+      "id": "rage",
+      "path": "rage.json"
+    },
+    {
+      "id": "retro",
+      "path": "retro.json"
+    },
+    {
+      "id": "ranger",
+      "path": "ranger.json"
+    },
+    {
+      "id": "jester",
+      "path": "jester.json"
+    },
+    {
+      "id": "lucky777",
+      "path": "lucky777.json"
+    },
+    {
+      "id": "liberty",
+      "path": "liberty.json"
+    },
+    {
+      "id": "bob",
+      "path": "bob.json"
+    },
+    {
+      "id": "meow",
+      "path": "meow.json"
+    },
+    {
+      "id": "santa",
+      "path": "santa.json"
+    },
+    {
+      "id": "slayer",
+      "path": "slayer.json"
+    },
+    {
+      "id": "sunflower",
+      "path": "sunflower.json"
+    },
+    {
+      "id": "cubbit",
+      "path": "cubbit.json"
+    },
+    {
+      "id": "bounty",
+      "path": "bounty.json"
+    },
+    {
+      "id": "goo",
+      "path": "goo.json"
+    },
+    {
+      "id": "bee",
+      "path": "bee.json"
+    },
+    {
+      "id": "barrel",
+      "path": "barrel.json"
+    },
+    {
+      "id": "golem",
+      "path": "golem.json"
+    },
+    {
+      "id": "bush",
+      "path": "bush.json"
+    },
+    {
+      "id": "boomer",
+      "path": "boomer.json"
+    },
+    {
+      "id": "magic8",
+      "path": "magic8.json"
+    },
+    {
+      "id": "microchip",
+      "path": "microchip.json"
+    },
+    {
+      "id": "mirror",
+      "path": "mirror.json"
+    },
+    {
+      "id": "cyclop",
+      "path": "cyclop.json"
+    },
+    {
+      "id": "urf",
+      "path": "urf.json"
+    },
+    {
+      "id": "vampire",
+      "path": "vampire.json"
+    },
+    {
+      "id": "wizard",
+      "path": "wizard.json"
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "id": "Oversharing",
+  "properties": {
+    "gameplayTags": [
+      "uncommon"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "oversharing_mult_per_consumable_used_run",
+        "phase": "finalize",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.multiTotal",
+            "value": "{ephemeral.statistics.consumables.used.total}"
+          }
+        ],
+        "parameters": {}
+      }
+    ],
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonOversharingName",
+    "descriptionKey": "boonOversharingDescription",
+    "spriteId": "boonOversharingSprite",
+    "tags": [
+      {
+        "tagType": "uncommon",
+        "tagLocKey": "core__adjective__uncommon"
+      }
+    ]
+  }
+}

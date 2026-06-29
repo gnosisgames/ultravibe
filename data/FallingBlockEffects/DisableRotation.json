@@ -1,0 +1,9 @@
+{
+  "id": "DisableRotation",
+  "handler": "rule",
+  "parameters": {
+    "ruleIds": [
+      "bossEffect_disablerotation"
+    ]
+  }
+}

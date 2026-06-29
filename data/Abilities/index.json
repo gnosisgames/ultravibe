@@ -1,0 +1,20 @@
+{
+  "abilities": [
+    {
+      "id": "gridShift",
+      "path": "gridShift.json"
+    },
+    {
+      "id": "gum",
+      "path": "gum.json"
+    },
+    {
+      "id": "hammer",
+      "path": "hammer.json"
+    },
+    {
+      "id": "axe",
+      "path": "axe.json"
+    }
+  ]
+}

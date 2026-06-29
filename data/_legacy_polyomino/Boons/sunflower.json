@@ -1,0 +1,18 @@
+{
+  "id": "sunflower",
+  "metadata": {
+    "nameKey": "boonSunflowerName",
+    "descriptionKey": "boonSunflowerDescription",
+    "spriteId": "sunflower",
+    "tags": []
+  },
+  "properties": {
+    "effectApplication": "perInstance",
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [],
+    "gameplayTags": [
+      "includeNegatives"
+    ]
+  }
+}

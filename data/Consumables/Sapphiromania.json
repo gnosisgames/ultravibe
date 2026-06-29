@@ -1,0 +1,36 @@
+{
+  "id": "Sapphiromania",
+  "properties": {
+    "basePrice": 5,
+    "offerChancePermille": 150,
+    "invocations": [
+      {
+        "service": "Audio",
+        "function": "PlaySound",
+        "parameters": {
+          "clipId": "consumableSfx",
+          "track": "Sfx"
+        }
+      },
+      {
+        "service": "Match3",
+        "function": "AddFloorModifierPoolDelta",
+        "parameters": {
+          "floorTypeId": "BonusPoints",
+          "count": 3
+        }
+      }
+    ],
+    "gameplayTags": [
+      "mania",
+      "roundAction"
+    ]
+  },
+  "metadata": {
+    "nameKey": "consumableSapphiromaniaName",
+    "descriptionKey": "consumableSapphiromaniaDescription",
+    "spriteId": "consumableSapphiromaniaSprite",
+    "backgroundColor": "#540D81",
+    "tags": []
+  }
+}

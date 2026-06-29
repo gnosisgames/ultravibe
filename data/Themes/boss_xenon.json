@@ -1,0 +1,19 @@
+{
+  "id": "boss_xenon",
+  "background.main": "#0A7A3A",
+  "background.subtle": "#1ABF5F",
+  "background.on": "#053A18",
+  "accent.neon": "#2AFF7A",
+  "primary.main": "#1ADF6F",
+  "primary.shade": "#13A150",
+  "grid.border": "#2AFF8F",
+  "score.main": "#2AFF7A",
+  "score.glow": "#2AFF7A",
+  "grid.main": "#2AFF7A",
+  "environment.ground": "#0A7A3A",
+  "environment.parallax": "#2AFF7A",
+  "material.id": "matrix",
+  "background.grid.alpha": 64,
+  "grid.lines.alpha": 8,
+  "primary.neon": "#2AFF7A"
+}

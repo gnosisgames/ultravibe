@@ -1,0 +1,45 @@
+{
+  "id": "QuietQuitting",
+  "properties": {
+    "gameplayTags": [
+      "common"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "quiet_quitting_finalize_multi",
+        "phase": "finalize",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.multiTotal",
+            "value": "15"
+          }
+        ],
+        "parameters": {}
+      }
+    ],
+    "selfDestruct": {
+      "trigger": "round_end",
+      "chanceNumerator": 1,
+      "chanceDenominator": 6,
+      "onlyBossRounds": false
+    },
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonQuietQuittingName",
+    "descriptionKey": "boonQuietQuittingDescription",
+    "spriteId": "boonQuietQuittingSprite",
+    "tags": [
+      {
+        "tagType": "common",
+        "tagLocKey": "core__adjective__common"
+      }
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "id": "obsidian",
+  "background.main": "#412B6B",
+  "background.subtle": "#412B6B",
+  "background.on": "#211832",
+  "accent.neon": "#5C3E94",
+  "primary.main": "#9929EA",
+  "primary.shade": "#6E1EA8",
+  "grid.border": "#210F37",
+  "score.main": "#9929EA",
+  "score.glow": "#9929EA",
+  "background.grid.alpha": 8,
+  "grid.lines.alpha": 0,
+  "primary.neon": "#5C3E94"
+}

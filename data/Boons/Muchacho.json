@@ -1,0 +1,14 @@
+{
+  "id": "Muchacho",
+  "properties": {
+    "gameplayTags": [],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": []
+  },
+  "metadata": {
+    "nameKey": "boonMuchachoName",
+    "descriptionKey": "boonMuchachoDescription",
+    "spriteId": "boonMuchachoSprite",
+    "tags": []
+  }
+}

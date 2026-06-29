@@ -1,0 +1,4 @@
+{
+  "id": "SpawnTrashLineIfNotPlacedWithin4Seconds",
+  "handler": "native"
+}

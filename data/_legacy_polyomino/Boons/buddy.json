@@ -1,0 +1,26 @@
+{
+  "id": "buddy",
+  "metadata": {
+    "nameKey": "boonBuddyName",
+    "descriptionKey": "boonBuddyDescription",
+    "spriteId": "buddy",
+    "tags": []
+  },
+  "properties": {
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "buddy_add_pending_points_per_filled_boon_slot_on_placement",
+        "phase": "on_placement",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.pendingPoints",
+            "value": "8 * {ephemeral.boons.filledSlotsCount}"
+          }
+        ]
+      }
+    ]
+  }
+}

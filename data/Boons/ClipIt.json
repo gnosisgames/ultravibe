@@ -1,0 +1,42 @@
+{
+  "id": "ClipIt",
+  "properties": {
+    "gameplayTags": [
+      "common"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "clip_it_points_axis_match5",
+        "phase": "resolve_step",
+        "when": "{payload.score.lastAxisStraightMatch5OrLonger} > 0",
+        "parameters": {
+          "trigger": "match_component"
+        },
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.pointsTotal",
+            "value": "120"
+          }
+        ]
+      }
+    ],
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonClipItName",
+    "descriptionKey": "boonClipItDescription",
+    "spriteId": "boonClipItSprite",
+    "tags": [
+      {
+        "tagType": "common",
+        "tagLocKey": "core__adjective__common"
+      }
+    ]
+  }
+}

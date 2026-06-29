@@ -1,0 +1,18 @@
+{
+  "id": "wizard",
+  "metadata": {
+    "nameKey": "boonWizardName",
+    "descriptionKey": "boonWizardDescription",
+    "spriteId": "wizard",
+    "tags": []
+  },
+  "properties": {
+    "effectApplication": "perInstance",
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [],
+    "gameplayTags": [
+      "includeNegatives"
+    ]
+  }
+}

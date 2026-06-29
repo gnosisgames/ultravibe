@@ -1,0 +1,4 @@
+{
+  "id": "SpawnTrashLineEvery2LinesCleared",
+  "handler": "native"
+}

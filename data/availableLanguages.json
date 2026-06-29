@@ -1,0 +1,17 @@
+{
+  "languages": [
+    { "code": "en", "id": "english", "spriteId": "englishFlag" },
+    { "code": "es", "id": "spanish", "spriteId": "spanishFlag" },
+    { "code": "fr", "id": "french", "spriteId": "frenchFlag" },
+    { "code": "de", "id": "german", "spriteId": "germanFlag" },
+    { "code": "it", "id": "italian", "spriteId": "italianFlag" },
+    { "code": "pt", "id": "portuguese", "spriteId": "portugueseFlag" },
+    { "code": "pl", "id": "polish", "spriteId": "polishFlag" },
+    { "code": "ro", "id": "romanian", "spriteId": "romanianFlag" },
+    { "code": "sv", "id": "swedish", "spriteId": "swedishFlag" },
+    { "code": "el", "id": "greek", "spriteId": "greekFlag" },
+    { "code": "zh", "id": "chinese", "spriteId": "chineseFlag" },
+    { "code": "ko", "id": "korean", "spriteId": "koreanFlag" },
+    { "code": "ja", "id": "japanese", "spriteId": "japaneseFlag" }
+  ]
+}

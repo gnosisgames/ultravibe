@@ -1,0 +1,30 @@
+{
+  "id": "gridShift",
+  "metadata": {
+    "nameKey": "abilityGridShiftName",
+    "descriptionKey": "abilityGridShiftDescription",
+    "spriteId": "gridShift",
+    "tags": [
+      {
+        "tagType": "coop",
+        "tagLocKey": "core__noun__coop"
+      }
+    ]
+  },
+  "properties": {
+    "enabledModes": [
+      "coop"
+    ],
+    "invocations": [
+      {
+        "service": "FallingBlock",
+        "function": "ExecuteGridShiftAbility",
+        "parameters": {}
+      }
+    ],
+    "gameplayTags": [
+      "coop",
+      "includeAbilities"
+    ]
+  }
+}

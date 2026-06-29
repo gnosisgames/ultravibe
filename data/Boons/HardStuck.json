@@ -1,0 +1,34 @@
+{
+  "id": "HardStuck",
+  "properties": {
+    "gameplayTags": [
+      "uncommon"
+    ],
+    "effectApplication": "perInstance",
+    "match3RoundEffectId": "hardstuck_round_budget",
+    "onActivateInvocations": [
+      {
+        "service": "Match3",
+        "function": "SyncEquippedBoonMatch3RoundEffects",
+        "parameters": {}
+      }
+    ],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [],
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonHardStuckName",
+    "descriptionKey": "boonHardStuckDescription",
+    "spriteId": "boonHardStuckSprite",
+    "tags": [
+      {
+        "tagType": "uncommon",
+        "tagLocKey": "core__adjective__uncommon"
+      }
+    ]
+  }
+}

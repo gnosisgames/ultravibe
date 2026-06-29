@@ -1,0 +1,31 @@
+{
+  "id": "Leak",
+  "properties": {
+    "gameplayTags": [
+      "uncommon"
+    ],
+    "effectApplication": "perInstance",
+    "moveEndShuffleBonus": {
+      "chanceNumerator": 1,
+      "chanceDenominator": 5,
+      "shuffleAdd": 1
+    },
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonLeakName",
+    "descriptionKey": "boonLeakDescription",
+    "spriteId": "boonLeakSprite",
+    "tags": [
+      {
+        "tagType": "uncommon",
+        "tagLocKey": "core__adjective__uncommon"
+      }
+    ]
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "id": "dropper",
+  "metadata": {
+    "nameKey": "boonDropperName",
+    "descriptionKey": "boonDropperDescription",
+    "spriteId": "dropper",
+    "tags": []
+  },
+  "properties": {
+    "effectApplication": "perInstance",
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "spawnConversions": [
+      {
+        "id": "dropper_blue_to_trash",
+        "match": {
+          "color": "blue"
+        },
+        "set": {
+          "variantId": "trash"
+        },
+        "chanceOneIn": 5
+      }
+    ],
+    "scoreCalculations": [],
+    "gameplayTags": [
+      "includeDiscards",
+      "includeSpecialUltravibes"
+    ]
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "id": "Cyclomania",
+  "properties": {
+    "basePrice": 5,
+    "offerChancePermille": 150,
+    "invocations": [
+      {
+        "service": "Audio",
+        "function": "PlaySound",
+        "parameters": {
+          "clipId": "consumableSfx",
+          "track": "Sfx"
+        }
+      },
+      {
+        "service": "Match3",
+        "function": "GrantCurrencyFromStatisticCounter",
+        "parameters": {
+          "currencyId": "money",
+          "statisticPath": "match3.shuffles.unused",
+          "amountPerUnit": 2
+        }
+      }
+    ],
+    "gameplayTags": [
+      "mania"
+    ]
+  },
+  "metadata": {
+    "nameKey": "consumableCyclomaniaName",
+    "descriptionKey": "consumableCyclomaniaDescription",
+    "spriteId": "consumableCyclomaniaSprite",
+    "backgroundColor": "#540D81",
+    "tags": []
+  }
+}

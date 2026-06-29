@@ -1,0 +1,7 @@
+{
+  "id": "Pause",
+  "category": "Default",
+  "valueType": "button",
+  "targetEvent": "REQUEST_RUN_TOGGLE_PAUSE",
+  "targetPayload": {}
+}

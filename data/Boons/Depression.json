@@ -1,0 +1,40 @@
+{
+  "id": "Depression",
+  "properties": {
+    "gameplayTags": [
+      "rare"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "depression_low_money_x3_mult_finalize",
+        "phase": "finalize",
+        "when": "{ephemeral.currencies.money.currentValue} <= 4",
+        "outcomes": [
+          {
+            "op": "multiply",
+            "target": "score.multiTotal",
+            "value": "3"
+          }
+        ],
+        "parameters": {}
+      }
+    ],
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonDepressionName",
+    "descriptionKey": "boonDepressionDescription",
+    "spriteId": "boonDepressionSprite",
+    "tags": [
+      {
+        "tagType": "rare",
+        "tagLocKey": "core__adjective__rare"
+      }
+    ]
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "id": "Buzz",
+  "properties": {
+    "gameplayTags": [
+      "uncommon"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scaling": {
+      "counters": {},
+      "increments": [
+        {
+          "on": "round_end",
+          "addSellPriceBoonsAndConsumables": 1
+        }
+      ]
+    },
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonBuzzName",
+    "descriptionKey": "boonBuzzDescription",
+    "spriteId": "boonBuzzSprite",
+    "tags": [
+      {
+        "tagType": "uncommon",
+        "tagLocKey": "core__adjective__uncommon"
+      }
+    ]
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "id": "hacker",
+  "metadata": {
+    "nameKey": "boonHackerName",
+    "descriptionKey": "boonHackerDescription",
+    "spriteId": "hacker",
+    "tags": []
+  },
+  "properties": {
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "hacker_random_points_per_block_on_placement",
+        "phase": "on_placement",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.pendingPoints",
+            "value": "randInt(1, 31) * {payload.placement.lockPieceBlockCount}"
+          }
+        ]
+      }
+    ]
+  }
+}

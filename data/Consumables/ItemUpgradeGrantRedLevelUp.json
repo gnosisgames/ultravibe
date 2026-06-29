@@ -1,0 +1,36 @@
+{
+  "id": "ItemUpgradeGrantRedLevelUp",
+  "properties": {
+    "basePrice": 8,
+    "offerChancePermille": 120,
+    "invocations": [
+      {
+        "service": "Audio",
+        "function": "PlaySound",
+        "parameters": {
+          "clipId": "consumableSfx",
+          "track": "Sfx"
+        }
+      },
+      {
+        "service": "Upgrade",
+        "function": "AddUpgrade",
+        "parameters": {
+          "categoryId": "itemUpgrades",
+          "upgradeId": "RedLevelUp"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "item_upgrade_grant"
+    ]
+  },
+  "metadata": {
+    "nameKey": "itemUpgradeRedName",
+    "descriptionKey": "itemUpgradeRedDescription",
+    "spriteId": "upgradeRedLevelUpSprite",
+    "backgroundColor": "#7A1F1F",
+    "tags": [],
+    "grantItemUpgradeId": "RedLevelUp"
+  }
+}

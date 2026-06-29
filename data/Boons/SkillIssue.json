@@ -1,0 +1,42 @@
+{
+  "id": "SkillIssue",
+  "properties": {
+    "gameplayTags": [
+      "rare"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "skill_issue_axis_match5_mult_resolve",
+        "phase": "resolve_step",
+        "when": "{payload.score.lastAxisStraightMatch5OrLonger} > 0",
+        "parameters": {
+          "trigger": "match_component"
+        },
+        "outcomes": [
+          {
+            "op": "multiply",
+            "target": "score.multiTotal",
+            "value": "5"
+          }
+        ]
+      }
+    ],
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonSkillIssueName",
+    "descriptionKey": "boonSkillIssueDescription",
+    "spriteId": "boonSkillIssueSprite",
+    "tags": [
+      {
+        "tagType": "rare",
+        "tagLocKey": "core__adjective__rare"
+      }
+    ]
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "id": "microchip",
+  "metadata": {
+    "nameKey": "boonMicrochipName",
+    "descriptionKey": "boonMicrochipDescription",
+    "spriteId": "microchip",
+    "tags": []
+  },
+  "properties": {
+    "effectApplication": "perInstance",
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "spawnConversions": [
+      {
+        "id": "microchip_blue_to_cog",
+        "match": {
+          "color": "blue"
+        },
+        "set": {
+          "variantId": "cog"
+        },
+        "chanceOneIn": 3
+      }
+    ],
+    "scoreCalculations": [],
+    "gameplayTags": [
+      "includeSpecialUltravibes"
+    ]
+  }
+}

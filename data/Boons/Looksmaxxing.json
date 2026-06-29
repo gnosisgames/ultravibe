@@ -1,0 +1,45 @@
+{
+  "id": "Looksmaxxing",
+  "properties": {
+    "gameplayTags": [
+      "uncommon"
+    ],
+    "effectApplication": "perInstance",
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scaling": {
+      "counters": {
+        "looksmaxxingEnhancedAddedLifetime": 0
+      }
+    },
+    "scoreCalculations": [
+      {
+        "id": "looksmaxxing_enhanced_added_scaling_mult",
+        "phase": "finalize",
+        "outcomes": [
+          {
+            "op": "multiply",
+            "target": "score.multiTotal",
+            "value": "1 + 0.25 * {parameters.boonSlot.properties.scaling.counters.looksmaxxingEnhancedAddedLifetime}"
+          }
+        ],
+        "parameters": {}
+      }
+    ],
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonLooksmaxxingName",
+    "descriptionKey": "boonLooksmaxxingDescription",
+    "spriteId": "boonLooksmaxxingSprite",
+    "tags": [
+      {
+        "tagType": "uncommon",
+        "tagLocKey": "core__adjective__uncommon"
+      }
+    ]
+  }
+}

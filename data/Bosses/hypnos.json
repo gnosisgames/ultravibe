@@ -1,0 +1,40 @@
+{
+  "id": "hypnos",
+  "metadata": {
+    "nameKey": "hypnosLevelName",
+    "descriptionKey": "hypnosLevelDescription",
+    "spriteId": "hypnos",
+    "tags": [],
+    "startingLetter": "\\u03A5",
+    "textColor": "#4A6FFF"
+  },
+  "properties": {
+    "themeId": "boss_hypnos",
+    "onRoundStartInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "ApplyEffect",
+        "parameters": {
+          "effectId": "UnreliableInputs",
+          "denyPercent": 15,
+          "roundsLifetime": 1
+        }
+      }
+    ],
+    "onRoundEndInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "RemoveEffect",
+        "parameters": {
+          "effectId": "UnreliableInputs"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "boss",
+      "hard",
+      "includeBosses"
+    ],
+    "minimumTimeSec": 480
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "id": "Backstabber",
+  "properties": {
+    "gameplayTags": [
+      "legendary"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "effectApplication": "catalogOnce",
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonBackstabberName",
+    "descriptionKey": "boonBackstabberDescription",
+    "spriteId": "boonBackstabberSprite",
+    "tags": [
+      {
+        "tagType": "legendary",
+        "tagLocKey": "core__adjective__legendary"
+      }
+    ]
+  }
+}

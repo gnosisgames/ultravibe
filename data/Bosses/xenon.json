@@ -1,0 +1,40 @@
+{
+  "id": "xenon",
+  "metadata": {
+    "nameKey": "xenonLevelName",
+    "descriptionKey": "xenonLevelDescription",
+    "spriteId": "xenon",
+    "tags": [],
+    "startingLetter": "\\u03A7",
+    "textColor": "#2AFF7A"
+  },
+  "properties": {
+    "themeId": "boss_xenon",
+    "onRoundStartInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "ApplyEffect",
+        "parameters": {
+          "effectId": "ConvertRandomBlockToNegativeOnPlacement",
+          "roundsLifetime": 1
+        }
+      }
+    ],
+    "onRoundEndInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "RemoveEffect",
+        "parameters": {
+          "effectId": "ConvertRandomBlockToNegativeOnPlacement"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "boss",
+      "hard",
+      "includeBosses",
+      "includeNegatives"
+    ],
+    "minimumTimeSec": 480
+  }
+}

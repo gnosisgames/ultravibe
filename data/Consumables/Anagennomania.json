@@ -1,0 +1,32 @@
+{
+  "id": "Anagennomania",
+  "properties": {
+    "basePrice": 5,
+    "offerChancePermille": 40,
+    "invocations": [
+      {
+        "service": "Audio",
+        "function": "PlaySound",
+        "parameters": {
+          "clipId": "consumableSfx",
+          "track": "Sfx"
+        }
+      },
+      {
+        "service": "Match3",
+        "function": "RerollUpcomingBossRound",
+        "parameters": {}
+      }
+    ],
+    "gameplayTags": [
+      "mania"
+    ]
+  },
+  "metadata": {
+    "nameKey": "consumableAnagennomaniaName",
+    "descriptionKey": "consumableAnagennomaniaDescription",
+    "spriteId": "consumableAnagennomaniaSprite",
+    "backgroundColor": "#540D81",
+    "tags": []
+  }
+}

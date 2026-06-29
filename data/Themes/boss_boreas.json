@@ -1,0 +1,19 @@
+{
+  "id": "boss_boreas",
+  "background.main": "#3A383A",
+  "background.subtle": "#5A585F",
+  "background.on": "#1D1C1D",
+  "accent.neon": "#7A788A",
+  "primary.main": "#4A4854",
+  "primary.shade": "#35343C",
+  "grid.border": "#6A6874",
+  "score.main": "#7A788A",
+  "score.glow": "#7A788A",
+  "grid.main": "#7A788A",
+  "environment.ground": "#3A383A",
+  "environment.parallax": "#7A788A",
+  "material.id": "interStellar",
+  "background.grid.alpha": 64,
+  "grid.lines.alpha": 8,
+  "primary.neon": "#7A788A"
+}

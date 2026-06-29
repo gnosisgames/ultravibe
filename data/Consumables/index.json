@@ -1,0 +1,128 @@
+{
+  "consumables": [
+    {
+      "id": "Asteromania",
+      "path": "Asteromania.json"
+    },
+    {
+      "id": "Phobomania",
+      "path": "Phobomania.json"
+    },
+    {
+      "id": "Morphomania",
+      "path": "Morphomania.json"
+    },
+    {
+      "id": "Chrysomania",
+      "path": "Chrysomania.json"
+    },
+    {
+      "id": "Echomania",
+      "path": "Echomania.json"
+    },
+    {
+      "id": "Ploutomania",
+      "path": "Ploutomania.json"
+    },
+    {
+      "id": "Ferromania",
+      "path": "Ferromania.json"
+    },
+    {
+      "id": "Genomania",
+      "path": "Genomania.json"
+    },
+    {
+      "id": "Kratomania",
+      "path": "Kratomania.json"
+    },
+    {
+      "id": "Kybomania",
+      "path": "Kybomania.json"
+    },
+    {
+      "id": "ItemUpgradeGrantBlueLevelUp",
+      "path": "ItemUpgradeGrantBlueLevelUp.json"
+    },
+    {
+      "id": "ItemUpgradeGrantGreenLevelUp",
+      "path": "ItemUpgradeGrantGreenLevelUp.json"
+    },
+    {
+      "id": "ItemUpgradeGrantOrangeLevelUp",
+      "path": "ItemUpgradeGrantOrangeLevelUp.json"
+    },
+    {
+      "id": "ItemUpgradeGrantPinkLevelUp",
+      "path": "ItemUpgradeGrantPinkLevelUp.json"
+    },
+    {
+      "id": "ItemUpgradeGrantPurpleLevelUp",
+      "path": "ItemUpgradeGrantPurpleLevelUp.json"
+    },
+    {
+      "id": "ItemUpgradeGrantRedLevelUp",
+      "path": "ItemUpgradeGrantRedLevelUp.json"
+    },
+    {
+      "id": "Logomania",
+      "path": "Logomania.json"
+    },
+    {
+      "id": "Chaomania",
+      "path": "Chaomania.json"
+    },
+    {
+      "id": "Rubymania",
+      "path": "Rubymania.json"
+    },
+    {
+      "id": "Sapphiromania",
+      "path": "Sapphiromania.json"
+    },
+    {
+      "id": "Tychomania",
+      "path": "Tychomania.json"
+    },
+    {
+      "id": "Vibemania",
+      "path": "Vibemania.json"
+    },
+    {
+      "id": "Heteromania",
+      "path": "Heteromania.json"
+    },
+    {
+      "id": "Oligomania",
+      "path": "Oligomania.json"
+    },
+    {
+      "id": "Hyperomania",
+      "path": "Hyperomania.json"
+    },
+    {
+      "id": "Cyclomania",
+      "path": "Cyclomania.json"
+    },
+    {
+      "id": "Doromania",
+      "path": "Doromania.json"
+    },
+    {
+      "id": "Anagennomania",
+      "path": "Anagennomania.json"
+    },
+    {
+      "id": "Beltiomania",
+      "path": "Beltiomania.json"
+    },
+    {
+      "id": "Tachymania",
+      "path": "Tachymania.json"
+    },
+    {
+      "id": "Cookiemania",
+      "path": "Cookiemania.json"
+    }
+  ]
+}

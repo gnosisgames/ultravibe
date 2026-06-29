@@ -1,0 +1,16 @@
+{
+  "gameFlags__enable__original_only": "Enable original shapes only",
+  "gameFlags__enable__include_negatives": "Enable negative blocks",
+  "gameFlags__enable__negative_only": "Enable negative blocks only",
+  "gameFlags__enable__max_speed_only": "Enable max speed only",
+  "gameFlags__enable__include_special_ultravibes": "Enable special ultravibes",
+  "gameFlags__enable__include_bosses": "Enable bosses",
+  "gameFlags__enable__boss_only": "Enable boss only",
+  "gameFlags__enable__include_rewards": "Enable rewards",
+  "gameFlags__enable__include_boons": "Enable boons",
+  "gameFlags__enable__include_consumables": "Enable consumables",
+  "gameFlags__enable__include_upgrades": "Enable upgrades",
+  "gameFlags__enable__include_abilities": "Enable abilities",
+  "gameFlags__enable__include_discards": "Enable discards",
+  "gameFlags__enable__infinite_discards": "Enable infinite discards"
+}

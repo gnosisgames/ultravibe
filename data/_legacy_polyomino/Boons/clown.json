@@ -1,0 +1,26 @@
+{
+  "id": "clown",
+  "metadata": {
+    "nameKey": "boonClownName",
+    "descriptionKey": "boonClownDescription",
+    "spriteId": "clown",
+    "tags": []
+  },
+  "properties": {
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "clown_add_pending_points_per_rotation_on_placement",
+        "phase": "on_placement",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.pendingPoints",
+            "value": "3 * {payload.placement.rotationCount}"
+          }
+        ]
+      }
+    ]
+  }
+}

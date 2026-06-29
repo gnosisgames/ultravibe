@@ -1,0 +1,30 @@
+{
+  "id": "lucky777",
+  "metadata": {
+    "nameKey": "boonLucky777Name",
+    "descriptionKey": "boonLucky777Description",
+    "spriteId": "lucky777",
+    "tags": []
+  },
+  "properties": {
+    "effectApplication": "perInstance",
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "spawnConversions": [
+      {
+        "id": "lucky777_orange_to_lucky",
+        "match": {
+          "color": "orange"
+        },
+        "set": {
+          "variantId": "lucky"
+        },
+        "chanceOneIn": 3
+      }
+    ],
+    "scoreCalculations": [],
+    "gameplayTags": [
+      "includeSpecialUltravibes"
+    ]
+  }
+}

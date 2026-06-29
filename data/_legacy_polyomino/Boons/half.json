@@ -1,0 +1,80 @@
+{
+  "id": "half",
+  "metadata": {
+    "nameKey": "boonHalfName",
+    "descriptionKey": "boonHalfDescription",
+    "spriteId": "half",
+    "tags": []
+  },
+  "properties": {
+    "onActivateInvocations": [
+      {
+        "service": "Rule",
+        "function": "AddRule",
+        "parameters": {
+          "definition": {
+            "id": "boon_half_spawnDisabled",
+            "category": "INTERCEPTOR",
+            "trigger": "REQUEST_FALLING_BLOCK_SPAWN_PIECE",
+            "conditions": [
+              {
+                "path": "payload.variantTags.negative",
+                "op": "EQUALS",
+                "value": true
+              },
+              {
+                "path": "payload.variantId",
+                "op": "NOT_EQUALS",
+                "value": "disabled"
+              },
+              {
+                "path": "",
+                "op": "CHANCE_PERCENT",
+                "value": {
+                  "fromContext": "parameters.chancePercent"
+                }
+              }
+            ],
+            "outcomes": [
+              {
+                "type": "SET",
+                "target": "variantId",
+                "value": "disabled"
+              }
+            ],
+            "parameters": {
+              "chancePercent": 20
+            }
+          }
+        }
+      }
+    ],
+    "onDeactivateInvocations": [
+      {
+        "service": "Rule",
+        "function": "RemoveRuleById",
+        "parameters": {
+          "ruleId": "boon_half_spawnDisabled"
+        }
+      }
+    ],
+    "scoreCalculations": [
+      {
+        "id": "half_add_multi_per_disabled_block_on_line_clear",
+        "phase": "on_line_clear",
+        "when": "{payload.rawLinesCleared} >= 1",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.multiTotal",
+            "value": "4 * {payload.lineClear.tags.disabled}"
+          }
+        ]
+      }
+    ],
+    "gameplayTags": [
+      "includeNegatives",
+      "includeSpecialUltravibes"
+    ]
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "id": "titanos",
+  "metadata": {
+    "nameKey": "titanosLevelName",
+    "descriptionKey": "titanosLevelDescription",
+    "spriteId": "titanos",
+    "tags": [],
+    "startingLetter": "\\u03A4",
+    "textColor": "#9F7A7A"
+  },
+  "properties": {
+    "themeId": "boss_titanos",
+    "onRoundStartInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "ApplyEffect",
+        "parameters": {
+          "effectId": "AutoDropAfterDelay",
+          "delaySeconds": 4,
+          "roundsLifetime": 1
+        }
+      }
+    ],
+    "onRoundEndInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "RemoveEffect",
+        "parameters": {
+          "effectId": "AutoDropAfterDelay"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "boss",
+      "hard",
+      "includeBosses"
+    ],
+    "minimumTimeSec": 480
+  }
+}

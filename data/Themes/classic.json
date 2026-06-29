@@ -1,0 +1,16 @@
+{
+  "id": "classic",
+  "background.main": "#346855",
+  "background.subtle": "#88C070",
+  "background.on": "#346856",
+  "accent.neon": "#E0F8D0",
+  "primary.main": "#88C070",
+  "primary.shade": "#628A51",
+  "grid.border": "#65FF00",
+  "fx.main": "#FFFFFF",
+  "score.main": "#65FF00",
+  "score.glow": "#65FF00",
+  "background.grid.alpha": 32,
+  "grid.lines.alpha": 4,
+  "primary.neon": "#E0F8D0"
+}

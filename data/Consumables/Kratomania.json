@@ -1,0 +1,70 @@
+{
+  "id": "Kratomania",
+  "properties": {
+    "basePrice": 5,
+    "offerChancePermille": 30,
+    "invocations": [
+      {
+        "service": "Upgrade",
+        "function": "AddUpgrade",
+        "parameters": {
+          "categoryId": "itemUpgrades",
+          "upgradeId": "RedLevelUp"
+        }
+      },
+      {
+        "service": "Upgrade",
+        "function": "AddUpgrade",
+        "parameters": {
+          "categoryId": "itemUpgrades",
+          "upgradeId": "OrangeLevelUp"
+        }
+      },
+      {
+        "service": "Upgrade",
+        "function": "AddUpgrade",
+        "parameters": {
+          "categoryId": "itemUpgrades",
+          "upgradeId": "PurpleLevelUp"
+        }
+      },
+      {
+        "service": "Upgrade",
+        "function": "AddUpgrade",
+        "parameters": {
+          "categoryId": "itemUpgrades",
+          "upgradeId": "BlueLevelUp"
+        }
+      },
+      {
+        "service": "Upgrade",
+        "function": "AddUpgrade",
+        "parameters": {
+          "categoryId": "itemUpgrades",
+          "upgradeId": "GreenLevelUp"
+        }
+      },
+      {
+        "service": "Upgrade",
+        "function": "AddUpgrade",
+        "parameters": {
+          "categoryId": "itemUpgrades",
+          "upgradeId": "PinkLevelUp"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "mania",
+      "roundAction"
+    ]
+  },
+  "metadata": {
+    "nameKey": "consumableKratomaniaName",
+    "descriptionKey": "consumableKratomaniaDescription",
+    "spriteId": "consumableKratomaniaSprite",
+    "backgroundColor": "#540D81",
+    "tags": [
+      "rare"
+    ]
+  }
+}

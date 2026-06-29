@@ -1,0 +1,140 @@
+{
+  "themes": [
+    {
+      "id": "normal",
+      "path": "normal.json"
+    },
+    {
+      "id": "classic",
+      "path": "classic.json"
+    },
+    {
+      "id": "golden",
+      "path": "golden.json"
+    },
+    {
+      "id": "tech",
+      "path": "tech.json"
+    },
+    {
+      "id": "light",
+      "path": "light.json"
+    },
+    {
+      "id": "obsidian",
+      "path": "obsidian.json"
+    },
+    {
+      "id": "orange",
+      "path": "orange.json"
+    },
+    {
+      "id": "velvet",
+      "path": "velvet.json"
+    },
+    {
+      "id": "bronze",
+      "path": "bronze.json"
+    },
+    {
+      "id": "opposite",
+      "path": "opposite.json"
+    },
+    {
+      "id": "boss_hypnos",
+      "path": "boss_hypnos.json"
+    },
+    {
+      "id": "boss_titanos",
+      "path": "boss_titanos.json"
+    },
+    {
+      "id": "boss_xenon",
+      "path": "boss_xenon.json"
+    },
+    {
+      "id": "boss_persephone",
+      "path": "boss_persephone.json"
+    },
+    {
+      "id": "boss_boreas",
+      "path": "boss_boreas.json"
+    },
+    {
+      "id": "boss_zeus",
+      "path": "boss_zeus.json"
+    },
+    {
+      "id": "boss_ares",
+      "path": "boss_ares.json"
+    },
+    {
+      "id": "boss_minotaur",
+      "path": "boss_minotaur.json"
+    },
+    {
+      "id": "boss_nemesis",
+      "path": "boss_nemesis.json"
+    },
+    {
+      "id": "boss_dionysus",
+      "path": "boss_dionysus.json"
+    },
+    {
+      "id": "boss_themis",
+      "path": "boss_themis.json"
+    },
+    {
+      "id": "boss_gaia",
+      "path": "boss_gaia.json"
+    },
+    {
+      "id": "boss_chaos",
+      "path": "boss_chaos.json"
+    },
+    {
+      "id": "boss_oceanus",
+      "path": "boss_oceanus.json"
+    },
+    {
+      "id": "boss_helios",
+      "path": "boss_helios.json"
+    },
+    {
+      "id": "boss_riza",
+      "path": "boss_riza.json"
+    },
+    {
+      "id": "boss_psyche",
+      "path": "boss_psyche.json"
+    },
+    {
+      "id": "boss_fates",
+      "path": "boss_fates.json"
+    },
+    {
+      "id": "boss_satyr",
+      "path": "boss_satyr.json"
+    },
+    {
+      "id": "boss_olympus",
+      "path": "boss_olympus.json"
+    },
+    {
+      "id": "boss_icarus",
+      "path": "boss_icarus.json"
+    },
+    {
+      "id": "boss_erebos",
+      "path": "boss_erebos.json"
+    },
+    {
+      "id": "boss_kronos",
+      "path": "boss_kronos.json"
+    },
+    {
+      "id": "boss_logos",
+      "path": "boss_logos.json"
+    }
+  ]
+}

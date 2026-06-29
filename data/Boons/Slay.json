@@ -1,0 +1,51 @@
+{
+  "id": "Slay",
+  "properties": {
+    "gameplayTags": [
+      "legendary"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scaling": {
+      "counters": {
+        "slayItemsDestroyedLifetime": 0
+      },
+      "increments": [
+        {
+          "on": "move_finalize",
+          "from": "score.destroyedCount",
+          "counter": "slayItemsDestroyedLifetime"
+        }
+      ]
+    },
+    "scoreCalculations": [
+      {
+        "id": "slay_items_destroyed_scaling_mult",
+        "phase": "finalize",
+        "outcomes": [
+          {
+            "op": "multiply",
+            "target": "score.multiTotal",
+            "value": "1 + floor({parameters.boonSlot.properties.scaling.counters.slayItemsDestroyedLifetime} / 40)"
+          }
+        ],
+        "parameters": {}
+      }
+    ],
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonSlayName",
+    "descriptionKey": "boonSlayDescription",
+    "spriteId": "boonSlaySprite",
+    "tags": [
+      {
+        "tagType": "legendary",
+        "tagLocKey": "core__adjective__legendary"
+      }
+    ]
+  }
+}

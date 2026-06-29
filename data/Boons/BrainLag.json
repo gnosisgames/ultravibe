@@ -1,0 +1,39 @@
+{
+  "id": "BrainLag",
+  "properties": {
+    "gameplayTags": [
+      "rare"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "brainlag_rand_mult_finalize",
+        "phase": "finalize",
+        "outcomes": [
+          {
+            "op": "multiply",
+            "target": "score.multiTotal",
+            "value": "randFloat(0.2, 4.0)"
+          }
+        ],
+        "parameters": {}
+      }
+    ],
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonBrainLagName",
+    "descriptionKey": "boonBrainLagDescription",
+    "spriteId": "boonBrainLagSprite",
+    "tags": [
+      {
+        "tagType": "rare",
+        "tagLocKey": "core__adjective__rare"
+      }
+    ]
+  }
+}

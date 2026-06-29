@@ -1,0 +1,19 @@
+{
+  "id": "roundAcceleratorUpgrade",
+  "metadata": {
+    "nameKey": "roundAcceleratorUpgradeName",
+    "descriptionKey": "roundAcceleratorUpgradeDescription",
+    "tags": [
+      {
+        "tagType": "upgrade",
+        "tagLocKey": "core__verb__upgrade"
+      }
+    ],
+    "spriteId": "runUpgradeGoldenRocketSprite"
+  },
+  "properties": {
+    "maxCount": 4,
+    "applyInvocationsPerStack": true,
+    "invocations": []
+  }
+}

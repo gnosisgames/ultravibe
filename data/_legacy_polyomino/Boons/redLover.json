@@ -1,0 +1,26 @@
+{
+  "id": "redLover",
+  "metadata": {
+    "nameKey": "boonRedLoverName",
+    "descriptionKey": "boonRedLoverDescription",
+    "spriteId": "redLover",
+    "tags": []
+  },
+  "properties": {
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "red_lover_add_pending_multi_per_red_block_on_placement",
+        "phase": "on_placement",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.pendingMulti",
+            "value": "3 * {payload.placement.tags.color_red}"
+          }
+        ]
+      }
+    ]
+  }
+}

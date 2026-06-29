@@ -1,0 +1,42 @@
+{
+  "id": "Freeze",
+  "properties": {
+    "gameplayTags": [
+      "common"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "freeze_cold_palette_mult",
+        "phase": "resolve_step",
+        "when": "{payload.score.lastDestroyedIsCold} > 0",
+        "parameters": {
+          "trigger": "item_destroyed"
+        },
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.multiTotal",
+            "value": "4 * {payload.score.coldDestroyedCount}"
+          }
+        ]
+      }
+    ],
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonFreezeName",
+    "descriptionKey": "boonFreezeDescription",
+    "spriteId": "boonFreezeSprite",
+    "tags": [
+      {
+        "tagType": "common",
+        "tagLocKey": "core__adjective__common"
+      }
+    ]
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "id": "Nerd",
+  "properties": {
+    "gameplayTags": [
+      "common"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "nerd_single_color_multi_bonus",
+        "phase": "finalize",
+        "when": "{payload.score.destroyedDistinctItemIdCount} == 1 && {payload.score.destroyedCount} > 0",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.multiTotal",
+            "value": "16"
+          }
+        ],
+        "parameters": {}
+      }
+    ],
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonNerdName",
+    "descriptionKey": "boonNerdDescription",
+    "spriteId": "boonNerdSprite",
+    "tags": [
+      {
+        "tagType": "common",
+        "tagLocKey": "core__adjective__common"
+      }
+    ]
+  }
+}

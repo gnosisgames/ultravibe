@@ -1,0 +1,63 @@
+{
+  "id": "meownacci",
+  "metadata": {
+    "nameKey": "boonMeownacciName",
+    "descriptionKey": "boonMeownacciDescription",
+    "spriteId": "meownacci",
+    "tags": []
+  },
+  "properties": {
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "meownacci_add_multi_on_2_block_placement",
+        "phase": "on_placement",
+        "when": "{payload.placement.lockPieceBlockCount} == 2",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.pendingMulti",
+            "value": "21"
+          }
+        ]
+      },
+      {
+        "id": "meownacci_add_multi_on_3_block_placement",
+        "phase": "on_placement",
+        "when": "{payload.placement.lockPieceBlockCount} == 3",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.pendingMulti",
+            "value": "21"
+          }
+        ]
+      },
+      {
+        "id": "meownacci_add_multi_on_5_block_placement",
+        "phase": "on_placement",
+        "when": "{payload.placement.lockPieceBlockCount} == 5",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.pendingMulti",
+            "value": "21"
+          }
+        ]
+      },
+      {
+        "id": "meownacci_add_multi_on_8_block_placement",
+        "phase": "on_placement",
+        "when": "{payload.placement.lockPieceBlockCount} == 8",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.pendingMulti",
+            "value": "21"
+          }
+        ]
+      }
+    ]
+  }
+}

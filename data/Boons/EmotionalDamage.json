@@ -1,0 +1,14 @@
+{
+  "id": "EmotionalDamage",
+  "properties": {
+    "gameplayTags": [],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": []
+  },
+  "metadata": {
+    "nameKey": "boonEmotionalDamageName",
+    "descriptionKey": "boonEmotionalDamageDescription",
+    "spriteId": "boonEmotionalDamageSprite",
+    "tags": []
+  }
+}

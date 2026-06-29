@@ -1,0 +1,27 @@
+{
+  "id": "BrickLevelUp",
+  "metadata": {
+    "nameKey": "itemUpgradeBrickName",
+    "descriptionKey": "itemUpgradeBrickDescription",
+    "spriteId": "itemUpgradeBrickSprite",
+    "tags": []
+  },
+  "properties": {
+    "maxCount": 999999,
+    "applyInvocationsPerStack": true,
+    "invocations": [
+      {
+        "service": "FallingBlock",
+        "function": "AddVariantLevelDelta",
+        "parameters": {
+          "variantId": "brick",
+          "delta": 1
+        }
+      }
+    ],
+    "gameplayTags": [
+      "variant_level",
+      "includeSpecialUltravibes"
+    ]
+  }
+}

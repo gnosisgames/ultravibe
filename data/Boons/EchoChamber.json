@@ -1,0 +1,40 @@
+{
+  "id": "EchoChamber",
+  "properties": {
+    "gameplayTags": [
+      "common"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "echo_chamber_two_straight_match3_points",
+        "phase": "finalize",
+        "when": "{payload.score.axisStraightMatch3Count} >= 2",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.pointsTotal",
+            "value": "80"
+          }
+        ],
+        "parameters": {}
+      }
+    ],
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonEchoChamberName",
+    "descriptionKey": "boonEchoChamberDescription",
+    "spriteId": "boonEchoChamberSprite",
+    "tags": [
+      {
+        "tagType": "common",
+        "tagLocKey": "core__adjective__common"
+      }
+    ]
+  }
+}

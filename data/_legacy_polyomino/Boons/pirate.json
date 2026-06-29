@@ -1,0 +1,32 @@
+{
+  "id": "pirate",
+  "metadata": {
+    "nameKey": "boonPirateName",
+    "descriptionKey": "boonPirateDescription",
+    "spriteId": "pirate",
+    "tags": []
+  },
+  "properties": {
+    "effectApplication": "perInstance",
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "pirate_add_pending_points_on_trash_placement",
+        "phase": "on_placement",
+        "when": "{payload.placement.tags.discardable} >= 1",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.pendingPoints",
+            "value": "12"
+          }
+        ]
+      }
+    ],
+    "gameplayTags": [
+      "includeDiscards",
+      "includeSpecialUltravibes"
+    ]
+  }
+}

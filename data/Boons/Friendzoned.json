@@ -1,0 +1,42 @@
+{
+  "id": "Friendzoned",
+  "properties": {
+    "gameplayTags": [
+      "rare"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "friendzoned_axis_match3_mult_resolve",
+        "phase": "resolve_step",
+        "when": "{payload.score.lastAxisStraightMatch3} > 0",
+        "parameters": {
+          "trigger": "match_component"
+        },
+        "outcomes": [
+          {
+            "op": "multiply",
+            "target": "score.multiTotal",
+            "value": "3"
+          }
+        ]
+      }
+    ],
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonFriendzonedName",
+    "descriptionKey": "boonFriendzonedDescription",
+    "spriteId": "boonFriendzonedSprite",
+    "tags": [
+      {
+        "tagType": "rare",
+        "tagLocKey": "core__adjective__rare"
+      }
+    ]
+  }
+}

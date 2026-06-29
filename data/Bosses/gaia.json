@@ -1,0 +1,41 @@
+{
+  "id": "gaia",
+  "metadata": {
+    "nameKey": "gaiaLevelName",
+    "descriptionKey": "gaiaLevelDescription",
+    "spriteId": "gaia",
+    "tags": [],
+    "startingLetter": "\\u0393",
+    "textColor": "#5A9A8A"
+  },
+  "properties": {
+    "themeId": "boss_gaia",
+    "onRoundStartInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "ApplyEffect",
+        "parameters": {
+          "effectId": "ReplaceBaseColorWithNegativeOnSpawn",
+          "baseColor": "green",
+          "roundsLifetime": 1
+        }
+      }
+    ],
+    "onRoundEndInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "RemoveEffect",
+        "parameters": {
+          "effectId": "ReplaceBaseColorWithNegativeOnSpawn"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "boss",
+      "easy",
+      "includeBosses",
+      "includeNegatives"
+    ],
+    "minimumTimeSec": 0
+  }
+}

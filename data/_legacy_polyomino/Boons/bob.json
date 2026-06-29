@@ -1,0 +1,17 @@
+{
+  "id": "bob",
+  "metadata": {
+    "nameKey": "boonBobName",
+    "descriptionKey": "boonBobDescription",
+    "spriteId": "bob",
+    "tags": []
+  },
+  "properties": {
+    "effectApplication": "perInstance",
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "gameplayTags": [
+      "includeSpecialUltravibes"
+    ]
+  }
+}

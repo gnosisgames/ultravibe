@@ -1,0 +1,40 @@
+{
+  "id": "kronos",
+  "metadata": {
+    "nameKey": "kronosLevelName",
+    "descriptionKey": "kronosLevelDescription",
+    "spriteId": "kronos",
+    "tags": [],
+    "startingLetter": "\\u039A",
+    "textColor": "#FFB85A"
+  },
+  "properties": {
+    "themeId": "boss_kronos",
+    "onRoundStartInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "ApplyEffect",
+        "parameters": {
+          "effectId": "ReduceGravitySpeed",
+          "fallSpeedDelta": 1,
+          "roundsLifetime": 1
+        }
+      }
+    ],
+    "onRoundEndInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "RemoveEffect",
+        "parameters": {
+          "effectId": "ReduceGravitySpeed"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "boss",
+      "medium",
+      "includeBosses"
+    ],
+    "minimumTimeSec": 240
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "id": "boss_oceanus",
+  "background.main": "#4A6A8F",
+  "background.subtle": "#6FAAD9",
+  "background.on": "#253546",
+  "accent.neon": "#7ACFFF",
+  "primary.main": "#7FBAE6",
+  "primary.shade": "#5B86A6",
+  "grid.border": "#9AD9FF",
+  "score.main": "#7ACFFF",
+  "score.glow": "#7ACFFF",
+  "grid.main": "#7ACFFF",
+  "environment.ground": "#2A68B0",
+  "environment.parallax": "#003959",
+  "material.id": "punked",
+  "background.grid.alpha": 64,
+  "grid.lines.alpha": 8,
+  "primary.neon": "#7ACFFF"
+}

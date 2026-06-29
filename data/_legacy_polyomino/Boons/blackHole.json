@@ -1,0 +1,29 @@
+{
+  "id": "blackHole",
+  "metadata": {
+    "nameKey": "boonBlackHoleName",
+    "descriptionKey": "boonBlackHoleDescription",
+    "spriteId": "blackHole",
+    "tags": []
+  },
+  "properties": {
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "black_hole_add_pending_points_per_discard_used_on_placement",
+        "phase": "on_placement",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.pendingPoints",
+            "value": "{ephemeral.statistics.totalDiscardsUsed}"
+          }
+        ]
+      }
+    ],
+    "gameplayTags": [
+      "includeDiscards"
+    ]
+  }
+}

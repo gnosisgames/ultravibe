@@ -1,0 +1,30 @@
+{
+  "id": "bush",
+  "metadata": {
+    "nameKey": "boonBushName",
+    "descriptionKey": "boonBushDescription",
+    "spriteId": "bush",
+    "tags": []
+  },
+  "properties": {
+    "effectApplication": "perInstance",
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "spawnConversions": [
+      {
+        "id": "bush_green_to_moss",
+        "match": {
+          "color": "green"
+        },
+        "set": {
+          "variantId": "moss"
+        },
+        "chanceOneIn": 4
+      }
+    ],
+    "scoreCalculations": [],
+    "gameplayTags": [
+      "includeSpecialUltravibes"
+    ]
+  }
+}

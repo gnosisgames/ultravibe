@@ -1,0 +1,26 @@
+{
+  "id": "miner",
+  "metadata": {
+    "nameKey": "boonMinerName",
+    "descriptionKey": "boonMinerDescription",
+    "spriteId": "miner",
+    "tags": []
+  },
+  "properties": {
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "miner_add_multi_per_blocks_hundreds_on_placement",
+        "phase": "on_placement",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.pendingMulti",
+            "value": "1 + floor((2 * {ephemeral.statistics.tetris.ultravibePlaced.blockCount.blocks2} + 3 * {ephemeral.statistics.tetris.ultravibePlaced.blockCount.blocks3} + 4 * {ephemeral.statistics.tetris.ultravibePlaced.blockCount.blocks4} + 5 * {ephemeral.statistics.tetris.ultravibePlaced.blockCount.blocks5} + 6 * {ephemeral.statistics.tetris.ultravibePlaced.blockCount.blocks6} + 7 * {ephemeral.statistics.tetris.ultravibePlaced.blockCount.blocks7} + 8 * {ephemeral.statistics.tetris.ultravibePlaced.blockCount.blocks8} + 9 * {ephemeral.statistics.tetris.ultravibePlaced.blockCount.blocks9}) / 100)"
+          }
+        ]
+      }
+    ]
+  }
+}

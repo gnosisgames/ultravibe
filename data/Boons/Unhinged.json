@@ -1,0 +1,14 @@
+{
+  "id": "Unhinged",
+  "properties": {
+    "gameplayTags": [],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": []
+  },
+  "metadata": {
+    "nameKey": "boonUnhingedName",
+    "descriptionKey": "boonUnhingedDescription",
+    "spriteId": "boonUnhingedSprite",
+    "tags": []
+  }
+}

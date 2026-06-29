@@ -1,0 +1,37 @@
+{
+  "id": "Ploutomania",
+  "properties": {
+    "basePrice": 5,
+    "offerChancePermille": 150,
+    "invocations": [
+      {
+        "service": "Audio",
+        "function": "PlaySound",
+        "parameters": {
+          "clipId": "consumableSfx",
+          "track": "Sfx"
+        }
+      },
+      {
+        "service": "Currency",
+        "function": "MultiplyCurrencyBalanceWithCap",
+        "parameters": {
+          "currencyId": "money",
+          "multiplier": 2,
+          "cap": 25
+        }
+      }
+    ],
+    "gameplayTags": [
+      "mania",
+      "roundAction"
+    ]
+  },
+  "metadata": {
+    "nameKey": "consumablePloutomaniaName",
+    "descriptionKey": "consumablePloutomaniaDescription",
+    "spriteId": "consumablePloutomaniaSprite",
+    "backgroundColor": "#540D81",
+    "tags": []
+  }
+}

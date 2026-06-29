@@ -1,0 +1,26 @@
+{
+  "id": "cookie",
+  "metadata": {
+    "nameKey": "boonCookieName",
+    "descriptionKey": "boonCookieDescription",
+    "spriteId": "cookie",
+    "tags": []
+  },
+  "properties": {
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "cookie_add_multi_per_run_minute_on_placement",
+        "phase": "on_placement",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.pendingMulti",
+            "value": "floor({ephemeral.timers.tetrisRunElapsed.value} / 60)"
+          }
+        ]
+      }
+    ]
+  }
+}

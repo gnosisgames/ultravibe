@@ -1,0 +1,13 @@
+{
+  "id": "includeSpecialUltravibes",
+  "metadata": {
+    "nameKey": "gameFlags__enable__include_special_ultravibes",
+    "tags": []
+  },
+  "properties": {
+    "flagKey": "includeSpecialUltravibes",
+    "defaultValue": true,
+    "kind": "include",
+    "settingsPath": "settings.overrides.fallingBlock.gameFlags.includeSpecialUltravibes"
+  }
+}

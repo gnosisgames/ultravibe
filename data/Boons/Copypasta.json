@@ -1,0 +1,40 @@
+{
+  "id": "Copypasta",
+  "properties": {
+    "gameplayTags": [
+      "common"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "copypasta_two_match3_bonus_multi",
+        "phase": "finalize",
+        "when": "{payload.score.axisStraightMatch3Count} >= 2",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.multiTotal",
+            "value": "12"
+          }
+        ],
+        "parameters": {}
+      }
+    ],
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonCopypastaName",
+    "descriptionKey": "boonCopypastaDescription",
+    "spriteId": "boonCopypastaSprite",
+    "tags": [
+      {
+        "tagType": "common",
+        "tagLocKey": "core__adjective__common"
+      }
+    ]
+  }
+}

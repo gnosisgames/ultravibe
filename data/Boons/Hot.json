@@ -1,0 +1,42 @@
+{
+  "id": "Hot",
+  "properties": {
+    "gameplayTags": [
+      "common"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "hot_warm_palette_points",
+        "phase": "resolve_step",
+        "when": "{payload.score.lastDestroyedIsWarm} > 0",
+        "parameters": {
+          "trigger": "item_destroyed"
+        },
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.pointsTotal",
+            "value": "21 * {payload.score.warmDestroyedCount}"
+          }
+        ]
+      }
+    ],
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonHotName",
+    "descriptionKey": "boonHotDescription",
+    "spriteId": "boonHotSprite",
+    "tags": [
+      {
+        "tagType": "common",
+        "tagLocKey": "core__adjective__common"
+      }
+    ]
+  }
+}

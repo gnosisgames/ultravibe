@@ -1,0 +1,19 @@
+{
+  "id": "boss_riza",
+  "background.main": "#2A523F",
+  "background.subtle": "#4A7A6F",
+  "background.on": "#15291F",
+  "accent.neon": "#5ABF9F",
+  "primary.main": "#3A6A5F",
+  "primary.shade": "#2A4C44",
+  "grid.border": "#4F8F7F",
+  "score.main": "#5ABF9F",
+  "score.glow": "#5ABF9F",
+  "grid.main": "#064B35",
+  "environment.ground": "#0D5935",
+  "environment.parallax": "#01AB74",
+  "material.id": "flowerShop",
+  "background.grid.alpha": 64,
+  "grid.lines.alpha": 8,
+  "primary.neon": "#5ABF9F"
+}

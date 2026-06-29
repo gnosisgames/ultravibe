@@ -1,0 +1,14 @@
+{
+  "id": "normal",
+  "metadata": {
+    "nameKey": "normalLevelName",
+    "descriptionKey": "normalLevelDescription",
+    "tags": [],
+    "startingLetter": "#",
+    "textColor": "#ffffff"
+  },
+  "properties": {
+    "onRoundStartInvocations": [],
+    "onRoundEndInvocations": []
+  }
+}

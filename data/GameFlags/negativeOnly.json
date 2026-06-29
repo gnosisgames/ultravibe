@@ -1,0 +1,14 @@
+{
+  "id": "negativeOnly",
+  "metadata": {
+    "nameKey": "gameFlags__enable__negative_only",
+    "tags": []
+  },
+  "properties": {
+    "flagKey": "negativeOnly",
+    "defaultValue": false,
+    "kind": "only",
+    "settingsPath": "settings.overrides.fallingBlock.gameFlags.negativeOnly",
+    "requiresFlag": "includeNegatives"
+  }
+}

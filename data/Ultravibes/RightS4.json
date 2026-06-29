@@ -1,0 +1,9 @@
+{
+  "id": "RightS4",
+  "displayName": "Right S",
+  "prefabPath": "Prefabs/Ultravibes/Positive/RightS4",
+  "blocksCount": 4,
+  "tags": [
+    "basic"
+  ]
+}

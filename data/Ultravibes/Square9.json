@@ -1,0 +1,11 @@
+{
+  "id": "Square9",
+  "displayName": "Square 9",
+  "prefabPath": "Prefabs/Ultravibes/Negative/Square9",
+  "blocksCount": 9,
+  "tags": [
+    "square",
+    "vertical",
+    "symmetric"
+  ]
+}

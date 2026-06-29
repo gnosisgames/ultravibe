@@ -1,0 +1,14 @@
+{
+  "id": "SayWhat",
+  "properties": {
+    "gameplayTags": [],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": []
+  },
+  "metadata": {
+    "nameKey": "boonSayWhatName",
+    "descriptionKey": "boonSayWhatDescription",
+    "spriteId": "boonSayWhatSprite",
+    "tags": []
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "id": "helios",
+  "metadata": {
+    "nameKey": "heliosLevelName",
+    "descriptionKey": "heliosLevelDescription",
+    "spriteId": "helios",
+    "tags": [],
+    "startingLetter": "\\u0397",
+    "textColor": "#FFB83A"
+  },
+  "properties": {
+    "themeId": "boss_helios",
+    "onRoundStartInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "ApplyEffect",
+        "parameters": {
+          "effectId": "ReplaceBaseColorWithNegativeOnSpawn",
+          "baseColor": "orange",
+          "roundsLifetime": 1
+        }
+      }
+    ],
+    "onRoundEndInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "RemoveEffect",
+        "parameters": {
+          "effectId": "ReplaceBaseColorWithNegativeOnSpawn"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "boss",
+      "easy",
+      "includeBosses",
+      "includeNegatives"
+    ],
+    "minimumTimeSec": 0
+  }
+}

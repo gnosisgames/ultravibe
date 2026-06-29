@@ -1,0 +1,44 @@
+{
+  "id": "Viral",
+  "properties": {
+    "gameplayTags": [
+      "uncommon"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [],
+    "contributionEchoes": [
+      {
+        "id": "viral_common_trigger_addmult",
+        "listen": {
+          "source": "boon_score_step",
+          "contributor": "other_boon",
+          "contributorGameplayTag": "common",
+          "excludeSelf": true
+        },
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.multiTotal",
+            "value": "8"
+          }
+        ]
+      }
+    ],
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonViralName",
+    "descriptionKey": "boonViralDescription",
+    "spriteId": "boonViralSprite",
+    "tags": [
+      {
+        "tagType": "uncommon",
+        "tagLocKey": "core__adjective__uncommon"
+      }
+    ]
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "boonCookieName": "Cookie Time",
+  "boonCookieDescription": "Earn $1 at end of round. Increases by $2 when a Boss is defeated",
+  "boonAllinName": "All In",
+  "boonAllinDescription": "Adds X4 Mult on final move of round",
+  "boonOffgridName": "Offgrid",
+  "boonOffgridDescription": "Aggiunge <point>+${arg:scoreCalculationValue1} Points</point> a fine mossa (un punto per casella)",
+  "boonClickbaitName": "Clickbait",
+  "boonClickbaitDescription": "Aggiunge <multi>+2 Multi</multi> per ogni rilancio del negozio in questa run (attuale <multi>+${arg:scoreCalculationValue1} Multi</multi>)"
+}

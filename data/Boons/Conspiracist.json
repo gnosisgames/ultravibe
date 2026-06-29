@@ -1,0 +1,40 @@
+{
+  "id": "Conspiracist",
+  "properties": {
+    "gameplayTags": [
+      "rare"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "conspiracist_enhanced_floor_threshold_mult",
+        "phase": "finalize",
+        "when": "{ephemeral.statistics.match3.floorModifiers.tiles.enhanced} >= 16",
+        "outcomes": [
+          {
+            "op": "multiply",
+            "target": "score.multiTotal",
+            "value": "4"
+          }
+        ],
+        "parameters": {}
+      }
+    ],
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonConspiracistName",
+    "descriptionKey": "boonConspiracistDescription",
+    "spriteId": "boonConspiracistSprite",
+    "tags": [
+      {
+        "tagType": "rare",
+        "tagLocKey": "core__adjective__rare"
+      }
+    ]
+  }
+}

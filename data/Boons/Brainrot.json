@@ -1,0 +1,57 @@
+{
+  "id": "Brainrot",
+  "properties": {
+    "gameplayTags": [
+      "common"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scaling": {
+      "counters": {
+        "brainrotProcTier": 0
+      }
+    },
+    "scoreCalculations": [
+      {
+        "id": "brainrot_scaling_mult",
+        "phase": "finalize",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.multiTotal",
+            "value": "10 * (1 + {parameters.boonSlot.properties.scaling.counters.brainrotProcTier})"
+          }
+        ],
+        "parameters": {}
+      },
+      {
+        "id": "brainrot_chance_scale",
+        "phase": "finalize",
+        "when": "randInt(1, 10) == 1",
+        "outcomes": [],
+        "incrementScalingCountersAfterApply": [
+          {
+            "counter": "brainrotProcTier",
+            "delta": 1
+          }
+        ],
+        "parameters": {}
+      }
+    ],
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonBrainrotName",
+    "descriptionKey": "boonBrainrotDescription",
+    "spriteId": "boonBrainrotSprite",
+    "tags": [
+      {
+        "tagType": "common",
+        "tagLocKey": "core__adjective__common"
+      }
+    ]
+  }
+}

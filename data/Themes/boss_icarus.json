@@ -1,0 +1,19 @@
+{
+  "id": "boss_icarus",
+  "background.main": "#5A7A8F",
+  "background.subtle": "#7FAFCF",
+  "background.on": "#2D3A4A",
+  "accent.neon": "#AAFFFF",
+  "primary.main": "#8FBFDF",
+  "primary.shade": "#678AA1",
+  "grid.border": "#B5EFFF",
+  "score.main": "#AAFFFF",
+  "score.glow": "#AAFFFF",
+  "grid.main": "#AAFFFF",
+  "environment.ground": "#5A7A8F",
+  "environment.parallax": "#00A8FF",
+  "material.id": "vapor",
+  "background.grid.alpha": 64,
+  "grid.lines.alpha": 8,
+  "primary.neon": "#AAFFFF"
+}

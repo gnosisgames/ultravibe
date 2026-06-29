@@ -1,0 +1,155 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="FontFile" path="res://assets/fonts/Comic Lemon.otf" id="1"]
+[ext_resource type="Script" path="res://game/ui/widgets/rounded_square_btn.gd" id="2"]
+[ext_resource type="Texture2D" path="res://assets/ui/lexispell/rounded_triangle.png" id="3"]
+[ext_resource type="PackedScene" path="res://game/ui/widgets/tooltip_popup.tscn" id="4"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_normal"]
+content_margin_left = 10.0
+content_margin_right = 10.0
+bg_color = Color(0.345098, 0.345098, 0.572549, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+corner_detail = 12
+shadow_color = Color(0.0784314, 0.137255, 0.227451, 1)
+shadow_size = 1
+shadow_offset = Vector2(3, 4)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pressed"]
+content_margin_left = 10.0
+content_margin_right = 10.0
+bg_color = Color(0.278431, 0.278431, 0.439216, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+corner_detail = 12
+shadow_color = Color(0.0784314, 0.137255, 0.227451, 1)
+shadow_size = 1
+shadow_offset = Vector2(3, 4)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hover"]
+content_margin_left = 10.0
+content_margin_right = 10.0
+bg_color = Color(0.415686, 0.415686, 0.658824, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.180392, 0.160784, 0.321569, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+corner_detail = 12
+shadow_color = Color(0.0784314, 0.137255, 0.227451, 1)
+shadow_size = 1
+shadow_offset = Vector2(3, 4)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_disabled"]
+content_margin_left = 10.0
+content_margin_right = 10.0
+bg_color = Color(0.38, 0.38, 0.38, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+corner_detail = 12
+shadow_color = Color(0.27, 0.27, 0.27, 1)
+shadow_size = 1
+shadow_offset = Vector2(3, 4)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_focus"]
+content_margin_left = 10.0
+content_margin_right = 10.0
+bg_color = Color(0.345098, 0.345098, 0.572549, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.180392, 0.160784, 0.321569, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+corner_detail = 12
+shadow_color = Color(0.0784314, 0.137255, 0.227451, 1)
+shadow_size = 1
+shadow_offset = Vector2(3, 4)
+
+[node name="RoundedSquareBtn" type="Button"]
+custom_minimum_size = Vector2(64, 64)
+offset_right = 64.0
+offset_bottom = 64.0
+size_flags_horizontal = 3
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.992157, 0.894118, 0.72549, 1)
+theme_override_colors/font_focus_color = Color(0.992157, 0.894118, 0.72549, 1)
+theme_override_colors/font_pressed_color = Color(0.992157, 0.894118, 0.72549, 1)
+theme_override_colors/font_hover_color = Color(0.992157, 0.894118, 0.72549, 1)
+theme_override_colors/font_hover_pressed_color = Color(0.992157, 0.894118, 0.72549, 1)
+theme_override_colors/font_disabled_color = Color(0.65, 0.65, 0.65, 1)
+theme_override_fonts/font = ExtResource("1")
+theme_override_font_sizes/font_size = 26
+theme_override_styles/normal = SubResource("StyleBoxFlat_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_hover")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_disabled")
+theme_override_styles/focus = SubResource("StyleBoxFlat_focus")
+shortcut_in_tooltip = false
+text = "BTN"
+script = ExtResource("2")
+
+[node name="Icon" type="TextureRect" parent="."]
+visible = false
+self_modulate = Color(0.992157, 0.894118, 0.72549, 1)
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_left = 1.0
+offset_top = 12.0
+offset_right = 41.0
+offset_bottom = -12.0
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("3")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="RichTextLabel" type="RichTextLabel" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_colors/default_color = Color(0.992157, 0.894118, 0.72549, 1)
+theme_override_fonts/normal_font = ExtResource("1")
+theme_override_font_sizes/normal_font_size = 26
+bbcode_enabled = true
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TooltipPopup" parent="." instance=ExtResource("4")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = 12.0
+offset_top = -24.0
+offset_right = 216.0
+offset_bottom = 24.0
+appear_auto = true
+target = NodePath("..")
+pivot_side = 2
+
+[connection signal="pressed" from="." to="." method="_on_pressed"]

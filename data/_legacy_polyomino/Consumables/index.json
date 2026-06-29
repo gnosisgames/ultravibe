@@ -1,0 +1,96 @@
+{
+  "consumables": [
+    {
+      "id": "brickgon",
+      "path": "brickgon.json"
+    },
+    {
+      "id": "coggon",
+      "path": "coggon.json"
+    },
+    {
+      "id": "slimegon",
+      "path": "slimegon.json"
+    },
+    {
+      "id": "mossgon",
+      "path": "mossgon.json"
+    },
+    {
+      "id": "heartgon",
+      "path": "heartgon.json"
+    },
+    {
+      "id": "honeygon",
+      "path": "honeygon.json"
+    },
+    {
+      "id": "trashgon",
+      "path": "trashgon.json"
+    },
+    {
+      "id": "luckygon",
+      "path": "luckygon.json"
+    },
+    {
+      "id": "bluegon",
+      "path": "bluegon.json"
+    },
+    {
+      "id": "greengon",
+      "path": "greengon.json"
+    },
+    {
+      "id": "orangegon",
+      "path": "orangegon.json"
+    },
+    {
+      "id": "redgon",
+      "path": "redgon.json"
+    },
+    {
+      "id": "rip",
+      "path": "rip.json"
+    },
+    {
+      "id": "mirror",
+      "path": "mirror.json"
+    },
+    {
+      "id": "bomba",
+      "path": "bomba.json"
+    },
+    {
+      "id": "feather",
+      "path": "feather.json"
+    },
+    {
+      "id": "butterfly",
+      "path": "butterfly.json"
+    },
+    {
+      "id": "morph",
+      "path": "morph.json"
+    },
+    {
+      "id": "trashcan",
+      "path": "trashcan.json"
+    },
+    {
+      "id": "luckyBlock",
+      "path": "luckyBlock.json"
+    },
+    {
+      "id": "leaf",
+      "path": "leaf.json"
+    },
+    {
+      "id": "trophy",
+      "path": "trophy.json"
+    },
+    {
+      "id": "balloon",
+      "path": "balloon.json"
+    }
+  ]
+}

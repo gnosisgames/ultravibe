@@ -1,0 +1,34 @@
+{
+  "id": "Hippie",
+  "properties": {
+    "gameplayTags": [
+      "common"
+    ],
+    "effectApplication": "perInstance",
+    "match3RoundEffectId": "hippie_round_shuffle_bonus",
+    "onActivateInvocations": [
+      {
+        "service": "Match3",
+        "function": "SyncEquippedBoonMatch3RoundEffects",
+        "parameters": {}
+      }
+    ],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [],
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonHippieName",
+    "descriptionKey": "boonHippieDescription",
+    "spriteId": "boonHippieSprite",
+    "tags": [
+      {
+        "tagType": "common",
+        "tagLocKey": "core__adjective__common"
+      }
+    ]
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "Incognito",
+  "properties": {
+    "gameplayTags": [],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": []
+  },
+  "metadata": {
+    "nameKey": "boonIncognitoName",
+    "descriptionKey": "boonIncognitoDescription",
+    "spriteId": "boonIncognitoSprite",
+    "tags": []
+  }
+}

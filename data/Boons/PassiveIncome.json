@@ -1,0 +1,27 @@
+{
+  "id": "PassiveIncome",
+  "properties": {
+    "gameplayTags": [
+      "common"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [],
+    "effectApplication": "perInstance",
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonPassiveIncomeName",
+    "descriptionKey": "boonPassiveIncomeDescription",
+    "spriteId": "boonPassiveIncomeSprite",
+    "tags": [
+      {
+        "tagType": "common",
+        "tagLocKey": "core__adjective__common"
+      }
+    ]
+  }
+}

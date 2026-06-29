@@ -1,0 +1,42 @@
+{
+  "id": "Aura",
+  "properties": {
+    "gameplayTags": [
+      "common"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "aura_axis_match5_multi_bonus",
+        "phase": "resolve_step",
+        "when": "{payload.score.lastAxisStraightMatch5OrLonger} > 0",
+        "parameters": {
+          "trigger": "match_component"
+        },
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.multiTotal",
+            "value": "32"
+          }
+        ]
+      }
+    ],
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonAuraName",
+    "descriptionKey": "boonAuraDescription",
+    "spriteId": "boonAuraSprite",
+    "tags": [
+      {
+        "tagType": "common",
+        "tagLocKey": "core__adjective__common"
+      }
+    ]
+  }
+}

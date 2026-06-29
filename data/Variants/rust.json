@@ -1,0 +1,16 @@
+{
+  "id": "rust",
+  "nameKey": "rustName",
+  "descriptionKey": "rustDescription",
+  "spriteId": "rustBlock",
+  "color": "3D0B49",
+  "tags": [
+    "negative",
+    "immutable",
+    "hard",
+    "contagious"
+  ],
+  "basePoints": -18,
+  "baseMulti": -3,
+  "contagiousSpreadChancePercent": 8
+}

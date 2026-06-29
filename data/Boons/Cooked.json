@@ -1,0 +1,42 @@
+{
+  "id": "Cooked",
+  "properties": {
+    "gameplayTags": [
+      "rare"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "cooked_axis_match4_mult_resolve",
+        "phase": "resolve_step",
+        "when": "{payload.score.lastAxisStraightMatch4} > 0",
+        "parameters": {
+          "trigger": "match_component"
+        },
+        "outcomes": [
+          {
+            "op": "multiply",
+            "target": "score.multiTotal",
+            "value": "4"
+          }
+        ]
+      }
+    ],
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonCookedName",
+    "descriptionKey": "boonCookedDescription",
+    "spriteId": "boonCookedSprite",
+    "tags": [
+      {
+        "tagType": "rare",
+        "tagLocKey": "core__adjective__rare"
+      }
+    ]
+  }
+}

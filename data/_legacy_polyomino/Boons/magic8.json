@@ -1,0 +1,17 @@
+{
+  "id": "magic8",
+  "metadata": {
+    "nameKey": "boonMagic8Name",
+    "descriptionKey": "boonMagic8Description",
+    "spriteId": "magic8",
+    "tags": []
+  },
+  "properties": {
+    "effectApplication": "perInstance",
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "gameplayTags": [
+      "includeConsumables"
+    ]
+  }
+}

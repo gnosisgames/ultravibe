@@ -1,0 +1,38 @@
+{
+  "id": "Hyperomania",
+  "properties": {
+    "basePrice": 5,
+    "offerChancePermille": 5,
+    "invocations": [
+      {
+        "service": "Audio",
+        "function": "PlaySound",
+        "parameters": {
+          "clipId": "consumableSfx",
+          "track": "Sfx"
+        }
+      },
+      {
+        "service": "Match3",
+        "function": "RollRandomBoon",
+        "parameters": {
+          "bucketId": "default",
+          "requiredTag": "legendary",
+          "count": 1
+        }
+      }
+    ],
+    "gameplayTags": [
+      "mania"
+    ]
+  },
+  "metadata": {
+    "nameKey": "consumableHyperomaniaName",
+    "descriptionKey": "consumableHyperomaniaDescription",
+    "spriteId": "consumableHyperomaniaSprite",
+    "backgroundColor": "#C62828",
+    "tags": [
+      "legendary"
+    ]
+  }
+}

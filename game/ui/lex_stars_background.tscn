@@ -1,0 +1,44 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/ui/lexispell/star_128.png" id="1"]
+[ext_resource type="Shader" path="res://assets/shaders/scale_scroll_texture.gdshader" id="2"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_stars"]
+shader = ExtResource("2")
+shader_parameter/tile_texture = ExtResource("1")
+shader_parameter/tile_factor = 6.0
+shader_parameter/scrolling_speed = 0.15
+shader_parameter/scrolling_dir = Vector2(0.3, 0.7)
+
+[node name="LexStarsBackground" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="ColorBG" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.08, 0.12, 0.2, 1)
+
+[node name="Stars" type="TextureRect" parent="."]
+modulate = Color(0.345098, 0.345098, 0.572549, 0.35)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("1")
+expand_mode = 1
+stretch_mode = 6
+material = SubResource("ShaderMaterial_stars")

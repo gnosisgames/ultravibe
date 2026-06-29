@@ -1,0 +1,14 @@
+{
+  "id": "Ghosted",
+  "properties": {
+    "gameplayTags": [],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": []
+  },
+  "metadata": {
+    "nameKey": "boonGhostedName",
+    "descriptionKey": "boonGhostedDescription",
+    "spriteId": "boonGhostedSprite",
+    "tags": []
+  }
+}

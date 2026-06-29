@@ -1,0 +1,39 @@
+{
+  "id": "fates",
+  "metadata": {
+    "nameKey": "fatesLevelName",
+    "descriptionKey": "fatesLevelDescription",
+    "spriteId": "fates",
+    "tags": [],
+    "startingLetter": "\\u03A6",
+    "textColor": "#6C65D2"
+  },
+  "properties": {
+    "themeId": "boss_fates",
+    "onRoundStartInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "ApplyEffect",
+        "parameters": {
+          "effectId": "GhostOnly",
+          "roundsLifetime": 1
+        }
+      }
+    ],
+    "onRoundEndInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "RemoveEffect",
+        "parameters": {
+          "effectId": "GhostOnly"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "boss",
+      "medium",
+      "includeBosses"
+    ],
+    "minimumTimeSec": 240
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "id": "jester",
+  "metadata": {
+    "nameKey": "boonJesterName",
+    "descriptionKey": "boonJesterDescription",
+    "spriteId": "jester",
+    "tags": []
+  },
+  "properties": {
+    "effectApplication": "perInstance",
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "spawnConversions": [
+      {
+        "id": "jester_random_positive_variant",
+        "match": {},
+        "set": {
+          "variantIds": [
+            "lucky",
+            "honeycomb",
+            "brick",
+            "slime",
+            "trash",
+            "heart",
+            "moss",
+            "cog"
+          ]
+        },
+        "chanceOneIn": 4
+      }
+    ],
+    "scoreCalculations": [],
+    "gameplayTags": [
+      "includeSpecialUltravibes"
+    ]
+  }
+}

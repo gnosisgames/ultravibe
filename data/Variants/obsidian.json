@@ -1,0 +1,15 @@
+{
+  "id": "obsidian",
+  "nameKey": "obsidianName",
+  "descriptionKey": "obsidianDescription",
+  "spriteId": "obsidianBlock",
+  "color": "3D0B49",
+  "tags": [
+    "negative",
+    "rigid",
+    "soft",
+    "eternal"
+  ],
+  "basePoints": -50,
+  "baseMulti": 0
+}

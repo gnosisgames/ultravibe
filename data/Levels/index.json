@@ -1,0 +1,8 @@
+{
+  "levels": [
+    {
+      "id": "normal",
+      "path": "normal.json"
+    }
+  ]
+}

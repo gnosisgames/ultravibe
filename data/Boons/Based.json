@@ -1,0 +1,37 @@
+{
+  "id": "Based",
+  "properties": {
+    "gameplayTags": [
+      "uncommon"
+    ],
+    "effectApplication": "perInstance",
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "matchFloorConversions": [
+      {
+        "id": "axis_line_5_gold",
+        "matchShapes": [
+          "StraightLineHorizontalFive",
+          "StraightLineVerticalFive"
+        ],
+        "floorTypeId": "Gold",
+        "replaceExisting": true
+      }
+    ],
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonBasedName",
+    "descriptionKey": "boonBasedDescription",
+    "spriteId": "boonBasedSprite",
+    "tags": [
+      {
+        "tagType": "uncommon",
+        "tagLocKey": "core__adjective__uncommon"
+      }
+    ]
+  }
+}

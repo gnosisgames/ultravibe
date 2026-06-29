@@ -1,0 +1,80 @@
+{
+  "variants": [
+    {
+      "id": "disabled",
+      "path": "disabled.json"
+    },
+    {
+      "id": "ghost",
+      "path": "ghost.json"
+    },
+    {
+      "id": "blue",
+      "path": "blue.json"
+    },
+    {
+      "id": "green",
+      "path": "green.json"
+    },
+    {
+      "id": "orange",
+      "path": "orange.json"
+    },
+    {
+      "id": "red",
+      "path": "red.json"
+    },
+    {
+      "id": "lucky",
+      "path": "lucky.json"
+    },
+    {
+      "id": "honeycomb",
+      "path": "honeycomb.json"
+    },
+    {
+      "id": "brick",
+      "path": "brick.json"
+    },
+    {
+      "id": "slime",
+      "path": "slime.json"
+    },
+    {
+      "id": "trash",
+      "path": "trash.json"
+    },
+    {
+      "id": "heart",
+      "path": "heart.json"
+    },
+    {
+      "id": "moss",
+      "path": "moss.json"
+    },
+    {
+      "id": "heartless",
+      "path": "heartless.json"
+    },
+    {
+      "id": "rust",
+      "path": "rust.json"
+    },
+    {
+      "id": "blightmoss",
+      "path": "blightmoss.json"
+    },
+    {
+      "id": "obsidian",
+      "path": "obsidian.json"
+    },
+    {
+      "id": "thief",
+      "path": "thief.json"
+    },
+    {
+      "id": "cog",
+      "path": "cog.json"
+    }
+  ]
+}

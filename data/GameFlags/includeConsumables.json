@@ -1,0 +1,13 @@
+{
+  "id": "includeConsumables",
+  "metadata": {
+    "nameKey": "gameFlags__enable__include_consumables",
+    "tags": []
+  },
+  "properties": {
+    "flagKey": "includeConsumables",
+    "defaultValue": true,
+    "kind": "include",
+    "settingsPath": "settings.overrides.fallingBlock.gameFlags.includeConsumables"
+  }
+}

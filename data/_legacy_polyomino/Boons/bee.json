@@ -1,0 +1,30 @@
+{
+  "id": "bee",
+  "metadata": {
+    "nameKey": "boonBeeName",
+    "descriptionKey": "boonBeeDescription",
+    "spriteId": "bee",
+    "tags": []
+  },
+  "properties": {
+    "effectApplication": "perInstance",
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "spawnConversions": [
+      {
+        "id": "bee_orange_to_honeycomb",
+        "match": {
+          "color": "orange"
+        },
+        "set": {
+          "variantId": "honeycomb"
+        },
+        "chanceOneIn": 5
+      }
+    ],
+    "scoreCalculations": [],
+    "gameplayTags": [
+      "includeSpecialUltravibes"
+    ]
+  }
+}

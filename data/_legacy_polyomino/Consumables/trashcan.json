@@ -1,0 +1,31 @@
+{
+  "id": "trashcan",
+  "metadata": {
+    "nameKey": "consumableTrashcanName",
+    "descriptionKey": "consumableTrashcanDescription",
+    "spriteId": "consumableTrashcanSprite",
+    "tags": []
+  },
+  "properties": {
+    "invocations": [
+      {
+        "service": "FallingBlock",
+        "function": "AddDiscards",
+        "parameters": {
+          "amount": 3
+        }
+      },
+      {
+        "service": "Animation",
+        "function": "PlayFeedback",
+        "parameters": {
+          "id": "trashcan"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "utilities",
+      "includeDiscards"
+    ]
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "LoveBombing",
+  "properties": {
+    "gameplayTags": [],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": []
+  },
+  "metadata": {
+    "nameKey": "boonLoveBombingName",
+    "descriptionKey": "boonLoveBombingDescription",
+    "spriteId": "boonLoveBombingSprite",
+    "tags": []
+  }
+}

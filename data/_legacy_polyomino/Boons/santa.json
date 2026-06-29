@@ -1,0 +1,17 @@
+{
+  "id": "santa",
+  "metadata": {
+    "nameKey": "boonSantaName",
+    "descriptionKey": "boonSantaDescription",
+    "spriteId": "santa",
+    "tags": []
+  },
+  "properties": {
+    "effectApplication": "perInstance",
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "gameplayTags": [
+      "includeConsumables"
+    ]
+  }
+}

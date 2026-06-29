@@ -1,0 +1,51 @@
+{
+  "id": "Meow",
+  "properties": {
+    "gameplayTags": [
+      "common"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scaling": {
+      "counters": {
+        "luckyTriggersLifetime": 0
+      },
+      "increments": [
+        {
+          "on": "resolve_step",
+          "from": "score.cellFloorLuckySuccessfulTriggerCount",
+          "counter": "luckyTriggersLifetime"
+        }
+      ]
+    },
+    "scoreCalculations": [
+      {
+        "id": "meow_lucky_scaling_mult",
+        "phase": "finalize",
+        "outcomes": [
+          {
+            "op": "multiply",
+            "target": "score.multiTotal",
+            "value": "1 + 0.25 * {parameters.boonSlot.properties.scaling.counters.luckyTriggersLifetime}"
+          }
+        ],
+        "parameters": {}
+      }
+    ],
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonMeowName",
+    "descriptionKey": "boonMeowDescription",
+    "spriteId": "boonMeowSprite",
+    "tags": [
+      {
+        "tagType": "common",
+        "tagLocKey": "core__adjective__common"
+      }
+    ]
+  }
+}

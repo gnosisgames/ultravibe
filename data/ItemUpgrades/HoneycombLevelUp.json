@@ -1,0 +1,27 @@
+{
+  "id": "HoneycombLevelUp",
+  "metadata": {
+    "nameKey": "itemUpgradeHoneycombName",
+    "descriptionKey": "itemUpgradeHoneycombDescription",
+    "spriteId": "itemUpgradeHoneycombSprite",
+    "tags": []
+  },
+  "properties": {
+    "maxCount": 999999,
+    "applyInvocationsPerStack": true,
+    "invocations": [
+      {
+        "service": "FallingBlock",
+        "function": "AddVariantLevelDelta",
+        "parameters": {
+          "variantId": "honeycomb",
+          "delta": 1
+        }
+      }
+    ],
+    "gameplayTags": [
+      "variant_level",
+      "includeSpecialUltravibes"
+    ]
+  }
+}

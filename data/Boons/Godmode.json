@@ -1,0 +1,45 @@
+{
+  "id": "Godmode",
+  "properties": {
+    "gameplayTags": [
+      "rare"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "godmode_x4_mult_finalize",
+        "phase": "finalize",
+        "outcomes": [
+          {
+            "op": "multiply",
+            "target": "score.multiTotal",
+            "value": "4"
+          }
+        ],
+        "parameters": {}
+      }
+    ],
+    "selfDestruct": {
+      "trigger": "round_end",
+      "chanceNumerator": 1,
+      "chanceDenominator": 1000,
+      "onlyBossRounds": false
+    },
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonGodmodeName",
+    "descriptionKey": "boonGodmodeDescription",
+    "spriteId": "boonGodmodeSprite",
+    "tags": [
+      {
+        "tagType": "rare",
+        "tagLocKey": "core__adjective__rare"
+      }
+    ]
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "id": "mushroom",
+  "metadata": {
+    "nameKey": "boonMushroomName",
+    "descriptionKey": "boonMushroomDescription",
+    "spriteId": "mushroom",
+    "tags": []
+  },
+  "properties": {
+    "effectApplication": "perInstance",
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "mushroom_add_pending_multi_on_consumable_use",
+        "phase": "on_consumable_use",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.pendingMulti",
+            "value": "4"
+          }
+        ]
+      }
+    ],
+    "gameplayTags": [
+      "includeConsumables",
+      "includeDiscards"
+    ]
+  }
+}

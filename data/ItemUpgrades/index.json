@@ -1,0 +1,52 @@
+{
+  "itemUpgrades": [
+    {
+      "id": "BlueLevelUp",
+      "path": "BlueLevelUp.json"
+    },
+    {
+      "id": "GreenLevelUp",
+      "path": "GreenLevelUp.json"
+    },
+    {
+      "id": "OrangeLevelUp",
+      "path": "OrangeLevelUp.json"
+    },
+    {
+      "id": "RedLevelUp",
+      "path": "RedLevelUp.json"
+    },
+    {
+      "id": "LuckyLevelUp",
+      "path": "LuckyLevelUp.json"
+    },
+    {
+      "id": "SlimeLevelUp",
+      "path": "SlimeLevelUp.json"
+    },
+    {
+      "id": "MossLevelUp",
+      "path": "MossLevelUp.json"
+    },
+    {
+      "id": "BrickLevelUp",
+      "path": "BrickLevelUp.json"
+    },
+    {
+      "id": "TrashLevelUp",
+      "path": "TrashLevelUp.json"
+    },
+    {
+      "id": "HoneycombLevelUp",
+      "path": "HoneycombLevelUp.json"
+    },
+    {
+      "id": "HeartLevelUp",
+      "path": "HeartLevelUp.json"
+    },
+    {
+      "id": "CogLevelUp",
+      "path": "CogLevelUp.json"
+    }
+  ]
+}

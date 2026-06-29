@@ -1,0 +1,17 @@
+{
+  "id": "bounty",
+  "metadata": {
+    "nameKey": "boonBountyName",
+    "descriptionKey": "boonBountyDescription",
+    "spriteId": "bounty",
+    "tags": []
+  },
+  "properties": {
+    "effectApplication": "perInstance",
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "gameplayTags": [
+      "includeSpecialUltravibes"
+    ]
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "id": "butterfly",
+  "metadata": {
+    "nameKey": "consumableButterflyName",
+    "descriptionKey": "consumableButterflyDescription",
+    "spriteId": "consumableButterflySprite",
+    "tags": []
+  },
+  "properties": {
+    "invocations": [
+      {
+        "service": "FallingBlock",
+        "function": "MirrorRightHalfToLeftAndClear",
+        "parameters": {}
+      },
+      {
+        "service": "Audio",
+        "function": "PlaySound",
+        "parameters": {
+          "clipId": "butterflyConsumable",
+          "track": "Sfx"
+        }
+      },
+      {
+        "service": "Animation",
+        "function": "InstantiateParticle",
+        "parameters": {
+          "id": "butterflies",
+          "poolId": "butterflies",
+          "particlesPrefabId": "butterflies",
+          "objectPoolSize": 3,
+          "transform": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          }
+        }
+      },
+      {
+        "service": "Haptic",
+        "function": "PlayPreset",
+        "parameters": {
+          "preset": "HeavyImpact"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "board",
+      "includeSpecialUltravibes"
+    ]
+  }
+}

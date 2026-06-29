@@ -1,0 +1,27 @@
+{
+  "id": "cuddler",
+  "metadata": {
+    "nameKey": "boonCuddlerName",
+    "descriptionKey": "boonCuddlerDescription",
+    "spriteId": "cuddler",
+    "tags": []
+  },
+  "properties": {
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "cuddler_add_pending_multi_on_placement_without_border_touch",
+        "phase": "on_placement",
+        "when": "{payload.placement.touchesBorder} == 0",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.pendingMulti",
+            "value": "12"
+          }
+        ]
+      }
+    ]
+  }
+}

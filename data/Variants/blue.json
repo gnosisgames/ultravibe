@@ -1,0 +1,16 @@
+{
+  "id": "blue",
+  "nameKey": "blueName",
+  "descriptionKey": "blueDescription",
+  "spriteId": "blueBlock",
+  "color": "00CDF9",
+  "tags": [
+    "neutral",
+    "soft",
+    "color_blue"
+  ],
+  "basePoints": 10,
+  "baseMulti": 1,
+  "pointsPerLevel": 4,
+  "multiPerLevel": 4
+}

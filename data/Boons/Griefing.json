@@ -1,0 +1,45 @@
+{
+  "id": "Griefing",
+  "properties": {
+    "gameplayTags": [
+      "rare"
+    ],
+    "effectApplication": "perInstance",
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scaling": {
+      "counters": {
+        "griefingEnhancedGriefedLifetime": 0
+      }
+    },
+    "scoreCalculations": [
+      {
+        "id": "griefing_enhanced_pre_score_mult",
+        "phase": "finalize",
+        "outcomes": [
+          {
+            "op": "multiply",
+            "target": "score.multiTotal",
+            "value": "1 + 0.1 * {parameters.boonSlot.properties.scaling.counters.griefingEnhancedGriefedLifetime}"
+          }
+        ],
+        "parameters": {}
+      }
+    ],
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonGriefingName",
+    "descriptionKey": "boonGriefingDescription",
+    "spriteId": "boonGriefingSprite",
+    "tags": [
+      {
+        "tagType": "rare",
+        "tagLocKey": "core__adjective__rare"
+      }
+    ]
+  }
+}

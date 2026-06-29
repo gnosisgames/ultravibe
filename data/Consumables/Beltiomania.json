@@ -1,0 +1,34 @@
+{
+  "id": "Beltiomania",
+  "properties": {
+    "basePrice": 5,
+    "offerChancePermille": 40,
+    "invocations": [
+      {
+        "service": "Audio",
+        "function": "PlaySound",
+        "parameters": {
+          "clipId": "consumableSfx",
+          "track": "Sfx"
+        }
+      },
+      {
+        "service": "Match3",
+        "function": "GrantRandomRunUpgrade",
+        "parameters": {
+          "categoryId": "run"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "mania"
+    ]
+  },
+  "metadata": {
+    "nameKey": "consumableBeltiomaniaName",
+    "descriptionKey": "consumableBeltiomaniaDescription",
+    "spriteId": "consumableBeltiomaniaSprite",
+    "backgroundColor": "#540D81",
+    "tags": []
+  }
+}

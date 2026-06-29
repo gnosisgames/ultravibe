@@ -1,0 +1,221 @@
+{
+  "Persistent": {
+    "theme": {
+      "currentThemeId": "normal",
+      "background.main": "#245575",
+      "background.subtle": "#73C8FF",
+      "background.on": "#223548",
+      "accent.neon": "#78D4FF",
+      "primary.main": "#217CDA",
+      "primary.shade": "#217CDA",
+      "grid.border": "#00FFFF",
+      "fx.main": "#28496A",
+      "score.main": "#00BEFF",
+      "score.glow": "#00BEFF",
+      "grid.main": "#015abf",
+      "environment.ground": "#000000",
+      "environment.parallax": "#78D4FF",
+      "material.id": "neonRoad",
+      "background.grid.alpha": 32,
+      "grid.lines.alpha": 5,
+      "primary.neon": "#217CDA",
+      "rarity.common": "#B3B3B3",
+      "rarity.uncommon": "#33CC33",
+      "rarity.rare": "#3366E6",
+      "rarity.epic": "#B333E6",
+      "rarity.legendary": "#FF9900",
+      "reward.boon": "#3366E6",
+      "reward.consumable": "#FFB333",
+      "reward.upgrade": "#FF9900",
+      "reward.skip": "#CC99FF",
+      "reward.boss": "#E63333",
+      "text.main": "#FFFFFF",
+      "primary.on": "#FFFFFF"
+    },
+    "language": "en",
+    "collection": {
+      "discovered": {
+        "boons": {},
+        "consumables": {},
+        "abilities": {},
+        "upgrades": {}
+      }
+    },
+    "settings": {
+      "version": "1.0.2",
+      "showFps": false,
+      "logLevel": "Info",
+      "logLevelOptions": [
+        "core__logLevel__none",
+        "core__logLevel__error",
+        "core__logLevel__warning",
+        "core__logLevel__info",
+        "core__logLevel__debug",
+        "core__logLevel__trace"
+      ],
+      "windowMode": 2,
+      "showVersion": false,
+      "showDeviceInfo": false,
+      "enableConsole": true,
+      "windowModeOptions": [
+        "WindowModeWindowed",
+        "WindowModeExclusiveFullScreen",
+        "WindowModeFullScreenWindow"
+      ],
+      "vsyncEnabled": true,
+      "crtFilterEnabled": false,
+      "framerateCap": 0,
+      "framerateOptionLabels": [
+        "-1",
+        "30",
+        "60",
+        "144",
+        "240",
+        "360"
+      ],
+      "resolutionOptions": [
+        {
+          "text": "1920 × 1080",
+          "width": 1920,
+          "height": 1080
+        }
+      ],
+      "resolutionIndex": 0,
+      "monitorOptionLabels": [
+        "Display 1"
+      ],
+      "displayIndex": 0,
+      "refreshRateOptions": [
+        {
+          "text": "60 Hz",
+          "hz": 60
+        }
+      ],
+      "refreshRateIndex": 0,
+      "difficultyOptions": [
+        "core__adjective__easy",
+        "core__adjective__medium",
+        "core__adjective__hard"
+      ],
+      "difficultyIndex": 1,
+      "hasSeenOnboarding": false,
+      "crtIntensity": 0,
+      "vignetteIntensity": 0,
+      "crtPixelResolutionX": 290,
+      "crtPixelResolutionY": 210,
+      "crtScreenBend": 0.04,
+      "crtScreenOverscan": 0,
+      "crtVignetteSize": 5.7,
+      "crtVignetteSmooth": 0.5,
+      "crtVignetteRound": 64,
+      "crtBlur": 0.3,
+      "crtBleed": 0,
+      "crtSmidge": 0,
+      "crtScanlinesStrength": 0,
+      "crtApertureStrength": 0.1,
+      "crtShadowlines": 0,
+      "crtShadowlinesSpeed": 0,
+      "crtShadowlinesAlpha": 0,
+      "crtNoiseSize": 0,
+      "crtNoiseSpeed": 0,
+      "crtNoiseAlpha": 0,
+      "crtBrightness": 1,
+      "crtContrast": 1,
+      "crtGamma": 1,
+      "crtRed": 1,
+      "crtGreen": 1,
+      "crtBlue": 1,
+      "crtChromaticAberration": 0,
+      "overrides": {
+        "fallingBlock": {
+          "fallSpeedDifficulty": "normal",
+          "gameFlags": {
+            "originalOnly": false,
+            "includeNegatives": true,
+            "negativeOnly": false,
+            "maxSpeedOnly": false,
+            "includeSpecialUltravibes": true,
+            "includeBosses": true,
+            "bossOnly": false,
+            "includeRewards": true,
+            "includeBoons": true,
+            "includeConsumables": true,
+            "includeUpgrades": true,
+            "includeAbilities": true,
+            "includeDiscards": true,
+            "infiniteDiscards": false
+          }
+        }
+      },
+      "lastOverrides": {}
+    },
+    "console": {
+      "suggestionDisplayOrder": "Descending",
+      "autoScroll": "OnInvoke",
+      "showPopupDisplay": true,
+      "maxSuggestionDisplaySize": -1,
+      "useFuzzySearch": false,
+      "collapseSuggestionOverloads": true,
+      "maxStoredLogs": 1024,
+      "readFromStorePageSize": 1024,
+      "maxLogSize": 16384,
+      "loggingLevel": "Always",
+      "verboseLogging": "Never",
+      "interceptDebugLogger": true,
+      "interceptWhilstInactive": true,
+      "commandLogFormat": "gnosis > {0}",
+      "unityLogFormat": "unity > {0}",
+      "commandLogColor": "#39FF14FF",
+      "unityLogColor": "#DDDDDDFF",
+      "warningLogColor": "#FF8000FF",
+      "errorLogColor": "#FF0000FF",
+      "suggestionColor": "#808080FF",
+      "selectedSuggestionColor": "#FFFF8CFF",
+      "defaultReturnValueColor": "#FFFFFFFF",
+      "typeColorRules": "System.String=#8BE9FDFF;System.Boolean=#50FA7BFF;System.Int32=#FFB86CFF;System.Int64=#FFB86CFF;System.Single=#FF79C6FF;System.Double=#FF79C6FF;System.Decimal=#FF79C6FF;System.DateTime=#BD93F9FF;System.TimeSpan=#BD93F9FF;System.Guid=#F1FA8CFF",
+      "collectionFormatRules": "System.Array=[|, |];System.Collections.Generic.List`1=[|, |];System.Collections.Generic.Dictionary`2={|, |};System.Collections.Generic.HashSet`1={|, |}",
+      "prependTimestamps": false,
+      "verboseErrors": false,
+      "commandAliases": [
+        {
+          "from": "clear()",
+          "to": "CallService(\"Console\", \"ClearConsole\", \"{}\")"
+        },
+        {
+          "from": "ls()",
+          "to": "ListServices()"
+        },
+        {
+          "from": "Hierarchy()",
+          "to": "CallService(\"Unity\", \"GetSceneHierarchy\", \"{}\")"
+        }
+      ]
+    },
+    "audio": {
+      "soundMasterVolume": 0.5,
+      "soundMasterOn": true,
+      "soundMasterMutedVolume": 0.5,
+      "soundMusicVolume": 0.5,
+      "soundMusicOn": true,
+      "soundMusicMutedVolume": 0.5,
+      "soundSfxVolume": 0.5,
+      "soundSfxOn": true,
+      "soundSfxMutedVolume": 0.5,
+      "soundUiVolume": 0.5,
+      "soundUiOn": true,
+      "soundUiMutedVolume": 0.5,
+      "soundOtherVolume": 0.5,
+      "soundOtherOn": true,
+      "soundOtherMutedVolume": 0.5
+    },
+    "haptic": {
+      "hapticsEnabled": true
+    },
+    "accessibility": {
+      "lightFlashesEnabled": true
+    },
+    "currentSaveId": "MySave1",
+    "lastSaveId": "MySave1",
+    "gameUi": {}
+  }
+}

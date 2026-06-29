@@ -1,0 +1,39 @@
+{
+  "id": "psyche",
+  "metadata": {
+    "nameKey": "psycheLevelName",
+    "descriptionKey": "psycheLevelDescription",
+    "spriteId": "psyche",
+    "tags": [],
+    "startingLetter": "\\u03A8",
+    "textColor": "#9F7AFF"
+  },
+  "properties": {
+    "themeId": "boss_psyche",
+    "onRoundStartInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "ApplyEffect",
+        "parameters": {
+          "effectId": "DisableGhost",
+          "roundsLifetime": 1
+        }
+      }
+    ],
+    "onRoundEndInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "RemoveEffect",
+        "parameters": {
+          "effectId": "DisableGhost"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "boss",
+      "easy",
+      "includeBosses"
+    ],
+    "minimumTimeSec": 0
+  }
+}

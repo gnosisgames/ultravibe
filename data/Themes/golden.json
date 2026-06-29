@@ -1,0 +1,15 @@
+{
+  "id": "golden",
+  "background.main": "#FAB12F",
+  "background.subtle": "#FAB12F",
+  "background.on": "#BA8715",
+  "accent.neon": "#FFCE00",
+  "primary.main": "#FFCC70",
+  "primary.shade": "#B89351",
+  "grid.border": "#F3C623",
+  "score.main": "#FFCE00",
+  "score.glow": "#FFCE00",
+  "background.grid.alpha": 128,
+  "grid.lines.alpha": 6,
+  "primary.neon": "#FFCE00"
+}

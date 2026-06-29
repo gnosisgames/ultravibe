@@ -1,0 +1,15 @@
+{
+  "id": "orange",
+  "background.main": "#FFDE63",
+  "background.subtle": "#FFBC4C",
+  "background.on": "#FFC700",
+  "accent.neon": "#FFFFFF",
+  "primary.main": "#FFCE7F",
+  "primary.shade": "#B8945B",
+  "grid.border": "#FF9B00",
+  "score.main": "#FF9B00",
+  "score.glow": "#FF9B00",
+  "background.grid.alpha": 144,
+  "grid.lines.alpha": 0,
+  "primary.neon": "#FFFFFF"
+}

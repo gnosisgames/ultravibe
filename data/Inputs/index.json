@@ -1,0 +1,100 @@
+{
+  "inputs": [
+    {
+      "id": "MoveLeft",
+      "path": "moveLeft.json"
+    },
+    {
+      "id": "MoveRight",
+      "path": "moveRight.json"
+    },
+    {
+      "id": "SoftDrop",
+      "path": "softDrop.json"
+    },
+    {
+      "id": "HardDrop",
+      "path": "hardDrop.json"
+    },
+    {
+      "id": "Rotate",
+      "path": "rotate.json"
+    },
+    {
+      "id": "RotateCW",
+      "path": "rotateCW.json"
+    },
+    {
+      "id": "RotateCCW",
+      "path": "rotateCCW.json"
+    },
+    {
+      "id": "Discard",
+      "path": "discard.json"
+    },
+    {
+      "id": "UseConsumable",
+      "path": "useConsumable.json"
+    },
+    {
+      "id": "Consumable",
+      "path": "consumable.json"
+    },
+    {
+      "id": "ConsumableNext",
+      "path": "consumableNext.json"
+    },
+    {
+      "id": "ConsumablePrevious",
+      "path": "consumablePrevious.json"
+    },
+    {
+      "id": "Ability",
+      "path": "ability.json"
+    },
+    {
+      "id": "AbilityUse",
+      "path": "abilityUse.json"
+    },
+    {
+      "id": "AbilityNext",
+      "path": "abilityNext.json"
+    },
+    {
+      "id": "AbilityPrevious",
+      "path": "abilityPrevious.json"
+    },
+    {
+      "id": "Pause",
+      "path": "pause.json"
+    },
+    {
+      "id": "UIHorizontal",
+      "path": "uiHorizontal.json"
+    },
+    {
+      "id": "UIVertical",
+      "path": "uiVertical.json"
+    },
+    {
+      "id": "UISubmit",
+      "path": "uiSubmit.json"
+    },
+    {
+      "id": "UICancel",
+      "path": "uiCancel.json"
+    },
+    {
+      "id": "UISell",
+      "path": "uiSell.json"
+    },
+    {
+      "id": "UISecondaryHorizontal",
+      "path": "uiSecondaryHorizontal.json"
+    },
+    {
+      "id": "UITabSwitch",
+      "path": "uiTabSwitch.json"
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "id": "ItemUpgradeGrantOrangeLevelUp",
+  "properties": {
+    "basePrice": 8,
+    "offerChancePermille": 120,
+    "invocations": [
+      {
+        "service": "Audio",
+        "function": "PlaySound",
+        "parameters": {
+          "clipId": "consumableSfx",
+          "track": "Sfx"
+        }
+      },
+      {
+        "service": "Upgrade",
+        "function": "AddUpgrade",
+        "parameters": {
+          "categoryId": "itemUpgrades",
+          "upgradeId": "OrangeLevelUp"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "item_upgrade_grant"
+    ]
+  },
+  "metadata": {
+    "nameKey": "itemUpgradeOrangeName",
+    "descriptionKey": "itemUpgradeOrangeDescription",
+    "spriteId": "upgradeOrangeLevelUpSprite",
+    "backgroundColor": "#7A4A1A",
+    "tags": [],
+    "grantItemUpgradeId": "OrangeLevelUp"
+  }
+}

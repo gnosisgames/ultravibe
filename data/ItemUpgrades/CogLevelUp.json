@@ -1,0 +1,27 @@
+{
+  "id": "CogLevelUp",
+  "metadata": {
+    "nameKey": "itemUpgradeCogName",
+    "descriptionKey": "itemUpgradeCogDescription",
+    "spriteId": "itemUpgradeCogSprite",
+    "tags": []
+  },
+  "properties": {
+    "maxCount": 999999,
+    "applyInvocationsPerStack": true,
+    "invocations": [
+      {
+        "service": "FallingBlock",
+        "function": "AddVariantLevelDelta",
+        "parameters": {
+          "variantId": "cog",
+          "delta": 1
+        }
+      }
+    ],
+    "gameplayTags": [
+      "variant_level",
+      "includeSpecialUltravibes"
+    ]
+  }
+}

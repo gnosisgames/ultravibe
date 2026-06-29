@@ -1,0 +1,39 @@
+{
+  "id": "dionysus",
+  "metadata": {
+    "nameKey": "dionysusLevelName",
+    "descriptionKey": "dionysusLevelDescription",
+    "spriteId": "dionysus",
+    "tags": [],
+    "startingLetter": "\\u0394",
+    "textColor": "#FF5BA8"
+  },
+  "properties": {
+    "themeId": "boss_dionysus",
+    "onRoundStartInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "ApplyEffect",
+        "parameters": {
+          "effectId": "DisableRotation",
+          "roundsLifetime": 1
+        }
+      }
+    ],
+    "onRoundEndInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "RemoveEffect",
+        "parameters": {
+          "effectId": "DisableRotation"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "boss",
+      "hard",
+      "includeBosses"
+    ],
+    "minimumTimeSec": 480
+  }
+}

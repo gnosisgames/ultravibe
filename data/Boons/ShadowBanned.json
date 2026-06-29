@@ -1,0 +1,14 @@
+{
+  "id": "ShadowBanned",
+  "properties": {
+    "gameplayTags": [],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": []
+  },
+  "metadata": {
+    "nameKey": "boonShadowBannedName",
+    "descriptionKey": "boonShadowBannedDescription",
+    "spriteId": "boonShadowBannedSprite",
+    "tags": []
+  }
+}

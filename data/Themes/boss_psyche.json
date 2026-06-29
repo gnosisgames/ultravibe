@@ -1,0 +1,19 @@
+{
+  "id": "boss_psyche",
+  "background.main": "#4A3F6F",
+  "background.subtle": "#6F5A9F",
+  "background.on": "#251F36",
+  "accent.neon": "#9F7AFF",
+  "primary.main": "#7A6AAF",
+  "primary.shade": "#584C7E",
+  "grid.border": "#9A8ACF",
+  "score.main": "#9F7AFF",
+  "score.glow": "#9F7AFF",
+  "grid.main": "#9F7AFF",
+  "environment.ground": "#4A3F6F",
+  "environment.parallax": "#9F7AFF",
+  "material.id": "vhs",
+  "background.grid.alpha": 64,
+  "grid.lines.alpha": 8,
+  "primary.neon": "#9F7AFF"
+}

@@ -1,0 +1,40 @@
+{
+  "id": "PartyAnimal",
+  "properties": {
+    "gameplayTags": [
+      "common"
+    ],
+    "effectApplication": "perInstance",
+    "match3RoundEffectId": "party_animal_round_budget_bonus",
+    "onActivateInvocations": [
+      {
+        "service": "Match3",
+        "function": "SyncEquippedBoonMatch3RoundEffects",
+        "parameters": {}
+      }
+    ],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [],
+    "selfDestruct": {
+      "trigger": "round_end",
+      "chanceNumerator": 1,
+      "chanceDenominator": 4,
+      "onlyBossRounds": false
+    },
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonPartyAnimalName",
+    "descriptionKey": "boonPartyAnimalDescription",
+    "spriteId": "boonPartyAnimalSprite",
+    "tags": [
+      {
+        "tagType": "common",
+        "tagLocKey": "core__adjective__common"
+      }
+    ]
+  }
+}

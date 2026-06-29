@@ -1,0 +1,19 @@
+{
+  "id": "boss_chaos",
+  "background.main": "#5A0A03",
+  "background.subtle": "#8F1406",
+  "background.on": "#2D0501",
+  "accent.neon": "#FF1A0A",
+  "primary.main": "#A31A0A",
+  "primary.shade": "#751307",
+  "grid.border": "#D0240F",
+  "score.main": "#FF1A0A",
+  "score.glow": "#FF1A0A",
+  "grid.main": "#FF1A0A",
+  "environment.ground": "#5A0A03",
+  "environment.parallax": "#FF1A0A",
+  "material.id": "chaos",
+  "background.grid.alpha": 64,
+  "grid.lines.alpha": 8,
+  "primary.neon": "#FF1A0A"
+}

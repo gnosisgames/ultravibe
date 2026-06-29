@@ -1,0 +1,10 @@
+{
+  "id": "Bell6",
+  "displayName": "Bell 6",
+  "prefabPath": "Prefabs/Ultravibes/Negative/Bell6",
+  "blocksCount": 6,
+  "tags": [
+    "vertical",
+    "symmetric"
+  ]
+}

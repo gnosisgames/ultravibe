@@ -1,0 +1,31 @@
+{
+  "id": "cyclop",
+  "metadata": {
+    "nameKey": "boonCyclopName",
+    "descriptionKey": "boonCyclopDescription",
+    "spriteId": "cyclop",
+    "tags": []
+  },
+  "properties": {
+    "effectApplication": "perInstance",
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "spawnConversions": [
+      {
+        "id": "cyclop_four_block_to_line4",
+        "match": {
+          "ultravibeBlocksCount": 4,
+          "ultravibeIdNot": "Line4"
+        },
+        "set": {
+          "ultravibeId": "Line4"
+        },
+        "chanceOneIn": 4
+      }
+    ],
+    "scoreCalculations": [],
+    "gameplayTags": [
+      "includeSpecialUltravibes"
+    ]
+  }
+}

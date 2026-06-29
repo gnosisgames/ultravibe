@@ -1,0 +1,19 @@
+{
+  "id": "boss_kronos",
+  "background.main": "#7A5A3A",
+  "background.subtle": "#AF8A5F",
+  "background.on": "#3D2D1A",
+  "accent.neon": "#FFB85A",
+  "primary.main": "#CF9A6F",
+  "primary.shade": "#956F50",
+  "grid.border": "#FFC87A",
+  "score.main": "#FFB85A",
+  "score.glow": "#FFB85A",
+  "grid.main": "#FFB85A",
+  "environment.ground": "#7A5A3A",
+  "environment.parallax": "#FFB85A",
+  "material.id": "prime",
+  "background.grid.alpha": 64,
+  "grid.lines.alpha": 3,
+  "primary.neon": "#FFB85A"
+}

@@ -1,0 +1,10 @@
+{
+  "id": "Line5",
+  "displayName": "Line 5",
+  "prefabPath": "Prefabs/Ultravibes/Positive/Line5",
+  "blocksCount": 5,
+  "tags": [
+    "vertical",
+    "symmetric"
+  ]
+}

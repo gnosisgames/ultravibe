@@ -1,0 +1,16 @@
+{
+  "id": "green",
+  "nameKey": "greenName",
+  "descriptionKey": "greenDescription",
+  "spriteId": "greenBlock",
+  "color": "5AC54F",
+  "tags": [
+    "neutral",
+    "soft",
+    "color_green"
+  ],
+  "basePoints": 10,
+  "baseMulti": 1,
+  "pointsPerLevel": 10,
+  "multiPerLevel": 0
+}

@@ -1,0 +1,36 @@
+{
+  "upgrades": [
+    {
+      "id": "discardUpgrade",
+      "path": "discardUpgrade.json"
+    },
+    {
+      "id": "consumableUpgrade",
+      "path": "consumableUpgrade.json"
+    },
+    {
+      "id": "boonSlotUpgrade",
+      "path": "boonSlotUpgrade.json"
+    },
+    {
+      "id": "steadyHandsUpgrade",
+      "path": "steadyHandsUpgrade.json"
+    },
+    {
+      "id": "luckyGuardSurgeUpgrade",
+      "path": "luckyGuardSurgeUpgrade.json"
+    },
+    {
+      "id": "roundAcceleratorUpgrade",
+      "path": "roundAcceleratorUpgrade.json"
+    },
+    {
+      "id": "pacedClimbUpgrade",
+      "path": "pacedClimbUpgrade.json"
+    },
+    {
+      "id": "darkPressureValveUpgrade",
+      "path": "darkPressureValveUpgrade.json"
+    }
+  ]
+}

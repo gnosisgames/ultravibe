@@ -1,0 +1,14 @@
+{
+  "id": "Gatekeeper",
+  "properties": {
+    "gameplayTags": [],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": []
+  },
+  "metadata": {
+    "nameKey": "boonGatekeeperName",
+    "descriptionKey": "boonGatekeeperDescription",
+    "spriteId": "boonGatekeeperSprite",
+    "tags": []
+  }
+}

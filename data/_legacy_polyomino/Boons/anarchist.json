@@ -1,0 +1,27 @@
+{
+  "id": "anarchist",
+  "metadata": {
+    "nameKey": "boonAnarchistName",
+    "descriptionKey": "boonAnarchistDescription",
+    "spriteId": "anarchist",
+    "tags": []
+  },
+  "properties": {
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "anarchist_add_pending_multi_odd_block_count_on_placement",
+        "phase": "on_placement",
+        "when": "{payload.placement.lockPieceBlockCount} > 0 && {payload.placement.lockPieceBlockCount} % 2 != 0",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.pendingMulti",
+            "value": "7"
+          }
+        ]
+      }
+    ]
+  }
+}

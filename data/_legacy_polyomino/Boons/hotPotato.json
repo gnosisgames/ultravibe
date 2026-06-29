@@ -1,0 +1,30 @@
+{
+  "id": "hotPotato",
+  "metadata": {
+    "nameKey": "boonHotPotatoName",
+    "descriptionKey": "boonHotPotatoDescription",
+    "spriteId": "hotPotato",
+    "tags": []
+  },
+  "properties": {
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "hot_potato_add_pending_multi_on_placement_zero_discards",
+        "phase": "on_placement",
+        "when": "{ephemeral.fallingBlock.currentDiscards} <= 0",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.pendingMulti",
+            "value": "15"
+          }
+        ]
+      }
+    ],
+    "gameplayTags": [
+      "includeDiscards"
+    ]
+  }
+}

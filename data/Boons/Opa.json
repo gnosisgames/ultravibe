@@ -1,0 +1,51 @@
+{
+  "id": "Opa",
+  "properties": {
+    "gameplayTags": [
+      "uncommon"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scaling": {
+      "counters": {
+        "opaDoubleMatch3Lifetime": 0
+      },
+      "increments": [
+        {
+          "on": "move_finalize",
+          "from": "score.hasTwoAxisStraightMatch3",
+          "counter": "opaDoubleMatch3Lifetime"
+        }
+      ]
+    },
+    "scoreCalculations": [
+      {
+        "id": "opa_double_match3_scaling_multi",
+        "phase": "finalize",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.multiTotal",
+            "value": "2 * {parameters.boonSlot.properties.scaling.counters.opaDoubleMatch3Lifetime}"
+          }
+        ],
+        "parameters": {}
+      }
+    ],
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonOpaName",
+    "descriptionKey": "boonOpaDescription",
+    "spriteId": "boonOpaSprite",
+    "tags": [
+      {
+        "tagType": "uncommon",
+        "tagLocKey": "core__adjective__uncommon"
+      }
+    ]
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "id": "chief",
+  "metadata": {
+    "nameKey": "boonChiefName",
+    "descriptionKey": "boonChiefDescription",
+    "spriteId": "chief",
+    "tags": []
+  },
+  "properties": {
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "chief_add_pending_points_per_boss_encounter_survived_on_placement",
+        "phase": "on_placement",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.pendingPoints",
+            "value": "3 * {ephemeral.fallingBlock.bossEncountersSurvivedThisRun}"
+          }
+        ]
+      }
+    ],
+    "gameplayTags": [
+      "includeBosses"
+    ]
+  }
+}

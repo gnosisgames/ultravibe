@@ -1,0 +1,9 @@
+{
+  "id": "ReverseCorner4",
+  "displayName": "Reverse Corner",
+  "prefabPath": "Prefabs/Ultravibes/Positive/ReverseCorner4",
+  "blocksCount": 4,
+  "tags": [
+    "basic"
+  ]
+}

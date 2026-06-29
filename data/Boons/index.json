@@ -1,0 +1,324 @@
+{
+  "boons": [
+    {
+      "id": "AirplaneMode",
+      "path": "AirplaneMode.json"
+    },
+    {
+      "id": "Allin",
+      "path": "Allin.json"
+    },
+    {
+      "id": "AlphaMale",
+      "path": "AlphaMale.json"
+    },
+    {
+      "id": "Aura",
+      "path": "Aura.json"
+    },
+    {
+      "id": "Autocorrect",
+      "path": "Autocorrect.json"
+    },
+    {
+      "id": "Backstabber",
+      "path": "Backstabber.json"
+    },
+    {
+      "id": "Based",
+      "path": "Based.json"
+    },
+    {
+      "id": "Block",
+      "path": "Block.json"
+    },
+    {
+      "id": "Boomer",
+      "path": "Boomer.json"
+    },
+    {
+      "id": "BrainLag",
+      "path": "BrainLag.json"
+    },
+    {
+      "id": "Brainrot",
+      "path": "Brainrot.json"
+    },
+    {
+      "id": "Bro",
+      "path": "Bro.json"
+    },
+    {
+      "id": "Buzz",
+      "path": "Buzz.json"
+    },
+    {
+      "id": "Cancelled",
+      "path": "Cancelled.json"
+    },
+    {
+      "id": "Clickbait",
+      "path": "Clickbait.json"
+    },
+    {
+      "id": "ClipIt",
+      "path": "ClipIt.json"
+    },
+    {
+      "id": "Conspiracist",
+      "path": "Conspiracist.json"
+    },
+    {
+      "id": "Cooked",
+      "path": "Cooked.json"
+    },
+    {
+      "id": "CookieTime",
+      "path": "CookieTime.json"
+    },
+    {
+      "id": "Copypasta",
+      "path": "Copypasta.json"
+    },
+    {
+      "id": "CryptoBro",
+      "path": "CryptoBro.json"
+    },
+    {
+      "id": "Darwin",
+      "path": "Darwin.json"
+    },
+    {
+      "id": "DeepDive",
+      "path": "DeepDive.json"
+    },
+    {
+      "id": "Delulu",
+      "path": "Delulu.json"
+    },
+    {
+      "id": "Depression",
+      "path": "Depression.json"
+    },
+    {
+      "id": "Dnd",
+      "path": "Dnd.json"
+    },
+    {
+      "id": "Doomscroll",
+      "path": "Doomscroll.json"
+    },
+    {
+      "id": "DoubleDown",
+      "path": "DoubleDown.json"
+    },
+    {
+      "id": "EchoChamber",
+      "path": "EchoChamber.json"
+    },
+    {
+      "id": "Firstborn",
+      "path": "Firstborn.json"
+    },
+    {
+      "id": "FourthWall",
+      "path": "FourthWall.json"
+    },
+    {
+      "id": "Freeze",
+      "path": "Freeze.json"
+    },
+    {
+      "id": "Friendzoned",
+      "path": "Friendzoned.json"
+    },
+    {
+      "id": "Glitch",
+      "path": "Glitch.json"
+    },
+    {
+      "id": "GlowUp",
+      "path": "GlowUp.json"
+    },
+    {
+      "id": "Godmode",
+      "path": "Godmode.json"
+    },
+    {
+      "id": "GreenFlag",
+      "path": "GreenFlag.json"
+    },
+    {
+      "id": "Griefing",
+      "path": "Griefing.json"
+    },
+    {
+      "id": "HardStuck",
+      "path": "HardStuck.json"
+    },
+    {
+      "id": "Hippie",
+      "path": "Hippie.json"
+    },
+    {
+      "id": "Hot",
+      "path": "Hot.json"
+    },
+    {
+      "id": "Hustler",
+      "path": "Hustler.json"
+    },
+    {
+      "id": "HypeTrain",
+      "path": "HypeTrain.json"
+    },
+    {
+      "id": "Iconic",
+      "path": "Iconic.json"
+    },
+    {
+      "id": "Leak",
+      "path": "Leak.json"
+    },
+    {
+      "id": "LockedIn",
+      "path": "LockedIn.json"
+    },
+    {
+      "id": "Looksmaxxing",
+      "path": "Looksmaxxing.json"
+    },
+    {
+      "id": "LowBattery",
+      "path": "LowBattery.json"
+    },
+    {
+      "id": "Mainstream",
+      "path": "Mainstream.json"
+    },
+    {
+      "id": "Manifestation",
+      "path": "Manifestation.json"
+    },
+    {
+      "id": "Meow",
+      "path": "Meow.json"
+    },
+    {
+      "id": "Mewing",
+      "path": "Mewing.json"
+    },
+    {
+      "id": "Muted",
+      "path": "Muted.json"
+    },
+    {
+      "id": "Nerd",
+      "path": "Nerd.json"
+    },
+    {
+      "id": "NoCap",
+      "path": "NoCap.json"
+    },
+    {
+      "id": "Nostalgia",
+      "path": "Nostalgia.json"
+    },
+    {
+      "id": "Offgrid",
+      "path": "Offgrid.json"
+    },
+    {
+      "id": "Opa",
+      "path": "Opa.json"
+    },
+    {
+      "id": "Oversharing",
+      "path": "Oversharing.json"
+    },
+    {
+      "id": "PartyAnimal",
+      "path": "PartyAnimal.json"
+    },
+    {
+      "id": "PassiveIncome",
+      "path": "PassiveIncome.json"
+    },
+    {
+      "id": "PlotArmor",
+      "path": "PlotArmor.json"
+    },
+    {
+      "id": "QuietQuitting",
+      "path": "QuietQuitting.json"
+    },
+    {
+      "id": "RedFlag",
+      "path": "RedFlag.json"
+    },
+    {
+      "id": "Rizz",
+      "path": "Rizz.json"
+    },
+    {
+      "id": "Salty",
+      "path": "Salty.json"
+    },
+    {
+      "id": "SideHustle",
+      "path": "SideHustle.json"
+    },
+    {
+      "id": "SigmaMale",
+      "path": "SigmaMale.json"
+    },
+    {
+      "id": "Simp",
+      "path": "Simp.json"
+    },
+    {
+      "id": "SkillIssue",
+      "path": "SkillIssue.json"
+    },
+    {
+      "id": "Slay",
+      "path": "Slay.json"
+    },
+    {
+      "id": "Sleeper",
+      "path": "Sleeper.json"
+    },
+    {
+      "id": "Slop",
+      "path": "Slop.json"
+    },
+    {
+      "id": "Speedrun",
+      "path": "Speedrun.json"
+    },
+    {
+      "id": "Superhero",
+      "path": "Superhero.json"
+    },
+    {
+      "id": "Sus",
+      "path": "Sus.json"
+    },
+    {
+      "id": "TouchGrass",
+      "path": "TouchGrass.json"
+    },
+    {
+      "id": "Viral",
+      "path": "Viral.json"
+    },
+    {
+      "id": "WildTake",
+      "path": "WildTake.json"
+    },
+    {
+      "id": "WrongChat",
+      "path": "WrongChat.json"
+    }
+  ]
+}

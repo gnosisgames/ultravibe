@@ -1,0 +1,30 @@
+{
+  "id": "discardUpgrade",
+  "metadata": {
+    "nameKey": "discardUpgradeName",
+    "descriptionKey": "discardUpgradeDescription",
+    "tags": [
+      {
+        "tagType": "upgrade",
+        "tagLocKey": "core__verb__upgrade"
+      }
+    ],
+    "spriteId": "runUpgradeGoldenFallingSprite"
+  },
+  "properties": {
+    "maxCount": 999,
+    "applyInvocationsPerStack": true,
+    "invocations": [
+      {
+        "service": "FallingBlock",
+        "function": "AddBaseDiscardsDelta",
+        "parameters": {
+          "delta": 2
+        }
+      }
+    ],
+    "gameplayTags": [
+      "includeDiscards"
+    ]
+  }
+}

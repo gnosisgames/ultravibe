@@ -1,0 +1,36 @@
+{
+  "id": "Tachymania",
+  "properties": {
+    "basePrice": 5,
+    "offerChancePermille": 150,
+    "invocations": [
+      {
+        "service": "Audio",
+        "function": "PlaySound",
+        "parameters": {
+          "clipId": "consumableSfx",
+          "track": "Sfx"
+        }
+      },
+      {
+        "service": "Match3",
+        "function": "GrantCurrencyFromStatisticCounter",
+        "parameters": {
+          "currencyId": "money",
+          "statisticPath": "match3.rounds.skipped",
+          "amountPerUnit": 3
+        }
+      }
+    ],
+    "gameplayTags": [
+      "mania"
+    ]
+  },
+  "metadata": {
+    "nameKey": "consumableTachymaniaName",
+    "descriptionKey": "consumableTachymaniaDescription",
+    "spriteId": "consumableTachymaniaSprite",
+    "backgroundColor": "#540D81",
+    "tags": []
+  }
+}

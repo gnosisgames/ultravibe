@@ -1,0 +1,13 @@
+{
+  "id": "includeBosses",
+  "metadata": {
+    "nameKey": "gameFlags__enable__include_bosses",
+    "tags": []
+  },
+  "properties": {
+    "flagKey": "includeBosses",
+    "defaultValue": true,
+    "kind": "include",
+    "settingsPath": "settings.overrides.fallingBlock.gameFlags.includeBosses"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "id": "boss_zeus",
+  "background.main": "#6A5A1A",
+  "background.subtle": "#9F8A2A",
+  "background.on": "#352D0D",
+  "accent.neon": "#FFEB3B",
+  "primary.main": "#8F7A2A",
+  "primary.shade": "#67581E",
+  "grid.border": "#FFD700",
+  "score.main": "#FFEB3B",
+  "score.glow": "#FFEB3B",
+  "grid.main": "#FFEB3B",
+  "environment.ground": "#6A5A1A",
+  "environment.parallax": "#FFEB3B",
+  "material.id": "redzone",
+  "background.grid.alpha": 64,
+  "grid.lines.alpha": 8,
+  "primary.neon": "#FFEB3B"
+}

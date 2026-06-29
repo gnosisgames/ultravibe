@@ -1,0 +1,12 @@
+{
+  "id": "disabled",
+  "nameKey": "disabledName",
+  "descriptionKey": "disabledDescription",
+  "spriteId": "disabledBlock",
+  "color": "717171",
+  "tags": [
+    "disabled"
+  ],
+  "basePoints": 0,
+  "baseMulti": 0
+}

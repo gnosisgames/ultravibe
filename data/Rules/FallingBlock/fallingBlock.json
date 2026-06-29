@@ -1,0 +1,21 @@
+{
+  "tetris_deny_rotate_inputs": {
+    "id": "tetris_deny_rotate_inputs",
+    "category": "INTERCEPTOR",
+    "trigger": "REQUEST_FALLING_BLOCK_INPUT",
+    "conditions": [
+      {
+        "path": "payload.inputType",
+        "op": "CONTAINS",
+        "value": "Rotate"
+      }
+    ],
+    "outcomes": [
+      {
+        "type": "SET",
+        "target": "allowed",
+        "value": false
+      }
+    ]
+  }
+}

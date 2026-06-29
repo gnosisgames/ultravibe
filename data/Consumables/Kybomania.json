@@ -1,0 +1,35 @@
+{
+  "id": "Kybomania",
+  "properties": {
+    "basePrice": 5,
+    "offerChancePermille": 150,
+    "invocations": [
+      {
+        "service": "Audio",
+        "function": "PlaySound",
+        "parameters": {
+          "clipId": "consumableSfx",
+          "track": "Sfx"
+        }
+      },
+      {
+        "service": "Boon",
+        "function": "GrantCurrencyFromEquippedBoonSellValueSum",
+        "parameters": {
+          "currencyId": "money",
+          "maxGrant": 50
+        }
+      }
+    ],
+    "gameplayTags": [
+      "mania"
+    ]
+  },
+  "metadata": {
+    "nameKey": "consumableKybomaniaName",
+    "descriptionKey": "consumableKybomaniaDescription",
+    "spriteId": "consumableKybomaniaSprite",
+    "backgroundColor": "#540D81",
+    "tags": []
+  }
+}

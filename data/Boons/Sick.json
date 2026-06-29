@@ -1,0 +1,14 @@
+{
+  "id": "Sick",
+  "properties": {
+    "gameplayTags": [],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": []
+  },
+  "metadata": {
+    "nameKey": "boonSickName",
+    "descriptionKey": "boonSickDescription",
+    "spriteId": "boonSickSprite",
+    "tags": []
+  }
+}

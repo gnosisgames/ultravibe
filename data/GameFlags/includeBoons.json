@@ -1,0 +1,13 @@
+{
+  "id": "includeBoons",
+  "metadata": {
+    "nameKey": "gameFlags__enable__include_boons",
+    "tags": []
+  },
+  "properties": {
+    "flagKey": "includeBoons",
+    "defaultValue": true,
+    "kind": "include",
+    "settingsPath": "settings.overrides.fallingBlock.gameFlags.includeBoons"
+  }
+}

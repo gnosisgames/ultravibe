@@ -1,0 +1,22 @@
+{
+  "id": "darkPressureValveUpgrade",
+  "metadata": {
+    "nameKey": "darkPressureValveUpgradeName",
+    "descriptionKey": "darkPressureValveUpgradeDescription",
+    "tags": [
+      {
+        "tagType": "upgrade",
+        "tagLocKey": "core__verb__upgrade"
+      }
+    ],
+    "spriteId": "runUpgradeGoldenHeartSprite"
+  },
+  "properties": {
+    "maxCount": 15,
+    "applyInvocationsPerStack": true,
+    "invocations": [],
+    "gameplayTags": [
+      "includeNegatives"
+    ]
+  }
+}

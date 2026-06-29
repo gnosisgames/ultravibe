@@ -1,0 +1,34 @@
+{
+  "id": "Phobomania",
+  "properties": {
+    "basePrice": 5,
+    "offerChancePermille": 40,
+    "invocations": [
+      {
+        "service": "Audio",
+        "function": "PlaySound",
+        "parameters": {
+          "clipId": "consumableSfx",
+          "track": "Sfx"
+        }
+      },
+      {
+        "service": "Match3",
+        "function": "PanicSwapAllEquippedBoons",
+        "parameters": {
+          "bucketId": "default"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "mania"
+    ]
+  },
+  "metadata": {
+    "nameKey": "consumablePhobomaniaName",
+    "descriptionKey": "consumablePhobomaniaDescription",
+    "spriteId": "consumablePhobomaniaSprite",
+    "backgroundColor": "#540D81",
+    "tags": []
+  }
+}

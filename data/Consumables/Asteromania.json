@@ -1,0 +1,25 @@
+{
+  "id": "Asteromania",
+  "properties": {
+    "basePrice": 5,
+    "offerChancePermille": 150,
+    "invocations": [
+      {
+        "service": "Audio",
+        "function": "PlaySound",
+        "parameters": {
+          "clipId": "consumableSfx",
+          "track": "Sfx"
+        }
+      }
+    ],
+    "gameplayTags": []
+  },
+  "metadata": {
+    "nameKey": "consumableAsteromaniaName",
+    "descriptionKey": "consumableAsteromaniaDescription",
+    "spriteId": "consumableAsteromaniaSprite",
+    "backgroundColor": "#540D81",
+    "tags": []
+  }
+}

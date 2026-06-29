@@ -1,0 +1,13 @@
+{
+  "id": "includeDiscards",
+  "metadata": {
+    "nameKey": "gameFlags__enable__include_discards",
+    "tags": []
+  },
+  "properties": {
+    "flagKey": "includeDiscards",
+    "defaultValue": true,
+    "kind": "include",
+    "settingsPath": "settings.overrides.fallingBlock.gameFlags.includeDiscards"
+  }
+}

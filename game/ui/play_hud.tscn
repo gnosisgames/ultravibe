@@ -1,0 +1,686 @@
+[gd_scene format=3 uid="uid://dy2dpolxy0dqq"]
+
+[ext_resource type="Script" uid="uid://85mfedwrpafj" path="res://game/ui/play_hud.gd" id="1"]
+[ext_resource type="FontFile" uid="uid://bn3bax38ay57a" path="res://assets/fonts/boldpixels.ttf" id="3"]
+[ext_resource type="Script" uid="uid://wdpp1u8rui0" path="res://game/adapters/falling_block_board_renderer.gd" id="10_1gdae"]
+[ext_resource type="Texture2D" uid="uid://46yc8iv5m36e" path="res://assets/ui/hud/frames/card_frame_glow.png" id="11_de5ym"]
+[ext_resource type="Texture2D" uid="uid://dxab5vu7piydq" path="res://assets/ui/scan-lines.png" id="11_t1ybu"]
+[ext_resource type="Texture2D" uid="uid://dfanrqhcjskjc" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/VerticalGradientAdd.PNG" id="12_8tlou"]
+[ext_resource type="Texture2D" uid="uid://bbm6u7aeegqla" path="res://assets/ui/hud/circles/circle_scalloped.png" id="12_ghyfj"]
+[ext_resource type="Texture2D" uid="uid://bc4lin45wq4iq" path="res://assets/ui/hud/circles/circle_segmented.png" id="13_84cs3"]
+[ext_resource type="Shader" uid="uid://cllti5debjyj6" path="res://game/adapters/board_snow.gdshader" id="13_de5ym"]
+[ext_resource type="Script" uid="uid://cpwj60f6r571r" path="res://game/adapters/falling_block_board_layer.gd" id="14_ghyfj"]
+[ext_resource type="FontFile" uid="uid://dwmmckva64f3f" path="res://assets/fonts/Wimzik.otf" id="18"]
+[ext_resource type="Texture2D" uid="uid://ckn0k80ohwfs4" path="res://assets/ui/hud/icons/clock.png" id="19"]
+[ext_resource type="Texture2D" uid="uid://c2dfsqresnh2u" path="res://assets/ui/hud/icons/evil.png" id="20"]
+[ext_resource type="Script" uid="uid://dlmehfh11xe7f" path="res://game/ui/play_hud_reward_slots.gd" id="20_reward"]
+[ext_resource type="Texture2D" uid="uid://6euhglltraqe" path="res://assets/ui/hud/icons/skull.png" id="21"]
+[ext_resource type="Texture2D" uid="uid://bsftg2jw61kpv" path="res://assets/ui/hud/icons/speed.png" id="22"]
+[ext_resource type="Texture2D" uid="uid://b64us3rcbptm" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/lines.png" id="25"]
+[ext_resource type="FontFile" uid="uid://biyts0p74kad4" path="res://assets/fonts/Comic Lemon.otf" id="26"]
+[ext_resource type="Texture2D" uid="uid://dxexusap4ttsu" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/trashcan.png" id="27"]
+[ext_resource type="Texture2D" uid="uid://b5kyua65xo6bc" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/clock.png" id="28"]
+[ext_resource type="Texture2D" uid="uid://dhqbskn7sge1f" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/speedometer.png" id="29"]
+[ext_resource type="Script" path="res://game/ui/play_hud_consumables_bar.gd" id="30_consumables"]
+[ext_resource type="Script" path="res://game/ui/play_hud_boons_bar.gd" id="31_boons"]
+[ext_resource type="Script" path="res://game/ui/play_hud_ability_cycler.gd" id="32_ability"]
+[ext_resource type="Script" path="res://game/ui/play_hud_upgrades_bar.gd" id="33_upgrades"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sidebar"]
+bg_color = Color(0.0980392, 0.156863, 0.227451, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.345098, 0.345098, 0.572549, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_statbar"]
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_6upuk"]
+blend_mode = 1
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_1u8w0"]
+blend_mode = 1
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_0odxb"]
+shader = ExtResource("13_de5ym")
+shader_parameter/pixel_size = 2.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_lane_line"]
+bg_color = Color(0.45, 0.55, 0.85, 0.35)
+
+[node name="PlayHud" type="Control" unique_id=634003669]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1")
+
+[node name="Layout" type="Control" parent="." unique_id=2021058148]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="StatBarBg" type="Panel" parent="Layout" unique_id=1871627708]
+z_index = 10
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = -160.0
+offset_top = -4.0
+offset_right = 160.0
+offset_bottom = 46.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_sidebar")
+
+[node name="StatBar" type="PanelContainer" parent="Layout" unique_id=1871627707]
+z_index = 10
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 32.0
+offset_top = -4.0
+offset_right = -32.0
+offset_bottom = 46.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_statbar")
+
+[node name="Margin" type="MarginContainer" parent="Layout/StatBar" unique_id=769661883]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 2
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 2
+
+[node name="ZonesRow" type="HBoxContainer" parent="Layout/StatBar/Margin" unique_id=880000001]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="BossZone" type="HBoxContainer" parent="Layout/StatBar/Margin/ZonesRow" unique_id=880000002]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+alignment = 0
+
+[node name="BossSection" type="HBoxContainer" parent="Layout/StatBar/Margin/ZonesRow/BossZone" unique_id=326007935]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="Glyph" type="Control" parent="Layout/StatBar/Margin/ZonesRow/BossZone/BossSection" unique_id=575570599]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(42, 38)
+layout_mode = 2
+size_flags_vertical = 4
+
+[node name="BossLetter" type="Label" parent="Layout/StatBar/Margin/ZonesRow/BossZone/BossSection/Glyph" unique_id=1981942020]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 6.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.624, 0.478, 1, 1)
+theme_override_fonts/font = ExtResource("18")
+theme_override_font_sizes/font_size = 36
+text = "Ψ"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BossClockIcon" type="TextureRect" parent="Layout/StatBar/Margin/ZonesRow/BossZone/BossSection/Glyph" unique_id=1007653915]
+unique_name_in_owner = true
+modulate = Color(0.4, 0.95, 0.38, 1)
+layout_mode = 1
+anchors_preset = -1
+offset_left = -1.0
+offset_top = 2.0
+offset_right = 13.0
+offset_bottom = 16.0
+texture = ExtResource("19")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="BossSkull" type="TextureRect" parent="Layout/StatBar/Margin/ZonesRow/BossZone/BossSection/Glyph" unique_id=855739277]
+unique_name_in_owner = true
+modulate = Color(0.624, 0.478, 1, 1)
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -13.0
+offset_top = 2.0
+offset_right = 1.0
+offset_bottom = 16.0
+grow_horizontal = 0
+texture = ExtResource("21")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="StatsRow" type="HBoxContainer" parent="Layout/StatBar/Margin/ZonesRow" unique_id=880000003]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/separation = 22
+alignment = 1
+
+[node name="Stat0" type="HBoxContainer" parent="Layout/StatBar/Margin/ZonesRow/StatsRow" unique_id=1627871513]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Icon" type="TextureRect" parent="Layout/StatBar/Margin/ZonesRow/StatsRow/Stat0" unique_id=2062939627]
+modulate = Color(0.96, 0.36, 0.42, 1)
+custom_minimum_size = Vector2(34, 26)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("27")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="StatValue0" type="Label" parent="Layout/StatBar/Margin/ZonesRow/StatsRow/Stat0" unique_id=650301341]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.36, 0.42, 1)
+theme_override_fonts/font = ExtResource("26")
+theme_override_font_sizes/font_size = 28
+text = "0003"
+vertical_alignment = 1
+
+[node name="Stat1" type="HBoxContainer" parent="Layout/StatBar/Margin/ZonesRow/StatsRow" unique_id=92399547]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Icon" type="TextureRect" parent="Layout/StatBar/Margin/ZonesRow/StatsRow/Stat1" unique_id=507536550]
+modulate = Color(0.55, 0.85, 1, 1)
+custom_minimum_size = Vector2(34, 34)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("25")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="StatValue1" type="Label" parent="Layout/StatBar/Margin/ZonesRow/StatsRow/Stat1" unique_id=1390334683]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.85, 1, 1)
+theme_override_fonts/font = ExtResource("26")
+theme_override_font_sizes/font_size = 28
+text = "0/10"
+vertical_alignment = 1
+
+[node name="Stat2" type="HBoxContainer" parent="Layout/StatBar/Margin/ZonesRow/StatsRow" unique_id=1419081758]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Icon" type="TextureRect" parent="Layout/StatBar/Margin/ZonesRow/StatsRow/Stat2" unique_id=1304651745]
+modulate = Color(0.4, 0.95, 0.38, 1)
+custom_minimum_size = Vector2(34, 26)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("28")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="StatValue2" type="Label" parent="Layout/StatBar/Margin/ZonesRow/StatsRow/Stat2" unique_id=1298746447]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.95, 0.38, 1)
+theme_override_fonts/font = ExtResource("26")
+theme_override_font_sizes/font_size = 28
+text = "00:01:31"
+vertical_alignment = 1
+
+[node name="Stat3" type="HBoxContainer" parent="Layout/StatBar/Margin/ZonesRow/StatsRow" unique_id=1943781204]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Icon" type="TextureRect" parent="Layout/StatBar/Margin/ZonesRow/StatsRow/Stat3" unique_id=1778202410]
+modulate = Color(0.97, 0.83, 0.26, 1)
+custom_minimum_size = Vector2(34, 26)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("22")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="StatValue3" type="Label" parent="Layout/StatBar/Margin/ZonesRow/StatsRow/Stat3" unique_id=831740794]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.97, 0.83, 0.26, 1)
+theme_override_fonts/font = ExtResource("26")
+theme_override_font_sizes/font_size = 28
+text = "0001"
+vertical_alignment = 1
+
+[node name="Stat4" type="HBoxContainer" parent="Layout/StatBar/Margin/ZonesRow/StatsRow" unique_id=1586604961]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Icon" type="TextureRect" parent="Layout/StatBar/Margin/ZonesRow/StatsRow/Stat4" unique_id=462534162]
+modulate = Color(0.93, 0.2, 0.56, 1)
+custom_minimum_size = Vector2(34, 34)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("20")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="StatValue4" type="Label" parent="Layout/StatBar/Margin/ZonesRow/StatsRow/Stat4" unique_id=1929876837]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.93, 0.2, 0.56, 1)
+theme_override_fonts/font = ExtResource("26")
+theme_override_font_sizes/font_size = 28
+text = "0001"
+vertical_alignment = 1
+
+[node name="Stat5" type="HBoxContainer" parent="Layout/StatBar/Margin/ZonesRow/StatsRow" unique_id=1586604962]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Icon" type="TextureRect" parent="Layout/StatBar/Margin/ZonesRow/StatsRow/Stat5" unique_id=462534163]
+modulate = Color(0.345098, 0.345098, 0.572549, 1)
+custom_minimum_size = Vector2(34, 26)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("29")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="StatValue5" type="Label" parent="Layout/StatBar/Margin/ZonesRow/StatsRow/Stat5" unique_id=1929876838]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.345098, 0.345098, 0.572549, 1)
+theme_override_fonts/font = ExtResource("26")
+theme_override_font_sizes/font_size = 28
+text = "000:000:000"
+vertical_alignment = 1
+
+[node name="UpgradesBar" type="HBoxContainer" parent="Layout/StatBar/Margin/ZonesRow" unique_id=880000004]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+alignment = 2
+script = ExtResource("33_upgrades")
+
+[node name="BottomBarBg" type="Panel" parent="Layout" unique_id=1871627709]
+z_index = 10
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -160.0
+offset_top = -46.0
+offset_right = 160.0
+offset_bottom = 4.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_sidebar")
+
+[node name="BottomBar" type="PanelContainer" parent="Layout" unique_id=1871627710]
+z_index = 10
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 128.0
+offset_top = -46.0
+offset_right = -128.0
+offset_bottom = 4.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxEmpty_statbar")
+
+[node name="Margin" type="MarginContainer" parent="Layout/BottomBar" unique_id=769661884]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 2
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 2
+
+[node name="ZonesRow" type="HBoxContainer" parent="Layout/BottomBar/Margin" unique_id=579219691]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="BoonsBar" type="HBoxContainer" parent="Layout/BottomBar/Margin/ZonesRow" unique_id=579219692]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+alignment = 2
+script = ExtResource("31_boons")
+
+[node name="AbilityCycler" type="Control" parent="Layout/BottomBar/Margin/ZonesRow" unique_id=579219693]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(320, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+script = ExtResource("32_ability")
+
+[node name="ConsumablesBar" type="HBoxContainer" parent="Layout/BottomBar/Margin/ZonesRow" unique_id=579219690]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+alignment = 0
+script = ExtResource("30_consumables")
+
+[node name="BoardArea" type="AspectRatioContainer" parent="Layout" unique_id=47328297]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 36.0
+offset_bottom = -36.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+ratio = 0.5
+
+[node name="CenterBoard" type="Control" parent="Layout/BoardArea" unique_id=301123751]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="BoardSlot" type="Control" parent="Layout/BoardArea/CenterBoard" unique_id=794156292]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="BoardRenderer" type="Control" parent="Layout/BoardArea/CenterBoard/BoardSlot" unique_id=1587879117]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("10_1gdae")
+cell_size = 48
+board_offset = Vector2(8, 72)
+auto_fit = true
+snow_tile_scale = 0.64
+snow_pixel_size = 2.0
+segmented_circle_y_offset = 16.0
+round_label_y_offset = 80.0
+
+[node name="ProgressBg" type="ColorRect" parent="Layout/BoardArea/CenterBoard/BoardSlot/BoardRenderer" unique_id=1345038747]
+show_behind_parent = true
+layout_mode = 0
+offset_left = 10.0
+offset_top = 32.0
+offset_right = 514.0
+offset_bottom = 1016.0
+pivot_offset = Vector2(252, 492)
+mouse_filter = 2
+color = Color(0.6666667, 0.6666667, 0.6666667, 1)
+
+[node name="ProgressFill" type="ColorRect" parent="Layout/BoardArea/CenterBoard/BoardSlot/BoardRenderer/ProgressBg" unique_id=2098131004]
+visible = false
+layout_mode = 0
+offset_top = 984.0
+offset_right = 504.0
+offset_bottom = 984.0
+mouse_filter = 2
+color = Color(0.12941177, 0.4862745, 0.85490197, 1)
+
+[node name="GridClip" type="Control" parent="Layout/BoardArea/CenterBoard/BoardSlot/BoardRenderer" unique_id=1345038748]
+clip_contents = true
+anchors_preset = 0
+offset_left = 22.0
+offset_top = 44.0
+offset_right = 502.0
+offset_bottom = 1004.0
+mouse_filter = 2
+
+[node name="BoardBg" type="ColorRect" parent="Layout/BoardArea/CenterBoard/BoardSlot/BoardRenderer/GridClip" unique_id=1129638316]
+show_behind_parent = true
+layout_mode = 0
+offset_right = 480.0
+offset_bottom = 960.0
+mouse_filter = 2
+color = Color(0, 0, 0, 1)
+
+[node name="TopGlow" type="TextureRect" parent="Layout/BoardArea/CenterBoard/BoardSlot/BoardRenderer/GridClip" unique_id=1249096667]
+modulate = Color(0.345098, 0.345098, 0.572549, 0.3764706)
+material = SubResource("CanvasItemMaterial_6upuk")
+layout_mode = 0
+offset_left = -83.10858
+offset_top = -255.08572
+offset_right = 563.1086
+offset_bottom = 391.13144
+mouse_filter = 2
+texture = ExtResource("11_de5ym")
+expand_mode = 1
+
+[node name="ScallopedBorder" type="TextureRect" parent="Layout/BoardArea/CenterBoard/BoardSlot/BoardRenderer/GridClip" unique_id=1675300076]
+modulate = Color(0.345098, 0.345098, 0.572549, 1)
+layout_mode = 0
+offset_left = -108.61716
+offset_top = -344.36572
+offset_right = 588.6172
+offset_bottom = 352.8686
+rotation = 134.4509
+pivot_offset = Vector2(348.61716, 348.61716)
+mouse_filter = 2
+texture = ExtResource("12_ghyfj")
+expand_mode = 1
+
+[node name="SegmentedCircle" type="TextureRect" parent="Layout/BoardArea/CenterBoard/BoardSlot/BoardRenderer/GridClip" unique_id=1215636930]
+modulate = Color(0.345098, 0.345098, 0.572549, 1)
+layout_mode = 0
+offset_left = -71.417145
+offset_top = -294.41144
+offset_right = 551.4171
+offset_bottom = 328.42285
+rotation = 84.922585
+pivot_offset = Vector2(311.41714, 311.41714)
+mouse_filter = 2
+texture = ExtResource("13_84cs3")
+expand_mode = 1
+
+[node name="RoundLabel" type="Label" parent="Layout/BoardArea/CenterBoard/BoardSlot/BoardRenderer/GridClip" unique_id=9421954]
+layout_mode = 0
+offset_left = 76.32
+offset_top = 17.005714
+offset_right = 395.17715
+offset_bottom = 187.06287
+theme_override_fonts/font = ExtResource("18")
+theme_override_font_sizes/font_size = 136
+text = "1"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BossPortrait" type="TextureRect" parent="Layout/BoardArea/CenterBoard/BoardSlot/BoardRenderer/GridClip" unique_id=175578328]
+visible = false
+layout_mode = 0
+offset_left = 76.32
+offset_top = 17.005714
+offset_right = 204.32
+offset_bottom = 145.0057
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="BossDescription" type="Label" parent="Layout/BoardArea/CenterBoard/BoardSlot/BoardRenderer/GridClip" unique_id=1255662874]
+visible = false
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 0
+theme_override_fonts/font = ExtResource("26")
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="ScanlinesLayer" type="TextureRect" parent="Layout/BoardArea/CenterBoard/BoardSlot/BoardRenderer/GridClip" unique_id=1287188198]
+modulate = Color(1, 1, 1, 0.25)
+layout_mode = 0
+offset_right = 480.0
+offset_bottom = 960.0
+mouse_filter = 2
+texture = ExtResource("11_t1ybu")
+expand_mode = 1
+stretch_mode = 1
+
+[node name="BoardGlowLayer" type="TextureRect" parent="Layout/BoardArea/CenterBoard/BoardSlot/BoardRenderer/GridClip" unique_id=1854761911]
+modulate = Color(0.345098, 0.345098, 0.572549, 0.5)
+material = SubResource("CanvasItemMaterial_1u8w0")
+layout_mode = 0
+offset_right = 480.0
+offset_bottom = 432.0
+mouse_filter = 2
+texture = ExtResource("12_8tlou")
+expand_mode = 1
+flip_v = true
+
+[node name="SnowLayer" type="Control" parent="Layout/BoardArea/CenterBoard/BoardSlot/BoardRenderer/GridClip" unique_id=1059385125]
+texture_filter = 1
+material = SubResource("ShaderMaterial_0odxb")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -1.0
+offset_right = -1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("14_ghyfj")
+
+[node name="RewardSlots" type="Control" parent="Layout/BoardArea/CenterBoard/BoardSlot/BoardRenderer/GridClip" unique_id=1845383126]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("20_reward")
+
+[node name="NextPreviewLayer" type="Control" parent="Layout/BoardArea/CenterBoard/BoardSlot/BoardRenderer/GridClip" unique_id=53324411]
+anchors_preset = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+script = ExtResource("14_ghyfj")
+
+[node name="ForegroundLayer" type="Control" parent="Layout/BoardArea/CenterBoard/BoardSlot/BoardRenderer/GridClip" unique_id=2035570496]
+anchors_preset = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+script = ExtResource("14_ghyfj")
+
+[node name="CoopOverlay" type="Control" parent="Layout/BoardArea/CenterBoard" unique_id=695533411]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="LaneLine1" type="Panel" parent="Layout/BoardArea/CenterBoard/CoopOverlay" unique_id=1255676977]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.333333
+anchor_right = 0.333333
+anchor_bottom = 1.0
+offset_left = -1.0
+offset_right = 1.0
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_lane_line")
+
+[node name="LaneLine2" type="Panel" parent="Layout/BoardArea/CenterBoard/CoopOverlay" unique_id=1477446184]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.666667
+anchor_right = 0.666667
+anchor_bottom = 1.0
+offset_left = -1.0
+offset_right = 1.0
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_lane_line")
+
+[node name="Lane1P" type="Label" parent="Layout/BoardArea/CenterBoard/CoopOverlay" unique_id=1360089693]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 0.5
+anchor_right = 0.333333
+anchor_bottom = 0.5
+offset_top = -16.0
+offset_bottom = 16.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.25, 0.5, 0.9, 1)
+theme_override_fonts/font = ExtResource("3")
+theme_override_font_sizes/font_size = 20
+text = "1P"
+horizontal_alignment = 1
+
+[node name="Lane2P" type="Label" parent="Layout/BoardArea/CenterBoard/CoopOverlay" unique_id=720396225]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.333333
+anchor_top = 0.5
+anchor_right = 0.666667
+anchor_bottom = 0.5
+offset_top = -16.0
+offset_bottom = 16.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.9, 0.35, 0.65, 1)
+theme_override_fonts/font = ExtResource("3")
+theme_override_font_sizes/font_size = 20
+text = "2P"
+horizontal_alignment = 1
+
+[node name="Lane3P" type="Label" parent="Layout/BoardArea/CenterBoard/CoopOverlay" unique_id=703063655]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.666667
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -16.0
+offset_bottom = 16.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.95, 0.65, 0.2, 1)
+theme_override_fonts/font = ExtResource("3")
+theme_override_font_sizes/font_size = 20
+text = "3P"
+horizontal_alignment = 1
+
+[node name="Lane4P" type="Label" parent="Layout/BoardArea/CenterBoard/CoopOverlay" unique_id=1350638187]
+visible = false
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.75
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -16.0
+offset_bottom = 16.0
+theme_override_fonts/font = ExtResource("3")
+theme_override_font_sizes/font_size = 20
+text = "4P"
+horizontal_alignment = 1

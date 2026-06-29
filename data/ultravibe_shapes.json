@@ -1,0 +1,993 @@
+{
+  "shapes": {
+    "Bell6": {
+      "ultravibeId": "Bell6",
+      "blockCount": 6,
+      "blockOffsets": [
+        [
+          1,
+          -2
+        ],
+        [
+          0,
+          -1
+        ],
+        [
+          1,
+          -1
+        ],
+        [
+          2,
+          -1
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      "tags": [
+        "vertical",
+        "symmetric"
+      ]
+    },
+    "CShape7": {
+      "ultravibeId": "CShape7",
+      "blockCount": 7,
+      "blockOffsets": [
+        [
+          1,
+          -2
+        ],
+        [
+          2,
+          -2
+        ],
+        [
+          0,
+          -1
+        ],
+        [
+          2,
+          -1
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      "tags": []
+    },
+    "Corner3": {
+      "ultravibeId": "Corner3",
+      "blockCount": 3,
+      "blockOffsets": [
+        [
+          0,
+          -1
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "tags": [
+        "basic"
+      ]
+    },
+    "Corner4": {
+      "ultravibeId": "Corner4",
+      "blockCount": 4,
+      "blockOffsets": [
+        [
+          -1,
+          -1
+        ],
+        [
+          -1,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "tags": [
+        "basic"
+      ]
+    },
+    "FShape5": {
+      "ultravibeId": "FShape5",
+      "blockCount": 5,
+      "blockOffsets": [
+        [
+          1,
+          -2
+        ],
+        [
+          0,
+          -1
+        ],
+        [
+          1,
+          -1
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      "tags": []
+    },
+    "HShape7": {
+      "ultravibeId": "HShape7",
+      "blockCount": 7,
+      "blockOffsets": [
+        [
+          0,
+          -2
+        ],
+        [
+          2,
+          -2
+        ],
+        [
+          0,
+          -1
+        ],
+        [
+          1,
+          -1
+        ],
+        [
+          2,
+          -1
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      "tags": [
+        "vertical",
+        "symmetric"
+      ]
+    },
+    "HoleSquare8": {
+      "ultravibeId": "HoleSquare8",
+      "blockCount": 8,
+      "blockOffsets": [
+        [
+          0,
+          -2
+        ],
+        [
+          1,
+          -2
+        ],
+        [
+          2,
+          -2
+        ],
+        [
+          0,
+          -1
+        ],
+        [
+          2,
+          -1
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      "tags": [
+        "square",
+        "vertical",
+        "symmetric"
+      ]
+    },
+    "LeftS4": {
+      "ultravibeId": "LeftS4",
+      "blockCount": 4,
+      "blockOffsets": [
+        [
+          -1,
+          -1
+        ],
+        [
+          0,
+          -1
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "tags": [
+        "basic"
+      ]
+    },
+    "Line2": {
+      "ultravibeId": "Line2",
+      "blockCount": 2,
+      "blockOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "tags": [
+        "vertical",
+        "symmetric",
+        "basic"
+      ]
+    },
+    "Line3": {
+      "ultravibeId": "Line3",
+      "blockCount": 3,
+      "blockOffsets": [
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      "tags": [
+        "vertical",
+        "symmetric",
+        "basic"
+      ]
+    },
+    "Line4": {
+      "ultravibeId": "Line4",
+      "blockCount": 4,
+      "blockOffsets": [
+        [
+          -1,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      "tags": [
+        "vertical",
+        "symmetric",
+        "basic"
+      ]
+    },
+    "Line5": {
+      "ultravibeId": "Line5",
+      "blockCount": 5,
+      "blockOffsets": [
+        [
+          -1,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          3,
+          0
+        ]
+      ],
+      "tags": [
+        "vertical",
+        "symmetric"
+      ]
+    },
+    "PShape5": {
+      "ultravibeId": "PShape5",
+      "blockCount": 5,
+      "blockOffsets": [
+        [
+          0,
+          -2
+        ],
+        [
+          0,
+          -1
+        ],
+        [
+          1,
+          -1
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "tags": []
+    },
+    "Rectangle6": {
+      "ultravibeId": "Rectangle6",
+      "blockCount": 6,
+      "blockOffsets": [
+        [
+          0,
+          -1
+        ],
+        [
+          1,
+          -1
+        ],
+        [
+          2,
+          -1
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      "tags": [
+        "vertical",
+        "symmetric"
+      ]
+    },
+    "Rectangle8": {
+      "ultravibeId": "Rectangle8",
+      "blockCount": 8,
+      "blockOffsets": [
+        [
+          -1,
+          -1
+        ],
+        [
+          0,
+          -1
+        ],
+        [
+          1,
+          -1
+        ],
+        [
+          2,
+          -1
+        ],
+        [
+          -1,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      "tags": [
+        "vertical",
+        "symmetric"
+      ]
+    },
+    "ReverseCorner4": {
+      "ultravibeId": "ReverseCorner4",
+      "blockCount": 4,
+      "blockOffsets": [
+        [
+          1,
+          -1
+        ],
+        [
+          -1,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "tags": [
+        "basic"
+      ]
+    },
+    "RightS4": {
+      "ultravibeId": "RightS4",
+      "blockCount": 4,
+      "blockOffsets": [
+        [
+          1,
+          -1
+        ],
+        [
+          2,
+          -1
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "tags": [
+        "basic"
+      ]
+    },
+    "Scissors6": {
+      "ultravibeId": "Scissors6",
+      "blockCount": 6,
+      "blockOffsets": [
+        [
+          0,
+          -2
+        ],
+        [
+          1,
+          -2
+        ],
+        [
+          0,
+          -1
+        ],
+        [
+          1,
+          -1
+        ],
+        [
+          2,
+          -1
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "tags": []
+    },
+    "Snake5": {
+      "ultravibeId": "Snake5",
+      "blockCount": 5,
+      "blockOffsets": [
+        [
+          2,
+          -2
+        ],
+        [
+          0,
+          -1
+        ],
+        [
+          1,
+          -1
+        ],
+        [
+          2,
+          -1
+        ],
+        [
+          0,
+          0
+        ]
+      ],
+      "tags": []
+    },
+    "Square4": {
+      "ultravibeId": "Square4",
+      "blockCount": 4,
+      "blockOffsets": [
+        [
+          0,
+          -1
+        ],
+        [
+          1,
+          -1
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "tags": [
+        "square",
+        "vertical",
+        "symmetric",
+        "basic"
+      ]
+    },
+    "Square9": {
+      "ultravibeId": "Square9",
+      "blockCount": 9,
+      "blockOffsets": [
+        [
+          0,
+          -2
+        ],
+        [
+          1,
+          -2
+        ],
+        [
+          2,
+          -2
+        ],
+        [
+          0,
+          -1
+        ],
+        [
+          1,
+          -1
+        ],
+        [
+          2,
+          -1
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      "tags": [
+        "square",
+        "vertical",
+        "symmetric"
+      ]
+    },
+    "Stairs6": {
+      "ultravibeId": "Stairs6",
+      "blockCount": 6,
+      "blockOffsets": [
+        [
+          0,
+          -2
+        ],
+        [
+          1,
+          -2
+        ],
+        [
+          2,
+          -2
+        ],
+        [
+          1,
+          -1
+        ],
+        [
+          2,
+          -1
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      "tags": []
+    },
+    "TShape4": {
+      "ultravibeId": "TShape4",
+      "blockCount": 4,
+      "blockOffsets": [
+        [
+          1,
+          -1
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      "tags": [
+        "vertical",
+        "symmetric",
+        "basic"
+      ]
+    },
+    "TShape5": {
+      "ultravibeId": "TShape5",
+      "blockCount": 5,
+      "blockOffsets": [
+        [
+          1,
+          -2
+        ],
+        [
+          1,
+          -1
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      "tags": [
+        "vertical",
+        "symmetric"
+      ]
+    },
+    "UShape5": {
+      "ultravibeId": "UShape5",
+      "blockCount": 5,
+      "blockOffsets": [
+        [
+          0,
+          -1
+        ],
+        [
+          2,
+          -1
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      "tags": [
+        "vertical",
+        "symmetric"
+      ]
+    },
+    "UShape6": {
+      "ultravibeId": "UShape6",
+      "blockCount": 6,
+      "blockOffsets": [
+        [
+          -1,
+          -1
+        ],
+        [
+          2,
+          -1
+        ],
+        [
+          -1,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      "tags": [
+        "vertical",
+        "symmetric"
+      ]
+    },
+    "UShape7": {
+      "ultravibeId": "UShape7",
+      "blockCount": 7,
+      "blockOffsets": [
+        [
+          0,
+          -2
+        ],
+        [
+          2,
+          -2
+        ],
+        [
+          0,
+          -1
+        ],
+        [
+          2,
+          -1
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      "tags": [
+        "vertical",
+        "symmetric"
+      ]
+    },
+    "UShape8": {
+      "ultravibeId": "UShape8",
+      "blockCount": 8,
+      "blockOffsets": [
+        [
+          0,
+          -2
+        ],
+        [
+          1,
+          -2
+        ],
+        [
+          2,
+          -2
+        ],
+        [
+          0,
+          -1
+        ],
+        [
+          1,
+          -1
+        ],
+        [
+          2,
+          -1
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      "tags": [
+        "vertical",
+        "symmetric"
+      ]
+    },
+    "VShape5": {
+      "ultravibeId": "VShape5",
+      "blockCount": 5,
+      "blockOffsets": [
+        [
+          0,
+          -2
+        ],
+        [
+          1,
+          -2
+        ],
+        [
+          2,
+          -2
+        ],
+        [
+          2,
+          -1
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      "tags": [
+        "vertical",
+        "symmetric"
+      ]
+    },
+    "VShape6": {
+      "ultravibeId": "VShape6",
+      "blockCount": 6,
+      "blockOffsets": [
+        [
+          0,
+          -1
+        ],
+        [
+          1,
+          -1
+        ],
+        [
+          -1,
+          0
+        ],
+        [
+          0,
+          0
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      "tags": [
+        "vertical",
+        "symmetric"
+      ]
+    },
+    "WShape5": {
+      "ultravibeId": "WShape5",
+      "blockCount": 5,
+      "blockOffsets": [
+        [
+          0,
+          -2
+        ],
+        [
+          1,
+          -2
+        ],
+        [
+          1,
+          -1
+        ],
+        [
+          2,
+          -1
+        ],
+        [
+          2,
+          0
+        ]
+      ],
+      "tags": [
+        "vertical",
+        "symmetric"
+      ]
+    },
+    "XShape5": {
+      "ultravibeId": "XShape5",
+      "blockCount": 5,
+      "blockOffsets": [
+        [
+          1,
+          -2
+        ],
+        [
+          0,
+          -1
+        ],
+        [
+          1,
+          -1
+        ],
+        [
+          2,
+          -1
+        ],
+        [
+          1,
+          0
+        ]
+      ],
+      "tags": [
+        "vertical",
+        "symmetric"
+      ]
+    }
+  }
+}

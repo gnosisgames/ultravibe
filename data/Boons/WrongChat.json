@@ -1,0 +1,45 @@
+{
+  "id": "WrongChat",
+  "properties": {
+    "gameplayTags": [
+      "rare"
+    ],
+    "effectApplication": "perInstance",
+    "onActivateInvocations": [
+      {
+        "service": "Match3",
+        "function": "ApplyConsumableSlotCapacityDelta",
+        "parameters": {
+          "bucketId": "default",
+          "delta": 2
+        }
+      }
+    ],
+    "onDeactivateInvocations": [
+      {
+        "service": "Match3",
+        "function": "ApplyConsumableSlotCapacityDelta",
+        "parameters": {
+          "bucketId": "default",
+          "delta": -2
+        }
+      }
+    ],
+    "scoreCalculations": [],
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonWrongChatName",
+    "descriptionKey": "boonWrongChatDescription",
+    "spriteId": "boonWrongChatSprite",
+    "tags": [
+      {
+        "tagType": "rare",
+        "tagLocKey": "core__adjective__rare"
+      }
+    ]
+  }
+}

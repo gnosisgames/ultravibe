@@ -1,0 +1,10 @@
+{
+  "id": "UShape8",
+  "displayName": "U Shape 8",
+  "prefabPath": "Prefabs/Ultravibes/Negative/UShape8",
+  "blocksCount": 8,
+  "tags": [
+    "vertical",
+    "symmetric"
+  ]
+}

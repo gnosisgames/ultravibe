@@ -1,0 +1,31 @@
+{
+  "dk_surge_negative_spawn_on_quad_line_clear": {
+    "id": "dk_surge_negative_spawn_on_quad_line_clear",
+    "category": "TRIGGER",
+    "trigger": "FACT_OBJECTIVE_FROM_LINE_CLEAR_RESOLVED",
+    "conditions": [
+      {
+        "path": "payload.rawLinesCleared",
+        "op": "EQUALS",
+        "value": {
+          "fromContext": "parameters.exactLinesCleared"
+        }
+      }
+    ],
+    "outcomes": [
+      {
+        "type": "CALL_SERVICE",
+        "target": "Deck.ChangeNegativeUltravibeChance",
+        "value": {
+          "delta": {
+            "fromContext": "parameters.out_delta"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "exactLinesCleared": 4,
+      "out_delta": 40
+    }
+  }
+}

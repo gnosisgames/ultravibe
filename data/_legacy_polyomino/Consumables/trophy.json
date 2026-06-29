@@ -1,0 +1,29 @@
+{
+  "id": "trophy",
+  "metadata": {
+    "nameKey": "consumableTrophyName",
+    "descriptionKey": "consumableTrophyDescription",
+    "spriteId": "consumableTrophySprite",
+    "tags": []
+  },
+  "properties": {
+    "invocations": [
+      {
+        "service": "FallingBlock",
+        "function": "GrantRandomEligibleUpgrade",
+        "parameters": {}
+      },
+      {
+        "service": "Animation",
+        "function": "PlayFeedback",
+        "parameters": {
+          "id": "trophy"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "utilities",
+      "includeUpgrades"
+    ]
+  }
+}

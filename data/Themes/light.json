@@ -1,0 +1,15 @@
+{
+  "id": "light",
+  "background.main": "#FAF8F1",
+  "background.subtle": "#FAEAB1",
+  "background.on": "#C9B59C",
+  "accent.neon": "#F6F1E9",
+  "primary.main": "#FAEAB1",
+  "primary.shade": "#B4A87F",
+  "grid.border": "#FBF3D1",
+  "score.main": "#FFFFFF",
+  "score.glow": "#FFFFFF",
+  "background.grid.alpha": 128,
+  "grid.lines.alpha": 0,
+  "primary.neon": "#F6F1E9"
+}

@@ -1,0 +1,34 @@
+{
+  "id": "TouchGrass",
+  "properties": {
+    "gameplayTags": [
+      "common"
+    ],
+    "effectApplication": "perInstance",
+    "match3RoundEffectId": "touch_grass_round_moves_bonus",
+    "onActivateInvocations": [
+      {
+        "service": "Match3",
+        "function": "SyncEquippedBoonMatch3RoundEffects",
+        "parameters": {}
+      }
+    ],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [],
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonTouchGrassName",
+    "descriptionKey": "boonTouchGrassDescription",
+    "spriteId": "boonTouchGrassSprite",
+    "tags": [
+      {
+        "tagType": "common",
+        "tagLocKey": "core__adjective__common"
+      }
+    ]
+  }
+}

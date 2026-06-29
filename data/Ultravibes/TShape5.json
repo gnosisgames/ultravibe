@@ -1,0 +1,10 @@
+{
+  "id": "TShape5",
+  "displayName": "T Shape 5",
+  "prefabPath": "Prefabs/Ultravibes/Positive/TShape5",
+  "blocksCount": 5,
+  "tags": [
+    "vertical",
+    "symmetric"
+  ]
+}

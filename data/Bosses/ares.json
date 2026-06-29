@@ -1,0 +1,41 @@
+{
+  "id": "ares",
+  "metadata": {
+    "nameKey": "aresLevelName",
+    "descriptionKey": "aresLevelDescription",
+    "spriteId": "ares",
+    "tags": [],
+    "startingLetter": "\\u0391",
+    "textColor": "#FF1A2E"
+  },
+  "properties": {
+    "themeId": "boss_ares",
+    "onRoundStartInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "ApplyEffect",
+        "parameters": {
+          "effectId": "ReplaceBaseColorWithNegativeOnSpawn",
+          "baseColor": "red",
+          "roundsLifetime": 1
+        }
+      }
+    ],
+    "onRoundEndInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "RemoveEffect",
+        "parameters": {
+          "effectId": "ReplaceBaseColorWithNegativeOnSpawn"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "boss",
+      "easy",
+      "includeBosses",
+      "includeNegatives"
+    ],
+    "minimumTimeSec": 0
+  }
+}

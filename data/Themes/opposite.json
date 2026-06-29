@@ -1,0 +1,15 @@
+{
+  "id": "opposite",
+  "background.main": "#5EABD6",
+  "background.subtle": "#E43636",
+  "background.on": "#2B3467",
+  "accent.neon": "#FF2929",
+  "primary.main": "#513D71",
+  "primary.shade": "#3A2C51",
+  "grid.border": "#B42B3F",
+  "score.main": "#FF2929",
+  "score.glow": "#FF2929",
+  "background.grid.alpha": 48,
+  "grid.lines.alpha": 0,
+  "primary.neon": "#FF2929"
+}

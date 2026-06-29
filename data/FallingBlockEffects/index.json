@@ -1,0 +1,24 @@
+{
+  "fallingBlockEffects": [
+    { "id": "ReduceGravitySpeed", "path": "ReduceGravitySpeed.json" },
+    { "id": "EnableRandomRotation", "path": "EnableRandomRotation.json" },
+    { "id": "EnableWind", "path": "EnableWind.json" },
+    { "id": "GhostOnly", "path": "GhostOnly.json" },
+    { "id": "DisableGhost", "path": "DisableGhost.json" },
+    { "id": "ForceBaseColorsOnly", "path": "ForceBaseColorsOnly.json" },
+    { "id": "UnreliableInputs", "path": "UnreliableInputs.json" },
+    { "id": "SpawnTrashLineIfNotPlacedWithin4Seconds", "path": "SpawnTrashLineIfNotPlacedWithin4Seconds.json" },
+    { "id": "SpawnTrashLineEvery2LinesCleared", "path": "SpawnTrashLineEvery2LinesCleared.json" },
+    { "id": "RemoveDiscardsPerLineCleared", "path": "RemoveDiscardsPerLineCleared.json" },
+    { "id": "AutoDropAfterDelay", "path": "AutoDropAfterDelay.json" },
+    { "id": "AutoDropAfterMoveCount", "path": "AutoDropAfterMoveCount.json" },
+    { "id": "DisablePieceAfterDelay", "path": "DisablePieceAfterDelay.json" },
+    { "id": "ConvertRandomBlockToNegativeOnPlacement", "path": "ConvertRandomBlockToNegativeOnPlacement.json" },
+    { "id": "ReplaceBaseColorWithNegativeOnSpawn", "path": "ReplaceBaseColorWithNegativeOnSpawn.json" },
+    { "id": "DisableRotation", "path": "DisableRotation.json" },
+    { "id": "InvertControls", "path": "InvertControls.json" },
+    { "id": "DisableConsumables", "path": "DisableConsumables.json" },
+    { "id": "DisableDiscard", "path": "DisableDiscard.json" },
+    { "id": "SpawnTrashLineOnUse", "path": "SpawnTrashLineOnUse.json" }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "id": "CannotUnsee",
+  "properties": {
+    "gameplayTags": [],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": []
+  },
+  "metadata": {
+    "nameKey": "boonCannotUnseeName",
+    "descriptionKey": "boonCannotUnseeDescription",
+    "spriteId": "boonCannotUnseeSprite",
+    "tags": []
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "id": "Clickbait",
+  "properties": {
+    "gameplayTags": [
+      "uncommon"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scaling": {
+      "counters": {
+        "shopRerollsLifetime": 0
+      }
+    },
+    "scoreCalculations": [
+      {
+        "id": "clickbait_mult_per_shop_reroll",
+        "phase": "finalize",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.multiTotal",
+            "value": "2 * {parameters.boonSlot.properties.scaling.counters.shopRerollsLifetime}"
+          }
+        ],
+        "parameters": {}
+      }
+    ],
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonClickbaitName",
+    "descriptionKey": "boonClickbaitDescription",
+    "spriteId": "boonClickbaitSprite",
+    "tags": [
+      {
+        "tagType": "uncommon",
+        "tagLocKey": "core__adjective__uncommon"
+      }
+    ]
+  }
+}

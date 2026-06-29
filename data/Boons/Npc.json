@@ -1,0 +1,14 @@
+{
+  "id": "Npc",
+  "properties": {
+    "gameplayTags": [],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": []
+  },
+  "metadata": {
+    "nameKey": "boonNpcName",
+    "descriptionKey": "boonNpcDescription",
+    "spriteId": "boonNpcSprite",
+    "tags": []
+  }
+}

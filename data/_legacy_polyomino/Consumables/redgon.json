@@ -1,0 +1,64 @@
+{
+  "id": "redgon",
+  "metadata": {
+    "nameKey": "consumableRedgonName",
+    "descriptionKey": "consumableRedgonDescription",
+    "spriteId": "consumableRedgonSprite",
+    "tags": []
+  },
+  "properties": {
+    "invocations": [
+      {
+        "service": "FallingBlock",
+        "function": "SetFallingPieceVariant",
+        "parameters": {
+          "variantId": "red"
+        }
+      },
+      {
+        "service": "Upgrade",
+        "function": "AddUpgrade",
+        "parameters": {
+          "categoryId": "itemUpgrades",
+          "upgradeId": "RedLevelUp"
+        }
+      },
+      {
+        "service": "Audio",
+        "function": "PlaySound",
+        "parameters": {
+          "clipId": "CubeConsumable",
+          "track": "Sfx"
+        }
+      },
+      {
+        "service": "Animation",
+        "function": "InstantiateParticle",
+        "parameters": {
+          "id": "lightningExplosionRed",
+          "poolId": "lightningExplosionRed",
+          "particlesPrefabId": "lightningExplosionRed",
+          "objectPoolSize": 3,
+          "transformFromStorePath": "Ephemeral.runtimeTransforms.lastRequestingConsumablePlayerTransform",
+          "transform": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          }
+        }
+      },
+      {
+        "service": "Haptic",
+        "function": "PlayPreset",
+        "parameters": {
+          "preset": "HeavyImpact"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "deck",
+      "includeSpecialUltravibes",
+      "includeUpgrades"
+    ]
+  }
+}

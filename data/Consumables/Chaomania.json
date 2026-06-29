@@ -1,0 +1,36 @@
+{
+  "id": "Chaomania",
+  "properties": {
+    "basePrice": 5,
+    "offerChancePermille": 150,
+    "invocations": [
+      {
+        "service": "Audio",
+        "function": "PlaySound",
+        "parameters": {
+          "clipId": "consumableSfx",
+          "track": "Sfx"
+        }
+      },
+      {
+        "service": "Match3",
+        "function": "AddFloorModifierPoolDelta",
+        "parameters": {
+          "floorTypeId": "Random",
+          "count": 4
+        }
+      }
+    ],
+    "gameplayTags": [
+      "mania",
+      "roundAction"
+    ]
+  },
+  "metadata": {
+    "nameKey": "consumableChaomaniaName",
+    "descriptionKey": "consumableChaomaniaDescription",
+    "spriteId": "consumableChaomaniaSprite",
+    "backgroundColor": "#540D81",
+    "tags": []
+  }
+}

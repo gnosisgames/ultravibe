@@ -1,0 +1,40 @@
+{
+  "id": "icarus",
+  "metadata": {
+    "nameKey": "icarusLevelName",
+    "descriptionKey": "icarusLevelDescription",
+    "spriteId": "icarus",
+    "tags": [],
+    "startingLetter": "\\u0399",
+    "textColor": "#AAFFFF"
+  },
+  "properties": {
+    "themeId": "boss_icarus",
+    "onRoundStartInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "ApplyEffect",
+        "parameters": {
+          "effectId": "SpawnTrashLineIfNotPlacedWithin4Seconds",
+          "placementSeconds": 5,
+          "roundsLifetime": 1
+        }
+      }
+    ],
+    "onRoundEndInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "RemoveEffect",
+        "parameters": {
+          "effectId": "SpawnTrashLineIfNotPlacedWithin4Seconds"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "boss",
+      "medium",
+      "includeBosses"
+    ],
+    "minimumTimeSec": 240
+  }
+}

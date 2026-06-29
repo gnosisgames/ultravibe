@@ -1,0 +1,9 @@
+{
+  "id": "SpawnTrashLineOnUse",
+  "handler": "rule",
+  "parameters": {
+    "ruleIds": [
+      "bossEffect_spawn_trash_on_discard"
+    ]
+  }
+}

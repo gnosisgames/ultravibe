@@ -1,0 +1,19 @@
+{
+  "id": "boss_hypnos",
+  "background.main": "#1A1F3A",
+  "background.subtle": "#2A3F5A",
+  "background.on": "#0D1A2A",
+  "accent.neon": "#4A6FFF",
+  "primary.main": "#2A2F4A",
+  "primary.shade": "#1E2235",
+  "grid.border": "#3A4F6A",
+  "score.main": "#4A6FFF",
+  "score.glow": "#4A6FFF",
+  "grid.main": "#4A6FFF",
+  "environment.ground": "#1A1F3A",
+  "environment.parallax": "#4A6FFF",
+  "material.id": "interStellar",
+  "background.grid.alpha": 64,
+  "grid.lines.alpha": 8,
+  "primary.neon": "#4A6FFF"
+}

@@ -1,0 +1,20 @@
+{
+  "id": "brick",
+  "nameKey": "brickName",
+  "descriptionKey": "brickDescription",
+  "spriteId": "brickBlock",
+  "color": "79473F",
+  "tags": [
+    "positive",
+    "rigid",
+    "hard",
+    "immutable",
+    "unpushable",
+    "heavy",
+    "color_orange"
+  ],
+  "basePoints": 40,
+  "baseMulti": 0,
+  "pointsPerLevel": 15,
+  "multiPerLevel": 0
+}

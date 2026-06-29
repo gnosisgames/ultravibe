@@ -1,0 +1,13 @@
+{
+  "id": "originalOnly",
+  "metadata": {
+    "nameKey": "gameFlags__enable__original_only",
+    "tags": []
+  },
+  "properties": {
+    "flagKey": "originalOnly",
+    "defaultValue": false,
+    "kind": "only",
+    "settingsPath": "settings.overrides.fallingBlock.gameFlags.originalOnly"
+  }
+}

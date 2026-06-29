@@ -1,0 +1,19 @@
+{
+  "id": "boss_erebos",
+  "background.main": "#1A0A1F",
+  "background.subtle": "#2A1439",
+  "background.on": "#0D050F",
+  "accent.neon": "#8A3FFF",
+  "primary.main": "#2A1A3F",
+  "primary.shade": "#1E132D",
+  "grid.border": "#3F2A5F",
+  "score.main": "#8A3FFF",
+  "score.glow": "#8A3FFF",
+  "grid.main": "#8A3FFF",
+  "environment.ground": "#1A0A1F",
+  "environment.parallax": "#8A3FFF",
+  "material.id": "matrix",
+  "background.grid.alpha": 64,
+  "grid.lines.alpha": 8,
+  "primary.neon": "#8A3FFF"
+}

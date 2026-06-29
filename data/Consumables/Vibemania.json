@@ -1,0 +1,36 @@
+{
+  "id": "Vibemania",
+  "properties": {
+    "basePrice": 5,
+    "offerChancePermille": 80,
+    "invocations": [
+      {
+        "service": "Audio",
+        "function": "PlaySound",
+        "parameters": {
+          "clipId": "consumableSfx",
+          "track": "Sfx"
+        }
+      },
+      {
+        "service": "Match3",
+        "function": "RollRandomBoon",
+        "parameters": {
+          "bucketId": "default",
+          "count": 2
+        }
+      }
+    ],
+    "gameplayTags": [
+      "mania",
+      "roundAction"
+    ]
+  },
+  "metadata": {
+    "nameKey": "consumableVibemaniaName",
+    "descriptionKey": "consumableVibemaniaDescription",
+    "spriteId": "consumableVibemaniaSprite",
+    "backgroundColor": "#540D81",
+    "tags": []
+  }
+}

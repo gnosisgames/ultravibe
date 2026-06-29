@@ -1,0 +1,45 @@
+{
+  "id": "RedFlag",
+  "properties": {
+    "gameplayTags": [
+      "common"
+    ],
+    "effectApplication": "perInstance",
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scaling": {
+      "counters": {
+        "redFlagEnhancedDestroyedLifetime": 0
+      }
+    },
+    "scoreCalculations": [
+      {
+        "id": "red_flag_enhanced_destroyed_mult",
+        "phase": "finalize",
+        "outcomes": [
+          {
+            "op": "multiply",
+            "target": "score.multiTotal",
+            "value": "1 + 0.5 * {parameters.boonSlot.properties.scaling.counters.redFlagEnhancedDestroyedLifetime}"
+          }
+        ],
+        "parameters": {}
+      }
+    ],
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonRedFlagName",
+    "descriptionKey": "boonRedFlagDescription",
+    "spriteId": "boonRedFlagSprite",
+    "tags": [
+      {
+        "tagType": "common",
+        "tagLocKey": "core__adjective__common"
+      }
+    ]
+  }
+}

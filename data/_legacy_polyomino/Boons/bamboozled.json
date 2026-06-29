@@ -1,0 +1,27 @@
+{
+  "id": "bamboozled",
+  "metadata": {
+    "nameKey": "boonBamboozledName",
+    "descriptionKey": "boonBamboozledDescription",
+    "spriteId": "bamboozled",
+    "tags": []
+  },
+  "properties": {
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "bamboozled_add_multi_on_no_rotation_placement",
+        "phase": "on_placement",
+        "when": "{payload.placement.withoutRotation} == 1",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.pendingMulti",
+            "value": "25"
+          }
+        ]
+      }
+    ]
+  }
+}

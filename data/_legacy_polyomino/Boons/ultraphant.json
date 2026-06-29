@@ -1,0 +1,42 @@
+{
+  "id": "ultraphant",
+  "metadata": {
+    "nameKey": "boonUltraphantName",
+    "descriptionKey": "boonUltraphantDescription",
+    "spriteId": "ultraphant",
+    "tags": []
+  },
+  "properties": {
+    "effectApplication": "perInstance",
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "spawnConversions": [
+      {
+        "id": "ultraphant_two_block_to_rectangle8",
+        "match": {
+          "ultravibeBlocksCount": 2,
+          "ultravibeIdNot": "Rectangle8"
+        },
+        "set": {
+          "ultravibeId": "Rectangle8"
+        },
+        "chanceOneIn": 4
+      },
+      {
+        "id": "ultraphant_three_block_to_square9",
+        "match": {
+          "ultravibeBlocksCount": 3,
+          "ultravibeIdNot": "Square9"
+        },
+        "set": {
+          "ultravibeId": "Square9"
+        },
+        "chanceOneIn": 4
+      }
+    ],
+    "gameplayTags": [
+      "!originalOnly",
+      "includeSpecialUltravibes"
+    ]
+  }
+}

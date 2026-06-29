@@ -1,0 +1,29 @@
+{
+  "id": "hammer",
+  "metadata": {
+    "nameKey": "consumableHammerName",
+    "descriptionKey": "consumableHammerDescription",
+    "spriteId": "hammer",
+    "tags": []
+  },
+  "properties": {
+    "cooldownSeconds": 90,
+    "invocations": [
+      {
+        "service": "FallingBlock",
+        "function": "ClearRowsAboveLowestNonEmptyColumnHeight",
+        "parameters": {}
+      },
+      {
+        "service": "Animation",
+        "function": "PlayFeedback",
+        "parameters": {
+          "id": "hammer"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "includeAbilities"
+    ]
+  }
+}

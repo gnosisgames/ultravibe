@@ -1,0 +1,34 @@
+{
+  "id": "Echomania",
+  "properties": {
+    "basePrice": 5,
+    "offerChancePermille": 80,
+    "invocations": [
+      {
+        "service": "Audio",
+        "function": "PlaySound",
+        "parameters": {
+          "clipId": "consumableSfx",
+          "track": "Sfx"
+        }
+      },
+      {
+        "service": "Match3",
+        "function": "DuplicateLastRuneOrItemUpgradeGrantConsumable",
+        "parameters": {
+          "bucketId": "default"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "mania"
+    ]
+  },
+  "metadata": {
+    "nameKey": "consumableEchomaniaName",
+    "descriptionKey": "consumableEchomaniaDescription",
+    "spriteId": "consumableEchomaniaSprite",
+    "backgroundColor": "#540D81",
+    "tags": []
+  }
+}

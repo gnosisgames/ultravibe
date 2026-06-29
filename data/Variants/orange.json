@@ -1,0 +1,16 @@
+{
+  "id": "orange",
+  "nameKey": "orangeName",
+  "descriptionKey": "orangeDescription",
+  "spriteId": "orangeBlock",
+  "color": "EA7100",
+  "tags": [
+    "neutral",
+    "soft",
+    "color_orange"
+  ],
+  "basePoints": 10,
+  "baseMulti": 1,
+  "pointsPerLevel": 8,
+  "multiPerLevel": 1
+}

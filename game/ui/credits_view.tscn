@@ -1,0 +1,154 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://game/ui/credits_view.gd" id="1"]
+[ext_resource type="FontFile" path="res://assets/fonts/Comic Lemon.otf" id="2"]
+[ext_resource type="PackedScene" path="res://game/ui/widgets/rounded_square_btn.tscn" id="3"]
+[ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/back.png" id="4"]
+[ext_resource type="Script" path="res://game/ui/components/bbcode_effect_text_combine.gd" id="5"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+content_margin_left = 36.0
+content_margin_top = 30.0
+content_margin_right = 36.0
+content_margin_bottom = 30.0
+bg_color = Color(0.0980392, 0.156863, 0.227451, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.345098, 0.345098, 0.572549, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+shadow_color = Color(0.0784314, 0.137255, 0.227451, 1)
+shadow_size = 1
+shadow_offset = Vector2(4, 6)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_topbar"]
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 14.0
+content_margin_bottom = 8.0
+
+[node name="CreditsView" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+view_id = "credits"
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Layout" type="VBoxContainer" parent="Center"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Title" type="RichTextLabel" parent="Center/Layout"]
+layout_mode = 2
+focus_mode = 0
+custom_minimum_size = Vector2(0, 80)
+mouse_filter = 2
+theme_override_colors/default_color = Color(0.992157, 0.894118, 0.72549, 1)
+theme_override_colors/font_outline_color = Color(0.345098, 0.345098, 0.572549, 1)
+theme_override_colors/font_shadow_color = Color(0.192157, 0.192157, 0.270588, 1)
+theme_override_constants/shadow_outline_size = 26
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 6
+theme_override_constants/outline_size = 26
+theme_override_fonts/normal_font = ExtResource("2")
+theme_override_font_sizes/normal_font_size = 62
+bbcode_enabled = true
+text = "[wave amp=40.0 freq=4.0 connected=1]CREDITS[/wave]"
+fit_content = true
+scroll_active = false
+horizontal_alignment = 1
+vertical_alignment = 1
+script = ExtResource("5")
+text_clean = "core__noun__credits"
+bbcode = "[wave amp=40.0 freq=4.0 connected=1]%s[/wave]"
+
+[node name="TopBarContainer" type="PanelContainer" parent="Center/Layout"]
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_styles/panel = SubResource("StyleBoxEmpty_topbar")
+
+[node name="TopBar" type="HBoxContainer" parent="Center/Layout/TopBarContainer"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="BackButton" parent="Center/Layout/TopBarContainer/TopBar" instance=ExtResource("3")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 76)
+layout_mode = 2
+theme_override_colors/icon_normal_color = Color(0.992157, 0.894118, 0.72549, 1)
+theme_override_colors/icon_focus_color = Color(0.992157, 0.894118, 0.72549, 1)
+theme_override_colors/icon_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_pressed_color = Color(0.992157, 0.894118, 0.72549, 1)
+theme_override_constants/icon_max_width = 44
+tooltip_text = "core__verb__back"
+alignment = 1
+icon_alignment = 1
+vertical_icon_alignment = 1
+text = ""
+icon = ExtResource("4")
+expand_icon = true
+
+[node name="Card" type="PanelContainer" parent="Center/Layout"]
+custom_minimum_size = Vector2(1240, 660)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Center/Layout/Card"]
+unique_name_in_owner = true
+layout_mode = 2
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 2
+
+[node name="CreditsText" type="RichTextLabel" parent="Center/Layout/Card/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_fonts/normal_font = ExtResource("2")
+theme_override_font_sizes/normal_font_size = 28
+bbcode_enabled = true
+text = "[center]
+[color=#fddec8][font_size=40]DEVELOPER[/font_size][/color]
+[color=#ffffff]Gnosis Games[/color]
+
+[font_size=20] [/font_size]
+
+[color=#fddec8][font_size=40]MUSIC[/font_size][/color]
+[color=#ffffff]Miguel Angel
+Incompetech by Kevin MacLeod[/color]
+
+[font_size=20] [/font_size]
+
+[color=#fddec8][font_size=40]SPRITES[/font_size][/color]
+[color=#ffffff]Flaticon
+Kenney
+Gnosis Games[/color]
+
+[font_size=20] [/font_size]
+
+[color=#fddec8][font_size=40]TOOLS & SOFTWARE[/font_size][/color]
+[color=#ffffff]Godot
+Procreate
+Local Send
+Discord[/color]
+
+[font_size=20] [/font_size]
+
+[color=#fddec8][font_size=40]SPECIAL THANKS[/font_size][/color]
+[color=#ffffff]All Playtesters and Supporters![/color]
+[/center]"
+fit_content = true

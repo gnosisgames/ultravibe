@@ -1,0 +1,38 @@
+{
+  "id": "Manifestation",
+  "properties": {
+    "gameplayTags": [
+      "uncommon"
+    ],
+    "onActivateInvocations": [
+      {
+        "service": "Match3Shop",
+        "function": "RebuildCoreShopOffers",
+        "parameters": {}
+      }
+    ],
+    "onDeactivateInvocations": [
+      {
+        "service": "Match3Shop",
+        "function": "RebuildCoreShopOffers",
+        "parameters": {}
+      }
+    ],
+    "effectApplication": "catalogOnce",
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonManifestationName",
+    "descriptionKey": "boonManifestationDescription",
+    "spriteId": "boonManifestationSprite",
+    "tags": [
+      {
+        "tagType": "uncommon",
+        "tagLocKey": "core__adjective__uncommon"
+      }
+    ]
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": "DisableConsumables",
+  "handler": "rule",
+  "parameters": {
+    "ruleIds": [
+      "bossEffect_deny_use_consumable",
+      "bossEffect_deny_consumable_use_direct",
+      "bossEffect_deny_consumable_next",
+      "bossEffect_deny_consumable_prev"
+    ]
+  }
+}

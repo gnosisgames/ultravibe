@@ -1,0 +1,40 @@
+{
+  "id": "GreenFlag",
+  "properties": {
+    "gameplayTags": [
+      "common"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "green_flag_zero_shuffles_multi",
+        "phase": "finalize",
+        "when": "{ephemeral.match3.currentShuffles} == 0",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.multiTotal",
+            "value": "15"
+          }
+        ],
+        "parameters": {}
+      }
+    ],
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonGreenFlagName",
+    "descriptionKey": "boonGreenFlagDescription",
+    "spriteId": "boonGreenFlagSprite",
+    "tags": [
+      {
+        "tagType": "common",
+        "tagLocKey": "core__adjective__common"
+      }
+    ]
+  }
+}

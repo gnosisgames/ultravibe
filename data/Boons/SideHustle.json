@@ -1,0 +1,26 @@
+{
+  "id": "SideHustle",
+  "properties": {
+    "gameplayTags": [
+      "uncommon"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "effectApplication": "perInstance",
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonSideHustleName",
+    "descriptionKey": "boonSideHustleDescription",
+    "spriteId": "boonSideHustleSprite",
+    "tags": [
+      {
+        "tagType": "uncommon",
+        "tagLocKey": "core__adjective__uncommon"
+      }
+    ]
+  }
+}

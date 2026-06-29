@@ -1,0 +1,17 @@
+{
+  "id": "slime",
+  "nameKey": "slimeName",
+  "descriptionKey": "slimeDescription",
+  "spriteId": "slimeBlock",
+  "color": "51F451",
+  "tags": [
+    "positive",
+    "slippery",
+    "soft",
+    "color_green"
+  ],
+  "basePoints": 25,
+  "baseMulti": 0,
+  "pointsPerLevel": 10,
+  "multiPerLevel": 0
+}

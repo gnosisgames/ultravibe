@@ -1,0 +1,21 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://game/ui/widgets/juicy_toggle.gd" id="1"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_empty"]
+
+[node name="JuicyToggle" type="Button"]
+custom_minimum_size = Vector2(118, 56)
+mouse_default_cursor_shape = 2
+theme_override_styles/normal = SubResource("StyleBoxEmpty_empty")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_empty")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_empty")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_empty")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_empty")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_empty")
+toggle_mode = true
+shortcut_in_tooltip = false
+alignment = 1
+text = ""
+flat = true
+script = ExtResource("1")

@@ -1,0 +1,44 @@
+{
+  "id": "PlotArmor",
+  "properties": {
+    "gameplayTags": [
+      "uncommon"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scaling": {
+      "counters": {
+        "plotArmorShufflesUsed": 0
+      }
+    },
+    "scoreCalculations": [
+      {
+        "id": "plotarmor_points_per_shuffle_usage_scaling",
+        "phase": "finalize",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.pointsTotal",
+            "value": "2 * {parameters.boonSlot.properties.scaling.counters.plotArmorShufflesUsed}"
+          }
+        ],
+        "parameters": {}
+      }
+    ],
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonPlotArmorName",
+    "descriptionKey": "boonPlotArmorDescription",
+    "spriteId": "boonPlotArmorSprite",
+    "tags": [
+      {
+        "tagType": "uncommon",
+        "tagLocKey": "core__adjective__uncommon"
+      }
+    ]
+  }
+}

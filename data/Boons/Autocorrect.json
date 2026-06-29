@@ -1,0 +1,26 @@
+{
+  "id": "Autocorrect",
+  "properties": {
+    "gameplayTags": [
+      "uncommon"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "effectApplication": "perInstance",
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonAutocorrectName",
+    "descriptionKey": "boonAutocorrectDescription",
+    "spriteId": "boonAutocorrectSprite",
+    "tags": [
+      {
+        "tagType": "uncommon",
+        "tagLocKey": "core__adjective__uncommon"
+      }
+    ]
+  }
+}

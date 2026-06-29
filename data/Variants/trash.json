@@ -1,0 +1,17 @@
+{
+  "id": "trash",
+  "nameKey": "trashName",
+  "descriptionKey": "trashDescription",
+  "spriteId": "trashBlock",
+  "color": "ABC4C9",
+  "tags": [
+    "positive",
+    "discardable",
+    "soft"
+  ],
+  "basePoints": 10,
+  "baseMulti": 2,
+  "pointsPerLevel": 6,
+  "multiPerLevel": 1,
+  "placementDiscardChancePercent": 10
+}

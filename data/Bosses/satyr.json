@@ -1,0 +1,39 @@
+{
+  "id": "satyr",
+  "metadata": {
+    "nameKey": "satyrLevelName",
+    "descriptionKey": "satyrLevelDescription",
+    "spriteId": "satyr",
+    "tags": [],
+    "startingLetter": "\\u03A3",
+    "textColor": "#AF4A8F"
+  },
+  "properties": {
+    "themeId": "boss_satyr",
+    "onRoundStartInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "ApplyEffect",
+        "parameters": {
+          "effectId": "InvertControls",
+          "roundsLifetime": 1
+        }
+      }
+    ],
+    "onRoundEndInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "RemoveEffect",
+        "parameters": {
+          "effectId": "InvertControls"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "boss",
+      "medium",
+      "includeBosses"
+    ],
+    "minimumTimeSec": 240
+  }
+}

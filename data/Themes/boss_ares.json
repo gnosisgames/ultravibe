@@ -1,0 +1,19 @@
+{
+  "id": "boss_ares",
+  "background.main": "#6A0A12",
+  "background.subtle": "#A0141F",
+  "background.on": "#350508",
+  "accent.neon": "#FF1A2E",
+  "primary.main": "#B81E2F",
+  "primary.shade": "#841622",
+  "grid.border": "#E0243A",
+  "score.main": "#FF1A2E",
+  "score.glow": "#FF1A2E",
+  "grid.main": "#FF1A2E",
+  "environment.ground": "#6A0A12",
+  "environment.parallax": "#FF1A2E",
+  "material.id": "skull",
+  "background.grid.alpha": 64,
+  "grid.lines.alpha": 8,
+  "primary.neon": "#FF1A2E"
+}

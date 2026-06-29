@@ -1,0 +1,14 @@
+{
+  "id": "NotAgain",
+  "properties": {
+    "gameplayTags": [],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": []
+  },
+  "metadata": {
+    "nameKey": "boonNotAgainName",
+    "descriptionKey": "boonNotAgainDescription",
+    "spriteId": "boonNotAgainSprite",
+    "tags": []
+  }
+}

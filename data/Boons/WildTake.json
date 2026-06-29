@@ -1,0 +1,45 @@
+{
+  "id": "WildTake",
+  "properties": {
+    "gameplayTags": [
+      "common"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "wild_take_finalize_points",
+        "phase": "finalize",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.pointsTotal",
+            "value": "150"
+          }
+        ],
+        "parameters": {}
+      }
+    ],
+    "selfDestruct": {
+      "trigger": "round_end",
+      "chanceNumerator": 1,
+      "chanceDenominator": 6,
+      "onlyBossRounds": false
+    },
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonWildTakeName",
+    "descriptionKey": "boonWildTakeDescription",
+    "spriteId": "boonWildTakeSprite",
+    "tags": [
+      {
+        "tagType": "common",
+        "tagLocKey": "core__adjective__common"
+      }
+    ]
+  }
+}

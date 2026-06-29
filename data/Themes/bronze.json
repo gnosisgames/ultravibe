@@ -1,0 +1,15 @@
+{
+  "id": "bronze",
+  "background.main": "#B77466",
+  "background.subtle": "#B77466",
+  "background.on": "#B77466",
+  "accent.neon": "#C1856D",
+  "primary.main": "#C1856D",
+  "primary.shade": "#8B604E",
+  "grid.border": "#FFAAAA",
+  "score.main": "#FFAAAA",
+  "score.glow": "#FFAAAA",
+  "background.grid.alpha": 80,
+  "grid.lines.alpha": 5,
+  "primary.neon": "#C1856D"
+}

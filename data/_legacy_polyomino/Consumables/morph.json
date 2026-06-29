@@ -1,0 +1,32 @@
+{
+  "id": "morph",
+  "metadata": {
+    "nameKey": "consumableMorphName",
+    "descriptionKey": "consumableMorphDescription",
+    "spriteId": "consumableMorphSprite",
+    "tags": []
+  },
+  "properties": {
+    "invocations": [
+      {
+        "service": "Consumable",
+        "function": "DuplicateLastConsumedConsumable",
+        "parameters": {
+          "excludeConsumableId": "morph"
+        }
+      },
+      {
+        "service": "Animation",
+        "function": "PlayFeedback",
+        "parameters": {
+          "id": "morph"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "utilities",
+      "includeDiscards",
+      "includeConsumables"
+    ]
+  }
+}

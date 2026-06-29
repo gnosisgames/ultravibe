@@ -1,0 +1,56 @@
+{
+  "id": "rip",
+  "metadata": {
+    "nameKey": "consumableRipName",
+    "descriptionKey": "consumableRipDescription",
+    "spriteId": "consumableRipSprite",
+    "tags": []
+  },
+  "properties": {
+    "stopInvocationsOnFailure": true,
+    "invocations": [
+      {
+        "service": "FallingBlock",
+        "function": "DestroyCurrentPiece",
+        "parameters": {
+          "feedbackId": "rip"
+        }
+      },
+      {
+        "service": "Audio",
+        "function": "PlaySound",
+        "parameters": {
+          "clipId": "ripConsumable",
+          "track": "Sfx"
+        }
+      },
+      {
+        "service": "Animation",
+        "function": "InstantiateParticle",
+        "parameters": {
+          "id": "ripExplosion",
+          "poolId": "ripExplosion",
+          "particlesPrefabId": "ripExplosion",
+          "objectPoolSize": 3,
+          "transformFromStorePath": "Ephemeral.runtimeTransforms.lastRequestingConsumablePlayerTransform",
+          "transform": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          }
+        }
+      },
+      {
+        "service": "Haptic",
+        "function": "PlayPreset",
+        "parameters": {
+          "preset": "HeavyImpact"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "deck",
+      "includeSpecialUltravibes"
+    ]
+  }
+}

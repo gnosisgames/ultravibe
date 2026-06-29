@@ -1,0 +1,192 @@
+{
+  "rigid": {
+    "id": "rigid",
+    "metadata": {
+      "nameKey": "rigidName",
+      "descriptionKey": "rigidDescription",
+      "spriteId": "traitRigidSprite",
+      "spritePath": "Sprites/Traits/rigid",
+      "spriteTintColor": "#FF6B6B"
+    }
+  },
+  "slippery": {
+    "id": "slippery",
+    "metadata": {
+      "nameKey": "slipperyName",
+      "descriptionKey": "slipperyDescription",
+      "spriteId": "traitSlipperySprite",
+      "spritePath": "Sprites/Traits/slippery",
+      "spriteTintColor": "#2ECC71"
+    }
+  },
+  "discardable": {
+    "id": "discardable",
+    "metadata": {
+      "nameKey": "discardableName",
+      "descriptionKey": "discardableDescription",
+      "spriteId": "traitDiscardableSprite",
+      "spritePath": "Sprites/Traits/discardable",
+      "spriteTintColor": "#95E1D3"
+    }
+  },
+  "undiscardable": {
+    "id": "undiscardable",
+    "metadata": {
+      "nameKey": "undiscardableName",
+      "descriptionKey": "undiscardableDescription",
+      "spriteId": "traitUndiscardableSprite",
+      "spritePath": "Sprites/Traits/undiscardable",
+      "spriteTintColor": "#F38181"
+    }
+  },
+  "eternal": {
+    "id": "eternal",
+    "metadata": {
+      "nameKey": "eternalName",
+      "descriptionKey": "eternalDescription",
+      "spriteId": "traitEternalSprite",
+      "spritePath": "Sprites/Traits/eternal",
+      "spriteTintColor": "#FCBAD3"
+    }
+  },
+  "hard": {
+    "id": "hard",
+    "metadata": {
+      "nameKey": "hardName",
+      "descriptionKey": "hardDescription",
+      "spriteId": "traitHardSprite",
+      "spritePath": "Sprites/Traits/hard",
+      "spriteTintColor": "#7EC8E8"
+    }
+  },
+  "unpushable": {
+    "id": "unpushable",
+    "metadata": {
+      "nameKey": "unpushableName",
+      "descriptionKey": "unpushableDescription",
+      "spriteId": "traitUnpushableSprite",
+      "spritePath": "Sprites/Traits/unpushable",
+      "spriteTintColor": "#A8DADC"
+    }
+  },
+  "soft": {
+    "id": "soft",
+    "metadata": {
+      "nameKey": "softName",
+      "descriptionKey": "softDescription",
+      "spriteId": "traitSoftSprite",
+      "spritePath": "Sprites/Traits/soft",
+      "spriteTintColor": "#FF69B4"
+    }
+  },
+  "heavy": {
+    "id": "heavy",
+    "metadata": {
+      "nameKey": "heavyName",
+      "descriptionKey": "heavyDescription",
+      "spriteId": "traitHeavySprite",
+      "spritePath": "Sprites/Traits/heavy",
+      "spriteTintColor": "#34495E"
+    }
+  },
+  "gyroscopic": {
+    "id": "gyroscopic",
+    "metadata": {
+      "nameKey": "gyroscopicName",
+      "descriptionKey": "gyroscopicDescription",
+      "spriteId": "traitGyroscopicSprite",
+      "spritePath": "Sprites/Traits/rotation_immune",
+      "spriteTintColor": "#9B59B6"
+    }
+  },
+  "contagious": {
+    "id": "contagious",
+    "metadata": {
+      "nameKey": "contagiousName",
+      "descriptionKey": "contagiousDescription",
+      "spriteId": "traitContagiousSprite",
+      "spritePath": "Sprites/Traits/contagious",
+      "spriteTintColor": "#27AE60"
+    }
+  },
+  "expansive": {
+    "id": "expansive",
+    "metadata": {
+      "nameKey": "expansiveName",
+      "descriptionKey": "expansiveDescription",
+      "spriteId": "traitExpansiveSprite",
+      "spritePath": "Sprites/Traits/expansive",
+      "spriteTintColor": "#16A085"
+    }
+  },
+  "rising": {
+    "id": "rising",
+    "metadata": {
+      "nameKey": "risingName",
+      "descriptionKey": "risingDescription",
+      "spriteId": "traitRisingSprite",
+      "spritePath": "Sprites/Traits/expansive",
+      "spriteTintColor": "#B565A7"
+    }
+  },
+  "immutable": {
+    "id": "immutable",
+    "metadata": {
+      "nameKey": "immutableName",
+      "descriptionKey": "immutableDescription",
+      "spriteId": "traitImmutableSprite",
+      "spritePath": "Sprites/Traits/immutable",
+      "spriteTintColor": "#D5DBDB"
+    }
+  },
+  "sinking": {
+    "id": "sinking",
+    "metadata": {
+      "nameKey": "sinkingName",
+      "descriptionKey": "sinkingDescription",
+      "spriteId": "traitSinkingSprite",
+      "spritePath": "Sprites/Traits/sinking",
+      "spriteTintColor": "#3498DB"
+    }
+  },
+  "linked": {
+    "id": "linked",
+    "metadata": {
+      "nameKey": "linkedName",
+      "descriptionKey": "linkedDescription",
+      "spriteId": "traitLinkedSprite",
+      "spritePath": "Sprites/Traits/linked",
+      "spriteTintColor": "#1ABC9C"
+    }
+  },
+  "lucky": {
+    "id": "lucky",
+    "metadata": {
+      "nameKey": "luckyName",
+      "descriptionKey": "luckyDescription",
+      "spriteId": "traitLuckySprite",
+      "spritePath": "Sprites/Traits/lucky",
+      "spriteTintColor": "#E6CC33"
+    }
+  },
+  "healing": {
+    "id": "healing",
+    "metadata": {
+      "nameKey": "healingName",
+      "descriptionKey": "healingDescription",
+      "spriteId": "traitHealingSprite",
+      "spritePath": "Sprites/Traits/healing",
+      "spriteTintColor": "#E74C3C"
+    }
+  },
+  "poisoning": {
+    "id": "poisoning",
+    "metadata": {
+      "nameKey": "poisoningName",
+      "descriptionKey": "poisoningDescription",
+      "spriteId": "traitPoisoningSprite",
+      "spritePath": "Sprites/Traits/poisoning",
+      "spriteTintColor": "#1A0D33"
+    }
+  }
+}

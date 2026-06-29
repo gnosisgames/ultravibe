@@ -1,0 +1,14 @@
+{
+  "id": "Ragequit",
+  "properties": {
+    "gameplayTags": [],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": []
+  },
+  "metadata": {
+    "nameKey": "boonRagequitName",
+    "descriptionKey": "boonRagequitDescription",
+    "spriteId": "boonRagequitSprite",
+    "tags": []
+  }
+}

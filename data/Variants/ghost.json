@@ -1,0 +1,12 @@
+{
+  "id": "ghost",
+  "nameKey": "ghostName",
+  "descriptionKey": "ghostDescription",
+  "spriteId": "ghostBlock",
+  "color": "ffffff",
+  "tags": [
+    "soft"
+  ],
+  "basePoints": 0,
+  "baseMulti": 0
+}

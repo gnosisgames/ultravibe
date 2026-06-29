@@ -1,0 +1,17 @@
+{
+  "id": "heart",
+  "nameKey": "heartName",
+  "descriptionKey": "heartDescription",
+  "spriteId": "heartBlock",
+  "color": "F12731",
+  "tags": [
+    "positive",
+    "soft",
+    "healing",
+    "color_red"
+  ],
+  "basePoints": 15,
+  "baseMulti": 2,
+  "pointsPerLevel": 8,
+  "multiPerLevel": 1
+}

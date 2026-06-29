@@ -1,0 +1,14 @@
+{
+  "id": "infiniteDiscards",
+  "metadata": {
+    "nameKey": "gameFlags__enable__infinite_discards",
+    "tags": []
+  },
+  "properties": {
+    "flagKey": "infiniteDiscards",
+    "defaultValue": false,
+    "kind": "boost",
+    "settingsPath": "settings.overrides.fallingBlock.gameFlags.infiniteDiscards",
+    "requiresFlag": "includeDiscards"
+  }
+}

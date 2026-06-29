@@ -1,0 +1,31 @@
+{
+  "spc_variant_rust_to_blue": {
+    "id": "spc_variant_rust_to_blue",
+    "category": "INTERCEPTOR",
+    "trigger": "REQUEST_FALLING_BLOCK_SPAWN_PIECE",
+    "conditions": [
+      {
+        "path": "payload.variantId",
+        "op": "EQUALS",
+        "value": "rust"
+      },
+      {
+        "path": "",
+        "op": "CHANCE_PERCENT",
+        "value": {
+          "fromContext": "parameters.chancePercent"
+        }
+      }
+    ],
+    "outcomes": [
+      {
+        "type": "SET",
+        "target": "variantId",
+        "value": "blue"
+      }
+    ],
+    "parameters": {
+      "chancePercent": 10
+    }
+  }
+}

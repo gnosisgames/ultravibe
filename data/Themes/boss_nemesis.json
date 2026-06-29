@@ -1,0 +1,19 @@
+{
+  "id": "boss_nemesis",
+  "background.main": "#4A0A1A",
+  "background.subtle": "#7A1F3A",
+  "background.on": "#250508",
+  "accent.neon": "#AA2F5F",
+  "primary.main": "#6A1F4A",
+  "primary.shade": "#4C1635",
+  "grid.border": "#8A3F6F",
+  "score.main": "#AA2F5F",
+  "score.glow": "#AA2F5F",
+  "grid.main": "#AA2F5F",
+  "environment.ground": "#4A0A1A",
+  "environment.parallax": "#AA2F5F",
+  "material.id": "redzone",
+  "background.grid.alpha": 64,
+  "grid.lines.alpha": 8,
+  "primary.neon": "#AA2F5F"
+}

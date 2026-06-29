@@ -1,0 +1,41 @@
+{
+  "id": "persephone",
+  "metadata": {
+    "nameKey": "persephoneLevelName",
+    "descriptionKey": "persephoneLevelDescription",
+    "spriteId": "persephone",
+    "tags": [],
+    "startingLetter": "\\u03A0",
+    "textColor": "#E6C200"
+  },
+  "properties": {
+    "themeId": "boss_persephone",
+    "onRoundStartInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "ApplyEffect",
+        "parameters": {
+          "effectId": "RemoveDiscardsPerLineCleared",
+          "discardsPerLine": 1,
+          "roundsLifetime": 1
+        }
+      }
+    ],
+    "onRoundEndInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "RemoveEffect",
+        "parameters": {
+          "effectId": "RemoveDiscardsPerLineCleared"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "boss",
+      "easy",
+      "includeBosses",
+      "includeDiscards"
+    ],
+    "minimumTimeSec": 0
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "id": "includeUpgrades",
+  "metadata": {
+    "nameKey": "gameFlags__enable__include_upgrades",
+    "tags": []
+  },
+  "properties": {
+    "flagKey": "includeUpgrades",
+    "defaultValue": true,
+    "kind": "include",
+    "settingsPath": "settings.overrides.fallingBlock.gameFlags.includeUpgrades"
+  }
+}

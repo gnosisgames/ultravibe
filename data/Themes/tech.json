@@ -1,0 +1,15 @@
+{
+  "id": "tech",
+  "background.main": "#488FB1",
+  "background.subtle": "#34BE82",
+  "background.on": "#00B7C2",
+  "accent.neon": "#85EF47",
+  "primary.main": "#A1EEBD",
+  "primary.shade": "#74AB88",
+  "grid.border": "#4EF037",
+  "score.main": "#4EF037",
+  "score.glow": "#4EF037",
+  "background.grid.alpha": 128,
+  "grid.lines.alpha": 0,
+  "primary.neon": "#85EF47"
+}

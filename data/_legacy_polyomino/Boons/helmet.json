@@ -1,0 +1,27 @@
+{
+  "id": "helmet",
+  "metadata": {
+    "nameKey": "boonHelmetName",
+    "descriptionKey": "boonHelmetDescription",
+    "spriteId": "helmet",
+    "tags": []
+  },
+  "properties": {
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "helmet_add_pending_points_on_hard_drop_placement",
+        "phase": "on_placement",
+        "when": "{payload.placement.hardDrop}",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.pendingPoints",
+            "value": "10"
+          }
+        ]
+      }
+    ]
+  }
+}

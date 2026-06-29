@@ -1,0 +1,36 @@
+{
+  "id": "Heteromania",
+  "properties": {
+    "basePrice": 5,
+    "offerChancePermille": 80,
+    "invocations": [
+      {
+        "service": "Audio",
+        "function": "PlaySound",
+        "parameters": {
+          "clipId": "consumableSfx",
+          "track": "Sfx"
+        }
+      },
+      {
+        "service": "Match3",
+        "function": "RollRandomBoon",
+        "parameters": {
+          "bucketId": "default",
+          "requiredTag": "uncommon",
+          "count": 1
+        }
+      }
+    ],
+    "gameplayTags": [
+      "mania"
+    ]
+  },
+  "metadata": {
+    "nameKey": "consumableHeteromaniaName",
+    "descriptionKey": "consumableHeteromaniaDescription",
+    "spriteId": "consumableHeteromaniaSprite",
+    "backgroundColor": "#2E7D32",
+    "tags": []
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "id": "boss_satyr",
+  "background.main": "#4A1A3A",
+  "background.subtle": "#7A2A5F",
+  "background.on": "#250D1A",
+  "accent.neon": "#AF4A8F",
+  "primary.main": "#6A2A4F",
+  "primary.shade": "#4C1E39",
+  "grid.border": "#8F3A6F",
+  "score.main": "#AF4A8F",
+  "score.glow": "#AF4A8F",
+  "grid.main": "#AF4A8F",
+  "environment.ground": "#4A1A3A",
+  "environment.parallax": "#AF4A8F",
+  "material.id": "saturn",
+  "background.grid.alpha": 64,
+  "grid.lines.alpha": 8,
+  "primary.neon": "#AF4A8F"
+}

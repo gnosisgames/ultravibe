@@ -1,0 +1,19 @@
+{
+  "id": "boss_olympus",
+  "background.main": "#4A3A40",
+  "background.subtle": "#6F5A6A",
+  "background.on": "#251C20",
+  "accent.neon": "#AF8A9F",
+  "primary.main": "#7A5A6F",
+  "primary.shade": "#584150",
+  "grid.border": "#9F7A8F",
+  "score.main": "#AF8A9F",
+  "score.glow": "#AF8A9F",
+  "grid.main": "#AF8A9F",
+  "environment.ground": "#4A3A40",
+  "environment.parallax": "#AF8A9F",
+  "material.id": "vapor",
+  "background.grid.alpha": 64,
+  "grid.lines.alpha": 8,
+  "primary.neon": "#AF8A9F"
+}

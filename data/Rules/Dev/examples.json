@@ -1,0 +1,47 @@
+{
+  "rule_fake_multiply": {
+    "id": "rule_fake_multiply",
+    "category": "INTERCEPTOR",
+    "trigger": "REQUEST_RESOURCE_ADD",
+    "conditions": [],
+    "outcomes": [
+      {
+        "type": "MATH_MULTIPLY",
+        "target": "amount",
+        "value": 1.5
+      }
+    ]
+  },
+  "rule_fake_add": {
+    "id": "rule_fake_add",
+    "category": "INTERCEPTOR",
+    "trigger": "REQUEST_RESOURCE_ADD",
+    "conditions": [],
+    "outcomes": [
+      {
+        "type": "MATH_ADD",
+        "target": "amount",
+        "value": 1
+      }
+    ]
+  },
+  "rule_fake_double": {
+    "id": "rule_fake_double",
+    "category": "INTERCEPTOR",
+    "trigger": "REQUEST_RESOURCE_ADD",
+    "conditions": [
+      {
+        "path": "payload.amount",
+        "op": "EXISTS",
+        "value": null
+      }
+    ],
+    "outcomes": [
+      {
+        "type": "MATH_MULTIPLY",
+        "target": "amount",
+        "value": 2.0
+      }
+    ]
+  }
+}

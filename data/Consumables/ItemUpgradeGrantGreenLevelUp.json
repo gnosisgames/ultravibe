@@ -1,0 +1,36 @@
+{
+  "id": "ItemUpgradeGrantGreenLevelUp",
+  "properties": {
+    "basePrice": 8,
+    "offerChancePermille": 120,
+    "invocations": [
+      {
+        "service": "Audio",
+        "function": "PlaySound",
+        "parameters": {
+          "clipId": "consumableSfx",
+          "track": "Sfx"
+        }
+      },
+      {
+        "service": "Upgrade",
+        "function": "AddUpgrade",
+        "parameters": {
+          "categoryId": "itemUpgrades",
+          "upgradeId": "GreenLevelUp"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "item_upgrade_grant"
+    ]
+  },
+  "metadata": {
+    "nameKey": "itemUpgradeGreenName",
+    "descriptionKey": "itemUpgradeGreenDescription",
+    "spriteId": "upgradeGreenLevelUpSprite",
+    "backgroundColor": "#1F5A2B",
+    "tags": [],
+    "grantItemUpgradeId": "GreenLevelUp"
+  }
+}

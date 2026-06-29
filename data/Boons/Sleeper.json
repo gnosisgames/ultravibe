@@ -1,0 +1,26 @@
+{
+  "id": "Sleeper",
+  "properties": {
+    "gameplayTags": [
+      "common"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "effectApplication": "perInstance",
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonSleeperName",
+    "descriptionKey": "boonSleeperDescription",
+    "spriteId": "boonSleeperSprite",
+    "tags": [
+      {
+        "tagType": "common",
+        "tagLocKey": "core__adjective__common"
+      }
+    ]
+  }
+}

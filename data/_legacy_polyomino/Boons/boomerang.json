@@ -1,0 +1,28 @@
+{
+  "id": "boomerang",
+  "metadata": {
+    "nameKey": "boonBoomerangName",
+    "descriptionKey": "boonBoomerangDescription",
+    "spriteId": "boomerang",
+    "tags": []
+  },
+  "properties": {
+    "effectApplication": "perInstance",
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "boomerang_add_pending_points_on_placement_jackpot",
+        "phase": "on_placement",
+        "when": "randInt(1, 5) == 1",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.pendingPoints",
+            "value": "32"
+          }
+        ]
+      }
+    ]
+  }
+}

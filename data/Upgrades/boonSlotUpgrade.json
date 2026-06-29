@@ -1,0 +1,30 @@
+{
+  "id": "boonSlotUpgrade",
+  "metadata": {
+    "nameKey": "boonSlotUpgradeName",
+    "descriptionKey": "boonSlotUpgradeDescription",
+    "tags": [
+      {
+        "tagType": "upgrade",
+        "tagLocKey": "core__verb__upgrade"
+      }
+    ],
+    "spriteId": "runUpgradeGoldenPawSprite"
+  },
+  "properties": {
+    "maxCount": 4,
+    "applyInvocationsPerStack": true,
+    "invocations": [
+      {
+        "service": "Boon",
+        "function": "AddMaxBoonSlotsDelta",
+        "parameters": {
+          "delta": 1
+        }
+      }
+    ],
+    "gameplayTags": [
+      "includeBoons"
+    ]
+  }
+}

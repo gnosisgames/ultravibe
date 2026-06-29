@@ -1,0 +1,39 @@
+{
+  "discard_add_charge_on_any_line_clear_chance": {
+    "id": "discard_add_charge_on_any_line_clear_chance",
+    "category": "TRIGGER",
+    "trigger": "FACT_OBJECTIVE_FROM_LINE_CLEAR_RESOLVED",
+    "conditions": [
+      {
+        "path": "payload.rawLinesCleared",
+        "op": "GTE",
+        "value": {
+          "fromContext": "parameters.minLinesCleared"
+        }
+      },
+      {
+        "path": "",
+        "op": "CHANCE_PERCENT",
+        "value": {
+          "fromContext": "parameters.chancePercent"
+        }
+      }
+    ],
+    "outcomes": [
+      {
+        "type": "CALL_SERVICE",
+        "target": "FallingBlock.AddDiscards",
+        "value": {
+          "amount": {
+            "fromContext": "parameters.out_amount"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "minLinesCleared": 1,
+      "chancePercent": 25,
+      "out_amount": 1
+    }
+  }
+}

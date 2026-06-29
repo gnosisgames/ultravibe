@@ -1,0 +1,55 @@
+{
+  "id": "mirror",
+  "metadata": {
+    "nameKey": "consumableMirrorName",
+    "descriptionKey": "consumableMirrorDescription",
+    "spriteId": "consumableMirrorSprite",
+    "tags": []
+  },
+  "properties": {
+    "invocations": [
+      {
+        "service": "FallingBlock",
+        "function": "DuplicateCurrentDeckEntry",
+        "parameters": {
+          "id": "mirror"
+        }
+      },
+      {
+        "service": "Audio",
+        "function": "PlaySound",
+        "parameters": {
+          "clipId": "mirrorConsumable",
+          "track": "Sfx"
+        }
+      },
+      {
+        "service": "Animation",
+        "function": "InstantiateParticle",
+        "parameters": {
+          "id": "lightningExplosionWhite",
+          "poolId": "lightningExplosionWhite",
+          "particlesPrefabId": "lightningExplosionWhite",
+          "objectPoolSize": 3,
+          "transformFromStorePath": "Ephemeral.runtimeTransforms.lastRequestingConsumablePlayerTransform",
+          "transform": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          }
+        }
+      },
+      {
+        "service": "Haptic",
+        "function": "PlayPreset",
+        "parameters": {
+          "preset": "HeavyImpact"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "deck",
+      "includeSpecialUltravibes"
+    ]
+  }
+}

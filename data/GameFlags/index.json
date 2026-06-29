@@ -1,0 +1,60 @@
+{
+  "gameFlags": [
+    {
+      "id": "originalOnly",
+      "path": "originalOnly.json"
+    },
+    {
+      "id": "includeNegatives",
+      "path": "includeNegatives.json"
+    },
+    {
+      "id": "negativeOnly",
+      "path": "negativeOnly.json"
+    },
+    {
+      "id": "maxSpeedOnly",
+      "path": "maxSpeedOnly.json"
+    },
+    {
+      "id": "includeSpecialUltravibes",
+      "path": "includeSpecialUltravibes.json"
+    },
+    {
+      "id": "includeBosses",
+      "path": "includeBosses.json"
+    },
+    {
+      "id": "bossOnly",
+      "path": "bossOnly.json"
+    },
+    {
+      "id": "includeRewards",
+      "path": "includeRewards.json"
+    },
+    {
+      "id": "includeBoons",
+      "path": "includeBoons.json"
+    },
+    {
+      "id": "includeConsumables",
+      "path": "includeConsumables.json"
+    },
+    {
+      "id": "includeUpgrades",
+      "path": "includeUpgrades.json"
+    },
+    {
+      "id": "includeAbilities",
+      "path": "includeAbilities.json"
+    },
+    {
+      "id": "includeDiscards",
+      "path": "includeDiscards.json"
+    },
+    {
+      "id": "infiniteDiscards",
+      "path": "infiniteDiscards.json"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "id": "boreas",
+  "metadata": {
+    "nameKey": "boreasLevelName",
+    "descriptionKey": "boreasLevelDescription",
+    "spriteId": "boreas",
+    "tags": [],
+    "startingLetter": "\\u0392",
+    "textColor": "#7A788A"
+  },
+  "properties": {
+    "themeId": "boss_boreas",
+    "onRoundStartInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "ApplyEffect",
+        "parameters": {
+          "effectId": "EnableWind",
+          "windEveryTicks": 20,
+          "roundsLifetime": 1
+        }
+      }
+    ],
+    "onRoundEndInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "RemoveEffect",
+        "parameters": {
+          "effectId": "EnableWind"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "boss",
+      "medium",
+      "includeBosses"
+    ],
+    "minimumTimeSec": 240
+  }
+}

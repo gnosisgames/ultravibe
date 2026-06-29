@@ -1,0 +1,44 @@
+{
+  "id": "Iconic",
+  "properties": {
+    "gameplayTags": [
+      "rare"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [],
+    "contributionEchoes": [
+      {
+        "id": "iconic_uncommon_trigger_xmult",
+        "listen": {
+          "source": "boon_score_step",
+          "contributor": "other_boon",
+          "contributorGameplayTag": "uncommon",
+          "excludeSelf": true
+        },
+        "outcomes": [
+          {
+            "op": "multiply",
+            "target": "score.multiTotal",
+            "value": "1.5"
+          }
+        ]
+      }
+    ],
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonIconicName",
+    "descriptionKey": "boonIconicDescription",
+    "spriteId": "boonIconicSprite",
+    "tags": [
+      {
+        "tagType": "rare",
+        "tagLocKey": "core__adjective__rare"
+      }
+    ]
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "id": "boss_titanos",
+  "background.main": "#4A3A3A",
+  "background.subtle": "#6F5A5A",
+  "background.on": "#251D1D",
+  "accent.neon": "#9F7A7A",
+  "primary.main": "#5F4A4A",
+  "primary.shade": "#443535",
+  "grid.border": "#7F6A6A",
+  "score.main": "#9F7A7A",
+  "score.glow": "#9F7A7A",
+  "grid.main": "#9F7A7A",
+  "environment.ground": "#4A3A3A",
+  "environment.parallax": "#9F7A7A",
+  "material.id": "redzone",
+  "background.grid.alpha": 64,
+  "grid.lines.alpha": 8,
+  "primary.neon": "#9F7A7A"
+}

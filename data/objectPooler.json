@@ -1,0 +1,32 @@
+{
+  "entries": [
+    {
+      "tag": "balloonConsumable",
+      "prefabId": "balloonConsumable",
+      "prewarmCount": 3,
+      "bucketName": "VFX",
+      "shouldExpand": true
+    },
+    {
+      "tag": "bombaConsumable",
+      "prefabId": "bombaConsumable",
+      "prewarmCount": 3,
+      "bucketName": "VFX",
+      "shouldExpand": true
+    },
+    {
+      "tag": "featherConsumable",
+      "prefabId": "featherConsumable",
+      "prewarmCount": 3,
+      "bucketName": "VFX",
+      "shouldExpand": true
+    },
+    {
+      "tag": "leafConsumable",
+      "prefabId": "leafConsumable",
+      "prewarmCount": 3,
+      "bucketName": "VFX",
+      "shouldExpand": true
+    }
+  ]
+}

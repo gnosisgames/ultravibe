@@ -1,0 +1,27 @@
+{
+  "id": "gnome",
+  "metadata": {
+    "nameKey": "boonGnomeName",
+    "descriptionKey": "boonGnomeDescription",
+    "spriteId": "gnome",
+    "tags": []
+  },
+  "properties": {
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "gnome_add_pending_multi_small_poly_on_placement",
+        "phase": "on_placement",
+        "when": "{payload.placement.lockPieceBlockCount} > 0 && {payload.placement.lockPieceBlockCount} <= 4",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.pendingMulti",
+            "value": "12"
+          }
+        ]
+      }
+    ]
+  }
+}

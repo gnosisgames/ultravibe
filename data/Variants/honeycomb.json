@@ -1,0 +1,20 @@
+{
+  "id": "honeycomb",
+  "nameKey": "honeycombName",
+  "descriptionKey": "honeycombDescription",
+  "spriteId": "honeycombBlock",
+  "color": "E5920E",
+  "tags": [
+    "positive",
+    "soft",
+    "gyroscopic",
+    "immutable",
+    "contagious",
+    "color_orange"
+  ],
+  "basePoints": 14,
+  "baseMulti": 2,
+  "pointsPerLevel": 8,
+  "multiPerLevel": 1,
+  "contagiousSpreadChancePercent": 10
+}

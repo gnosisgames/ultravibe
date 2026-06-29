@@ -1,0 +1,39 @@
+{
+  "id": "riza",
+  "metadata": {
+    "nameKey": "rizaLevelName",
+    "descriptionKey": "rizaLevelDescription",
+    "spriteId": "riza",
+    "tags": [],
+    "startingLetter": "\\u03A1",
+    "textColor": "#5ABF9F"
+  },
+  "properties": {
+    "themeId": "boss_riza",
+    "onRoundStartInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "ApplyEffect",
+        "parameters": {
+          "effectId": "ForceBaseColorsOnly",
+          "roundsLifetime": 1
+        }
+      }
+    ],
+    "onRoundEndInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "RemoveEffect",
+        "parameters": {
+          "effectId": "ForceBaseColorsOnly"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "boss",
+      "easy",
+      "includeBosses"
+    ],
+    "minimumTimeSec": 0
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "id": "barrel",
+  "metadata": {
+    "nameKey": "boonBarrelName",
+    "descriptionKey": "boonBarrelDescription",
+    "spriteId": "barrel",
+    "tags": []
+  },
+  "properties": {
+    "effectApplication": "perInstance",
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "spawnConversions": [
+      {
+        "id": "barrel_four_block_to_square4",
+        "match": {
+          "ultravibeBlocksCount": 4,
+          "ultravibeIdNot": "Square4"
+        },
+        "set": {
+          "ultravibeId": "Square4"
+        },
+        "chanceOneIn": 3
+      }
+    ],
+    "scoreCalculations": [],
+    "gameplayTags": [
+      "includeSpecialUltravibes"
+    ]
+  }
+}

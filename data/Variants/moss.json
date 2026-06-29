@@ -1,0 +1,18 @@
+{
+  "id": "moss",
+  "nameKey": "mossName",
+  "descriptionKey": "mossDescription",
+  "spriteId": "mossBlock",
+  "color": "97C900",
+  "tags": [
+    "positive",
+    "soft",
+    "expansive",
+    "gyroscopic",
+    "color_green"
+  ],
+  "basePoints": 18,
+  "baseMulti": 2,
+  "pointsPerLevel": 10,
+  "multiPerLevel": 1
+}

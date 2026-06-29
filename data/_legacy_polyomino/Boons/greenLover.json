@@ -1,0 +1,26 @@
+{
+  "id": "greenLover",
+  "metadata": {
+    "nameKey": "boonGreenLoverName",
+    "descriptionKey": "boonGreenLoverDescription",
+    "spriteId": "greenLover",
+    "tags": []
+  },
+  "properties": {
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "green_lover_add_pending_multi_per_green_block_on_placement",
+        "phase": "on_placement",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.pendingMulti",
+            "value": "3 * {payload.placement.tags.color_green}"
+          }
+        ]
+      }
+    ]
+  }
+}

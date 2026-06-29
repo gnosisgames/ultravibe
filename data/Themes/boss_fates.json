@@ -1,0 +1,19 @@
+{
+  "id": "boss_fates",
+  "background.main": "#2A1A3A",
+  "background.subtle": "#4A2A5A",
+  "background.on": "#1A0D2A",
+  "accent.neon": "#6C65D2",
+  "primary.main": "#3A2A4A",
+  "primary.shade": "#2A1E35",
+  "grid.border": "#5A3A6A",
+  "score.main": "#6C65D2",
+  "score.glow": "#6C65D2",
+  "grid.main": "#6C65D2",
+  "environment.ground": "#2A1A3A",
+  "environment.parallax": "#6C65D2",
+  "material.id": "digitalRain",
+  "background.grid.alpha": 64,
+  "grid.lines.alpha": 8,
+  "primary.neon": "#6C65D2"
+}

@@ -1,0 +1,39 @@
+class_name PlayHudUpgradesBar
+extends PlayHudIconBar
+
+## Topbar run-upgrades inventory (right zone): read-only icons with hover tooltips
+## and an x2/x3 stack-count badge on the bottom-right. Icons sit centered within
+## the bar (no floating), and the bag is unbounded so no capacity dots are drawn.
+
+@export var upgrade_icon_size: float = 38.0
+
+func _ready() -> void:
+	show_capacity_dots = false
+	slot_size = upgrade_icon_size
+	# No upward float: the topbar has nothing above it to overflow into.
+	float_offset = 0.0
+	super._ready()
+
+## Right-aligned so the upgrades cluster hugs the right edge of the topbar.
+func _apply_bar_alignment() -> void:
+	alignment = BoxContainer.ALIGNMENT_END
+
+## Center each icon vertically in the bar instead of bottom-anchoring it.
+func _slot_size_flags_vertical() -> int:
+	return Control.SIZE_SHRINK_CENTER
+
+func _inventory_category() -> String:
+	return "upgrades"
+
+func _bag() -> GnosisNode:
+	return _ephemeral().get_node("upgrades").get_node("run")
+
+func _inventory_list() -> GnosisNode:
+	var bag := _bag()
+	if not bag.is_valid():
+		return GnosisNode.new(null)
+	return bag.get_node("list")
+
+## Run upgrades stack, so the owned count becomes the x2/x3 badge.
+func _slot_stack_count(details: Dictionary) -> int:
+	return int(details.get("count", 1))

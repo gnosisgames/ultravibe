@@ -1,0 +1,21 @@
+{
+  "spc_red_variant_to_heart": {
+    "id": "spc_red_variant_to_heart",
+    "category": "INTERCEPTOR",
+    "trigger": "REQUEST_FALLING_BLOCK_SPAWN_PIECE",
+    "conditions": [
+      {
+        "path": "payload.colors.red",
+        "op": "EQUALS",
+        "value": true
+      }
+    ],
+    "outcomes": [
+      {
+        "type": "SET",
+        "target": "variantId",
+        "value": "heart"
+      }
+    ]
+  }
+}

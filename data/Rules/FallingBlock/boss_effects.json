@@ -1,0 +1,131 @@
+{
+  "bossEffect_disablerotation": {
+    "id": "bossEffect_disablerotation",
+    "category": "INTERCEPTOR",
+    "trigger": "REQUEST_FALLING_BLOCK_INPUT",
+    "conditions": [
+      {
+        "path": "payload.inputType",
+        "op": "CONTAINS",
+        "value": "Rotate"
+      }
+    ],
+    "outcomes": [
+      {
+        "type": "SET",
+        "target": "allowed",
+        "value": false
+      }
+    ]
+  },
+  "bossEffect_deny_use_consumable": {
+    "id": "bossEffect_deny_use_consumable",
+    "category": "INTERCEPTOR",
+    "trigger": "REQUEST_FALLING_BLOCK_INPUT",
+    "conditions": [
+      {
+        "path": "payload.inputType",
+        "op": "EQUALS",
+        "value": "UseConsumable"
+      }
+    ],
+    "outcomes": [
+      {
+        "type": "SET",
+        "target": "allowed",
+        "value": false
+      }
+    ]
+  },
+  "bossEffect_deny_consumable_use_direct": {
+    "id": "bossEffect_deny_consumable_use_direct",
+    "category": "INTERCEPTOR",
+    "trigger": "REQUEST_CONSUMABLE_USE",
+    "conditions": [],
+    "outcomes": [
+      {
+        "type": "SET",
+        "target": "allowed",
+        "value": false
+      },
+      {
+        "type": "SET",
+        "target": "reason",
+        "value": "boss_disabled_consumables"
+      }
+    ]
+  },
+  "bossEffect_deny_consumable_next": {
+    "id": "bossEffect_deny_consumable_next",
+    "category": "INTERCEPTOR",
+    "trigger": "REQUEST_FALLING_BLOCK_INPUT",
+    "conditions": [
+      {
+        "path": "payload.inputType",
+        "op": "EQUALS",
+        "value": "ConsumableNext"
+      }
+    ],
+    "outcomes": [
+      {
+        "type": "SET",
+        "target": "allowed",
+        "value": false
+      }
+    ]
+  },
+  "bossEffect_deny_consumable_prev": {
+    "id": "bossEffect_deny_consumable_prev",
+    "category": "INTERCEPTOR",
+    "trigger": "REQUEST_FALLING_BLOCK_INPUT",
+    "conditions": [
+      {
+        "path": "payload.inputType",
+        "op": "EQUALS",
+        "value": "ConsumablePrevious"
+      }
+    ],
+    "outcomes": [
+      {
+        "type": "SET",
+        "target": "allowed",
+        "value": false
+      }
+    ]
+  },
+  "bossEffect_deny_discard": {
+    "id": "bossEffect_deny_discard",
+    "category": "INTERCEPTOR",
+    "trigger": "REQUEST_FALLING_BLOCK_INPUT",
+    "conditions": [
+      {
+        "path": "payload.inputType",
+        "op": "EQUALS",
+        "value": "Discard"
+      }
+    ],
+    "outcomes": [
+      {
+        "type": "SET",
+        "target": "allowed",
+        "value": false
+      }
+    ]
+  },
+  "bossEffect_spawn_trash_on_discard": {
+    "id": "bossEffect_spawn_trash_on_discard",
+    "category": "TRIGGER",
+    "trigger": "FACT_FALLING_BLOCK_DISCARD_CONFIRMED",
+    "conditions": [],
+    "outcomes": [
+      {
+        "type": "CALL_SERVICE",
+        "target": "FallingBlock.SpawnTrashLines",
+        "value": {
+          "lineCount": 1,
+          "variantId": "disabled"
+        }
+      }
+    ]
+  }
+}

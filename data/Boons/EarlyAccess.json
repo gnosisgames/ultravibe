@@ -1,0 +1,14 @@
+{
+  "id": "EarlyAccess",
+  "properties": {
+    "gameplayTags": [],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": []
+  },
+  "metadata": {
+    "nameKey": "boonEarlyAccessName",
+    "descriptionKey": "boonEarlyAccessDescription",
+    "spriteId": "boonEarlyAccessSprite",
+    "tags": []
+  }
+}

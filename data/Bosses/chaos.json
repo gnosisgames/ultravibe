@@ -1,0 +1,40 @@
+{
+  "id": "chaos",
+  "metadata": {
+    "nameKey": "chaosLevelName",
+    "descriptionKey": "chaosLevelDescription",
+    "spriteId": "chaos",
+    "tags": [],
+    "startingLetter": "\\u03A7",
+    "textColor": "#FF1A0A"
+  },
+  "properties": {
+    "themeId": "boss_chaos",
+    "onRoundStartInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "ApplyEffect",
+        "parameters": {
+          "effectId": "EnableRandomRotation",
+          "rotationEveryTicks": 20,
+          "roundsLifetime": 1
+        }
+      }
+    ],
+    "onRoundEndInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "RemoveEffect",
+        "parameters": {
+          "effectId": "EnableRandomRotation"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "boss",
+      "medium",
+      "includeBosses"
+    ],
+    "minimumTimeSec": 240
+  }
+}

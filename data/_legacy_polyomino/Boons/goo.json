@@ -1,0 +1,30 @@
+{
+  "id": "goo",
+  "metadata": {
+    "nameKey": "boonGooName",
+    "descriptionKey": "boonGooDescription",
+    "spriteId": "goo",
+    "tags": []
+  },
+  "properties": {
+    "effectApplication": "perInstance",
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "spawnConversions": [
+      {
+        "id": "goo_green_to_slime",
+        "match": {
+          "color": "green"
+        },
+        "set": {
+          "variantId": "slime"
+        },
+        "chanceOneIn": 3
+      }
+    ],
+    "scoreCalculations": [],
+    "gameplayTags": [
+      "includeSpecialUltravibes"
+    ]
+  }
+}

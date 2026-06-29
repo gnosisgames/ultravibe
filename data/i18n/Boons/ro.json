@@ -1,0 +1,10 @@
+{
+  "boonCookieName": "Cookie Time",
+  "boonCookieDescription": "Earn $1 at end of round. Increases by $2 when a Boss is defeated",
+  "boonAllinName": "All In",
+  "boonAllinDescription": "Adds X4 Mult on final move of round",
+  "boonOffgridName": "Offgrid",
+  "boonOffgridDescription": "Adaugă <point>+${arg:scoreCalculationValue1} Points</point> la sfârșitul fiecărei mutări (un punct pe celulă)",
+  "boonClickbaitName": "Clickbait",
+  "boonClickbaitDescription": "Adaugă <multi>+2 Multi</multi> pentru fiecare reroll al magazinului în acest run (acum <multi>+${arg:scoreCalculationValue1} Multi</multi>)"
+}

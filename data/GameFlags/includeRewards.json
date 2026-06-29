@@ -1,0 +1,13 @@
+{
+  "id": "includeRewards",
+  "metadata": {
+    "nameKey": "gameFlags__enable__include_rewards",
+    "tags": []
+  },
+  "properties": {
+    "flagKey": "includeRewards",
+    "defaultValue": true,
+    "kind": "include",
+    "settingsPath": "settings.overrides.fallingBlock.gameFlags.includeRewards"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "id": "DoubleDown",
+  "properties": {
+    "gameplayTags": [
+      "uncommon"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "selfDestruct": {
+      "trigger": "round_end",
+      "chanceNumerator": 1,
+      "chanceDenominator": 3,
+      "onlyBossRounds": false
+    },
+    "scoreCalculations": [],
+    "effectApplication": "perInstance",
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonDoubleDownName",
+    "descriptionKey": "boonDoubleDownDescription",
+    "spriteId": "boonDoubleDownSprite",
+    "tags": [
+      {
+        "tagType": "uncommon",
+        "tagLocKey": "core__adjective__uncommon"
+      }
+    ]
+  }
+}

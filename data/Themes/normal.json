@@ -1,0 +1,20 @@
+{
+  "id": "normal",
+  "background.main": "#F8B23C",
+  "background.subtle": "#D98A24",
+  "background.on": "#5A4410",
+  "accent.neon": "#78D4FF",
+  "primary.main": "#217CDA",
+  "primary.shade": "#217CDA",
+  "grid.border": "#999999",
+  "fx.main": "#28496A",
+  "score.main": "#00BEFF",
+  "score.glow": "#00BEFF",
+  "grid.main": "#015abf",
+  "environment.ground": "#000000",
+  "environment.parallax": "#78D4FF",
+  "material.id": "neonRoad",
+  "background.grid.alpha": 32,
+  "grid.lines.alpha": 3,
+  "primary.neon": "#217CDA"
+}

@@ -1,0 +1,41 @@
+{
+  "id": "CryptoBro",
+  "properties": {
+    "gameplayTags": [
+      "common"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "cryptobro_skip_money_tooltip_preview_only",
+        "phase": "finalize",
+        "when": "{ephemeral.statistics.match3.rounds.skipped} < 0",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.pointsTotal",
+            "value": "min(20, 4 * ({ephemeral.statistics.match3.rounds.skipped} + 1))"
+          }
+        ],
+        "parameters": {}
+      }
+    ],
+    "effectApplication": "catalogOnce",
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonCryptoBroName",
+    "descriptionKey": "boonCryptoBroDescription",
+    "spriteId": "boonCryptoBroSprite",
+    "tags": [
+      {
+        "tagType": "common",
+        "tagLocKey": "core__adjective__common"
+      }
+    ]
+  }
+}

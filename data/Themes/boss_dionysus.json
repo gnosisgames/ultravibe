@@ -1,0 +1,19 @@
+{
+  "id": "boss_dionysus",
+  "background.main": "#6A304F",
+  "background.subtle": "#9F4A7A",
+  "background.on": "#351827",
+  "accent.neon": "#FF5BA8",
+  "primary.main": "#B85A8F",
+  "primary.shade": "#844167",
+  "grid.border": "#E06FAF",
+  "score.main": "#FF5BA8",
+  "score.glow": "#FF5BA8",
+  "grid.main": "#FF5BA8",
+  "environment.ground": "#6A304F",
+  "environment.parallax": "#FF5BA8",
+  "material.id": "sportsCar",
+  "background.grid.alpha": 64,
+  "grid.lines.alpha": 8,
+  "primary.neon": "#FF5BA8"
+}

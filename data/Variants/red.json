@@ -1,0 +1,16 @@
+{
+  "id": "red",
+  "nameKey": "redName",
+  "descriptionKey": "redDescription",
+  "spriteId": "redBlock",
+  "color": "F5555D",
+  "tags": [
+    "neutral",
+    "soft",
+    "color_red"
+  ],
+  "basePoints": 10,
+  "baseMulti": 1,
+  "pointsPerLevel": 8,
+  "multiPerLevel": 1
+}

@@ -1,0 +1,9 @@
+{
+  "id": "MoveLeft",
+  "category": "Default",
+  "valueType": "button",
+  "targetEvent": "REQUEST_FALLING_BLOCK_INPUT",
+  "targetPayload": {
+    "inputType": "MoveLeft"
+  }
+}

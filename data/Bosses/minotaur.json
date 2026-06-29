@@ -1,0 +1,40 @@
+{
+  "id": "minotaur",
+  "metadata": {
+    "nameKey": "minotaurLevelName",
+    "descriptionKey": "minotaurLevelDescription",
+    "spriteId": "minotaur",
+    "tags": [],
+    "startingLetter": "\\u039C",
+    "textColor": "#8B6F47"
+  },
+  "properties": {
+    "themeId": "boss_minotaur",
+    "onRoundStartInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "ApplyEffect",
+        "parameters": {
+          "effectId": "SpawnTrashLineOnUse",
+          "roundsLifetime": 1
+        }
+      }
+    ],
+    "onRoundEndInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "RemoveEffect",
+        "parameters": {
+          "effectId": "SpawnTrashLineOnUse"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "boss",
+      "hard",
+      "includeBosses",
+      "includeDiscards"
+    ],
+    "minimumTimeSec": 480
+  }
+}

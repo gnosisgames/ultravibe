@@ -1,0 +1,10 @@
+{
+  "boonCookieName": "Cookie Time",
+  "boonCookieDescription": "Earn $1 at end of round. Increases by $2 when a Boss is defeated",
+  "boonAllinName": "All In",
+  "boonAllinDescription": "Adds X4 Mult on final move of round",
+  "boonOffgridName": "Offgrid",
+  "boonOffgridDescription": "Προσθέτει <point>+${arg:scoreCalculationValue1} Points</point> στο τέλος κάθε κίνησης (ένας πόντος ανά κελί)",
+  "boonClickbaitName": "Clickbait",
+  "boonClickbaitDescription": "Προσθέτει <multi>+2 Multi</multi> για κάθε reroll του καταστήματος σε αυτό το run (τώρα <multi>+${arg:scoreCalculationValue1} Multi</multi>)"
+}

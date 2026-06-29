@@ -1,0 +1,27 @@
+{
+  "id": "LuckyLevelUp",
+  "metadata": {
+    "nameKey": "itemUpgradeLuckyName",
+    "descriptionKey": "itemUpgradeLuckyDescription",
+    "spriteId": "itemUpgradeLuckySprite",
+    "tags": []
+  },
+  "properties": {
+    "maxCount": 999999,
+    "applyInvocationsPerStack": true,
+    "invocations": [
+      {
+        "service": "FallingBlock",
+        "function": "AddVariantLevelDelta",
+        "parameters": {
+          "variantId": "lucky",
+          "delta": 1
+        }
+      }
+    ],
+    "gameplayTags": [
+      "variant_level",
+      "includeSpecialUltravibes"
+    ]
+  }
+}

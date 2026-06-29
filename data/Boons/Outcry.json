@@ -1,0 +1,14 @@
+{
+  "id": "Outcry",
+  "properties": {
+    "gameplayTags": [],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": []
+  },
+  "metadata": {
+    "nameKey": "boonOutcryName",
+    "descriptionKey": "boonOutcryDescription",
+    "spriteId": "boonOutcrySprite",
+    "tags": []
+  }
+}

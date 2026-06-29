@@ -1,0 +1,18 @@
+{
+  "id": "urf",
+  "metadata": {
+    "nameKey": "boonUrfName",
+    "descriptionKey": "boonUrfDescription",
+    "spriteId": "urf",
+    "tags": []
+  },
+  "properties": {
+    "effectApplication": "perInstance",
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [],
+    "gameplayTags": [
+      "includeNegatives"
+    ]
+  }
+}

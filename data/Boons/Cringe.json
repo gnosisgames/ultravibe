@@ -1,0 +1,14 @@
+{
+  "id": "Cringe",
+  "properties": {
+    "gameplayTags": [],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": []
+  },
+  "metadata": {
+    "nameKey": "boonCringeName",
+    "descriptionKey": "boonCringeDescription",
+    "spriteId": "boonCringeSprite",
+    "tags": []
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "id": "blightmoss",
+  "nameKey": "blightmossName",
+  "descriptionKey": "blightmossDescription",
+  "spriteId": "blightmossBlock",
+  "color": "3D0B49",
+  "tags": [
+    "negative",
+    "soft",
+    "rising"
+  ],
+  "basePoints": 0,
+  "baseMulti": -5
+}

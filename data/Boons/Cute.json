@@ -1,0 +1,14 @@
+{
+  "id": "Cute",
+  "properties": {
+    "gameplayTags": [],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": []
+  },
+  "metadata": {
+    "nameKey": "boonCuteName",
+    "descriptionKey": "boonCuteDescription",
+    "spriteId": "boonCuteSprite",
+    "tags": []
+  }
+}

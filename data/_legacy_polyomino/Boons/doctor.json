@@ -1,0 +1,30 @@
+{
+  "id": "doctor",
+  "metadata": {
+    "nameKey": "boonDoctorName",
+    "descriptionKey": "boonDoctorDescription",
+    "spriteId": "doctor",
+    "tags": []
+  },
+  "properties": {
+    "effectApplication": "perInstance",
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "spawnConversions": [
+      {
+        "id": "doctor_red_to_heart",
+        "match": {
+          "color": "red"
+        },
+        "set": {
+          "variantId": "heart"
+        },
+        "chanceOneIn": 4
+      }
+    ],
+    "scoreCalculations": [],
+    "gameplayTags": [
+      "includeSpecialUltravibes"
+    ]
+  }
+}

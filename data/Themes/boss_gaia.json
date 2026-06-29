@@ -1,0 +1,19 @@
+{
+  "id": "boss_gaia",
+  "background.main": "#2A403A",
+  "background.subtle": "#4A6A5F",
+  "background.on": "#15201D",
+  "accent.neon": "#5A9A8A",
+  "primary.main": "#3A5A4F",
+  "primary.shade": "#2A4139",
+  "grid.border": "#4F7A6F",
+  "score.main": "#5A9A8A",
+  "score.glow": "#5A9A8A",
+  "grid.main": "#5A9A8A",
+  "environment.ground": "#2A403A",
+  "environment.parallax": "#5A9A8A",
+  "material.id": "retro",
+  "background.grid.alpha": 64,
+  "grid.lines.alpha": 8,
+  "primary.neon": "#5A9A8A"
+}

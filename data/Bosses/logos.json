@@ -1,0 +1,40 @@
+{
+  "id": "logos",
+  "metadata": {
+    "nameKey": "logosLevelName",
+    "descriptionKey": "logosLevelDescription",
+    "spriteId": "logos",
+    "tags": [],
+    "startingLetter": "\\u039B",
+    "textColor": "#C0C0C0"
+  },
+  "properties": {
+    "themeId": "boss_logos",
+    "onRoundStartInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "ApplyEffect",
+        "parameters": {
+          "effectId": "DisableConsumables",
+          "roundsLifetime": 1
+        }
+      }
+    ],
+    "onRoundEndInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "RemoveEffect",
+        "parameters": {
+          "effectId": "DisableConsumables"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "boss",
+      "easy",
+      "includeBosses",
+      "includeConsumables"
+    ],
+    "minimumTimeSec": 0
+  }
+}

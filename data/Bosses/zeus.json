@@ -1,0 +1,40 @@
+{
+  "id": "zeus",
+  "metadata": {
+    "nameKey": "zeusLevelName",
+    "descriptionKey": "zeusLevelDescription",
+    "spriteId": "zeus",
+    "tags": [],
+    "startingLetter": "\\u0396",
+    "textColor": "#FFEB3B"
+  },
+  "properties": {
+    "themeId": "boss_zeus",
+    "onRoundStartInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "ApplyEffect",
+        "parameters": {
+          "effectId": "AutoDropAfterMoveCount",
+          "moveCount": 15,
+          "roundsLifetime": 1
+        }
+      }
+    ],
+    "onRoundEndInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "RemoveEffect",
+        "parameters": {
+          "effectId": "AutoDropAfterMoveCount"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "boss",
+      "hard",
+      "includeBosses"
+    ],
+    "minimumTimeSec": 480
+  }
+}

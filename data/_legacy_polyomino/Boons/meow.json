@@ -1,0 +1,17 @@
+{
+  "id": "meow",
+  "metadata": {
+    "nameKey": "boonMeowName",
+    "descriptionKey": "boonMeowDescription",
+    "spriteId": "meow",
+    "tags": []
+  },
+  "properties": {
+    "effectApplication": "perInstance",
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "gameplayTags": [
+      "includeConsumables"
+    ]
+  }
+}

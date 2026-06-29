@@ -1,0 +1,26 @@
+{
+  "id": "mara",
+  "metadata": {
+    "nameKey": "boonMaraName",
+    "descriptionKey": "boonMaraDescription",
+    "spriteId": "mara",
+    "tags": []
+  },
+  "properties": {
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "mara_add_pending_multi_per_horizontal_move_on_placement",
+        "phase": "on_placement",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.pendingMulti",
+            "value": "2 * {payload.placement.horizontalMoves}"
+          }
+        ]
+      }
+    ]
+  }
+}

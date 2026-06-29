@@ -1,0 +1,10 @@
+{
+  "id": "WShape5",
+  "displayName": "W Shape 5",
+  "prefabPath": "Prefabs/Ultravibes/Negative/WShape5",
+  "blocksCount": 5,
+  "tags": [
+    "vertical",
+    "symmetric"
+  ]
+}

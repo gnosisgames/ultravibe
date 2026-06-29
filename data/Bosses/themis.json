@@ -1,0 +1,40 @@
+{
+  "id": "themis",
+  "metadata": {
+    "nameKey": "themisLevelName",
+    "descriptionKey": "themisLevelDescription",
+    "spriteId": "themis",
+    "tags": [],
+    "startingLetter": "\\u0398",
+    "textColor": "#CFCFCF"
+  },
+  "properties": {
+    "themeId": "boss_themis",
+    "onRoundStartInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "ApplyEffect",
+        "parameters": {
+          "effectId": "SpawnTrashLineEvery2LinesCleared",
+          "linesCleared": 3,
+          "roundsLifetime": 1
+        }
+      }
+    ],
+    "onRoundEndInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "RemoveEffect",
+        "parameters": {
+          "effectId": "SpawnTrashLineEvery2LinesCleared"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "boss",
+      "medium",
+      "includeBosses"
+    ],
+    "minimumTimeSec": 240
+  }
+}

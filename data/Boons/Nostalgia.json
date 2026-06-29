@@ -1,0 +1,40 @@
+{
+  "id": "Nostalgia",
+  "properties": {
+    "gameplayTags": [
+      "uncommon"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "nostalgia_every_six_moves_x4_mult",
+        "phase": "finalize",
+        "when": "(({ephemeral.statistics.match3.moves.used} + 1) % 6) == 0",
+        "outcomes": [
+          {
+            "op": "multiply",
+            "target": "score.multiTotal",
+            "value": "4"
+          }
+        ],
+        "parameters": {}
+      }
+    ],
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonNostalgiaName",
+    "descriptionKey": "boonNostalgiaDescription",
+    "spriteId": "boonNostalgiaSprite",
+    "tags": [
+      {
+        "tagType": "uncommon",
+        "tagLocKey": "core__adjective__uncommon"
+      }
+    ]
+  }
+}

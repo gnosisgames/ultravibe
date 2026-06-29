@@ -1,0 +1,22 @@
+{
+  "id": "steadyHandsUpgrade",
+  "metadata": {
+    "nameKey": "steadyHandsUpgradeName",
+    "descriptionKey": "steadyHandsUpgradeDescription",
+    "tags": [
+      {
+        "tagType": "upgrade",
+        "tagLocKey": "core__verb__upgrade"
+      }
+    ],
+    "spriteId": "runUpgradeGoldenTombstoneSprite"
+  },
+  "properties": {
+    "maxCount": 3,
+    "applyInvocationsPerStack": true,
+    "invocations": [],
+    "gameplayTags": [
+      "includeDiscards"
+    ]
+  }
+}

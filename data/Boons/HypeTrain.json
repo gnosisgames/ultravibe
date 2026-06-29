@@ -1,0 +1,26 @@
+{
+  "id": "HypeTrain",
+  "properties": {
+    "gameplayTags": [
+      "common"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "effectApplication": "catalogOnce",
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonHypeTrainName",
+    "descriptionKey": "boonHypeTrainDescription",
+    "spriteId": "boonHypeTrainSprite",
+    "tags": [
+      {
+        "tagType": "common",
+        "tagLocKey": "core__adjective__common"
+      }
+    ]
+  }
+}

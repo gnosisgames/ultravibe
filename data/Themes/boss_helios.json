@@ -1,0 +1,19 @@
+{
+  "id": "boss_helios",
+  "background.main": "#9F6A1A",
+  "background.subtle": "#DF9A2A",
+  "background.on": "#4F3508",
+  "accent.neon": "#FFB83A",
+  "primary.main": "#FFAA3A",
+  "primary.shade": "#B87A2A",
+  "grid.border": "#FFC85A",
+  "score.main": "#FFB83A",
+  "score.glow": "#FFB83A",
+  "grid.main": "#FFB83A",
+  "environment.ground": "#9F6A1A",
+  "environment.parallax": "#FFB83A",
+  "material.id": "retro",
+  "background.grid.alpha": 64,
+  "grid.lines.alpha": 8,
+  "primary.neon": "#FFB83A"
+}

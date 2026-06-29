@@ -1,0 +1,38 @@
+{
+  "id": "luckyBlock",
+  "metadata": {
+    "nameKey": "consumableLuckyBlockName",
+    "descriptionKey": "consumableLuckyBlockDescription",
+    "spriteId": "consumableLuckyBlockSprite",
+    "tags": []
+  },
+  "properties": {
+    "invocations": [
+      {
+        "service": "FallingBlock",
+        "function": "PlayFallingPieceFeedback",
+        "parameters": {
+          "feedbackId": "luckyBlock"
+        }
+      },
+      {
+        "service": "Consumable",
+        "function": "RollRandomConsumable",
+        "parameters": {
+          "excludeConsumableId": "luckyBlock"
+        }
+      },
+      {
+        "service": "Consumable",
+        "function": "RollRandomConsumable",
+        "parameters": {
+          "excludeConsumableId": "luckyBlock"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "utilities",
+      "includeConsumables"
+    ]
+  }
+}

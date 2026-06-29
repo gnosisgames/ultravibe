@@ -1,0 +1,30 @@
+{
+  "id": "consumableUpgrade",
+  "metadata": {
+    "nameKey": "consumableUpgradeName",
+    "descriptionKey": "consumableUpgradeDescription",
+    "tags": [
+      {
+        "tagType": "upgrade",
+        "tagLocKey": "core__verb__upgrade"
+      }
+    ],
+    "spriteId": "runUpgradeGoldenBackSprite"
+  },
+  "properties": {
+    "maxCount": 6,
+    "applyInvocationsPerStack": true,
+    "invocations": [
+      {
+        "service": "Consumable",
+        "function": "AddCapacityDelta",
+        "parameters": {
+          "delta": 1
+        }
+      }
+    ],
+    "gameplayTags": [
+      "includeConsumables"
+    ]
+  }
+}

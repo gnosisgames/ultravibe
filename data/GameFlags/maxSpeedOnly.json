@@ -1,0 +1,13 @@
+{
+  "id": "maxSpeedOnly",
+  "metadata": {
+    "nameKey": "gameFlags__enable__max_speed_only",
+    "tags": []
+  },
+  "properties": {
+    "flagKey": "maxSpeedOnly",
+    "defaultValue": false,
+    "kind": "only",
+    "settingsPath": "settings.overrides.fallingBlock.gameFlags.maxSpeedOnly"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "id": "eagle",
+  "metadata": {
+    "nameKey": "boonEagleName",
+    "descriptionKey": "boonEagleDescription",
+    "spriteId": "eagle",
+    "tags": []
+  },
+  "properties": {
+    "effectApplication": "perInstance",
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [],
+    "gameplayTags": [
+      "includeAbilities"
+    ]
+  }
+}

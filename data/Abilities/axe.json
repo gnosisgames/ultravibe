@@ -1,0 +1,47 @@
+{
+  "id": "axe",
+  "metadata": {
+    "nameKey": "consumableAxeName",
+    "descriptionKey": "consumableAxeDescription",
+    "spriteId": "axe",
+    "tags": []
+  },
+  "properties": {
+    "cooldownSeconds": 90,
+    "invocations": [
+      {
+        "service": "FallingBlock",
+        "function": "ClearRandomNonEmptyLockedRows",
+        "parameters": {
+          "minLines": 2,
+          "maxLines": 8
+        }
+      },
+      {
+        "service": "Animation",
+        "function": "InstantiateParticle",
+        "parameters": {
+          "id": "axeSlices",
+          "poolId": "axeSlices",
+          "particlesPrefabId": "axeSlices",
+          "objectPoolSize": 3,
+          "transform": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          }
+        }
+      },
+      {
+        "service": "Haptic",
+        "function": "PlayPreset",
+        "parameters": {
+          "preset": "HeavyImpact"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "includeAbilities"
+    ]
+  }
+}

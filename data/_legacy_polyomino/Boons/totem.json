@@ -1,0 +1,26 @@
+{
+  "id": "totem",
+  "metadata": {
+    "nameKey": "boonTotemName",
+    "descriptionKey": "boonTotemDescription",
+    "spriteId": "totem",
+    "tags": []
+  },
+  "properties": {
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "totem_add_pending_multi_from_max_column_top_on_placement",
+        "phase": "on_placement",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.pendingMulti",
+            "value": "{payload.grid.maxColumnTopGridY}"
+          }
+        ]
+      }
+    ]
+  }
+}

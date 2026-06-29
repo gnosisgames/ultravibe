@@ -1,0 +1,52 @@
+{
+  "id": "GlowUp",
+  "properties": {
+    "gameplayTags": [
+      "uncommon"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scaling": {
+      "counters": {
+        "glowUpUnusedMovesPointsLifetime": 0
+      },
+      "increments": [
+        {
+          "on": "round_end",
+          "from": "score.movesRemaining",
+          "scale": 3,
+          "counter": "glowUpUnusedMovesPointsLifetime"
+        }
+      ]
+    },
+    "scoreCalculations": [
+      {
+        "id": "glow_up_banked_unused_moves_points",
+        "phase": "finalize",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.pointsTotal",
+            "value": "{parameters.boonSlot.properties.scaling.counters.glowUpUnusedMovesPointsLifetime}"
+          }
+        ],
+        "parameters": {}
+      }
+    ],
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonGlowUpName",
+    "descriptionKey": "boonGlowUpDescription",
+    "spriteId": "boonGlowUpSprite",
+    "tags": [
+      {
+        "tagType": "uncommon",
+        "tagLocKey": "core__adjective__uncommon"
+      }
+    ]
+  }
+}

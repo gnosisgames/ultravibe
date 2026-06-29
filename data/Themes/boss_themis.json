@@ -1,0 +1,19 @@
+{
+  "id": "boss_themis",
+  "background.main": "#5F5F5F",
+  "background.subtle": "#8F8F8F",
+  "background.on": "#2F2F2F",
+  "accent.neon": "#CFCFCF",
+  "primary.main": "#7F7F7F",
+  "primary.shade": "#5B5B5B",
+  "grid.border": "#AFAFAF",
+  "score.main": "#CFCFCF",
+  "score.glow": "#CFCFCF",
+  "grid.main": "#CFCFCF",
+  "environment.ground": "#5F5F5F",
+  "environment.parallax": "#CFCFCF",
+  "material.id": "classic",
+  "background.grid.alpha": 64,
+  "grid.lines.alpha": 8,
+  "primary.neon": "#CFCFCF"
+}

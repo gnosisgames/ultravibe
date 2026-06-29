@@ -1,0 +1,29 @@
+{
+  "id": "gum",
+  "metadata": {
+    "nameKey": "consumableGumName",
+    "descriptionKey": "consumableGumDescription",
+    "spriteId": "gum",
+    "tags": []
+  },
+  "properties": {
+    "cooldownSeconds": 90,
+    "invocations": [
+      {
+        "service": "FallingBlock",
+        "function": "FillSingleGapsInNonEmptyRowsAndClear",
+        "parameters": {}
+      },
+      {
+        "service": "Animation",
+        "function": "PlayFeedback",
+        "parameters": {
+          "id": "gum"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "includeAbilities"
+    ]
+  }
+}

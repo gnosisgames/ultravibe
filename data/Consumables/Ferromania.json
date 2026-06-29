@@ -1,0 +1,35 @@
+{
+  "id": "Ferromania",
+  "properties": {
+    "basePrice": 5,
+    "offerChancePermille": 150,
+    "invocations": [
+      {
+        "service": "Audio",
+        "function": "PlaySound",
+        "parameters": {
+          "clipId": "consumableSfx",
+          "track": "Sfx"
+        }
+      },
+      {
+        "service": "Match3",
+        "function": "AddFloorModifierPoolDelta",
+        "parameters": {
+          "floorTypeId": "Steel",
+          "count": 1
+        }
+      }
+    ],
+    "gameplayTags": [
+      "mania"
+    ]
+  },
+  "metadata": {
+    "nameKey": "consumableFerromaniaName",
+    "descriptionKey": "consumableFerromaniaDescription",
+    "spriteId": "consumableFerromaniaSprite",
+    "backgroundColor": "#540D81",
+    "tags": []
+  }
+}

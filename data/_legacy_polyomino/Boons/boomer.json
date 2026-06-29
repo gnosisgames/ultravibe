@@ -1,0 +1,81 @@
+{
+  "id": "boomer",
+  "metadata": {
+    "nameKey": "boonBoomerName",
+    "descriptionKey": "boonBoomerDescription",
+    "spriteId": "boomer",
+    "tags": []
+  },
+  "properties": {
+    "onActivateInvocations": [
+      {
+        "service": "Rule",
+        "function": "AddRule",
+        "parameters": {
+          "definition": {
+            "id": "boon_boomer_discardRemove",
+            "category": "TRIGGER",
+            "trigger": "FACT_FALLING_BLOCK_DISCARD_CONFIRMED",
+            "conditions": [
+              {
+                "path": "payload.allowed",
+                "op": "EQUALS",
+                "value": true
+              },
+              {
+                "path": "payload.consumeCount",
+                "op": "GT",
+                "value": {
+                  "fromContext": "parameters.conditionValue_1"
+                }
+              },
+              {
+                "path": "payload.deckEntryId",
+                "op": "EXISTS"
+              },
+              {
+                "path": "payload.deckEntryId",
+                "op": "NOT_EQUALS",
+                "value": ""
+              },
+              {
+                "path": "",
+                "op": "CHANCE_PERCENT",
+                "value": {
+                  "fromContext": "parameters.chancePercent"
+                }
+              }
+            ],
+            "outcomes": [
+              {
+                "type": "CALL_SERVICE",
+                "target": "Deck.RemoveDeckEntry",
+                "value": {
+                  "deckEntryId": {
+                    "fromContext": "payload.deckEntryId"
+                  }
+                }
+              }
+            ],
+            "parameters": {
+              "conditionValue_1": 0,
+              "chancePercent": 20
+            }
+          }
+        }
+      }
+    ],
+    "onDeactivateInvocations": [
+      {
+        "service": "Rule",
+        "function": "RemoveRuleById",
+        "parameters": {
+          "ruleId": "boon_boomer_discardRemove"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "includeDiscards"
+    ]
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "id": "oceanus",
+  "metadata": {
+    "nameKey": "oceanusLevelName",
+    "descriptionKey": "oceanusLevelDescription",
+    "spriteId": "oceanus",
+    "tags": [],
+    "startingLetter": "\\u03A9",
+    "textColor": "#7ACFFF"
+  },
+  "properties": {
+    "themeId": "boss_oceanus",
+    "onRoundStartInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "ApplyEffect",
+        "parameters": {
+          "effectId": "ReplaceBaseColorWithNegativeOnSpawn",
+          "baseColor": "blue",
+          "roundsLifetime": 1
+        }
+      }
+    ],
+    "onRoundEndInvocations": [
+      {
+        "service": "FallingBlock",
+        "function": "RemoveEffect",
+        "parameters": {
+          "effectId": "ReplaceBaseColorWithNegativeOnSpawn"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "boss",
+      "easy",
+      "includeBosses",
+      "includeNegatives"
+    ],
+    "minimumTimeSec": 0
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "id": "DisableDiscard",
+  "handler": "rule",
+  "parameters": {
+    "ruleIds": [
+      "bossEffect_deny_discard"
+    ]
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "id": "Corner3",
+  "displayName": "Corner 3",
+  "prefabPath": "Prefabs/Ultravibes/Positive/Corner3",
+  "blocksCount": 3,
+  "tags": [
+    "basic"
+  ]
+}

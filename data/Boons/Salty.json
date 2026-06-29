@@ -1,0 +1,56 @@
+{
+  "id": "Salty",
+  "properties": {
+    "gameplayTags": [
+      "common"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "salty_steel_finalize_preview",
+        "phase": "finalize",
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.multiTotal",
+            "value": "0.1 * {payload.score.steelFinalizeStepCount}"
+          }
+        ],
+        "parameters": {}
+      }
+    ],
+    "contributionEchoes": [
+      {
+        "id": "salty_steel_scored_mult",
+        "listen": {
+          "source": "cell_floor_finalize_step",
+          "floorTypeId": "Steel"
+        },
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.multiTotal",
+            "value": "0.1"
+          }
+        ],
+        "upgradeDisplayText": "up"
+      }
+    ],
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonSaltyName",
+    "descriptionKey": "boonSaltyDescription",
+    "spriteId": "boonSaltySprite",
+    "tags": [
+      {
+        "tagType": "common",
+        "tagLocKey": "core__adjective__common"
+      }
+    ]
+  }
+}

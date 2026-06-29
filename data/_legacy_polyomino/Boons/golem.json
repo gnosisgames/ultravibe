@@ -1,0 +1,30 @@
+{
+  "id": "golem",
+  "metadata": {
+    "nameKey": "boonGolemName",
+    "descriptionKey": "boonGolemDescription",
+    "spriteId": "golem",
+    "tags": []
+  },
+  "properties": {
+    "effectApplication": "perInstance",
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "spawnConversions": [
+      {
+        "id": "golem_square4_to_brick",
+        "match": {
+          "ultravibeId": "Square4"
+        },
+        "set": {
+          "variantId": "brick"
+        },
+        "chanceOneIn": 4
+      }
+    ],
+    "scoreCalculations": [],
+    "gameplayTags": [
+      "includeSpecialUltravibes"
+    ]
+  }
+}

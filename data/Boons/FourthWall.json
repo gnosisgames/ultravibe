@@ -1,0 +1,42 @@
+{
+  "id": "FourthWall",
+  "properties": {
+    "gameplayTags": [
+      "common"
+    ],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": [],
+    "scoreCalculations": [
+      {
+        "id": "fourthwall_axis_match4_multi_bonus",
+        "phase": "resolve_step",
+        "when": "{payload.score.lastAxisStraightMatch4} > 0",
+        "parameters": {
+          "trigger": "match_component"
+        },
+        "outcomes": [
+          {
+            "op": "add",
+            "target": "score.multiTotal",
+            "value": "20"
+          }
+        ]
+      }
+    ],
+    "flavorExceptions": {
+      "positive": [],
+      "negative": []
+    }
+  },
+  "metadata": {
+    "nameKey": "boonFourthWallName",
+    "descriptionKey": "boonFourthWallDescription",
+    "spriteId": "boonFourthWallSprite",
+    "tags": [
+      {
+        "tagType": "common",
+        "tagLocKey": "core__adjective__common"
+      }
+    ]
+  }
+}

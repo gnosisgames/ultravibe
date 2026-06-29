@@ -1,0 +1,14 @@
+{
+  "id": "WhatThe",
+  "properties": {
+    "gameplayTags": [],
+    "onActivateInvocations": [],
+    "onDeactivateInvocations": []
+  },
+  "metadata": {
+    "nameKey": "boonWhatTheName",
+    "descriptionKey": "boonWhatTheDescription",
+    "spriteId": "boonWhatTheSprite",
+    "tags": []
+  }
+}
