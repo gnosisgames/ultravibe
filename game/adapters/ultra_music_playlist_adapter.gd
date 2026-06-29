@@ -9,7 +9,7 @@ extends GnosisAdapter
 const PLAYLISTS_PATH := "res://data/music_playlists.json"
 const PLAYLIST_NORMAL := "normal"
 const PLAYLIST_BOSS := "boss"
-const FB := preload("res://game/services/falling_block_ephemeral.gd")
+const Match3EventsScript = preload("res://game/match3/match3_events.gd")
 
 @export var music_bus_name: String = "Music"
 @export var playlist_fade_duration: float = 6.0
@@ -64,23 +64,8 @@ func _wire_subscriptions() -> void:
 	_wired = true
 	var bus := engine.event_bus
 	_subscriptions.append(bus.subscribe(
-		FallingBlockEvents.FACT_FALLING_BLOCK_SPAWN_NEEDED,
-		_on_spawn_needed,
-		0
-	))
-	_subscriptions.append(bus.subscribe(
-		FallingBlockEvents.FACT_FALLING_BLOCK_BOSS_ENCOUNTER_STARTED,
-		_on_boss_started,
-		0
-	))
-	_subscriptions.append(bus.subscribe(
-		FallingBlockEvents.FACT_FALLING_BLOCK_BOSS_ENCOUNTER_SURVIVED,
-		_on_boss_ended,
-		0
-	))
-	_subscriptions.append(bus.subscribe(
-		FallingBlockEvents.FACT_FALLING_BLOCK_GAME_OVER,
-		_on_game_over,
+		Match3EventsScript.FACT_MATCH3_EPHEMERAL_SERVICE_STARTED,
+		_on_match3_run_started,
 		0
 	))
 	_ensure_default_playlist_on_boot()
@@ -103,12 +88,7 @@ func _ensure_default_playlist_on_boot() -> void:
 	if _current_playlist_id.is_empty() and not _default_playlist_id.is_empty():
 		switch_playlist(_default_playlist_id, 0.0, false)
 
-func _on_spawn_needed(event: GnosisEvent) -> void:
-	if not event or not event.data.is_valid():
-		return
-	var reason := _read_string(event.data, FallingBlockEvents.PAYLOAD_SPAWN_REASON)
-	if reason != "run_started":
-		return
+func _on_match3_run_started(_event: GnosisEvent) -> void:
 	ensure_run_start_music()
 
 func ensure_run_start_music() -> void:
@@ -278,12 +258,12 @@ func _kill_fade_tween() -> void:
 func _resolve_clip(clip_id: String) -> AudioStream:
 	if _asset_registry:
 		return _asset_registry.get_audio_clip(clip_id)
-	return load("res://assets/audio/music/normal/theme_1.mp3") as AudioStream
+	return load("res://assets/audio/music/normal/theme_1.ogg") as AudioStream
 
 func _boss_encounter_active() -> bool:
 	if not engine or not engine.context:
 		return false
-	return FB.get_fb_bool(engine.context, "bossEncounterIsActive", false)
+	return false
 
 func _read_string(data: GnosisNode, key: String) -> String:
 	if not data.is_valid():

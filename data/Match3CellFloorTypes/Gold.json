@@ -1,0 +1,26 @@
+{
+  "id": "Gold",
+  "properties": {
+    "gameplayTags": [
+      "enhanced"
+    ],
+    "sortingOrderBase": 55,
+    "triggers": [
+      {
+        "id": "money_on_scoring_clear",
+        "when": "on_scoring_destroy",
+        "effects": [
+          {
+            "kind": "add_currency",
+            "currencyId": "money",
+            "amount": 1
+          }
+        ]
+      }
+    ]
+  },
+  "metadata": {
+    "spriteId": "floorGoldSprite",
+    "nameKey": "cellFloor_gold_name"
+  }
+}

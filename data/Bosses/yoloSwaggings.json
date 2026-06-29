@@ -1,0 +1,45 @@
+{
+  "id": "yoloSwaggings",
+  "properties": {
+    "themeId": "normal",
+    "gameplayTags": [],
+    "rewardAmount": 8,
+    "minimumRound": 0,
+    "allowedBoards": [
+      "heart",
+      "grid10x8_4i_wide",
+      "grid10x10_dr",
+      "grid8x8_sn_wide"
+    ],
+    "onRoundStartInvocations": [
+      {
+        "service": "Match3",
+        "function": "ApplyEffect",
+        "parameters": {
+          "effectId": "starts_with_zero_shuffles",
+          "roundsLifetime": 1
+        }
+      }
+    ],
+    "onRoundEndInvocations": [
+      {
+        "service": "Match3",
+        "function": "RemoveEffect",
+        "parameters": {
+          "effectId": "starts_with_zero_shuffles"
+        }
+      }
+    ]
+  },
+  "metadata": {
+    "nameKey": "yoloSwaggingsLevelName",
+    "descriptionKey": "yoloSwaggingsLevelDescription",
+    "spriteId": "yoloSwaggings",
+    "startingLetter": "Y",
+    "tags": [
+      "boss"
+    ],
+    "backgroundColor": "#564F19",
+    "textColor": "#948822"
+  }
+}

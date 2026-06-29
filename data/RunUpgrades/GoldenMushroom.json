@@ -1,0 +1,29 @@
+{
+  "id": "GoldenMushroom",
+  "properties": {
+    "invocations": [
+      {
+        "service": "Consumable",
+        "function": "AddCapacityDelta",
+        "parameters": {
+          "delta": 1,
+          "bucketId": "default"
+        }
+      }
+    ],
+    "maxCount": 3,
+    "gameplayTags": []
+  },
+  "metadata": {
+    "nameKey": "upgradeGoldenMushroomName",
+    "descriptionKey": "upgradeGoldenMushroomDescription",
+    "spriteId": "upgradeGoldenMushroomSprite",
+    "backgroundColor": "#5E2121",
+    "tags": [
+      {
+        "tagType": "upgrade",
+        "tagLocKey": "core__verb__upgrade"
+      }
+    ]
+  }
+}

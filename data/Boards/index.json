@@ -1,0 +1,674 @@
+{
+    "match3Boards": [
+        {
+            "id": "ball",
+            "path": "Easy/ball.json",
+            "difficulty": "easy"
+        },
+        {
+            "id": "ball_bm",
+            "path": "Normal/ball_bm.json",
+            "difficulty": "normal"
+        },
+        {
+            "id": "ball_bm_2",
+            "path": "Normal/ball_bm_2.json",
+            "difficulty": "normal"
+        },
+        {
+            "id": "ball_in_ball",
+            "path": "Hard/ball_in_ball.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "bigTower",
+            "path": "Normal/bigTower.json",
+            "difficulty": "normal"
+        },
+        {
+            "id": "bottle_wide",
+            "path": "Normal/bottle_wide.json",
+            "difficulty": "normal"
+        },
+        {
+            "id": "bottles_2",
+            "path": "Normal/bottles_2.json",
+            "difficulty": "normal"
+        },
+        {
+            "id": "cross4x6",
+            "path": "Normal/cross4x6.json",
+            "difficulty": "normal"
+        },
+        {
+            "id": "crownGrid",
+            "path": "Normal/crownGrid.json",
+            "difficulty": "normal"
+        },
+        {
+            "id": "cute_face",
+            "path": "Hard/cute_face.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "double_arrow",
+            "path": "Easy/double_arrow.json",
+            "difficulty": "easy"
+        },
+        {
+            "id": "double_arrows_bm",
+            "path": "Hard/double_arrows_bm.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "effect_anchor_blue_0",
+            "path": "Hard/effect_anchor_blue_0.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "effect_anchor_blue_1",
+            "path": "Hard/effect_anchor_blue_1.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "effect_anchor_blue_2",
+            "path": "Hard/effect_anchor_blue_2.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "effect_anchor_blue_3",
+            "path": "Hard/effect_anchor_blue_3.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "effect_anchor_green_0",
+            "path": "Hard/effect_anchor_green_0.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "effect_anchor_green_1",
+            "path": "Hard/effect_anchor_green_1.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "effect_anchor_green_2",
+            "path": "Hard/effect_anchor_green_2.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "effect_anchor_green_3",
+            "path": "Hard/effect_anchor_green_3.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "effect_anchor_orange_0",
+            "path": "Hard/effect_anchor_orange_0.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "effect_anchor_orange_1",
+            "path": "Hard/effect_anchor_orange_1.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "effect_anchor_orange_2",
+            "path": "Hard/effect_anchor_orange_2.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "effect_anchor_orange_3",
+            "path": "Hard/effect_anchor_orange_3.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "effect_anchor_pink_0",
+            "path": "Hard/effect_anchor_pink_0.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "effect_anchor_pink_1",
+            "path": "Hard/effect_anchor_pink_1.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "effect_anchor_pink_2",
+            "path": "Hard/effect_anchor_pink_2.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "effect_anchor_pink_3",
+            "path": "Hard/effect_anchor_pink_3.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "effect_anchor_purple_0",
+            "path": "Hard/effect_anchor_purple_0.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "effect_anchor_purple_1",
+            "path": "Hard/effect_anchor_purple_1.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "effect_anchor_purple_2",
+            "path": "Hard/effect_anchor_purple_2.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "effect_anchor_purple_3",
+            "path": "Hard/effect_anchor_purple_3.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "effect_anchor_red_0",
+            "path": "Hard/effect_anchor_red_0.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "effect_anchor_red_1",
+            "path": "Hard/effect_anchor_red_1.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "effect_anchor_red_2",
+            "path": "Hard/effect_anchor_red_2.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "effect_anchor_red_3",
+            "path": "Hard/effect_anchor_red_3.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "gem",
+            "path": "Extreme/gem.json",
+            "difficulty": "extreme"
+        },
+        {
+            "id": "ghost",
+            "path": "Normal/ghost.json",
+            "difficulty": "normal"
+        },
+        {
+            "id": "gric3x6_cm",
+            "path": "Hard/gric3x6_cm.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "grid10x10_dr",
+            "path": "Hard/grid10x10_dr.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "grid10x10_ez_2i55",
+            "path": "Easy/grid10x10_ez_2i55.json",
+            "difficulty": "easy"
+        },
+        {
+            "id": "grid10x10_ez_3i",
+            "path": "Easy/grid10x10_ez_3i.json",
+            "difficulty": "easy"
+        },
+        {
+            "id": "grid10x10_nm_mi",
+            "path": "Normal/grid10x10_nm_mi.json",
+            "difficulty": "normal"
+        },
+        {
+            "id": "grid10x10_nm_qi",
+            "path": "Normal/grid10x10_nm_qi.json",
+            "difficulty": "normal"
+        },
+        {
+            "id": "grid10x10_nm_ring",
+            "path": "Normal/grid10x10_nm_ring.json",
+            "difficulty": "normal"
+        },
+        {
+            "id": "grid10x8_4i_ext",
+            "path": "Extreme/grid10x8_4i_ext.json",
+            "difficulty": "extreme"
+        },
+        {
+            "id": "grid10x8_4i_wide",
+            "path": "Hard/grid10x8_4i_wide.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "grid10x8_dc",
+            "path": "Hard/grid10x8_dc.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "grid10x8_ez_2i56",
+            "path": "Easy/grid10x8_ez_2i56.json",
+            "difficulty": "easy"
+        },
+        {
+            "id": "grid10x8_fq",
+            "path": "Hard/grid10x8_fq.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "grid10x8_mi",
+            "path": "Hard/grid10x8_mi.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "grid10x8_nm_lb",
+            "path": "Normal/grid10x8_nm_lb.json",
+            "difficulty": "normal"
+        },
+        {
+            "id": "grid10x8_nm_sn2",
+            "path": "Normal/grid10x8_nm_sn2.json",
+            "difficulty": "normal"
+        },
+        {
+            "id": "grid10x9_ez_2i56b",
+            "path": "Easy/grid10x9_ez_2i56b.json",
+            "difficulty": "easy"
+        },
+        {
+            "id": "grid10x9_ld",
+            "path": "Hard/grid10x9_ld.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "grid10x9_ms",
+            "path": "Hard/grid10x9_ms.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "grid10x9_nm_sv",
+            "path": "Normal/grid10x9_nm_sv.json",
+            "difficulty": "normal"
+        },
+        {
+            "id": "grid10x9_nm_wave",
+            "path": "Normal/grid10x9_nm_wave.json",
+            "difficulty": "normal"
+        },
+        {
+            "id": "grid10x9_tl",
+            "path": "Hard/grid10x9_tl.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "grid11x9_bm",
+            "path": "Easy/grid11x9_bm.json",
+            "difficulty": "easy"
+        },
+        {
+            "id": "grid5x6_rh",
+            "path": "Extreme/grid5x6_rh.json",
+            "difficulty": "extreme"
+        },
+        {
+            "id": "grid6x5_sh",
+            "path": "Extreme/grid6x5_sh.json",
+            "difficulty": "extreme"
+        },
+        {
+            "id": "grid6x6_blockers",
+            "path": "Extreme/grid6x6_blockers.json",
+            "difficulty": "extreme"
+        },
+        {
+            "id": "grid6x6_ch",
+            "path": "Extreme/grid6x6_ch.json",
+            "difficulty": "extreme"
+        },
+        {
+            "id": "grid6x6_dh",
+            "path": "Extreme/grid6x6_dh.json",
+            "difficulty": "extreme"
+        },
+        {
+            "id": "grid6x8_v2s2",
+            "path": "Extreme/grid6x8_v2s2.json",
+            "difficulty": "extreme"
+        },
+        {
+            "id": "grid7x7",
+            "path": "Hard/grid7x7.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "grid7x7_bm",
+            "path": "Extreme/grid7x7_bm.json",
+            "difficulty": "extreme"
+        },
+        {
+            "id": "grid7x7_dc",
+            "path": "Extreme/grid7x7_dc.json",
+            "difficulty": "extreme"
+        },
+        {
+            "id": "grid7x8_cm",
+            "path": "Normal/grid7x8_cm.json",
+            "difficulty": "normal"
+        },
+        {
+            "id": "grid7x8_cy",
+            "path": "Extreme/grid7x8_cy.json",
+            "difficulty": "extreme"
+        },
+        {
+            "id": "grid7x8_db",
+            "path": "Extreme/grid7x8_db.json",
+            "difficulty": "extreme"
+        },
+        {
+            "id": "grid7x9",
+            "path": "Easy/grid7x9.json",
+            "difficulty": "easy"
+        },
+        {
+            "id": "grid8x10_ez_2i66",
+            "path": "Easy/grid8x10_ez_2i66.json",
+            "difficulty": "easy"
+        },
+        {
+            "id": "grid8x10_nm_bc",
+            "path": "Extreme/grid8x10_nm_bc.json",
+            "difficulty": "extreme"
+        },
+        {
+            "id": "grid8x10_nm_sn1",
+            "path": "Normal/grid8x10_nm_sn1.json",
+            "difficulty": "normal"
+        },
+        {
+            "id": "grid8x6_h2s2",
+            "path": "Extreme/grid8x6_h2s2.json",
+            "difficulty": "extreme"
+        },
+        {
+            "id": "grid8x8_bm",
+            "path": "Normal/grid8x8_bm.json",
+            "difficulty": "normal"
+        },
+        {
+            "id": "grid8x8_nc",
+            "path": "Easy/grid8x8_nc.json",
+            "difficulty": "easy"
+        },
+        {
+            "id": "grid8x8_nm_diag",
+            "path": "Normal/grid8x8_nm_diag.json",
+            "difficulty": "normal"
+        },
+        {
+            "id": "grid8x8_nm_plus",
+            "path": "Normal/grid8x8_nm_plus.json",
+            "difficulty": "normal"
+        },
+        {
+            "id": "grid8x8_nm_r2",
+            "path": "Normal/grid8x8_nm_r2.json",
+            "difficulty": "normal"
+        },
+        {
+            "id": "grid8x8_qi",
+            "path": "Extreme/grid8x8_qi.json",
+            "difficulty": "extreme"
+        },
+        {
+            "id": "grid8x8_sn_ext",
+            "path": "Extreme/grid8x8_sn_ext.json",
+            "difficulty": "extreme"
+        },
+        {
+            "id": "grid8x8_sn_wide",
+            "path": "Hard/grid8x8_sn_wide.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "grid8x8_ti",
+            "path": "Hard/grid8x8_ti.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "grid8x8_xc",
+            "path": "Extreme/grid8x8_xc.json",
+            "difficulty": "extreme"
+        },
+        {
+            "id": "grid8x9",
+            "path": "Easy/grid8x9.json",
+            "difficulty": "easy"
+        },
+        {
+            "id": "grid8x9_ez_2i45",
+            "path": "Easy/grid8x9_ez_2i45.json",
+            "difficulty": "easy"
+        },
+        {
+            "id": "grid8x9_nm_tc",
+            "path": "Normal/grid8x9_nm_tc.json",
+            "difficulty": "normal"
+        },
+        {
+            "id": "grid8x9_tc",
+            "path": "Hard/grid8x9_tc.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "grid8x9_v2s2",
+            "path": "Hard/grid8x9_v2s2.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "grid9x10_ez_2i65",
+            "path": "Easy/grid9x10_ez_2i65.json",
+            "difficulty": "easy"
+        },
+        {
+            "id": "grid9x10_nm_br",
+            "path": "Normal/grid9x10_nm_br.json",
+            "difficulty": "normal"
+        },
+        {
+            "id": "grid9x10_nm_sh",
+            "path": "Normal/grid9x10_nm_sh.json",
+            "difficulty": "normal"
+        },
+        {
+            "id": "grid9x10_zi",
+            "path": "Hard/grid9x10_zi.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "grid9x8",
+            "path": "Easy/grid9x8.json",
+            "difficulty": "easy"
+        },
+        {
+            "id": "grid9x8_3i_ext",
+            "path": "Extreme/grid9x8_3i_ext.json",
+            "difficulty": "extreme"
+        },
+        {
+            "id": "grid9x8_3i_wide",
+            "path": "Hard/grid9x8_3i_wide.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "grid9x8_ez_2i46",
+            "path": "Easy/grid9x8_ez_2i46.json",
+            "difficulty": "easy"
+        },
+        {
+            "id": "grid9x8_h2s2",
+            "path": "Hard/grid9x8_h2s2.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "grid9x8_nm_st",
+            "path": "Normal/grid9x8_nm_st.json",
+            "difficulty": "normal"
+        },
+        {
+            "id": "grid9x8_st",
+            "path": "Hard/grid9x8_st.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "grid9x9",
+            "path": "Easy/grid9x9.json",
+            "difficulty": "easy"
+        },
+        {
+            "id": "grid9x9_bm",
+            "path": "Easy/grid9x9_bm.json",
+            "difficulty": "easy"
+        },
+        {
+            "id": "grid9x9_bm_1",
+            "path": "Easy/grid9x9_bm_1.json",
+            "difficulty": "easy"
+        },
+        {
+            "id": "grid9x9_bm_2",
+            "path": "Easy/grid9x9_bm_2.json",
+            "difficulty": "easy"
+        },
+        {
+            "id": "grid9x9_bm_3",
+            "path": "Easy/grid9x9_bm_3.json",
+            "difficulty": "easy"
+        },
+        {
+            "id": "grid9x9_bm_4",
+            "path": "Easy/grid9x9_bm_4.json",
+            "difficulty": "easy"
+        },
+        {
+            "id": "grid9x9_cm",
+            "path": "Easy/grid9x9_cm.json",
+            "difficulty": "easy"
+        },
+        {
+            "id": "grid9x9_ez_br",
+            "path": "Easy/grid9x9_ez_br.json",
+            "difficulty": "easy"
+        },
+        {
+            "id": "grid9x9_hg",
+            "path": "Hard/grid9x9_hg.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "grid9x9_nc_bm",
+            "path": "Normal/grid9x9_nc_bm.json",
+            "difficulty": "normal"
+        },
+        {
+            "id": "grid9x9_nc_bm_1",
+            "path": "Normal/grid9x9_nc_bm_1.json",
+            "difficulty": "normal"
+        },
+        {
+            "id": "grid9x9_nc_bm_2",
+            "path": "Normal/grid9x9_nc_bm_2.json",
+            "difficulty": "normal"
+        },
+        {
+            "id": "grid9x9_nc_bm_3",
+            "path": "Normal/grid9x9_nc_bm_3.json",
+            "difficulty": "normal"
+        },
+        {
+            "id": "grid9x9_nm_cross",
+            "path": "Normal/grid9x9_nm_cross.json",
+            "difficulty": "normal"
+        },
+        {
+            "id": "grid9x9_nm_donut",
+            "path": "Normal/grid9x9_nm_donut.json",
+            "difficulty": "normal"
+        },
+        {
+            "id": "grid9x9_nm_hf",
+            "path": "Normal/grid9x9_nm_hf.json",
+            "difficulty": "normal"
+        },
+        {
+            "id": "grid9x9_nm_xl",
+            "path": "Normal/grid9x9_nm_xl.json",
+            "difficulty": "normal"
+        },
+        {
+            "id": "grid9x9_qi",
+            "path": "Hard/grid9x9_qi.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "grid9x9_rm",
+            "path": "Easy/grid9x9_rm.json",
+            "difficulty": "easy"
+        },
+        {
+            "id": "grid9x9_ss",
+            "path": "Hard/grid9x9_ss.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "hShape",
+            "path": "Hard/hShape.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "hard2Split",
+            "path": "Hard/hard2Split.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "heart",
+            "path": "Hard/heart.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "pillar",
+            "path": "Normal/pillar.json",
+            "difficulty": "normal"
+        },
+        {
+            "id": "robot_waving",
+            "path": "Hard/robot_waving.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "s_but_needs_fix",
+            "path": "Hard/s_but_needs_fix.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "skull",
+            "path": "Normal/skull.json",
+            "difficulty": "normal"
+        },
+        {
+            "id": "skull_bm",
+            "path": "Hard/skull_bm.json",
+            "difficulty": "hard"
+        },
+        {
+            "id": "space_invader",
+            "path": "Easy/space_invader.json",
+            "difficulty": "easy"
+        },
+        {
+            "id": "spaceship",
+            "path": "Normal/spaceship.json",
+            "difficulty": "normal"
+        },
+        {
+            "id": "stool",
+            "path": "Normal/stool.json",
+            "difficulty": "normal"
+        }
+    ]
+}

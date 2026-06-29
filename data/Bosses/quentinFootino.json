@@ -1,0 +1,45 @@
+{
+  "id": "quentinFootino",
+  "properties": {
+    "themeId": "normal",
+    "gameplayTags": [],
+    "rewardAmount": 6,
+    "minimumRound": 0,
+    "allowedBoards": [
+      "effect_anchor_pink_0",
+      "effect_anchor_pink_1",
+      "effect_anchor_pink_2",
+      "effect_anchor_pink_3"
+    ],
+    "onRoundStartInvocations": [
+      {
+        "service": "Match3",
+        "function": "ApplyEffect",
+        "parameters": {
+          "effectId": "disable_pink_block",
+          "roundsLifetime": 1
+        }
+      }
+    ],
+    "onRoundEndInvocations": [
+      {
+        "service": "Match3",
+        "function": "RemoveEffect",
+        "parameters": {
+          "effectId": "disable_pink_block"
+        }
+      }
+    ]
+  },
+  "metadata": {
+    "nameKey": "quentinFootinoLevelName",
+    "descriptionKey": "quentinFootinoLevelDescription",
+    "spriteId": "quentinFootino",
+    "startingLetter": "Q",
+    "tags": [
+      "boss"
+    ],
+    "backgroundColor": "#84237C",
+    "textColor": "#EA30DA"
+  }
+}

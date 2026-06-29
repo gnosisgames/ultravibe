@@ -1,0 +1,7 @@
+{
+    "id": "disable_pink_block",
+    "handler": "spawn_disabled_item_type_for_blocks",
+    "parameters": {
+        "blockIds": ["pink"]
+    }
+}

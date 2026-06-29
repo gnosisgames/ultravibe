@@ -1,0 +1,25 @@
+{
+  "id": "PurpleLevelUp",
+  "properties": {
+    "basePrice": 8,
+    "invocations": [
+      {
+        "service": "Match3",
+        "function": "AddItemLevelDelta",
+        "parameters": {
+          "itemId": "purple",
+          "delta": 1
+        }
+      }
+    ],
+    "maxCount": 999999,
+    "gameplayTags": []
+  },
+  "metadata": {
+    "nameKey": "itemUpgradePurpleName",
+    "descriptionKey": "itemUpgradePurpleDescription",
+    "spriteId": "upgradePurpleLevelUpSprite",
+    "backgroundColor": "#4B2A6B",
+    "tags": []
+  }
+}

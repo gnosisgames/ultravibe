@@ -1,0 +1,45 @@
+{
+  "id": "saltBaeron",
+  "properties": {
+    "themeId": "normal",
+    "gameplayTags": [],
+    "rewardAmount": 6,
+    "minimumRound": 0,
+    "allowedBoards": [
+      "effect_anchor_green_0",
+      "effect_anchor_green_1",
+      "effect_anchor_green_2",
+      "effect_anchor_green_3"
+    ],
+    "onRoundStartInvocations": [
+      {
+        "service": "Match3",
+        "function": "ApplyEffect",
+        "parameters": {
+          "effectId": "disable_green_block",
+          "roundsLifetime": 1
+        }
+      }
+    ],
+    "onRoundEndInvocations": [
+      {
+        "service": "Match3",
+        "function": "RemoveEffect",
+        "parameters": {
+          "effectId": "disable_green_block"
+        }
+      }
+    ]
+  },
+  "metadata": {
+    "nameKey": "saltBaeronLevelName",
+    "descriptionKey": "saltBaeronLevelDescription",
+    "spriteId": "saltBaeron",
+    "startingLetter": "S",
+    "tags": [
+      "boss"
+    ],
+    "backgroundColor": "#466B2A",
+    "textColor": "#74BA3F"
+  }
+}

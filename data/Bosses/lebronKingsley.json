@@ -1,0 +1,45 @@
+{
+  "id": "lebronKingsley",
+  "properties": {
+    "themeId": "normal",
+    "gameplayTags": [],
+    "rewardAmount": 5,
+    "minimumRound": 9,
+    "allowedBoards": [
+      "grid8x9_tc",
+      "grid10x8_fq",
+      "hard2Split",
+      "grid9x10_zi"
+    ],
+    "onRoundStartInvocations": [
+      {
+        "service": "Match3",
+        "function": "ApplyEffect",
+        "parameters": {
+          "effectId": "score_only_exact_three_match_lines",
+          "roundsLifetime": 1
+        }
+      }
+    ],
+    "onRoundEndInvocations": [
+      {
+        "service": "Match3",
+        "function": "RemoveEffect",
+        "parameters": {
+          "effectId": "score_only_exact_three_match_lines"
+        }
+      }
+    ]
+  },
+  "metadata": {
+    "nameKey": "lebronKingsleyLevelName",
+    "descriptionKey": "lebronKingsleyLevelDescription",
+    "spriteId": "lebronKingsley",
+    "startingLetter": "L",
+    "tags": [
+      "boss"
+    ],
+    "backgroundColor": "#525252",
+    "textColor": "#6F6F6F"
+  }
+}

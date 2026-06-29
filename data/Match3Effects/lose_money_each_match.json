@@ -1,0 +1,8 @@
+{
+    "id": "lose_money_each_match",
+    "handler": "spend_currency_each_match_wave",
+    "parameters": {
+        "currencyId": "money",
+        "amountPerMatch": 1
+    }
+}

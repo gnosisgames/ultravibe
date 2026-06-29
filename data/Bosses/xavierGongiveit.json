@@ -1,0 +1,45 @@
+{
+  "id": "xavierGongiveit",
+  "properties": {
+    "themeId": "normal",
+    "gameplayTags": [],
+    "rewardAmount": 8,
+    "minimumRound": 0,
+    "allowedBoards": [
+      "grid10x8_dc",
+      "grid9x8_3i_wide",
+      "grid7x7",
+      "ball_in_ball"
+    ],
+    "onRoundStartInvocations": [
+      {
+        "service": "Match3",
+        "function": "ApplyEffect",
+        "parameters": {
+          "effectId": "disable_all_cell_floor_modifiers",
+          "roundsLifetime": 1
+        }
+      }
+    ],
+    "onRoundEndInvocations": [
+      {
+        "service": "Match3",
+        "function": "RemoveEffect",
+        "parameters": {
+          "effectId": "disable_all_cell_floor_modifiers"
+        }
+      }
+    ]
+  },
+  "metadata": {
+    "nameKey": "xavierGongiveitLevelName",
+    "descriptionKey": "xavierGongiveitLevelDescription",
+    "spriteId": "xavierGongiveit",
+    "startingLetter": "X",
+    "tags": [
+      "boss"
+    ],
+    "backgroundColor": "#14562D",
+    "textColor": "#189447"
+  }
+}

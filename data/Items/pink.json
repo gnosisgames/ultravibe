@@ -1,0 +1,15 @@
+{
+    "id": "pink",
+    "properties": {
+        "basePoints": 6,
+        "baseMulti": 4,
+        "pointsPerLevel": 8,
+        "multiPerLevel": 3,
+        "sortOrder": 5
+    },
+    "metadata": {
+        "spriteId": "loveBlock",
+        "nameKey": "itemPinkName",
+        "tags": []
+    }
+}

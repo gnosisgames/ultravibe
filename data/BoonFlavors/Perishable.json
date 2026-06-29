@@ -1,0 +1,14 @@
+{
+  "id": "Perishable",
+  "polarity": "negative",
+  "grantChancePermille": 50,
+  "properties": {
+    "roundsLifetime": 5
+  },
+  "metadata": {
+    "nameKey": "flavorPerishableName",
+    "tagType": "perishable",
+    "tagLocKey": "core__flavor__perishable",
+    "materialId": "whiteShader"
+  }
+}

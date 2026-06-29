@@ -94,27 +94,23 @@ func _game_ui() -> GnosisGameUIService:
 	var eng := _engine()
 	return eng.get_service("GameUI") as GnosisGameUIService if eng else null
 
-func _falling_block() -> FallingBlockService:
+func _match3_service():
 	var eng := _engine()
-	return eng.get_service("FallingBlock") as FallingBlockService if eng else null
+	return eng.get_service("Match3") if eng else null
 
 func _refresh() -> void:
-	var fb := _falling_block()
-	if fb == null:
+	var m3 = _match3_service()
+	if m3 == null:
 		return
-	var result = fb.invoke_function("GetRunSummary", GnosisNode.new(null))
-	if not (result is GnosisFunctionResult) or not result.is_ok or result.payload == null:
-		return
-	var summary: GnosisNode = result.payload
-	_score_value.text = _formatted(summary.get_node("runTotalScore"), "0")
-	_round_value.text = str(_int(summary.get_node("roundNumber"), 1))
-	_time_value.text = _format_time(_int(summary.get_node("elapsedSec"), 0))
-	_objective_value.text = "%04d" % maxi(0, _int(summary.get_node("linesClearedTotal"), 0))
-	# Extra HUD-parity stats (mirroring the topbar/sidebar readouts).
-	_discards_value.text = "%04d" % maxi(0, _int(summary.get_node("currentDiscards"), 0))
-	_fall_speed_value.text = "%04d" % maxi(0, _int(summary.get_node("fallSpeedDisplay"), 0))
-	_negative_value.text = "%04d" % maxi(0, _int(summary.get_node("negativeChanceDisplay"), 0))
-	_deck_value.text = "%04d" % maxi(0, _int(summary.get_node("deckSize"), 0))
+	var gameplay = m3.get_gameplay()
+	_score_value.text = str(gameplay.current_score)
+	_round_value.text = str(m3.get_current_round() if m3.has_method("get_current_round") else 1)
+	_time_value.text = "00:00"
+	_objective_value.text = str(gameplay.target_score)
+	_discards_value.text = "0000"
+	_fall_speed_value.text = "0000"
+	_negative_value.text = "0000"
+	_deck_value.text = "0000"
 
 ## Play Again: close the game-over overlay (revealing gameplay) and restart the
 ## run in place, mirroring the pause menu's restart.
@@ -127,9 +123,12 @@ func _on_play_again_pressed() -> void:
 		ui.invoke_function("PopView", _engine().store.create_object())
 	if _host:
 		_host.restart_ephemeral_run()
-	var falling_block := _falling_block()
-	if falling_block:
-		falling_block.handle_run_started()
+	var m3 = _match3_service()
+	if m3:
+		m3.handle_run_started()
+	var adapter := _host.get_node_or_null("Adapters/Match3PlayAdapter") if _host else null
+	if adapter and adapter.has_method("begin_level"):
+		adapter.begin_level(1)
 
 func _on_title_pressed() -> void:
 	if _actions_blocked():

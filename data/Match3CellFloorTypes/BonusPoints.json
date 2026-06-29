@@ -1,0 +1,25 @@
+{
+  "id": "BonusPoints",
+  "properties": {
+    "gameplayTags": [
+      "enhanced"
+    ],
+    "sortingOrderBase": 55,
+    "triggers": [
+      {
+        "id": "bonus_points_on_scoring_destroy",
+        "when": "on_scoring_destroy",
+        "effects": [
+          {
+            "kind": "add_move_points",
+            "amount": 40
+          }
+        ]
+      }
+    ]
+  },
+  "metadata": {
+    "spriteId": "floorBonusPointsSprite",
+    "nameKey": "cellFloor_bonusPoints_name"
+  }
+}

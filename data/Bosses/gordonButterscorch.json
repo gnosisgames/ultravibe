@@ -1,0 +1,46 @@
+{
+  "id": "gordonButterscorch",
+  "properties": {
+    "themeId": "normal",
+    "gameplayTags": [],
+    "rewardAmount": 5,
+    "minimumRound": 15,
+    "allowedBoards": [
+      "grid9x8_3i_ext",
+      "effect_anchor_blue_1",
+      "effect_anchor_green_2",
+      "effect_anchor_orange_0",
+      "effect_anchor_blue_0"
+    ],
+    "onRoundStartInvocations": [
+      {
+        "service": "Match3",
+        "function": "ApplyEffect",
+        "parameters": {
+          "effectId": "half_round_moves",
+          "roundsLifetime": 1
+        }
+      }
+    ],
+    "onRoundEndInvocations": [
+      {
+        "service": "Match3",
+        "function": "RemoveEffect",
+        "parameters": {
+          "effectId": "half_round_moves"
+        }
+      }
+    ]
+  },
+  "metadata": {
+    "nameKey": "gordonButterscorchLevelName",
+    "descriptionKey": "gordonButterscorchLevelDescription",
+    "spriteId": "gordonButterscorch",
+    "startingLetter": "G",
+    "tags": [
+      "boss"
+    ],
+    "backgroundColor": "#2D4741",
+    "textColor": "#345950"
+  }
+}

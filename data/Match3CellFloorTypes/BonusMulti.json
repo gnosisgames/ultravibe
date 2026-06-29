@@ -1,0 +1,25 @@
+{
+  "id": "BonusMulti",
+  "properties": {
+    "gameplayTags": [
+      "enhanced"
+    ],
+    "sortingOrderBase": 55,
+    "triggers": [
+      {
+        "id": "bonus_multi_on_scoring_destroy",
+        "when": "on_scoring_destroy",
+        "effects": [
+          {
+            "kind": "add_move_multi",
+            "amount": 4
+          }
+        ]
+      }
+    ]
+  },
+  "metadata": {
+    "spriteId": "floorBonusMultiSprite",
+    "nameKey": "cellFloor_bonusMulti_name"
+  }
+}

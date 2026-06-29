@@ -1,0 +1,45 @@
+{
+  "id": "nicholasPerplexus",
+  "properties": {
+    "themeId": "normal",
+    "gameplayTags": [],
+    "rewardAmount": 6,
+    "minimumRound": 9,
+    "allowedBoards": [
+      "gric3x6_cm",
+      "grid10x9_ms",
+      "grid10x8_mi",
+      "grid10x8_fq"
+    ],
+    "onRoundStartInvocations": [
+      {
+        "service": "Match3",
+        "function": "ApplyEffect",
+        "parameters": {
+          "effectId": "score_only_exact_four_or_five_match_lines",
+          "roundsLifetime": 1
+        }
+      }
+    ],
+    "onRoundEndInvocations": [
+      {
+        "service": "Match3",
+        "function": "RemoveEffect",
+        "parameters": {
+          "effectId": "score_only_exact_four_or_five_match_lines"
+        }
+      }
+    ]
+  },
+  "metadata": {
+    "nameKey": "nicholasPerplexusLevelName",
+    "descriptionKey": "nicholasPerplexusLevelDescription",
+    "spriteId": "nicholasPerplexus",
+    "startingLetter": "N",
+    "tags": [
+      "boss"
+    ],
+    "backgroundColor": "#47192B",
+    "textColor": "#631B37"
+  }
+}

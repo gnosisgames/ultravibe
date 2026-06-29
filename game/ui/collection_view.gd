@@ -12,6 +12,18 @@ const SPECIAL_ICON_IDS := {
 	"abilities:gridShift": "gridSwap"
 }
 
+## The itemUpgrade level-up grants reuse the colored gem block sprites rather than
+## a dedicated consumable icon (see Unity sprite registry in game.unity). Keyed by
+## lowercased spriteId so the collection grid can fall back to assets/blocks/.
+const SPRITE_BLOCK_FALLBACKS := {
+	"upgradeorangelevelupsprite": "joy",
+	"upgraderedlevelupsprite": "anger",
+	"upgradepurplelevelupsprite": "sadness",
+	"upgradebluelevelupsprite": "fear",
+	"upgradegreenlevelupsprite": "disgust",
+	"upgradepinklevelupsprite": "love",
+}
+
 const TOOLTIP_WIDTH := 300.0
 const TOOLTIP_MAX_WIDTH := 360.0
 
@@ -20,15 +32,21 @@ const TABS := {
 	"boons": {"catalog": "boons", "folder": "boons", "variant": false, "label": "ultravibe__collection__type__boon"},
 	"consumables": {"catalog": "consumables", "folder": "consumables", "variant": false, "label": "ultravibe__collection__type__consumable"},
 	"abilities": {"catalog": "abilities", "folder": "abilities", "variant": false, "label": "ultravibe__collection__type__ability"},
-	"upgrades": {"catalog": "upgrades", "folder": "upgrades", "variant": false, "label": "ultravibe__collection__type__upgrade"},
+	"upgrades": {"catalog": "runUpgrades", "folder": "upgrades", "variant": false, "label": "ultravibe__collection__type__upgrade"},
+	"itemUpgrades": {"catalog": "itemUpgrades", "folder": "upgrades", "variant": false, "label": "ultravibe__collection__type__itemUpgrade"},
 	"bosses": {"catalog": "bosses", "folder": "bosses", "variant": false, "label": "ultravibe__collection__type__boss"},
 }
+
+## Consumables whose id starts with this are the itemUpgrade grants; they are
+## surfaced under the dedicated Item Upgrades tab instead of the Consumables grid.
+const HIDDEN_CONSUMABLE_PREFIX := "ItemUpgradeGrant"
 
 @onready var _back_button: Button = %BackButton
 @onready var _boons_tab: Button = %BoonsTab
 @onready var _consumables_tab: Button = %ConsumablesTab
 @onready var _abilities_tab: Button = %AbilitiesTab
 @onready var _upgrades_tab: Button = %UpgradesTab
+@onready var _item_upgrades_tab: Button = %ItemUpgradesTab
 @onready var _bosses_tab: Button = %BossesTab
 @onready var _grid: GridContainer = %Grid
 @onready var _card: Control = $Center/Layout/Card
@@ -52,6 +70,7 @@ func _ready() -> void:
 	_consumables_tab.pressed.connect(func(): _show_tab("consumables"))
 	_abilities_tab.pressed.connect(func(): _show_tab("abilities"))
 	_upgrades_tab.pressed.connect(func(): _show_tab("upgrades"))
+	_item_upgrades_tab.pressed.connect(func(): _show_tab("itemUpgrades"))
 	_bosses_tab.pressed.connect(func(): _show_tab("bosses"))
 	_close_detail_button.pressed.connect(_hide_detail)
 	if _tooltip:
@@ -95,6 +114,7 @@ func _show_tab(which: String) -> void:
 	_consumables_tab.button_pressed = which == "consumables"
 	_abilities_tab.button_pressed = which == "abilities"
 	_upgrades_tab.button_pressed = which == "upgrades"
+	_item_upgrades_tab.button_pressed = which == "itemUpgrades"
 	_bosses_tab.button_pressed = which == "bosses"
 	_populate(which)
 
@@ -119,6 +139,8 @@ func _populate(tab: String) -> void:
 	for key in catalog.get_keys():
 		var entry := catalog.get_node(key)
 		if not entry.is_valid():
+			continue
+		if tab == "consumables" and str(key).begins_with(HIDDEN_CONSUMABLE_PREFIX):
 			continue
 		_add_tile(str(key), entry, spec)
 
@@ -304,7 +326,16 @@ func _icon_path(category: String, folder: String, item_id: String, sprite_id: St
 		var path := "%s%s.png" % [dir, candidate]
 		if ResourceLoader.exists(path):
 			return path
-	return ""
+	return _block_sprite_fallback(sprite_id)
+
+## Resolves sprite IDs that point at the shared gem block art (e.g. the colored
+## itemUpgrade level-up grants) to a texture under assets/blocks/.
+func _block_sprite_fallback(sprite_id: String) -> String:
+	var block_name := str(SPRITE_BLOCK_FALLBACKS.get(sprite_id.to_lower(), ""))
+	if block_name.is_empty():
+		return ""
+	var path := "%s%s.png" % [BLOCK_ICON_DIR, block_name]
+	return path if ResourceLoader.exists(path) else ""
 
 func _block_icon_path(item_id: String, sprite_id: String) -> String:
 	var candidates: Array[String] = []

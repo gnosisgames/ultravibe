@@ -1,0 +1,28 @@
+{
+  "id": "GoldenEnergyDrink",
+  "properties": {
+    "invocations": [
+      {
+        "service": "Match3",
+        "function": "AddDefaultShufflesPerRoundDelta",
+        "parameters": {
+          "delta": 1
+        }
+      }
+    ],
+    "maxCount": 3,
+    "gameplayTags": []
+  },
+  "metadata": {
+    "nameKey": "upgradeGoldenEnergyDrinkName",
+    "descriptionKey": "upgradeGoldenEnergyDrinkDescription",
+    "spriteId": "upgradeGoldenEnergyDrinkSprite",
+    "backgroundColor": "#5E2121",
+    "tags": [
+      {
+        "tagType": "upgrade",
+        "tagLocKey": "core__verb__upgrade"
+      }
+    ]
+  }
+}

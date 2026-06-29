@@ -1,0 +1,15 @@
+{
+  "id": "Ghost",
+  "polarity": "positive",
+  "grantChancePermille": 50,
+  "properties": {
+    "exemptFromSlotCapacity": true,
+    "scoreTriggerOutcomes": []
+  },
+  "metadata": {
+    "nameKey": "flavorGhostName",
+    "tagType": "ghost",
+    "tagLocKey": "core__flavor__ghost",
+    "materialId": "hologramBlockType"
+  }
+}

@@ -1,0 +1,7 @@
+{
+    "id": "starts_with_zero_shuffles",
+    "handler": "override_manual_shuffles_at_round_start",
+    "parameters": {
+        "manualShuffles": 0
+    }
+}

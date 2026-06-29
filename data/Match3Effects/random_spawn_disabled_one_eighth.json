@@ -1,0 +1,7 @@
+{
+  "id": "random_spawn_disabled_one_eighth",
+  "handler": "random_disabled_plain_spawn",
+  "parameters": {
+    "oneIn": 8
+  }
+}

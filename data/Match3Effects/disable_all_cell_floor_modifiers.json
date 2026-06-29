@@ -1,0 +1,5 @@
+{
+  "id": "disable_all_cell_floor_modifiers",
+  "handler": "disable_all_cell_floor_modifiers",
+  "parameters": {}
+}

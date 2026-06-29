@@ -1,0 +1,25 @@
+{
+  "id": "Steel",
+  "properties": {
+    "gameplayTags": [
+      "enhanced"
+    ],
+    "sortingOrderBase": 56,
+    "triggers": [
+      {
+        "id": "finalize_multi_from_cells",
+        "when": "on_move_finalize",
+        "effects": [
+          {
+            "kind": "multiply_finalize_score_multi_total",
+            "factorPerMatchingCell": 1.5
+          }
+        ]
+      }
+    ]
+  },
+  "metadata": {
+    "spriteId": "floorSteelSprite",
+    "nameKey": "cellFloor_steel_name"
+  }
+}

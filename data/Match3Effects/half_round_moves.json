@@ -1,0 +1,7 @@
+{
+    "id": "half_round_moves",
+    "handler": "multiply_round_moves_limit",
+    "parameters": {
+        "multiplier": 0.5
+    }
+}

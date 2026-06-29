@@ -1,0 +1,29 @@
+{
+  "id": "GoldenMagnet",
+  "properties": {
+    "invocations": [
+      {
+        "service": "Boon",
+        "function": "AddMaxBoonSlotsDelta",
+        "parameters": {
+          "bucketId": "default",
+          "delta": 1
+        }
+      }
+    ],
+    "maxCount": 2,
+    "gameplayTags": []
+  },
+  "metadata": {
+    "nameKey": "upgradeGoldenMagnetName",
+    "descriptionKey": "upgradeGoldenMagnetDescription",
+    "spriteId": "upgradeGoldenMagnetSprite",
+    "backgroundColor": "#5E2121",
+    "tags": [
+      {
+        "tagType": "upgrade",
+        "tagLocKey": "core__verb__upgrade"
+      }
+    ]
+  }
+}

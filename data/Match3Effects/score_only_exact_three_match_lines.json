@@ -1,0 +1,5 @@
+{
+    "id": "score_only_exact_three_match_lines",
+    "handler": "restrict_score_to_exact_three_line_matches",
+    "parameters": {}
+}

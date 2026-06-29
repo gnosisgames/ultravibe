@@ -1,0 +1,46 @@
+{
+  "id": "fpayusRespectus",
+  "properties": {
+    "themeId": "normal",
+    "gameplayTags": [],
+    "rewardAmount": 5,
+    "minimumRound": 15,
+    "allowedBoards": [
+      "grid8x8_xc",
+      "effect_anchor_green_0",
+      "ball_in_ball",
+      "cute_face",
+      "effect_anchor_blue_2"
+    ],
+    "onRoundStartInvocations": [
+      {
+        "service": "Match3",
+        "function": "ApplyEffect",
+        "parameters": {
+          "effectId": "shuffle_board_after_each_move",
+          "roundsLifetime": 1
+        }
+      }
+    ],
+    "onRoundEndInvocations": [
+      {
+        "service": "Match3",
+        "function": "RemoveEffect",
+        "parameters": {
+          "effectId": "shuffle_board_after_each_move"
+        }
+      }
+    ]
+  },
+  "metadata": {
+    "nameKey": "fpayusRespectusLevelName",
+    "descriptionKey": "fpayusRespectusLevelDescription",
+    "spriteId": "fpayusRespectus",
+    "startingLetter": "F",
+    "tags": [
+      "boss"
+    ],
+    "backgroundColor": "#322F58",
+    "textColor": "#3F3B7A"
+  }
+}

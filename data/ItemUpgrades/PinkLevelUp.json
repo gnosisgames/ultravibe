@@ -1,0 +1,25 @@
+{
+  "id": "PinkLevelUp",
+  "properties": {
+    "basePrice": 8,
+    "invocations": [
+      {
+        "service": "Match3",
+        "function": "AddItemLevelDelta",
+        "parameters": {
+          "itemId": "pink",
+          "delta": 1
+        }
+      }
+    ],
+    "maxCount": 999999,
+    "gameplayTags": []
+  },
+  "metadata": {
+    "nameKey": "itemUpgradePinkName",
+    "descriptionKey": "itemUpgradePinkDescription",
+    "spriteId": "upgradePinkLevelUpSprite",
+    "backgroundColor": "#7A2E5A",
+    "tags": []
+  }
+}

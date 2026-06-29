@@ -1,0 +1,27 @@
+{
+  "id": "anakinChildbane",
+  "properties": {
+    "themeId": "normal",
+    "gameplayTags": [],
+    "rewardAmount": 8,
+    "minimumRound": 24,
+    "allowedBoards": [
+      "gem",
+      "grid10x8_4i_ext",
+      "grid5x6_rh"
+    ],
+    "onRoundStartInvocations": [],
+    "onRoundEndInvocations": []
+  },
+  "metadata": {
+    "nameKey": "anakinChildbaneLevelName",
+    "descriptionKey": "anakinChildbaneLevelDescription",
+    "spriteId": "anakinChildbane",
+    "startingLetter": "A",
+    "tags": [
+      "boss"
+    ],
+    "backgroundColor": "#560F15",
+    "textColor": "#940F1B"
+  }
+}

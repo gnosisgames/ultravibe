@@ -1,0 +1,28 @@
+{
+  "id": "GoldenTrade",
+  "properties": {
+    "invocations": [
+      {
+        "service": "Match3",
+        "function": "AddCoreShopRerollFlatDiscountDelta",
+        "parameters": {
+          "delta": 2
+        }
+      }
+    ],
+    "maxCount": 2,
+    "gameplayTags": []
+  },
+  "metadata": {
+    "nameKey": "upgradeGoldenTradeName",
+    "descriptionKey": "upgradeGoldenTradeDescription",
+    "spriteId": "upgradeGoldenTradeSprite",
+    "backgroundColor": "#5E2121",
+    "tags": [
+      {
+        "tagType": "upgrade",
+        "tagLocKey": "core__verb__upgrade"
+      }
+    ]
+  }
+}

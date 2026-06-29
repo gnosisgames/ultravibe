@@ -1,0 +1,29 @@
+{
+  "id": "GoldenStats",
+  "properties": {
+    "invocations": [
+      {
+        "service": "Currency",
+        "function": "AddInterestBaseCapDelta",
+        "parameters": {
+          "currencyId": "money",
+          "delta": 25
+        }
+      }
+    ],
+    "maxCount": 3,
+    "gameplayTags": []
+  },
+  "metadata": {
+    "nameKey": "upgradeGoldenStatsName",
+    "descriptionKey": "upgradeGoldenStatsDescription",
+    "spriteId": "upgradeGoldenStatsSprite",
+    "backgroundColor": "#5E2121",
+    "tags": [
+      {
+        "tagType": "upgrade",
+        "tagLocKey": "core__verb__upgrade"
+      }
+    ]
+  }
+}

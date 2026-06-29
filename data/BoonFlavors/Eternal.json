@@ -1,0 +1,14 @@
+{
+  "id": "Eternal",
+  "polarity": "negative",
+  "grantChancePermille": 30,
+  "properties": {
+    "blockSell": true
+  },
+  "metadata": {
+    "nameKey": "flavorEternalName",
+    "tagType": "eternal",
+    "tagLocKey": "core__flavor__eternal",
+    "materialId": "horizontalStripesBlockType"
+  }
+}

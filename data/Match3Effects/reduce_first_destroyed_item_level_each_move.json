@@ -1,0 +1,5 @@
+{
+  "id": "reduce_first_destroyed_item_level_each_move",
+  "handler": "reduce_first_destroyed_item_level_each_move",
+  "parameters": {}
+}

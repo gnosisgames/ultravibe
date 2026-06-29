@@ -1,22 +1,18 @@
 {
   "configs": [
     { "id": "themes", "path": "Data/Themes/index", "kind": "indexed" },
-    { "id": "variants", "path": "Data/Variants/index", "kind": "indexed" },
-    { "id": "traits", "path": "Data/Traits/traits", "kind": "object" },
-    { "id": "ultravibes", "path": "Data/Ultravibes/index", "kind": "indexed" },
     { "id": "consumables", "path": "Data/Consumables/index", "kind": "indexed" },
-    { "id": "upgrades", "path": "Data/Upgrades/index", "kind": "indexed" },
+    { "id": "runUpgrades", "path": "Data/RunUpgrades/index", "kind": "indexed" },
     { "id": "itemUpgrades", "path": "Data/ItemUpgrades/index", "kind": "indexed" },
-    { "id": "abilities", "path": "Data/Abilities/index", "kind": "indexed" },
     { "id": "boons", "path": "Data/Boons/index", "kind": "indexed" },
-    { "id": "rules", "path": "Data/Rules/index", "kind": "domains" },
-    { "id": "levels", "path": "Data/Levels/index", "kind": "indexed" },
-    { "id": "bosses", "path": "Data/Bosses/index", "kind": "indexed" },
-    { "id": "fallingBlockEffects", "path": "Data/FallingBlockEffects/index", "kind": "indexed" },
-    { "id": "inputs", "path": "Data/Inputs/index", "kind": "indexed" },
+    { "id": "boonFlavors", "path": "Data/BoonFlavors/index", "kind": "indexed" },
+    { "id": "levels", "path": "Data/Bosses/index", "kind": "indexed" },
+    { "id": "match3Boards", "path": "Data/Boards/index", "kind": "indexed" },
+    { "id": "items", "path": "Data/Items/index", "kind": "indexed" },
+    { "id": "itemTypes", "path": "Data/ItemTypes/index", "kind": "indexed" },
+    { "id": "match3Effects", "path": "Data/Match3Effects/index", "kind": "indexed" },
+    { "id": "match3CellFloorTypes", "path": "Data/Match3CellFloorTypes/index", "kind": "indexed" },
     { "id": "filters", "path": "Data/Filters/index", "kind": "object" },
-    { "id": "gameFlags", "path": "Data/GameFlags/index", "kind": "indexed" },
-    { "id": "objectPooler", "path": "Data/objectPooler", "kind": "object" },
     { "id": "availableLanguages", "path": "Data/availableLanguages", "kind": "object" }
   ]
 }

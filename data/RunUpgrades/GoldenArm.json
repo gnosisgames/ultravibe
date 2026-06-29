@@ -1,0 +1,28 @@
+{
+  "id": "GoldenArm",
+  "properties": {
+    "invocations": [
+      {
+        "service": "Match3",
+        "function": "AddDefaultMovesPerRoundDelta",
+        "parameters": {
+          "delta": 3
+        }
+      }
+    ],
+    "maxCount": 999,
+    "gameplayTags": []
+  },
+  "metadata": {
+    "nameKey": "upgradeGoldenArmName",
+    "descriptionKey": "upgradeGoldenArmDescription",
+    "spriteId": "upgradeGoldenArmSprite",
+    "backgroundColor": "#5E2121",
+    "tags": [
+      {
+        "tagType": "upgrade",
+        "tagLocKey": "core__verb__upgrade"
+      }
+    ]
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "id": "shuffle_board_after_each_move",
+  "handler": "shuffle_board_after_each_move",
+  "parameters": {}
+}

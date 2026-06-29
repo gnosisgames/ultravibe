@@ -1,0 +1,28 @@
+{
+  "id": "peterPointer",
+  "properties": {
+    "themeId": "normal",
+    "gameplayTags": [],
+    "rewardAmount": 6,
+    "minimumRound": 9,
+    "allowedBoards": [
+      "robot_waving",
+      "double_arrows_bm",
+      "grid9x8_st",
+      "grid8x8_sn_wide"
+    ],
+    "onRoundStartInvocations": [],
+    "onRoundEndInvocations": []
+  },
+  "metadata": {
+    "nameKey": "peterPointerLevelName",
+    "descriptionKey": "peterPointerLevelDescription",
+    "spriteId": "peterPointer",
+    "startingLetter": "P",
+    "tags": [
+      "boss"
+    ],
+    "backgroundColor": "#2D4756",
+    "textColor": "#477894"
+  }
+}

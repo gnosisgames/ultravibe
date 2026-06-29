@@ -1,27 +1,25 @@
 {
   "id": "RedLevelUp",
-  "metadata": {
-    "nameKey": "itemUpgradeRedName",
-    "descriptionKey": "itemUpgradeRedDescription",
-    "spriteId": "itemUpgradeRedSprite",
-    "tags": []
-  },
   "properties": {
-    "maxCount": 999999,
-    "applyInvocationsPerStack": true,
+    "basePrice": 8,
     "invocations": [
       {
-        "service": "FallingBlock",
-        "function": "AddVariantLevelDelta",
+        "service": "Match3",
+        "function": "AddItemLevelDelta",
         "parameters": {
-          "variantId": "red",
+          "itemId": "red",
           "delta": 1
         }
       }
     ],
-    "gameplayTags": [
-      "variant_level",
-      "includeSpecialUltravibes"
-    ]
+    "maxCount": 999999,
+    "gameplayTags": []
+  },
+  "metadata": {
+    "nameKey": "itemUpgradeRedName",
+    "descriptionKey": "itemUpgradeRedDescription",
+    "spriteId": "upgradeRedLevelUpSprite",
+    "backgroundColor": "#7A1F1F",
+    "tags": []
   }
 }

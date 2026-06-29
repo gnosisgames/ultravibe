@@ -1,0 +1,21 @@
+{
+  "id": "normal",
+  "properties": {
+    "themeId": "normal",
+    "gameplayTags": [],
+    "rewardAmount": 3,
+    "onRoundStartInvocations": [],
+    "onRoundEndInvocations": []
+  },
+  "metadata": {
+    "nameKey": "normalLevelName",
+    "descriptionKey": "normalLevelDescription",
+    "spriteId": "normal",
+    "startingLetter": "N",
+    "tags": [
+      "normal"
+    ],
+    "backgroundColor": "#585892",
+    "textColor": "#ffffff"
+  }
+}

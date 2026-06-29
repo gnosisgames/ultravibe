@@ -1,6 +1,6 @@
 extends SceneTree
 
-## Verifies the data-driven configuration manifest loaded all expected catalogs.
+## Verifies the data-driven configuration manifest loaded expected UltraVibe catalogs.
 
 var _bootstrap: Node = null
 var _frames := 0
@@ -25,10 +25,10 @@ func _process(_delta: float) -> bool:
 
 func _check() -> bool:
 	var engine: GnosisEngine = _bootstrap.engine
-	var fb := engine.get_service("FallingBlock")
-	var cfg := fb.get_node("configuration", true)
+	var m3 := engine.get_service("Match3")
+	var cfg := m3.get_node("configuration", true)
 	var ok := true
-	for cat in ["ultravibes", "variants", "consumables", "boons", "abilities", "upgrades", "bosses", "levels"]:
+	for cat in ["items", "match3Boards", "consumables", "boons", "themes"]:
 		var node := cfg.get_node(cat)
 		var count := node.get_count() if node.is_valid() and node.get_type() == GnosisValueType.OBJECT else -1
 		if count <= 0:

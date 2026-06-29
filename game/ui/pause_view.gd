@@ -29,13 +29,9 @@ const FALLBACK_COLOR := Color(0.75, 0.75, 0.85)
 @onready var _card: PanelContainer = $Center/Layout/Card
 
 var _host: GnosisGodotEngine = null
-var _registry := UltravibeRegistry.new()
-var _slot_style: StyleBoxFlat = null
 
 func _ready() -> void:
 	add_to_group("gnosis_ui_view")
-	_registry.load_shapes()
-	_slot_style = _build_slot_style()
 	_resume_button.pressed.connect(_on_resume_pressed)
 	_restart_button.pressed.connect(_on_restart_pressed)
 	_home_button.pressed.connect(_on_home_pressed)
@@ -74,9 +70,9 @@ func _game_ui() -> GnosisGameUIService:
 	var eng := _engine()
 	return eng.get_service("GameUI") as GnosisGameUIService if eng else null
 
-func _falling_block() -> FallingBlockService:
+func _match3_service():
 	var eng := _engine()
-	return eng.get_service("FallingBlock") as FallingBlockService if eng else null
+	return eng.get_service("Match3") if eng else null
 
 # --- deck preview -----------------------------------------------------------
 
@@ -98,40 +94,6 @@ func _populate_deck() -> void:
 		return
 	for child in _deck_grid.get_children():
 		child.queue_free()
-	var fb := _falling_block()
-	if fb == null or fb.context == null:
-		return
-	var deck := FallingBlockEphemeral.get_fb_node(fb.context, "deckEntries")
-	if not deck.is_valid() or deck.get_type() != GnosisValueType.LIST:
-		return
-	for i in range(deck.get_count()):
-		var entry := deck.get_node(i)
-		if not entry.is_valid():
-			continue
-		var poly_id := _node_str(entry, "ultravibeId")
-		var variant_id := _node_str(entry, "variantId")
-		var info := _registry.get_shape(poly_id)
-		if info == null:
-			continue
-		var color: Color = VARIANT_COLORS.get(variant_id.to_lower(), FALLBACK_COLOR)
-		_deck_grid.add_child(_make_slot(info.block_offsets, variant_id, color))
-
-func _make_slot(offsets: Array, variant_id: String, color: Color) -> PanelContainer:
-	var slot := PanelContainer.new()
-	slot.custom_minimum_size = SLOT_SIZE
-	slot.add_theme_stylebox_override("panel", _slot_style)
-	var thumb := DeckPieceThumb.new()
-	thumb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	thumb.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	slot.add_child(thumb)
-	thumb.setup(offsets, variant_id, color)
-	return slot
-
-func _node_str(node: GnosisNode, key: String) -> String:
-	var n := node.get_node(key)
-	if n.is_valid() and n.value != null:
-		return str(n.value)
-	return ""
 
 # --- button actions ---------------------------------------------------------
 
@@ -147,9 +109,12 @@ func _on_restart_pressed() -> void:
 		ui.invoke_function("PopView", _engine().store.create_object())
 	if _host:
 		_host.restart_ephemeral_run()
-	var fb := _falling_block()
-	if fb:
-		fb.handle_run_started()
+	var m3 = _match3_service()
+	if m3:
+		m3.handle_run_started()
+	var adapter := _host.get_node_or_null("Adapters/Match3PlayAdapter") if _host else null
+	if adapter and adapter.has_method("begin_level"):
+		adapter.begin_level(1)
 
 func _on_home_pressed() -> void:
 	var ui := _game_ui()

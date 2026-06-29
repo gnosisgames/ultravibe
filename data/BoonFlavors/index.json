@@ -1,0 +1,11 @@
+{
+  "boonFlavors": [
+    { "id": "BonusPoints", "path": "BonusPoints.json" },
+    { "id": "BonusMulti", "path": "BonusMulti.json" },
+    { "id": "Steel", "path": "Steel.json" },
+    { "id": "Ghost", "path": "Ghost.json" },
+    { "id": "Eternal", "path": "Eternal.json" },
+    { "id": "Rental", "path": "Rental.json" },
+    { "id": "Perishable", "path": "Perishable.json" }
+  ]
+}

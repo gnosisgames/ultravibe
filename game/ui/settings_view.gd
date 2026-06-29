@@ -19,9 +19,7 @@ const CATEGORY_LABELS := {
 	"ui": "ultravibe__settings__category__ui",
 	"console": "ultravibe__settings__category__console",
 }
-const UltraInputActions = preload("res://game/input/ultra_input_actions.gd")
 const UltraAccessibilitySettings = preload("res://game/ultra_accessibility_settings.gd")
-const GnosisConsoleInputActions = preload("res://addons/com.gnosisgames.gnosisengine/input/gnosis_console_input_actions.gd")
 const HAPTICS_ENABLED_KEY := "haptic.hapticsEnabled"
 const LIGHT_FLASHES_ENABLED_KEY := UltraAccessibilitySettings.LIGHT_FLASHES_ENABLED_KEY
 const LOG_LEVEL_KEY := "settings.logLevel"
@@ -63,7 +61,7 @@ var _input_bindings_cache: Dictionary = {}
 
 func _input_bindings() -> Dictionary:
 	if _input_bindings_cache.is_empty():
-		_input_bindings_cache = GnosisConsoleInputActions.merge_with_game_bindings(UltraInputActions.BINDINGS)
+		_input_bindings_cache = GnosisConsoleInputActions.merge_with_game_bindings(GameInputActions.BINDINGS)
 	return _input_bindings_cache
 
 @onready var _master_slider: HSlider = %MasterSlider

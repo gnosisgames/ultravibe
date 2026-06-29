@@ -21,9 +21,7 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if _scroll == null or not is_visible_in_tree():
 		return
-	# ui_up/ui_down cover gamepad d-pad + left stick and keyboard arrows; the
-	# gameplay soft_drop binding is included so the controller "down" still works
-	# even if a profile rebinds it.
+	# ui_up/ui_down cover gamepad d-pad + left stick and keyboard arrows.
 	var dir := Input.get_action_strength("ui_down") - Input.get_action_strength("ui_up")
 	if is_zero_approx(dir):
 		_scroll_accum = 0.0

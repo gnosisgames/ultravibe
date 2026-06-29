@@ -1,0 +1,6 @@
+{
+    "itemTypes": [
+        { "id": "plain", "path": "plain.json" },
+        { "id": "disabled", "path": "disabled.json" }
+    ]
+}

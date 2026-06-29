@@ -1,0 +1,10 @@
+{
+    "items": [
+        { "id": "orange", "path": "orange.json" },
+        { "id": "red", "path": "red.json" },
+        { "id": "purple", "path": "purple.json" },
+        { "id": "blue", "path": "blue.json" },
+        { "id": "green", "path": "green.json" },
+        { "id": "pink", "path": "pink.json" }
+    ]
+}

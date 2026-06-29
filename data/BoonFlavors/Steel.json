@@ -1,0 +1,20 @@
+{
+  "id": "Steel",
+  "polarity": "positive",
+  "grantChancePermille": 80,
+  "properties": {
+    "scoreTriggerOutcomes": [
+      {
+        "op": "multiply",
+        "target": "score.multiTotal",
+        "value": "1.5"
+      }
+    ]
+  },
+  "metadata": {
+    "nameKey": "flavorSteelName",
+    "tagType": "steel",
+    "tagLocKey": "core__flavor__steel",
+    "materialId": "disabledBlockType"
+  }
+}

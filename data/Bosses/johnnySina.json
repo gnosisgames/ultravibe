@@ -1,0 +1,28 @@
+{
+  "id": "johnnySina",
+  "properties": {
+    "themeId": "normal",
+    "gameplayTags": [],
+    "rewardAmount": 5,
+    "minimumRound": 9,
+    "allowedBoards": [
+      "grid10x9_ms",
+      "cute_face",
+      "skull_bm",
+      "grid9x9_ss"
+    ],
+    "onRoundStartInvocations": [],
+    "onRoundEndInvocations": []
+  },
+  "metadata": {
+    "nameKey": "johnnySinaLevelName",
+    "descriptionKey": "johnnySinaLevelDescription",
+    "spriteId": "johnnySina",
+    "startingLetter": "J",
+    "tags": [
+      "boss"
+    ],
+    "backgroundColor": "#2F5656",
+    "textColor": "#639494"
+  }
+}

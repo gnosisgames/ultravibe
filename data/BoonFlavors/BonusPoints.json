@@ -1,0 +1,20 @@
+{
+  "id": "BonusPoints",
+  "polarity": "positive",
+  "grantChancePermille": 150,
+  "properties": {
+    "scoreTriggerOutcomes": [
+      {
+        "op": "add",
+        "target": "score.pointsTotal",
+        "value": "30"
+      }
+    ]
+  },
+  "metadata": {
+    "nameKey": "flavorBonusPointsName",
+    "tagType": "bonusPoints",
+    "tagLocKey": "core__flavor__bonusPoints",
+    "materialId": "whiteShader"
+  }
+}

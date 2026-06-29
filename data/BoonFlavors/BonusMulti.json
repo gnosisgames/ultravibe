@@ -1,0 +1,20 @@
+{
+  "id": "BonusMulti",
+  "polarity": "positive",
+  "grantChancePermille": 120,
+  "properties": {
+    "scoreTriggerOutcomes": [
+      {
+        "op": "add",
+        "target": "score.multiTotal",
+        "value": "10"
+      }
+    ]
+  },
+  "metadata": {
+    "nameKey": "flavorBonusMultiName",
+    "tagType": "bonusMulti",
+    "tagLocKey": "core__flavor__bonusMulti",
+    "materialId": "verticalStripesBlockType"
+  }
+}

@@ -1,11 +1,10 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://game/ultravibe_bootstrap.gd" id="1"]
-[ext_resource type="PackedScene" path="res://game/ui/play_hud.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://game/match3/view/match3_hud.tscn" id="3"]
 [ext_resource type="PackedScene" path="res://addons/com.gnosisgames.gnosisengine/adapters/godot/debug/gnosis_engine_debug_panel.tscn" id="4"]
 [ext_resource type="PackedScene" path="res://game/ui/title_view.tscn" id="5"]
 [ext_resource type="PackedScene" path="res://game/ui/settings_view.tscn" id="6"]
-[ext_resource type="PackedScene" path="res://game/ui/reward_selection_view.tscn" id="7"]
 [ext_resource type="PackedScene" path="res://game/ui/ultravibe_background.tscn" id="8"]
 [ext_resource type="Shader" path="res://assets/ui/crt.gdshader" id="9"]
 [ext_resource type="PackedScene" path="res://game/ui/collection_view.tscn" id="10"]
@@ -108,9 +107,6 @@ visible = false
 visible = false
 
 [node name="SettingsView" parent="UI" unique_id=920900561 instance=ExtResource("6")]
-visible = false
-
-[node name="RewardSelectionView" parent="UI" unique_id=1294864095 instance=ExtResource("7")]
 visible = false
 
 [node name="CollectionView" parent="UI" unique_id=760480248 instance=ExtResource("10")]

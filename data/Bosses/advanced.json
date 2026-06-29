@@ -1,0 +1,21 @@
+{
+  "id": "advanced",
+  "properties": {
+    "themeId": "normal",
+    "gameplayTags": [],
+    "rewardAmount": 4,
+    "onRoundStartInvocations": [],
+    "onRoundEndInvocations": []
+  },
+  "metadata": {
+    "nameKey": "advancedLevelName",
+    "descriptionKey": "advancedLevelDescription",
+    "spriteId": "advanced",
+    "startingLetter": "A",
+    "tags": [
+      "advanced"
+    ],
+    "backgroundColor": "#585892",
+    "textColor": "#ffffff"
+  }
+}

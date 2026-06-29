@@ -1,27 +1,25 @@
 {
   "id": "BlueLevelUp",
-  "metadata": {
-    "nameKey": "itemUpgradeBlueName",
-    "descriptionKey": "itemUpgradeBlueDescription",
-    "spriteId": "itemUpgradeBlueSprite",
-    "tags": []
-  },
   "properties": {
-    "maxCount": 999999,
-    "applyInvocationsPerStack": true,
+    "basePrice": 8,
     "invocations": [
       {
-        "service": "FallingBlock",
-        "function": "AddVariantLevelDelta",
+        "service": "Match3",
+        "function": "AddItemLevelDelta",
         "parameters": {
-          "variantId": "blue",
+          "itemId": "blue",
           "delta": 1
         }
       }
     ],
-    "gameplayTags": [
-      "variant_level",
-      "includeSpecialUltravibes"
-    ]
+    "maxCount": 999999,
+    "gameplayTags": []
+  },
+  "metadata": {
+    "nameKey": "itemUpgradeBlueName",
+    "descriptionKey": "itemUpgradeBlueDescription",
+    "spriteId": "upgradeBlueLevelUpSprite",
+    "backgroundColor": "#1F3E78",
+    "tags": []
   }
 }

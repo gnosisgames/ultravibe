@@ -1,27 +1,25 @@
 {
   "id": "OrangeLevelUp",
-  "metadata": {
-    "nameKey": "itemUpgradeOrangeName",
-    "descriptionKey": "itemUpgradeOrangeDescription",
-    "spriteId": "itemUpgradeOrangeSprite",
-    "tags": []
-  },
   "properties": {
-    "maxCount": 999999,
-    "applyInvocationsPerStack": true,
+    "basePrice": 8,
     "invocations": [
       {
-        "service": "FallingBlock",
-        "function": "AddVariantLevelDelta",
+        "service": "Match3",
+        "function": "AddItemLevelDelta",
         "parameters": {
-          "variantId": "orange",
+          "itemId": "orange",
           "delta": 1
         }
       }
     ],
-    "gameplayTags": [
-      "variant_level",
-      "includeSpecialUltravibes"
-    ]
+    "maxCount": 999999,
+    "gameplayTags": []
+  },
+  "metadata": {
+    "nameKey": "itemUpgradeOrangeName",
+    "descriptionKey": "itemUpgradeOrangeDescription",
+    "spriteId": "upgradeOrangeLevelUpSprite",
+    "backgroundColor": "#7A4A1A",
+    "tags": []
   }
 }

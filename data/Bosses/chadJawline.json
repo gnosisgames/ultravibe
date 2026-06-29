@@ -1,0 +1,27 @@
+{
+  "id": "chadJawline",
+  "properties": {
+    "themeId": "normal",
+    "gameplayTags": [],
+    "rewardAmount": 5,
+    "minimumRound": 24,
+    "allowedBoards": [
+      "grid6x6_dh",
+      "grid6x8_v2s2",
+      "grid7x7_bm"
+    ],
+    "onRoundStartInvocations": [],
+    "onRoundEndInvocations": []
+  },
+  "metadata": {
+    "nameKey": "chadJawlineLevelName",
+    "descriptionKey": "chadJawlineLevelDescription",
+    "spriteId": "chadJawline",
+    "startingLetter": "C",
+    "tags": [
+      "boss"
+    ],
+    "backgroundColor": "#560F0A",
+    "textColor": "#940F06"
+  }
+}

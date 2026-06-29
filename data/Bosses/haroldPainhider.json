@@ -1,0 +1,46 @@
+{
+  "id": "haroldPainhider",
+  "properties": {
+    "themeId": "normal",
+    "gameplayTags": [],
+    "rewardAmount": 5,
+    "minimumRound": 15,
+    "allowedBoards": [
+      "grid5x6_rh",
+      "effect_anchor_blue_3",
+      "effect_anchor_green_1",
+      "double_arrows_bm",
+      "effect_anchor_green_3"
+    ],
+    "onRoundStartInvocations": [
+      {
+        "service": "Match3",
+        "function": "ApplyEffect",
+        "parameters": {
+          "effectId": "reduce_first_destroyed_item_level_each_move",
+          "roundsLifetime": 1
+        }
+      }
+    ],
+    "onRoundEndInvocations": [
+      {
+        "service": "Match3",
+        "function": "RemoveEffect",
+        "parameters": {
+          "effectId": "reduce_first_destroyed_item_level_each_move"
+        }
+      }
+    ]
+  },
+  "metadata": {
+    "nameKey": "haroldPainhiderLevelName",
+    "descriptionKey": "haroldPainhiderLevelDescription",
+    "spriteId": "haroldPainhider",
+    "startingLetter": "H",
+    "tags": [
+      "boss"
+    ],
+    "backgroundColor": "#564019",
+    "textColor": "#946B22"
+  }
+}

@@ -1,0 +1,5 @@
+{
+    "id": "halve_tile_points_multi_round",
+    "handler": "halve_accumulated_tile_points_and_multi_for_round",
+    "parameters": {}
+}

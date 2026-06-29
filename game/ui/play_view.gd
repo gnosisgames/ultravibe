@@ -261,16 +261,12 @@ func _start_run(player_count: int, mode: String) -> void:
 	if ephemeral.is_valid():
 		ephemeral.set_key("playerCount", player_count)
 		ephemeral.set_key("mode", mode)
-		var difficulty_id := _difficulty_id_from_index(_current_difficulty_index())
-		var fb := ephemeral.get_node("fallingBlock")
-		if fb.is_valid():
-			fb.set_key("fallSpeedDifficulty", difficulty_id)
-			_copy_game_flags_to_ephemeral(fb)
-	var falling_block := eng.get_service("FallingBlock") as FallingBlockService
-	if falling_block:
-		# restart_ephemeral_run() recreates services before adapters have runtime
-		# refs, so seed the run after the selected Ephemeral settings are written.
-		falling_block.handle_run_started()
+	var match3 = eng.get_service("Match3")
+	if match3:
+		match3.handle_run_started()
+	var adapter := _host.get_node_or_null("Adapters/Match3PlayAdapter") if _host else null
+	if adapter and adapter.has_method("begin_level"):
+		adapter.begin_level(1)
 	var ui := _game_ui()
 	if ui and eng:
 		UltraGameUiNav.transition_to_gameplay(ui, eng.store, "play", "slide_up")

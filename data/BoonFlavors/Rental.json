@@ -1,0 +1,14 @@
+{
+  "id": "Rental",
+  "polarity": "negative",
+  "grantChancePermille": 40,
+  "properties": {
+    "roundStartMoneyCost": 3
+  },
+  "metadata": {
+    "nameKey": "flavorRentalName",
+    "tagType": "rental",
+    "tagLocKey": "core__flavor__rental",
+    "materialId": "verticalStripesBlockType"
+  }
+}

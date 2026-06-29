@@ -1,0 +1,8 @@
+{
+    "id": "touch_grass_round_moves_bonus",
+    "handler": "add_shuffle_and_moves_budget_at_round_start",
+    "parameters": {
+        "manualShufflesAdd": 0,
+        "movesLimitAdd": 3
+    }
+}

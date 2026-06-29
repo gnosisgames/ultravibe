@@ -1,0 +1,45 @@
+{
+  "id": "richardRoll",
+  "properties": {
+    "themeId": "normal",
+    "gameplayTags": [],
+    "rewardAmount": 6,
+    "minimumRound": 0,
+    "allowedBoards": [
+      "effect_anchor_red_0",
+      "effect_anchor_red_1",
+      "effect_anchor_red_2",
+      "effect_anchor_red_3"
+    ],
+    "onRoundStartInvocations": [
+      {
+        "service": "Match3",
+        "function": "ApplyEffect",
+        "parameters": {
+          "effectId": "disable_red_block",
+          "roundsLifetime": 1
+        }
+      }
+    ],
+    "onRoundEndInvocations": [
+      {
+        "service": "Match3",
+        "function": "RemoveEffect",
+        "parameters": {
+          "effectId": "disable_red_block"
+        }
+      }
+    ]
+  },
+  "metadata": {
+    "nameKey": "richardRollLevelName",
+    "descriptionKey": "richardRollLevelDescription",
+    "spriteId": "richardRoll",
+    "startingLetter": "R",
+    "tags": [
+      "boss"
+    ],
+    "backgroundColor": "#7D2B36",
+    "textColor": "#D83F54"
+  }
+}

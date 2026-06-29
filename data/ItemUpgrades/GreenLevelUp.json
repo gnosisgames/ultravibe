@@ -1,27 +1,25 @@
 {
   "id": "GreenLevelUp",
-  "metadata": {
-    "nameKey": "itemUpgradeGreenName",
-    "descriptionKey": "itemUpgradeGreenDescription",
-    "spriteId": "itemUpgradeGreenSprite",
-    "tags": []
-  },
   "properties": {
-    "maxCount": 999999,
-    "applyInvocationsPerStack": true,
+    "basePrice": 8,
     "invocations": [
       {
-        "service": "FallingBlock",
-        "function": "AddVariantLevelDelta",
+        "service": "Match3",
+        "function": "AddItemLevelDelta",
         "parameters": {
-          "variantId": "green",
+          "itemId": "green",
           "delta": 1
         }
       }
     ],
-    "gameplayTags": [
-      "variant_level",
-      "includeSpecialUltravibes"
-    ]
+    "maxCount": 999999,
+    "gameplayTags": []
+  },
+  "metadata": {
+    "nameKey": "itemUpgradeGreenName",
+    "descriptionKey": "itemUpgradeGreenDescription",
+    "spriteId": "upgradeGreenLevelUpSprite",
+    "backgroundColor": "#1F5A2B",
+    "tags": []
   }
 }

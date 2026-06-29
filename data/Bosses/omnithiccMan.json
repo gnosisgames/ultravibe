@@ -1,0 +1,28 @@
+{
+  "id": "omnithiccMan",
+  "properties": {
+    "themeId": "normal",
+    "gameplayTags": [],
+    "rewardAmount": 6,
+    "minimumRound": 9,
+    "allowedBoards": [
+      "grid7x7",
+      "grid8x8_ti",
+      "grid9x8_h2s2",
+      "grid9x9_hg"
+    ],
+    "onRoundStartInvocations": [],
+    "onRoundEndInvocations": []
+  },
+  "metadata": {
+    "nameKey": "omnithiccManLevelName",
+    "descriptionKey": "omnithiccManLevelDescription",
+    "spriteId": "omnithiccMan",
+    "startingLetter": "O",
+    "tags": [
+      "boss"
+    ],
+    "backgroundColor": "#6E6E6E",
+    "textColor": "#949494"
+  }
+}

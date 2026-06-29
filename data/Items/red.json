@@ -1,0 +1,15 @@
+{
+    "id": "red",
+    "properties": {
+        "basePoints": 12,
+        "baseMulti": 2,
+        "pointsPerLevel": 4,
+        "multiPerLevel": 4,
+        "sortOrder": 1
+    },
+    "metadata": {
+        "spriteId": "angerBlock",
+        "nameKey": "itemRedName",
+        "tags": []
+    }
+}

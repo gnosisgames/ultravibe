@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3]
+[gd_scene load_steps=17 format=3]
 
 [ext_resource type="Script" path="res://game/ui/collection_view.gd" id="1"]
 [ext_resource type="PackedScene" path="res://game/ui/widgets/rounded_square_btn.tscn" id="2"]
@@ -11,6 +11,7 @@
 [ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/ability.png" id="8"]
 [ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/upgrades.png" id="9"]
 [ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/skull-white.png" id="10"]
+[ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/emotion.png" id="12"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
 content_margin_left = 36.0
@@ -216,6 +217,24 @@ icon_alignment = 1
 vertical_icon_alignment = 1
 text = ""
 icon = ExtResource("9")
+expand_icon = true
+
+[node name="ItemUpgradesTab" parent="Center/Layout/TabBar/Tabs" instance=ExtResource("2")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 76)
+layout_mode = 2
+toggle_mode = true
+theme_override_colors/icon_normal_color = Color(0.992157, 0.894118, 0.72549, 1)
+theme_override_colors/icon_focus_color = Color(0.992157, 0.894118, 0.72549, 1)
+theme_override_colors/icon_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_pressed_color = Color(0.992157, 0.894118, 0.72549, 1)
+theme_override_constants/icon_max_width = 44
+tooltip_text = "ultravibe__collection__tab__itemUpgrades"
+alignment = 1
+icon_alignment = 1
+vertical_icon_alignment = 1
+text = ""
+icon = ExtResource("12")
 expand_icon = true
 
 [node name="BossesTab" parent="Center/Layout/TabBar/Tabs" instance=ExtResource("2")]

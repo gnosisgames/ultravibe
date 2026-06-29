@@ -1,0 +1,27 @@
+{
+  "id": "elonAxlover",
+  "properties": {
+    "themeId": "normal",
+    "gameplayTags": [],
+    "rewardAmount": 5,
+    "minimumRound": 24,
+    "allowedBoards": [
+      "grid8x6_h2s2",
+      "grid8x8_qi",
+      "grid8x8_sn_ext"
+    ],
+    "onRoundStartInvocations": [],
+    "onRoundEndInvocations": []
+  },
+  "metadata": {
+    "nameKey": "elonAxloverLevelName",
+    "descriptionKey": "elonAxloverLevelDescription",
+    "spriteId": "elonAxlover",
+    "startingLetter": "E",
+    "tags": [
+      "boss"
+    ],
+    "backgroundColor": "#321B56",
+    "textColor": "#502594"
+  }
+}

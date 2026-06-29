@@ -1,100 +1,108 @@
 {
-  "bosses": [
+  "levels": [
     {
-      "id": "ares",
-      "path": "ares.json"
+      "id": "normal",
+      "path": "normal.json"
     },
     {
-      "id": "boreas",
-      "path": "boreas.json"
+      "id": "advanced",
+      "path": "advanced.json"
     },
     {
-      "id": "chaos",
-      "path": "chaos.json"
+      "id": "anakinChildbane",
+      "path": "anakinChildbane.json"
     },
     {
-      "id": "dionysus",
-      "path": "dionysus.json"
+      "id": "boromirSean",
+      "path": "boromirSean.json"
     },
     {
-      "id": "erebos",
-      "path": "erebos.json"
+      "id": "chadJawline",
+      "path": "chadJawline.json"
     },
     {
-      "id": "fates",
-      "path": "fates.json"
+      "id": "dogeMusk",
+      "path": "dogeMusk.json"
     },
     {
-      "id": "gaia",
-      "path": "gaia.json"
+      "id": "elonAxlover",
+      "path": "elonAxlover.json"
     },
     {
-      "id": "helios",
-      "path": "helios.json"
+      "id": "fpayusRespectus",
+      "path": "fpayusRespectus.json"
     },
     {
-      "id": "hypnos",
-      "path": "hypnos.json"
+      "id": "gordonButterscorch",
+      "path": "gordonButterscorch.json"
     },
     {
-      "id": "icarus",
-      "path": "icarus.json"
+      "id": "haroldPainhider",
+      "path": "haroldPainhider.json"
     },
     {
-      "id": "kronos",
-      "path": "kronos.json"
+      "id": "ishowSpeedster",
+      "path": "ishowSpeedster.json"
     },
     {
-      "id": "logos",
-      "path": "logos.json"
+      "id": "johnnySina",
+      "path": "johnnySina.json"
     },
     {
-      "id": "minotaur",
-      "path": "minotaur.json"
+      "id": "karenCrymore",
+      "path": "karenCrymore.json"
     },
     {
-      "id": "nemesis",
-      "path": "nemesis.json"
+      "id": "lebronKingsley",
+      "path": "lebronKingsley.json"
     },
     {
-      "id": "oceanus",
-      "path": "oceanus.json"
+      "id": "misterBeastus",
+      "path": "misterBeastus.json"
     },
     {
-      "id": "olympus",
-      "path": "olympus.json"
+      "id": "nicholasPerplexus",
+      "path": "nicholasPerplexus.json"
     },
     {
-      "id": "persephone",
-      "path": "persephone.json"
+      "id": "omnithiccMan",
+      "path": "omnithiccMan.json"
     },
     {
-      "id": "psyche",
-      "path": "psyche.json"
+      "id": "peterPointer",
+      "path": "peterPointer.json"
     },
     {
-      "id": "riza",
-      "path": "riza.json"
+      "id": "quentinFootino",
+      "path": "quentinFootino.json"
     },
     {
-      "id": "satyr",
-      "path": "satyr.json"
+      "id": "richardRoll",
+      "path": "richardRoll.json"
     },
     {
-      "id": "themis",
-      "path": "themis.json"
+      "id": "saltBaeron",
+      "path": "saltBaeron.json"
     },
     {
-      "id": "titanos",
-      "path": "titanos.json"
+      "id": "trollyMcface",
+      "path": "trollyMcface.json"
     },
     {
-      "id": "xenon",
-      "path": "xenon.json"
+      "id": "victorTriumphus",
+      "path": "victorTriumphus.json"
     },
     {
-      "id": "zeus",
-      "path": "zeus.json"
+      "id": "willSlappington",
+      "path": "willSlappington.json"
+    },
+    {
+      "id": "xavierGongiveit",
+      "path": "xavierGongiveit.json"
+    },
+    {
+      "id": "yoloSwaggings",
+      "path": "yoloSwaggings.json"
     }
   ]
 }

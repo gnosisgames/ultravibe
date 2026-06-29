@@ -1,0 +1,37 @@
+{
+  "id": "Lucky",
+  "properties": {
+    "gameplayTags": [
+      "enhanced"
+    ],
+    "sortingOrderBase": 55,
+    "triggers": [
+      {
+        "id": "lucky_roll_on_scoring_destroy",
+        "when": "on_scoring_destroy",
+        "effects": [
+          {
+            "kind": "add_move_points",
+            "amount": 12,
+            "oneIn": 4
+          },
+          {
+            "kind": "add_move_multi",
+            "amount": 16,
+            "oneIn": 8
+          },
+          {
+            "kind": "add_currency",
+            "currencyId": "money",
+            "amount": 20,
+            "oneIn": 16
+          }
+        ]
+      }
+    ]
+  },
+  "metadata": {
+    "spriteId": "floorLuckySprite",
+    "nameKey": "cellFloor_lucky_name"
+  }
+}

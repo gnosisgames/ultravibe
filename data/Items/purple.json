@@ -1,0 +1,15 @@
+{
+    "id": "purple",
+    "properties": {
+        "basePoints": 8,
+        "baseMulti": 3,
+        "pointsPerLevel": 2,
+        "multiPerLevel": 5,
+        "sortOrder": 2
+    },
+    "metadata": {
+        "spriteId": "sadnessBlock",
+        "nameKey": "itemPurpleName",
+        "tags": []
+    }
+}

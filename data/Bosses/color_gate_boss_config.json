@@ -1,0 +1,74 @@
+{
+  "quentinFootino": {
+    "effectId": "disable_pink_block",
+    "boards": [
+      "effect_anchor_pink_0",
+      "effect_anchor_pink_1",
+      "effect_anchor_pink_2",
+      "effect_anchor_pink_3"
+    ],
+    "blockColor": "pink",
+    "textColor": "#EA30DA",
+    "backgroundColor": "#84237C"
+  },
+  "richardRoll": {
+    "effectId": "disable_red_block",
+    "boards": [
+      "effect_anchor_red_0",
+      "effect_anchor_red_1",
+      "effect_anchor_red_2",
+      "effect_anchor_red_3"
+    ],
+    "blockColor": "red",
+    "textColor": "#D83F54",
+    "backgroundColor": "#7D2B36"
+  },
+  "saltBaeron": {
+    "effectId": "disable_green_block",
+    "boards": [
+      "effect_anchor_green_0",
+      "effect_anchor_green_1",
+      "effect_anchor_green_2",
+      "effect_anchor_green_3"
+    ],
+    "blockColor": "green",
+    "textColor": "#74BA3F",
+    "backgroundColor": "#466B2A"
+  },
+  "willSlappington": {
+    "effectId": "disable_blue_block",
+    "boards": [
+      "effect_anchor_blue_0",
+      "effect_anchor_blue_1",
+      "effect_anchor_blue_2",
+      "effect_anchor_blue_3"
+    ],
+    "blockColor": "blue",
+    "textColor": "#1972EA",
+    "backgroundColor": "#174684"
+  },
+  "karenCrymore": {
+    "effectId": "disable_purple_block",
+    "boards": [
+      "effect_anchor_purple_0",
+      "effect_anchor_purple_1",
+      "effect_anchor_purple_2",
+      "effect_anchor_purple_3"
+    ],
+    "blockColor": "purple",
+    "textColor": "#76449E",
+    "backgroundColor": "#462B5B"
+  },
+  "victorTriumphus": {
+    "effectId": "disable_orange_block",
+    "boards": [
+      "effect_anchor_orange_0",
+      "effect_anchor_orange_1",
+      "effect_anchor_orange_2",
+      "effect_anchor_orange_3"
+    ],
+    "blockColor": "orange",
+    "textColor": "#EA8000",
+    "backgroundColor": "#844D0A"
+  }
+}

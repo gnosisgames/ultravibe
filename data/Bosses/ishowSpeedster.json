@@ -1,0 +1,45 @@
+{
+  "id": "ishowSpeedster",
+  "properties": {
+    "themeId": "normal",
+    "gameplayTags": [],
+    "rewardAmount": 5,
+    "minimumRound": 9,
+    "allowedBoards": [
+      "grid10x8_mi",
+      "grid9x9_qi",
+      "grid10x8_dc",
+      "grid10x10_dr"
+    ],
+    "onRoundStartInvocations": [
+      {
+        "service": "Match3",
+        "function": "ApplyEffect",
+        "parameters": {
+          "effectId": "halve_tile_points_multi_round",
+          "roundsLifetime": 1
+        }
+      }
+    ],
+    "onRoundEndInvocations": [
+      {
+        "service": "Match3",
+        "function": "RemoveEffect",
+        "parameters": {
+          "effectId": "halve_tile_points_multi_round"
+        }
+      }
+    ]
+  },
+  "metadata": {
+    "nameKey": "ishowSpeedsterLevelName",
+    "descriptionKey": "ishowSpeedsterLevelDescription",
+    "spriteId": "ishowSpeedster",
+    "startingLetter": "I",
+    "tags": [
+      "boss"
+    ],
+    "backgroundColor": "#1E2956",
+    "textColor": "#2B4094"
+  }
+}

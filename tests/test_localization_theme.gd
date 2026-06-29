@@ -76,30 +76,4 @@ func _run() -> bool:
 	else:
 		print("[SUCCESS] theme 'boss_ares' applied, background.main=%s" % bg)
 	theme.set_current_theme_id("normal")
-
-	# 4. Boss encounter drives the Theme service to the boss theme, then restores normal.
-	var fb := engine.get_service("FallingBlock") as FallingBlockService
-	var ctx: GnosisContext = fb.context
-	var flags: GnosisNode = FallingBlockEphemeral.get_fb(ctx).get_node("gameFlags")
-	if not flags.is_valid() or flags.get_type() != GnosisValueType.OBJECT:
-		flags = ctx.store.create_object()
-		FallingBlockEphemeral.get_fb(ctx).set_key("gameFlags", flags)
-	flags.set_key("includeBosses", true)
-	flags.set_key("bossOnly", true)
-	fb._bosses.reset_for_new_run()
-	var spawn_at := FallingBlockEphemeral.get_fb_int(ctx, "bossScheduleNextSpawnAtElapsedSec", 0)
-	fb.debug_set_run_elapsed_seconds(float(spawn_at) + 1.0)
-	var theme_during := theme.get_current_theme_id()
-	var ends_at := FallingBlockEphemeral.get_fb_int(ctx, "bossEncounterEndsAtElapsedSec", 0)
-	fb.debug_set_run_elapsed_seconds(float(ends_at) + 1.0)
-	var theme_after := theme.get_current_theme_id()
-	if theme_during == "normal":
-		print("[FAIL] Theme service not switched during boss encounter (still 'normal')")
-		ok = false
-	elif theme_after != "normal":
-		print("[FAIL] Theme not restored to 'normal' after encounter (got '%s')" % theme_after)
-		ok = false
-	else:
-		print("[SUCCESS] boss encounter drove theme '%s' then restored 'normal'" % theme_during)
-
 	return ok

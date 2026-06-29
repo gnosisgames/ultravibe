@@ -13,13 +13,16 @@ enum PIVOT_SIDE { TOP, BOTTOM, LEFT, RIGHT }
 ## Default body width used when a consumer does not request one explicitly.
 const DEFAULT_CONTENT_WIDTH := 300.0
 
-## Semantic rich-text tags in localized strings -> accent colors. Shared so the
-## same word always gets the same color in every tooltip across the app.
+## Semantic rich-text tags in localized strings -> accent colors. Mirrors Unity
+## Rewired tooltip palette (game.unity semanticTags) so <money>, <move>, etc.
+## render with the same accents as the Unity build.
 const TAG_COLORS := {
-	"multi": "e35252",
-	"point": "52a4e3",
-	"chance": "5ec85e",
-	"discard": "e35252",
+	"money": "ecbe08",
+	"multi": "cd2c58",
+	"point": "346fda",
+	"shuffle": "d58080",
+	"chance": "2fa084",
+	"move": "1591dc",
 }
 
 @export var text: String = "":
@@ -111,8 +114,8 @@ func apply_standard_skin() -> void:
 		vbox.move_child(title_label, 0)
 
 ## Fills the tooltip with a title and a raw (un-formatted) description string.
-## Semantic `<multi>`/`<point>`/`<chance>`/`<discard>` tags are converted to the
-## shared accent colors automatically.
+## Semantic `<money>`/`<move>`/`<shuffle>`/`<multi>`/`<point>`/`<chance>` tags
+## are converted to the shared accent colors automatically.
 func set_content(title: String, description_raw: String, width: float = DEFAULT_CONTENT_WIDTH) -> void:
 	if description == null:
 		return
@@ -134,11 +137,6 @@ static func format_bbcode(value: String) -> String:
 	var arg_re := RegEx.new()
 	if arg_re.compile("\\$\\{arg:[^}]+\\}") == OK:
 		text_value = arg_re.sub(text_value, "0", true)
-	# Pull a trailing unit word ("discard(s)") into the red span so it matches how
-	# <multi>/<point> already wrap their number and label together.
-	var discard_re := RegEx.new()
-	if discard_re.compile("<discard>(.*?)</discard>(\\s+[Dd]iscards?)") == OK:
-		text_value = discard_re.sub(text_value, "[color=#%s]$1$2[/color]" % TAG_COLORS["discard"], true)
 	for tag in TAG_COLORS.keys():
 		var color: String = TAG_COLORS[tag]
 		text_value = text_value.replace("<%s>" % tag, "[color=#%s]" % color)

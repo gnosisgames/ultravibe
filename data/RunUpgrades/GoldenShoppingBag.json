@@ -1,0 +1,28 @@
+{
+  "id": "GoldenShoppingBag",
+  "properties": {
+    "invocations": [
+      {
+        "service": "Match3",
+        "function": "AddCoreShopSlotsDelta",
+        "parameters": {
+          "delta": 2
+        }
+      }
+    ],
+    "maxCount": 2,
+    "gameplayTags": []
+  },
+  "metadata": {
+    "nameKey": "upgradeGoldenShoppingBagName",
+    "descriptionKey": "upgradeGoldenShoppingBagDescription",
+    "spriteId": "upgradeGoldenShoppingBagSprite",
+    "backgroundColor": "#5E2121",
+    "tags": [
+      {
+        "tagType": "upgrade",
+        "tagLocKey": "core__verb__upgrade"
+      }
+    ]
+  }
+}

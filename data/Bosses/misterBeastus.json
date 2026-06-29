@@ -1,0 +1,45 @@
+{
+  "id": "misterBeastus",
+  "properties": {
+    "themeId": "normal",
+    "gameplayTags": [],
+    "rewardAmount": 5,
+    "minimumRound": 9,
+    "allowedBoards": [
+      "gric3x6_cm",
+      "hShape",
+      "ball_in_ball",
+      "grid10x9_tl"
+    ],
+    "onRoundStartInvocations": [
+      {
+        "service": "Match3",
+        "function": "ApplyEffect",
+        "parameters": {
+          "effectId": "lose_money_each_match",
+          "roundsLifetime": 1
+        }
+      }
+    ],
+    "onRoundEndInvocations": [
+      {
+        "service": "Match3",
+        "function": "RemoveEffect",
+        "parameters": {
+          "effectId": "lose_money_each_match"
+        }
+      }
+    ]
+  },
+  "metadata": {
+    "nameKey": "misterBeastusLevelName",
+    "descriptionKey": "misterBeastusLevelDescription",
+    "spriteId": "misterBeastus",
+    "startingLetter": "M",
+    "tags": [
+      "boss"
+    ],
+    "backgroundColor": "#846D2A",
+    "textColor": "#E4B93A"
+  }
+}

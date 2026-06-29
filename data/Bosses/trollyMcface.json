@@ -1,0 +1,45 @@
+{
+  "id": "trollyMcface",
+  "properties": {
+    "themeId": "normal",
+    "gameplayTags": [],
+    "rewardAmount": 7,
+    "minimumRound": 0,
+    "allowedBoards": [
+      "double_arrows_bm",
+      "grid10x8_4i_wide",
+      "grid10x9_ld",
+      "grid10x9_tl"
+    ],
+    "onRoundStartInvocations": [
+      {
+        "service": "Match3",
+        "function": "ApplyEffect",
+        "parameters": {
+          "effectId": "random_spawn_disabled_one_eighth",
+          "roundsLifetime": 1
+        }
+      }
+    ],
+    "onRoundEndInvocations": [
+      {
+        "service": "Match3",
+        "function": "RemoveEffect",
+        "parameters": {
+          "effectId": "random_spawn_disabled_one_eighth"
+        }
+      }
+    ]
+  },
+  "metadata": {
+    "nameKey": "trollyMcfaceLevelName",
+    "descriptionKey": "trollyMcfaceLevelDescription",
+    "spriteId": "trollyMcface",
+    "startingLetter": "T",
+    "tags": [
+      "boss"
+    ],
+    "backgroundColor": "#422B2B",
+    "textColor": "#5C4747"
+  }
+}

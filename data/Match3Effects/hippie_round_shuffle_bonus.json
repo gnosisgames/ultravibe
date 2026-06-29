@@ -1,0 +1,8 @@
+{
+    "id": "hippie_round_shuffle_bonus",
+    "handler": "add_shuffle_and_moves_budget_at_round_start",
+    "parameters": {
+        "manualShufflesAdd": 1,
+        "movesLimitAdd": 0
+    }
+}

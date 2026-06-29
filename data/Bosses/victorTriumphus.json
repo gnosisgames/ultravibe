@@ -1,0 +1,45 @@
+{
+  "id": "victorTriumphus",
+  "properties": {
+    "themeId": "normal",
+    "gameplayTags": [],
+    "rewardAmount": 7,
+    "minimumRound": 0,
+    "allowedBoards": [
+      "effect_anchor_orange_0",
+      "effect_anchor_orange_1",
+      "effect_anchor_orange_2",
+      "effect_anchor_orange_3"
+    ],
+    "onRoundStartInvocations": [
+      {
+        "service": "Match3",
+        "function": "ApplyEffect",
+        "parameters": {
+          "effectId": "disable_orange_block",
+          "roundsLifetime": 1
+        }
+      }
+    ],
+    "onRoundEndInvocations": [
+      {
+        "service": "Match3",
+        "function": "RemoveEffect",
+        "parameters": {
+          "effectId": "disable_orange_block"
+        }
+      }
+    ]
+  },
+  "metadata": {
+    "nameKey": "victorTriumphusLevelName",
+    "descriptionKey": "victorTriumphusLevelDescription",
+    "spriteId": "victorTriumphus",
+    "startingLetter": "V",
+    "tags": [
+      "boss"
+    ],
+    "backgroundColor": "#844D0A",
+    "textColor": "#EA8000"
+  }
+}

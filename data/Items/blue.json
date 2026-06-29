@@ -1,0 +1,15 @@
+{
+    "id": "blue",
+    "properties": {
+        "basePoints": 12,
+        "baseMulti": 1,
+        "pointsPerLevel": 10,
+        "multiPerLevel": 1,
+        "sortOrder": 3
+    },
+    "metadata": {
+        "spriteId": "fearBlock",
+        "nameKey": "itemBlueName",
+        "tags": []
+    }
+}

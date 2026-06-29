@@ -1,0 +1,27 @@
+{
+  "id": "dogeMusk",
+  "properties": {
+    "themeId": "normal",
+    "gameplayTags": [],
+    "rewardAmount": 5,
+    "minimumRound": 24,
+    "allowedBoards": [
+      "grid7x7_dc",
+      "grid7x8_cy",
+      "grid7x8_db"
+    ],
+    "onRoundStartInvocations": [],
+    "onRoundEndInvocations": []
+  },
+  "metadata": {
+    "nameKey": "dogeMuskLevelName",
+    "descriptionKey": "dogeMuskLevelDescription",
+    "spriteId": "dogeMusk",
+    "startingLetter": "D",
+    "tags": [
+      "boss"
+    ],
+    "backgroundColor": "#56233B",
+    "textColor": "#943561"
+  }
+}

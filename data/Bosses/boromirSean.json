@@ -1,0 +1,27 @@
+{
+  "id": "boromirSean",
+  "properties": {
+    "themeId": "normal",
+    "gameplayTags": [],
+    "rewardAmount": 5,
+    "minimumRound": 24,
+    "allowedBoards": [
+      "grid6x5_sh",
+      "grid6x6_blockers",
+      "grid6x6_ch"
+    ],
+    "onRoundStartInvocations": [],
+    "onRoundEndInvocations": []
+  },
+  "metadata": {
+    "nameKey": "boromirSeanLevelName",
+    "descriptionKey": "boromirSeanLevelDescription",
+    "spriteId": "boromirSean",
+    "startingLetter": "B",
+    "tags": [
+      "boss"
+    ],
+    "backgroundColor": "#353344",
+    "textColor": "#474650"
+  }
+}

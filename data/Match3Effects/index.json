@@ -1,0 +1,24 @@
+{
+    "match3Effects": [
+        { "id": "disable_blue_block", "path": "disable_blue_block.json" },
+        { "id": "disable_green_block", "path": "disable_green_block.json" },
+        { "id": "disable_orange_block", "path": "disable_orange_block.json" },
+        { "id": "disable_pink_block", "path": "disable_pink_block.json" },
+        { "id": "disable_purple_block", "path": "disable_purple_block.json" },
+        { "id": "disable_red_block", "path": "disable_red_block.json" },
+        { "id": "disable_all_cell_floor_modifiers", "path": "disable_all_cell_floor_modifiers.json" },
+        { "id": "half_round_moves", "path": "half_round_moves.json" },
+        { "id": "halve_tile_points_multi_round", "path": "halve_tile_points_multi_round.json" },
+        { "id": "lose_money_each_match", "path": "lose_money_each_match.json" },
+        { "id": "party_animal_round_budget_bonus", "path": "party_animal_round_budget_bonus.json" },
+        { "id": "random_spawn_disabled_one_eighth", "path": "random_spawn_disabled_one_eighth.json" },
+        { "id": "reduce_first_destroyed_item_level_each_move", "path": "reduce_first_destroyed_item_level_each_move.json" },
+        { "id": "starts_with_zero_shuffles", "path": "starts_with_zero_shuffles.json" },
+        { "id": "hardstuck_round_budget", "path": "hardstuck_round_budget.json" },
+        { "id": "hippie_round_shuffle_bonus", "path": "hippie_round_shuffle_bonus.json" },
+        { "id": "touch_grass_round_moves_bonus", "path": "touch_grass_round_moves_bonus.json" },
+        { "id": "score_only_exact_three_match_lines", "path": "score_only_exact_three_match_lines.json" },
+        { "id": "score_only_exact_four_or_five_match_lines", "path": "score_only_exact_four_or_five_match_lines.json" },
+        { "id": "shuffle_board_after_each_move", "path": "shuffle_board_after_each_move.json" }
+    ]
+}

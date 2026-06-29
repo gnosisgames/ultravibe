@@ -1,0 +1,9 @@
+{
+  "match3CellFloorTypes": [
+    { "id": "Gold", "path": "Gold.json" },
+    { "id": "Steel", "path": "Steel.json" },
+    { "id": "Lucky", "path": "Lucky.json" },
+    { "id": "BonusPoints", "path": "BonusPoints.json" },
+    { "id": "BonusMulti", "path": "BonusMulti.json" }
+  ]
+}

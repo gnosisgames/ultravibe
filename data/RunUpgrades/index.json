@@ -1,0 +1,36 @@
+{
+  "runUpgrades": [
+    {
+      "id": "GoldenArm",
+      "path": "GoldenArm.json"
+    },
+    {
+      "id": "GoldenCoupon",
+      "path": "GoldenCoupon.json"
+    },
+    {
+      "id": "GoldenEnergyDrink",
+      "path": "GoldenEnergyDrink.json"
+    },
+    {
+      "id": "GoldenMagnet",
+      "path": "GoldenMagnet.json"
+    },
+    {
+      "id": "GoldenMushroom",
+      "path": "GoldenMushroom.json"
+    },
+    {
+      "id": "GoldenShoppingBag",
+      "path": "GoldenShoppingBag.json"
+    },
+    {
+      "id": "GoldenStats",
+      "path": "GoldenStats.json"
+    },
+    {
+      "id": "GoldenTrade",
+      "path": "GoldenTrade.json"
+    }
+  ]
+}

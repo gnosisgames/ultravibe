@@ -13,8 +13,6 @@ extends SceneTree
 ## JOY_BUTTON_A press from a NON-zero device activates a focused Button via Godot's
 ## focus navigation (the regression was that only device 0 could activate).
 
-const UltraInputActions = preload("res://game/input/ultra_input_actions.gd")
-
 var _button: Button = null
 var _pressed := false
 var _phase := 0
@@ -22,7 +20,7 @@ var _ok := true
 
 func _initialize() -> void:
 	print("--- UI Gamepad Nav Test ---")
-	UltraInputActions.ensure_input_map()
+	GameInputActions.ensure_input_map()
 	_ok = _check_bindings() and _ok
 
 	var layer := Control.new()

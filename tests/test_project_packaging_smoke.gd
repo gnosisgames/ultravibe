@@ -3,18 +3,17 @@ extends SceneTree
 ## Lightweight export-readiness guard for the Godot project settings/resources.
 ## It does not require platform export templates or export_presets.cfg.
 
-const UltraInputActions = preload("res://game/input/ultra_input_actions.gd")
-
 const REQUIRED_FILES := [
 	"res://project.godot",
 	"res://main.tscn",
+	"res://game/input/game_input_actions.gd",
 	"res://addons/com.gnosisgames.gnosisengine/plugin.cfg",
 	"res://data/configuration.json",
 	"res://data/persistent.json",
 	"res://data/asset_registry.json",
 ]
 
-const REQUIRED_ACTIONS: Array[String] = UltraInputActions.ALL_ACTION_NAMES
+const REQUIRED_ACTIONS: Array[String] = GameInputActions.ALL_ACTION_NAMES
 
 func _initialize() -> void:
 	print("--- Project Packaging Smoke Test ---")
@@ -24,7 +23,7 @@ func _initialize() -> void:
 
 func _run() -> bool:
 	var ok := true
-	UltraInputActions.ensure_input_map()
+	GameInputActions.ensure_input_map()
 	ok = _expect_project_setting("application/config/name", "Ultravibe") and ok
 	ok = _expect_project_setting("application/run/main_scene", "res://main.tscn") and ok
 	ok = _expect_file(ProjectSettings.get_setting("gui/theme/custom", "")) and ok

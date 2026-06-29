@@ -1,0 +1,45 @@
+{
+  "id": "willSlappington",
+  "properties": {
+    "themeId": "normal",
+    "gameplayTags": [],
+    "rewardAmount": 7,
+    "minimumRound": 0,
+    "allowedBoards": [
+      "effect_anchor_blue_0",
+      "effect_anchor_blue_1",
+      "effect_anchor_blue_2",
+      "effect_anchor_blue_3"
+    ],
+    "onRoundStartInvocations": [
+      {
+        "service": "Match3",
+        "function": "ApplyEffect",
+        "parameters": {
+          "effectId": "disable_blue_block",
+          "roundsLifetime": 1
+        }
+      }
+    ],
+    "onRoundEndInvocations": [
+      {
+        "service": "Match3",
+        "function": "RemoveEffect",
+        "parameters": {
+          "effectId": "disable_blue_block"
+        }
+      }
+    ]
+  },
+  "metadata": {
+    "nameKey": "willSlappingtonLevelName",
+    "descriptionKey": "willSlappingtonLevelDescription",
+    "spriteId": "willSlappington",
+    "startingLetter": "W",
+    "tags": [
+      "boss"
+    ],
+    "backgroundColor": "#174684",
+    "textColor": "#1972EA"
+  }
+}

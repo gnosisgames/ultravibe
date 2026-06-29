@@ -1,0 +1,20 @@
+{
+    "id": "plain",
+    "properties": {
+        "poolTag": "Item",
+        "itemsType": "NONE",
+        "scoringMode": "additive",
+        "points": 0,
+        "multi": 0,
+        "pointMultiplier": 1.0,
+        "multiMultiplier": 1.0,
+        "effectKind": "none"
+    },
+    "metadata": {
+        "materialId": "",
+        "animationColor": "",
+        "nameKey": "itemTypePlainName",
+        "descriptionKey": "itemTypePlainDescription",
+        "tags": []
+    }
+}

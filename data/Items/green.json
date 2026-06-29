@@ -1,0 +1,15 @@
+{
+    "id": "green",
+    "properties": {
+        "basePoints": 15,
+        "baseMulti": 1,
+        "pointsPerLevel": 15,
+        "multiPerLevel": 0,
+        "sortOrder": 4
+    },
+    "metadata": {
+        "spriteId": "disgustBlock",
+        "nameKey": "itemGreenName",
+        "tags": []
+    }
+}

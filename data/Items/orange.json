@@ -1,0 +1,15 @@
+{
+    "id": "orange",
+    "properties": {
+        "basePoints": 16,
+        "baseMulti": 1,
+        "pointsPerLevel": 12,
+        "multiPerLevel": 2,
+        "sortOrder": 0
+    },
+    "metadata": {
+        "spriteId": "joyBlock",
+        "nameKey": "itemOrangeName",
+        "tags": []
+    }
+}

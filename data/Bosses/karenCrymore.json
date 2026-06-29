@@ -1,0 +1,45 @@
+{
+  "id": "karenCrymore",
+  "properties": {
+    "themeId": "normal",
+    "gameplayTags": [],
+    "rewardAmount": 7,
+    "minimumRound": 0,
+    "allowedBoards": [
+      "effect_anchor_purple_0",
+      "effect_anchor_purple_1",
+      "effect_anchor_purple_2",
+      "effect_anchor_purple_3"
+    ],
+    "onRoundStartInvocations": [
+      {
+        "service": "Match3",
+        "function": "ApplyEffect",
+        "parameters": {
+          "effectId": "disable_purple_block",
+          "roundsLifetime": 1
+        }
+      }
+    ],
+    "onRoundEndInvocations": [
+      {
+        "service": "Match3",
+        "function": "RemoveEffect",
+        "parameters": {
+          "effectId": "disable_purple_block"
+        }
+      }
+    ]
+  },
+  "metadata": {
+    "nameKey": "karenCrymoreLevelName",
+    "descriptionKey": "karenCrymoreLevelDescription",
+    "spriteId": "karenCrymore",
+    "startingLetter": "K",
+    "tags": [
+      "boss"
+    ],
+    "backgroundColor": "#462B5B",
+    "textColor": "#76449E"
+  }
+}
