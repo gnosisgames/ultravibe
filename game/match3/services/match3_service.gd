@@ -26,6 +26,17 @@ const PAYOUT_CURRENCY_ID := "money"
 const REWARD_REASON_ROUND := "match3__phrase__rewardRoundBoss"
 const REWARD_REASON_UNUSED_MOVES := "match3__phrase__rewardUnusedMoves"
 const REWARD_REASON_INTEREST := "match3__phrase__rewardInterest"
+const REWARD_REASON_COOKIE_TIME := "match3__phrase__rewardCookieTime"
+const REWARD_REASON_PASSIVE_INCOME := "match3__phrase__rewardPassiveIncome"
+const REWARD_REASON_SLEEPER := "match3__phrase__rewardSleeper"
+const REWARD_REASON_DOUBLE_DOWN := "match3__phrase__rewardDoubleDown"
+const ROUND_ACTION_REWARD_GAMEPLAY_TAG := "roundAction"
+const ROUND_ACTION_REWARD_LOCKS_KEY := "roundActionRewardLocks"
+const BOON_EFFECT_APPLICATION_PER_INSTANCE := "perInstance"
+const BOON_CATALOG_ID_PASSIVE_INCOME := "PassiveIncome"
+const BOON_CATALOG_ID_COOKIE_TIME := "CookieTime"
+const BOON_CATALOG_ID_DOUBLE_DOWN := "DoubleDown"
+const BOON_CATALOG_ID_SLEEPER := "Sleeper"
 const COLOR_LIMIT_PLAYABLE_SMALL := 42
 const COLOR_LIMIT_PLAYABLE_MEDIUM := 63
 
@@ -46,6 +57,7 @@ var _normal_board_pool_ids: Array[String] = []
 var _advanced_board_pool_ids: Array[String] = []
 var _boss_board_pool_ids: Array[String] = []
 var _board_difficulty_by_id: Dictionary = {}
+var _round_action_reward_locks: Dictionary = {}
 
 var _move_subscription: RefCounted = null
 var _reset_subscription: RefCounted = null
@@ -245,6 +257,7 @@ func is_board_input_allowed() -> bool:
 func handle_run_started() -> void:
 	_ensure_run_ephemeral_defaults()
 	_begin_level(1)
+	refresh_planned_floor_preview()
 
 
 func _on_begin_level_requested(event: GnosisEvent) -> void:
@@ -574,6 +587,7 @@ func _hydrate_runtime_from_store() -> void:
 	_gameplay.current_moves = _node_int(m3, "currentMoves", BASE_MOVES_LIMIT)
 	_current_round = _node_int(m3, "currentRound", 1)
 	_gameplay.status = _node_int(m3, "gameStatus", Models.STATUS_LEVEL_SELECT_PANEL)
+	_hydrate_round_action_reward_locks_from_ephemeral()
 
 
 func _publish_ephemeral_state() -> void:
@@ -678,6 +692,11 @@ func _ensure_run_ephemeral_defaults() -> void:
 	if not m3.get_node("nextLevel").is_valid():
 		m3.set_key("nextLevel", 1)
 	_ensure_statistics_root()
+	var consumable = context.engine.get_service("Consumable")
+	if consumable and consumable.has_method("invoke_function"):
+		var bag_params := context.store.create_object()
+		bag_params.set_key("bucketId", "default")
+		consumable.invoke_function("GetCount", bag_params)
 
 
 func _ensure_statistics_root() -> void:
@@ -736,7 +755,23 @@ func _play_level_from_queue(double_down: bool) -> GnosisFunctionResult:
 		return GnosisFunctionResult.fail("Store unavailable.")
 	var m3 := get_node("match3", false)
 	var round := maxi(1, _node_int(m3, "nextLevel", _current_round + 1))
+	var payload := context.store.create_object()
 	if double_down:
+		if _read_consumable_bag_empty_slot_count() < 1:
+			payload.set_key("success", false)
+			payload.set_key("reason", "inventory_full")
+			payload.set_key("nextLevel", round)
+			return GnosisFunctionResult.ok(payload)
+		if _get_authoritative_round_action_reward_consumable_id(round).is_empty():
+			payload.set_key("success", false)
+			payload.set_key("reason", "no_round_action_reward_catalog")
+			payload.set_key("nextLevel", round)
+			return GnosisFunctionResult.ok(payload)
+		if not _try_grant_round_action_consumable_reward(round):
+			payload.set_key("success", false)
+			payload.set_key("reason", "grant_failed")
+			payload.set_key("nextLevel", round)
+			return GnosisFunctionResult.ok(payload)
 		_set_double_down_for_round(round)
 	else:
 		_clear_double_down_state()
@@ -754,7 +789,6 @@ func _play_level_from_queue(double_down: bool) -> GnosisFunctionResult:
 	_publish_ephemeral_state()
 	_publish_board_reset()
 	_publish_status_changed()
-	var payload := context.store.create_object()
 	payload.set_key("success", true)
 	payload.set_key("reason", "ok")
 	payload.set_key("nextLevel", round + 1)
@@ -763,9 +797,6 @@ func _play_level_from_queue(double_down: bool) -> GnosisFunctionResult:
 	return GnosisFunctionResult.ok(payload)
 
 
-## Skip the queued round when it is skippable (non-boss). Unity parity also requires
-## a free consumable slot and grants the round-action reward consumable; that bag
-## subsystem is not ported yet, so this advances the queue + records skip statistics.
 func _skip_level_from_queue() -> GnosisFunctionResult:
 	if context == null or context.store == null:
 		return GnosisFunctionResult.fail("Store unavailable.")
@@ -775,6 +806,21 @@ func _skip_level_from_queue() -> GnosisFunctionResult:
 	if not _is_round_skippable(round):
 		payload.set_key("success", false)
 		payload.set_key("reason", "not_skippable")
+		payload.set_key("nextLevel", round)
+		return GnosisFunctionResult.ok(payload)
+	if _read_consumable_bag_empty_slot_count() < 1:
+		payload.set_key("success", false)
+		payload.set_key("reason", "inventory_full")
+		payload.set_key("nextLevel", round)
+		return GnosisFunctionResult.ok(payload)
+	if _get_authoritative_round_action_reward_consumable_id(round).is_empty():
+		payload.set_key("success", false)
+		payload.set_key("reason", "no_round_action_reward_catalog")
+		payload.set_key("nextLevel", round)
+		return GnosisFunctionResult.ok(payload)
+	if not _try_grant_round_action_consumable_reward(round):
+		payload.set_key("success", false)
+		payload.set_key("reason", "grant_failed")
 		payload.set_key("nextLevel", round)
 		return GnosisFunctionResult.ok(payload)
 	_clear_double_down_state()
@@ -912,6 +958,7 @@ func refresh_planned_floor_preview() -> void:
 		row.set_key("objectiveTarget", objective_target)
 		row.set_key("objectiveTargetDoubleDown", _apply_double_down_target_score(objective_target))
 		row.set_key("doubleDownTargetScoreMultiplier", _read_double_down_target_score_multiplier())
+		row.set_key("roundActionRewardConsumableId", _get_or_lock_round_action_reward_consumable_id(round_num))
 		row.set_key("rewardAmount", _reward_amount_for_setup(setup))
 		row.set_key("levelId", level_id)
 		rounds.add(row)
@@ -1005,6 +1052,7 @@ func _prepare_pending_round_reward_after_win() -> void:
 	var interest_preview := _try_get_round_reward_interest_preview()
 	if interest_preview > 0:
 		_append_reward_step(steps, REWARD_REASON_INTEREST, interest_preview)
+	_append_dynamic_round_reward_steps(steps)
 	payout.set_node("steps", steps)
 	if steps.get_count() == 0:
 		payout.set_key("isComplete", true)
@@ -1142,6 +1190,9 @@ func _grant_next_round_reward_step_outcome() -> Dictionary:
 	var currency_id := _node_str(payout, "currencyId", PAYOUT_CURRENCY_ID)
 	if not _try_add_ephemeral_currency(currency_id, amount, outcome):
 		return outcome
+	_increment_statistic("currency.%s.earned" % currency_id.strip_edges(), amount)
+	if reason_key == REWARD_REASON_INTEREST:
+		_increment_statistic("currency.%s.interest" % currency_id.strip_edges(), amount)
 	step_node.set_key("granted", true)
 	var new_idx := next_idx + 1
 	payout.set_key("nextStepIndex", new_idx)
@@ -1249,6 +1300,326 @@ func _parse_status(raw: String) -> int:
 			return Models.STATUS_LOSE_PANEL
 		_:
 			return -1
+
+
+# --- Round-action consumable rewards (Unity RoundActionRewards.partial) ---
+
+func _hydrate_round_action_reward_locks_from_ephemeral() -> void:
+	_round_action_reward_locks.clear()
+	var m3 := get_node("match3", false)
+	if not m3.is_valid() or m3.get_type() != GnosisValueType.OBJECT:
+		return
+	var locks := m3.get_node(ROUND_ACTION_REWARD_LOCKS_KEY)
+	if not locks.is_valid() or locks.get_type() != GnosisValueType.OBJECT:
+		return
+	for key in locks.get_keys():
+		var round := int(str(key))
+		if round < 1:
+			continue
+		var child := locks.get_node(str(key))
+		var id := str(child.value) if child.is_valid() and child.value != null else ""
+		if not id.is_empty():
+			_round_action_reward_locks[round] = id
+
+
+func _write_round_action_reward_lock_to_ephemeral(round_number: int, consumable_id: String) -> void:
+	if context == null or context.store == null:
+		return
+	var m3 := get_node("match3", false)
+	if not m3.is_valid() or m3.get_type() != GnosisValueType.OBJECT:
+		m3 = context.store.create_object()
+		set_node("match3", m3, false)
+	var locks := m3.get_node(ROUND_ACTION_REWARD_LOCKS_KEY)
+	if not locks.is_valid() or locks.get_type() != GnosisValueType.OBJECT:
+		locks = context.store.create_object()
+		m3.set_node(ROUND_ACTION_REWARD_LOCKS_KEY, locks)
+	locks.set_key(str(maxi(1, round_number)), consumable_id)
+
+
+func _get_authoritative_round_action_reward_consumable_id(round_number: int) -> String:
+	return _get_or_lock_round_action_reward_consumable_id(round_number)
+
+
+func _get_or_lock_round_action_reward_consumable_id(round_number: int) -> String:
+	var round := maxi(1, round_number)
+	if _round_action_reward_locks.has(round):
+		return str(_round_action_reward_locks[round])
+	var resolved := _resolve_round_action_reward_consumable_id(round)
+	if resolved.is_empty():
+		return ""
+	_round_action_reward_locks[round] = resolved
+	_write_round_action_reward_lock_to_ephemeral(round, resolved)
+	return resolved
+
+
+func _resolve_round_action_reward_consumable_id(round_number: int) -> String:
+	var run_seed := _try_get_run_seed()
+	if run_seed == 0:
+		return ""
+	var pool := _build_consumable_catalog_ids_with_gameplay_tag(ROUND_ACTION_REWARD_GAMEPLAY_TAG)
+	if pool.is_empty():
+		return ""
+	pool.sort()
+	var index := _compute_deterministic_seeded_round_reward_index(
+		pool.size(), round_number, ROUND_ACTION_REWARD_GAMEPLAY_TAG, run_seed
+	)
+	return pool[index]
+
+
+func _try_grant_round_action_consumable_reward(round_number: int) -> bool:
+	if context == null or context.store == null:
+		return false
+	var round := maxi(1, round_number)
+	var consumable_id := _get_authoritative_round_action_reward_consumable_id(round)
+	if consumable_id.is_empty():
+		return false
+	if _read_consumable_bag_empty_slot_count() < 1:
+		return false
+	var params := context.store.create_object()
+	params.set_key("bucketId", "default")
+	params.set_key("consumableId", consumable_id)
+	var result = call_service("Consumable", "AddConsumable", params)
+	if not _service_invoke_succeeded(result):
+		return false
+	var m3 := get_node("match3", false)
+	if m3.is_valid() and m3.get_type() == GnosisValueType.OBJECT:
+		var last_reward := context.store.create_object()
+		last_reward.set_key("round", round)
+		last_reward.set_key("consumableId", consumable_id)
+		m3.set_node("lastRoundActionReward", last_reward)
+	return true
+
+
+func _read_consumable_bag_empty_slot_count(bucket_id: String = "default") -> int:
+	if context == null or context.store == null:
+		return 0
+	var consumables := get_node("consumables", false)
+	if not consumables.is_valid() or consumables.get_type() != GnosisValueType.OBJECT:
+		return 0
+	var bag := consumables.get_node(bucket_id)
+	if not bag.is_valid() or bag.get_type() != GnosisValueType.OBJECT:
+		bag = consumables.get_node("default")
+	if not bag.is_valid() or bag.get_type() != GnosisValueType.OBJECT:
+		return 0
+	var list := bag.get_node("list")
+	var list_count := list.get_count() if list.is_valid() and list.get_type() == GnosisValueType.LIST else 0
+	var max_size := maxi(list_count, _node_int(bag, "maxSize", list_count))
+	return maxi(0, max_size - list_count)
+
+
+func _build_consumable_catalog_ids_with_gameplay_tag(gameplay_tag: String) -> Array[String]:
+	var result: Array[String] = []
+	var tag := gameplay_tag.strip_edges()
+	if tag.is_empty():
+		return result
+	var config := get_node("configuration", true)
+	if not config.is_valid():
+		return result
+	var catalog := config.get_node("consumables")
+	if not catalog.is_valid() or catalog.get_type() != GnosisValueType.OBJECT:
+		return result
+	for item_id in catalog.get_keys():
+		var id := str(item_id).strip_edges()
+		if id.is_empty():
+			continue
+		if _consumable_catalog_has_gameplay_tag(id, tag):
+			result.append(id)
+	return result
+
+
+func _consumable_catalog_has_gameplay_tag(consumable_id: String, gameplay_tag: String) -> bool:
+	var config := get_node("configuration", true)
+	if not config.is_valid():
+		return false
+	var entry := config.get_node("consumables.%s" % consumable_id.strip_edges())
+	if not entry.is_valid() or entry.get_type() != GnosisValueType.OBJECT:
+		return false
+	var props := entry.get_node("properties")
+	if not props.is_valid() or props.get_type() != GnosisValueType.OBJECT:
+		return false
+	var tags := props.get_node("gameplayTags")
+	if not tags.is_valid() or tags.get_type() != GnosisValueType.LIST:
+		tags = props.get_node("gameplyTags")
+	if not tags.is_valid() or tags.get_type() != GnosisValueType.LIST:
+		return false
+	var want := gameplay_tag.strip_edges().to_lower()
+	for i in range(tags.get_count()):
+		var tag_node := tags.get_node(i)
+		var value := ""
+		if tag_node.is_valid():
+			if tag_node.get_type() == GnosisValueType.STRING:
+				value = str(tag_node.value)
+			elif tag_node.get_type() == GnosisValueType.OBJECT:
+				value = _node_str(tag_node, "id")
+		if value.strip_edges().to_lower() == want:
+			return true
+	return false
+
+
+func _try_get_run_seed() -> int:
+	if context == null or context.engine == null:
+		return 0
+	var seed_svc = context.engine.get_service("Seed")
+	if seed_svc == null or not seed_svc.has_method("invoke_function"):
+		return 0
+	var result = seed_svc.invoke_function("GetSeed", context.store.create_object())
+	var node := _coerce_result_node(result)
+	if node == null or not node.is_valid():
+		return 0
+	return _node_int(node, "seed", 0)
+
+
+func _compute_deterministic_seeded_round_reward_index(
+	count: int,
+	round_number: int,
+	reward_kind: String,
+	run_seed: int,
+) -> int:
+	if count <= 1:
+		return 0
+	var round := maxi(1, round_number)
+	var kind_hash := _stable_string_hash(reward_kind)
+	var hash := 2166136261
+	hash = int((hash ^ run_seed) * 16777619) & 0xFFFFFFFF
+	hash = int((hash ^ round) * 16777619) & 0xFFFFFFFF
+	hash = int((hash ^ kind_hash) * 16777619) & 0xFFFFFFFF
+	return int(hash % count)
+
+
+func _stable_string_hash(value: String) -> int:
+	return value.hash()
+
+
+func _service_invoke_succeeded(result) -> bool:
+	if result is GnosisFunctionResult:
+		return result.is_ok
+	if result is GnosisNode:
+		return result.is_valid()
+	return result != null
+
+
+# --- Boon dynamic round rewards (Unity RoundReward.partial) ---
+
+func _append_dynamic_round_reward_steps(steps: GnosisNode) -> void:
+	if context == null or context.store == null:
+		return
+	if not steps.is_valid() or steps.get_type() != GnosisValueType.LIST:
+		return
+	var boss_defeats := get_statistic_int("match3.rounds.bossesDefeated")
+	var cookie_payout := maxi(0, 1 + (2 * maxi(0, boss_defeats)))
+	_for_each_equipped_boon_slot_with_effect_application(
+		BOON_CATALOG_ID_COOKIE_TIME,
+		func(_slot, slot_index: int) -> void:
+			_append_boon_round_reward_step(steps, REWARD_REASON_COOKIE_TIME, cookie_payout, BOON_CATALOG_ID_COOKIE_TIME, slot_index),
+	)
+	var passive_rng := RandomNumberGenerator.new()
+	passive_rng.seed = hash("%d:%d" % [_try_get_run_seed(), _current_round])
+	_for_each_equipped_boon_slot_with_effect_application(
+		BOON_CATALOG_ID_PASSIVE_INCOME,
+		func(_slot, slot_index: int) -> void:
+			_append_boon_round_reward_step(
+				steps,
+				REWARD_REASON_PASSIVE_INCOME,
+				passive_rng.randi_range(1, 9),
+				BOON_CATALOG_ID_PASSIVE_INCOME,
+				slot_index,
+			),
+	)
+	_for_each_equipped_boon_slot_with_effect_application(
+		BOON_CATALOG_ID_DOUBLE_DOWN,
+		func(_slot, slot_index: int) -> void:
+			_append_boon_round_reward_step(steps, REWARD_REASON_DOUBLE_DOWN, 10, BOON_CATALOG_ID_DOUBLE_DOWN, slot_index),
+	)
+	var m3 := get_node("match3", false)
+	var round_start_shuffles := maxi(0, _node_int(m3, "roundStartShuffles", 0))
+	var current_shuffles := maxi(0, _node_int(m3, "currentShuffles", _manual_shuffles_remaining))
+	if round_start_shuffles > 0 and current_shuffles == round_start_shuffles:
+		var sleeper_payout := 2 * round_start_shuffles
+		_for_each_equipped_boon_slot_with_effect_application(
+			BOON_CATALOG_ID_SLEEPER,
+			func(_slot, slot_index: int) -> void:
+				_append_boon_round_reward_step(steps, REWARD_REASON_SLEEPER, sleeper_payout, BOON_CATALOG_ID_SLEEPER, slot_index),
+		)
+
+
+func _append_boon_round_reward_step(
+	steps: GnosisNode,
+	reason_key: String,
+	amount: int,
+	boon_catalog_id: String,
+	boon_slot_index: int,
+) -> void:
+	_append_reward_step(steps, reason_key, amount)
+	if not steps.is_valid() or steps.get_type() != GnosisValueType.LIST or steps.get_count() == 0:
+		return
+	var step_node := steps.get_node(steps.get_count() - 1)
+	if not step_node.is_valid() or step_node.get_type() != GnosisValueType.OBJECT:
+		return
+	if not boon_catalog_id.strip_edges().is_empty():
+		step_node.set_key("boonCatalogId", boon_catalog_id.strip_edges())
+	if boon_slot_index >= 0:
+		step_node.set_key("boonSlotIndex", boon_slot_index)
+
+
+func _for_each_equipped_boon_slot_with_effect_application(
+	catalog_id: String,
+	action: Callable,
+) -> int:
+	var want := catalog_id.strip_edges()
+	if want.is_empty():
+		return 0
+	var slot_rows := _get_active_boon_inventory_slot_rows()
+	var matches: Array[Dictionary] = []
+	for i in range(slot_rows.size()):
+		var row: GnosisNode = slot_rows[i]
+		if _read_boon_catalog_id_from_inventory_entry(row).to_lower() == want.to_lower():
+			matches.append({"slot": row, "index": i})
+	if matches.is_empty():
+		return 0
+	var per_instance := _read_boon_effect_application_is_per_instance(matches[0]["slot"])
+	if per_instance:
+		for entry in matches:
+			action.call(entry["slot"], int(entry["index"]))
+		return matches.size()
+	action.call(matches[0]["slot"], int(matches[0]["index"]))
+	return 1
+
+
+func _get_active_boon_inventory_slot_rows() -> Array:
+	var rows: Array = []
+	var boons := get_node("boons", false)
+	if not boons.is_valid() or boons.get_type() != GnosisValueType.OBJECT:
+		return rows
+	var bag := boons.get_node("default")
+	if not bag.is_valid() or bag.get_type() != GnosisValueType.OBJECT:
+		return rows
+	var list := bag.get_node("list")
+	if not list.is_valid() or list.get_type() != GnosisValueType.LIST:
+		return rows
+	for i in range(list.get_count()):
+		var row := list.get_node(i)
+		if row.is_valid() and row.get_type() == GnosisValueType.OBJECT:
+			rows.append(row)
+	return rows
+
+
+func _read_boon_catalog_id_from_inventory_entry(entry: GnosisNode) -> String:
+	if entry == null or not entry.is_valid():
+		return ""
+	var boon_id := _node_str(entry, "boonId")
+	if not boon_id.is_empty():
+		return boon_id
+	return _node_str(entry, "id")
+
+
+func _read_boon_effect_application_is_per_instance(entry: GnosisNode) -> bool:
+	if entry == null or not entry.is_valid():
+		return false
+	var props := entry.get_node("properties")
+	if not props.is_valid() or props.get_type() != GnosisValueType.OBJECT:
+		return false
+	var mode := _node_str(props, "effectApplication", "catalogOnce")
+	return mode.strip_edges().to_lower() == BOON_EFFECT_APPLICATION_PER_INSTANCE
 
 
 func _dispose_subscription(sub: RefCounted) -> void:

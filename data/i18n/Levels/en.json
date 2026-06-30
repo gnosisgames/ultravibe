@@ -43,5 +43,7 @@
   "xavierGongiveitLevelDescription": "All Enhanced Tiles are disabled.",
   "yoloSwaggingsLevelName": "Yolo Swaggings",
   "yoloSwaggingsLevelDescription": "Starts with <shuffle>0 shuffles</shuffle>.",
+  "aresLevelName": "Ares",
+  "aresLevelDescription": "Debuffs all Red items.",
   "level_name": "Level {number}"
 }

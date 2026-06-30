@@ -12,7 +12,7 @@ func _initialize() -> void:
 		print("[FAIL] Could not read main.tscn")
 		ok = false
 
-	ok = _expect(text, "path=\"res://game/ui/play_hud.tscn\"", "main.tscn uses PlayHud scene instance") and ok
+	ok = _expect(text, "path=\"res://game/match3/view/match3_hud.tscn\"", "main.tscn uses Match3 HUD scene instance") and ok
 	ok = _expect(text, "[node name=\"GameArea\"", "GameArea node present") and ok
 	ok = _expect(text, "parent=\"UI\"", "GameArea lives under UI CanvasLayer") and ok
 	ok = _expect(text, "view_id = \"gameplay\"", "GameArea registered as gameplay view") and ok
@@ -22,7 +22,7 @@ func _initialize() -> void:
 	ok = _expect(text, "shader_parameter/warp_amount = 0.12", "CRT warp stays at authored value") and ok
 	ok = _expect(text, "shader_parameter/vignette_intensity = 0.3", "CRT vignette intensity stays at authored value") and ok
 	ok = _expect(text, "shader_parameter/vignette_opacity = 0.35", "CRT vignette opacity stays at authored value") and ok
-	ok = _expect(text, "visible = false", "Legacy GameArea backdrop stays hidden behind PlayHud") and ok
+	ok = _expect(text, "visible = false", "Legacy GameArea backdrop stays hidden behind Match3 HUD") and ok
 
 	print("--- Scene Format Guard Test %s ---" % ("Passed" if ok else "FAILED"))
 	quit(0 if ok else 1)

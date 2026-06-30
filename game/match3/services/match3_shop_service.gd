@@ -133,11 +133,63 @@ func _purchase_core_item(parameters: GnosisNode) -> GnosisFunctionResult:
 	var price := _node_int(offer, "price", 0)
 	if price > 0 and not _try_spend_currency(price):
 		return GnosisFunctionResult.fail("insufficient_funds")
+	var source := _node_string(offer, "sourceConfigId", "")
+	var item_id := _node_string(offer, "itemId", "")
+	if not _try_apply_core_offer_purchase(source, item_id, price):
+		if price > 0:
+			_refund_currency(price)
+		return GnosisFunctionResult.fail("purchase_core_item_failed")
 	offer.set_key("purchased", true)
 	offer.set_key("available", false)
-	_increment_statistic("match3.shop.purchases.total", 1)
+	if source == "runUpgrades":
+		_increment_statistic("match3.shop.upgrades.purchased.total", 1)
+	else:
+		_increment_statistic("match3.shop.purchases.total", 1)
 	_commit_shop()
 	return GnosisFunctionResult.ok(offer)
+
+
+func _try_apply_core_offer_purchase(source_config_id: String, item_id: String, buy_price: int) -> bool:
+	if context == null or context.store == null or item_id.strip_edges().is_empty():
+		return false
+	var source := source_config_id.strip_edges().to_lower()
+	var params := context.store.create_object()
+	match source:
+		"runupgrades":
+			params.set_key("categoryId", "run")
+			params.set_key("upgradeId", item_id.strip_edges())
+			return _service_invoke_succeeded(call_service("Upgrade", "AddUpgrade", params))
+		"boons":
+			params.set_key("bucketId", "default")
+			params.set_key("boonId", item_id.strip_edges())
+			if buy_price > 0:
+				params.set_key("buyPrice", float(buy_price))
+			return _service_invoke_succeeded(call_service("Boon", "ActivateBoon", params))
+		"consumables":
+			params.set_key("bucketId", "default")
+			params.set_key("consumableId", item_id.strip_edges())
+			if buy_price > 0:
+				params.set_key("buyPrice", float(buy_price))
+			return _service_invoke_succeeded(call_service("Consumable", "AddConsumable", params))
+		_:
+			return false
+
+
+func _refund_currency(amount: int) -> void:
+	if amount <= 0 or context == null or context.store == null:
+		return
+	var params := context.store.create_object()
+	params.set_key("currencyId", CURRENCY_ID)
+	params.set_key("amount", amount)
+	call_service("Currency", "AddCurrency", params)
+
+
+func _service_invoke_succeeded(result) -> bool:
+	if result is GnosisFunctionResult:
+		return result.is_ok
+	if result is GnosisNode:
+		return result.is_valid()
+	return result != null
 
 
 func _try_spend_currency(amount: int) -> bool:

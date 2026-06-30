@@ -18,7 +18,8 @@ func _process(_delta: float) -> bool:
 	if _done:
 		return true
 	_done = true
-	var ok := _check_catalogs() and _check_progression_boot() and _check_shop() and _check_gameplay()
+	var ok := _check_catalogs() and _check_progression_boot() and _check_shop() \
+		and _check_round_action_rewards() and _check_skip_level() and _check_gameplay()
 	print("--- Match3 Core Test %s ---" % ("Passed" if ok else "FAILED"))
 	quit(0 if ok else 1)
 	return true
@@ -84,6 +85,61 @@ func _check_shop() -> bool:
 	return true
 
 
+func _check_round_action_rewards() -> bool:
+	var engine: GnosisEngine = _bootstrap.engine
+	var m3 = engine.get_service("Match3")
+	if m3 == null:
+		print("[FAIL] Match3 service missing for round-action rewards")
+		return false
+	m3.handle_run_started()
+	var state = m3.get_node("match3", false)
+	var planned := state.get_node("plannedFloor")
+	if not planned.is_valid():
+		print("[FAIL] plannedFloor missing after run start")
+		return false
+	var rounds := planned.get_node("rounds")
+	if not rounds.is_valid() or rounds.get_count() < 1:
+		print("[FAIL] plannedFloor rounds missing")
+		return false
+	var current := rounds.get_node(0)
+	var reward_id := _node_str(current, "roundActionRewardConsumableId", "")
+	if reward_id.is_empty():
+		print("[FAIL] roundActionRewardConsumableId not resolved for queued round")
+		return false
+	print("[SUCCESS] round-action reward locked: %s" % reward_id)
+	return true
+
+
+func _check_skip_level() -> bool:
+	var engine: GnosisEngine = _bootstrap.engine
+	var m3 = engine.get_service("Match3")
+	if m3 == null:
+		print("[FAIL] Match3 service missing for skip level")
+		return false
+	var state = m3.get_node("match3", false)
+	var next_level_before := _node_int(state, "nextLevel", 1)
+	# Boss rounds are the last round in each floor (round 3, 6, 9, ...).
+	var boss_round := ((next_level_before - 1) / 3 + 1) * 3
+	state.set_key("nextLevel", boss_round)
+	var boss_skip = m3.invoke_function("SkipLevel", GnosisNode.new(null))
+	if not (boss_skip is GnosisFunctionResult) or not boss_skip.is_ok:
+		print("[FAIL] SkipLevel invoke failed on boss round")
+		return false
+	if _node_bool(boss_skip.payload, "success", true):
+		print("[FAIL] SkipLevel should fail on boss round")
+		return false
+	state.set_key("nextLevel", 1)
+	var skip = m3.invoke_function("SkipLevel", GnosisNode.new(null))
+	if not (skip is GnosisFunctionResult) or not skip.is_ok:
+		print("[FAIL] SkipLevel invoke failed")
+		return false
+	if not _node_bool(skip.payload, "success", false):
+		print("[FAIL] SkipLevel should succeed on skippable round 1, reason=%s" % _node_str(skip.payload, "reason"))
+		return false
+	print("[SUCCESS] SkipLevel rejects boss and advances skippable round")
+	return true
+
+
 func _check_gameplay() -> bool:
 	var gameplay = load("res://game/match3/core/match3_gameplay.gd").new()
 	var layout = load("res://game/match3/core/match3_board_layout.gd").new()
@@ -126,3 +182,12 @@ func _node_str(node: GnosisNode, key: String, default_value: String = "") -> Str
 	if not child.is_valid() or child.value == null:
 		return default_value
 	return str(child.value)
+
+
+func _node_bool(node: GnosisNode, key: String, default_value: bool = false) -> bool:
+	if node == null or not node.is_valid():
+		return default_value
+	var child := node.get_node(key)
+	if not child.is_valid() or child.value == null:
+		return default_value
+	return bool(child.value)
