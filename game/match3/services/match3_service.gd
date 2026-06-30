@@ -19,6 +19,7 @@ const BOARDS_INDEX_PATH := "res://data/Boards/index.json"
 const DEFAULT_ROUNDS_PER_FLOOR := 3
 const DEFAULT_SHUFFLES_PER_ROUND := 2
 const DEFAULT_WINNING_ROUND := DEFAULT_ROUNDS_PER_FLOOR * 3
+const DEFAULT_DOUBLE_DOWN_TARGET_MULTIPLIER := 10
 const PENDING_ROUND_REWARD_KEY := "pendingRoundReward"
 const PAYOUT_CURRENCY_ID := "money"
 
@@ -84,6 +85,8 @@ func on_shutdown() -> void:
 func get_functions() -> Array:
 	return [
 		"PlayLevel",
+		"PlayLevelDoubleDown",
+		"SkipLevel",
 		"TryUseShuffle",
 		"GrantNextRoundRewardStep",
 		"TransitionToState",
@@ -95,8 +98,12 @@ func invoke_function(name: String, parameters: GnosisNode) -> Variant:
 		"PlayLevel":
 			var double_down := false
 			if parameters != null and parameters.is_valid():
-				double_down = _node_bool(parameters, "doubleDown", false)
+				double_down = _node_bool(parameters, Events.PAYLOAD_DOUBLE_DOWN, false)
 			return _play_level_from_queue(double_down)
+		"PlayLevelDoubleDown":
+			return _play_level_from_queue(true)
+		"SkipLevel":
+			return _skip_level_from_queue()
 		"TryUseShuffle":
 			return _try_use_shuffle()
 		"GrantNextRoundRewardStep":
@@ -151,9 +158,20 @@ func get_money() -> int:
 	var params := context.store.create_object()
 	params.set_key("currencyId", PAYOUT_CURRENCY_ID)
 	var result = currency.invoke_function("GetBalance", params)
-	if result is GnosisFunctionResult and result.is_ok and result.data.is_valid():
-		return _node_int(result.data, "balance", 0)
+	var node := _coerce_result_node(result)
+	if node != null and node.is_valid():
+		return _node_int(node, "balance", 0)
 	return 0
+
+
+## Currency/Match3 service invokes return either a GnosisFunctionResult (Match3,
+## Shop) or the bare payload GnosisNode (Currency). Normalize to a GnosisNode.
+func _coerce_result_node(result) -> GnosisNode:
+	if result is GnosisFunctionResult:
+		return result.payload if result.is_ok else null
+	if result is GnosisNode:
+		return result
+	return null
 
 
 func is_run_won() -> bool:
@@ -347,7 +365,7 @@ func _resolve_round_setup(round_number: int) -> Dictionary:
 		"stage_type": stage_type,
 		"board_id": board_id,
 		"level_id": _resolve_level_id_for_stage(stage_type, floor),
-		"target_score": _resolve_target_score(round, stage_type),
+		"target_score": _resolve_target_score_for_round(round, _resolve_target_score(round, stage_type)),
 		"moves": _resolve_moves_limit(round, stage_type),
 		"shuffles": DEFAULT_SHUFFLES_PER_ROUND,
 		"color_limit": color_limit,
@@ -713,13 +731,18 @@ func _record_round_end_unused_budget_statistics() -> void:
 		_increment_statistic("match3.shuffles.unused", unused_shuffles)
 
 
-func _play_level_from_queue(_double_down: bool) -> GnosisFunctionResult:
+func _play_level_from_queue(double_down: bool) -> GnosisFunctionResult:
 	if context == null or context.store == null:
 		return GnosisFunctionResult.fail("Store unavailable.")
 	var m3 := get_node("match3", false)
 	var round := maxi(1, _node_int(m3, "nextLevel", _current_round + 1))
+	if double_down:
+		_set_double_down_for_round(round)
+	else:
+		_clear_double_down_state()
 	_increment_statistic("match3.rounds.played", 1)
-	if _double_down:
+	_increment_statistic("match3.rounds.total", 1)
+	if double_down:
 		_increment_statistic("match3.rounds.doubleDown", 1)
 	_begin_level(round)
 	_gameplay.status = Models.STATUS_PLAYING
@@ -733,9 +756,93 @@ func _play_level_from_queue(_double_down: bool) -> GnosisFunctionResult:
 	_publish_status_changed()
 	var payload := context.store.create_object()
 	payload.set_key("success", true)
+	payload.set_key("reason", "ok")
 	payload.set_key("nextLevel", round + 1)
 	payload.set_key("levelNumber", round)
+	payload.set_key(Events.PAYLOAD_DOUBLE_DOWN, double_down)
 	return GnosisFunctionResult.ok(payload)
+
+
+## Skip the queued round when it is skippable (non-boss). Unity parity also requires
+## a free consumable slot and grants the round-action reward consumable; that bag
+## subsystem is not ported yet, so this advances the queue + records skip statistics.
+func _skip_level_from_queue() -> GnosisFunctionResult:
+	if context == null or context.store == null:
+		return GnosisFunctionResult.fail("Store unavailable.")
+	var m3 := get_node("match3", false)
+	var round := maxi(1, _node_int(m3, "nextLevel", _current_round + 1))
+	var payload := context.store.create_object()
+	if not _is_round_skippable(round):
+		payload.set_key("success", false)
+		payload.set_key("reason", "not_skippable")
+		payload.set_key("nextLevel", round)
+		return GnosisFunctionResult.ok(payload)
+	_clear_double_down_state()
+	var next_level := round + 1
+	if m3.is_valid():
+		m3.set_key("nextLevel", next_level)
+	_increment_statistic("match3.rounds.skipped", 1)
+	_increment_statistic("match3.rounds.total", 1)
+	refresh_planned_floor_preview()
+	_publish_ephemeral_state()
+	payload.set_key("success", true)
+	payload.set_key("reason", "ok")
+	payload.set_key("nextLevel", next_level)
+	payload.set_key("currentRound", _current_round)
+	return GnosisFunctionResult.ok(payload)
+
+
+func _is_round_skippable(round_number: int) -> bool:
+	var setup := _resolve_round_setup(maxi(1, round_number))
+	return str(setup.get("stage_type", "normal")) != "boss"
+
+
+## Double-down ephemeral state (Unity Match3GnosisService.DoubleDown.partial).
+func _read_double_down_target_score_multiplier() -> int:
+	var m3 := get_node("match3", false)
+	return maxi(1, _node_int(m3, "doubleDownTargetScoreMultiplier", DEFAULT_DOUBLE_DOWN_TARGET_MULTIPLIER))
+
+
+func _apply_double_down_target_score(base_objective: int) -> int:
+	var mult := _read_double_down_target_score_multiplier()
+	var scaled := int(maxi(1, base_objective)) * mult
+	return maxi(1, scaled)
+
+
+func _is_double_down_active_for_round(round_number: int) -> bool:
+	var m3 := get_node("match3", false)
+	if not m3.is_valid() or m3.get_type() != GnosisValueType.OBJECT:
+		return false
+	return _node_bool(m3, "doubleDownActive", false) \
+		and _node_int(m3, "doubleDownRound", 0) == maxi(1, round_number)
+
+
+func _set_double_down_for_round(round_number: int) -> void:
+	if context == null or context.store == null:
+		return
+	var m3 := get_node("match3", false)
+	if not m3.is_valid() or m3.get_type() != GnosisValueType.OBJECT:
+		m3 = context.store.create_object()
+		set_node("match3", m3, false)
+	m3.set_key("doubleDownActive", true)
+	m3.set_key("doubleDownRound", maxi(1, round_number))
+	m3.set_key("isDoubleDown", true)
+
+
+func _clear_double_down_state() -> void:
+	if context == null or context.store == null:
+		return
+	var m3 := get_node("match3", false)
+	if not m3.is_valid() or m3.get_type() != GnosisValueType.OBJECT:
+		return
+	m3.set_key("doubleDownActive", false)
+	m3.set_key("doubleDownRound", 0)
+	m3.set_key("isDoubleDown", false)
+
+
+func _resolve_target_score_for_round(round_number: int, base_objective: int) -> int:
+	var target := maxi(1, base_objective)
+	return _apply_double_down_target_score(target) if _is_double_down_active_for_round(round_number) else target
 
 
 func _try_use_shuffle() -> GnosisFunctionResult:
@@ -795,12 +902,16 @@ func refresh_planned_floor_preview() -> void:
 		var setup := _resolve_round_setup(round_num)
 		var stage_type := str(setup.get("stage_type", "normal"))
 		var level_id := str(setup.get("level_id", "normal"))
+		var objective_target := int(setup.get("target_score", BASE_SCORE_TO_WIN))
 		var row := context.store.create_object()
 		row.set_key("stageType", stage_type)
 		row.set_key("round", round_num)
 		row.set_key("isCurrent", round_num == queued_round)
 		row.set_key("isSkippable", stage_type != "boss")
 		row.set_key("isBossRound", stage_type == "boss")
+		row.set_key("objectiveTarget", objective_target)
+		row.set_key("objectiveTargetDoubleDown", _apply_double_down_target_score(objective_target))
+		row.set_key("doubleDownTargetScoreMultiplier", _read_double_down_target_score_multiplier())
 		row.set_key("rewardAmount", _reward_amount_for_setup(setup))
 		row.set_key("levelId", level_id)
 		rounds.add(row)
@@ -825,6 +936,8 @@ func _reward_amount_for_setup(setup: Dictionary) -> int:
 
 func _handle_round_won() -> void:
 	_record_round_end_unused_budget_statistics()
+	if _active_stage_type == "boss":
+		_increment_statistic("match3.rounds.bossesDefeated", 1)
 	_update_run_completion_state(true)
 	var run_won := is_run_won()
 	_prepare_pending_round_reward_after_win()
@@ -938,8 +1051,9 @@ func _try_get_round_reward_interest_preview() -> int:
 	var params := context.store.create_object()
 	params.set_key("currencyId", PAYOUT_CURRENCY_ID)
 	var result = currency.invoke_function("CalculateInterestAmount", params)
-	if result is GnosisFunctionResult and result.is_ok and result.data.is_valid():
-		return maxi(0, _node_int(result.data, "interestAmount", 0))
+	var node := _coerce_result_node(result)
+	if node != null and node.is_valid():
+		return maxi(0, _node_int(node, "interestAmount", 0))
 	return 0
 
 

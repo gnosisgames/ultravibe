@@ -63,11 +63,11 @@ func _refresh() -> void:
 	var result = shop.invoke_function("GetCoreShop", eng.store.create_object())
 	if not (result is GnosisFunctionResult) or not result.is_ok:
 		return
-	var offers := result.data.get_node("core.offers")
+	var offers: GnosisNode = result.payload.get_node("core.offers")
 	if not offers.is_valid() or offers.get_type() != GnosisValueType.LIST:
 		return
 	for i in range(offers.get_count()):
-		var offer := offers.get_node(i)
+		var offer: GnosisNode = offers.get_node(i)
 		if not offer.is_valid():
 			continue
 		if _node_bool(offer, "purchased", false):

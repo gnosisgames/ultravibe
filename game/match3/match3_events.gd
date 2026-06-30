@@ -18,6 +18,8 @@ const FACT_MATCH3_STATUS_CHANGED := "FACT_MATCH3_STATUS_CHANGED"
 const FACT_MATCH3_SHUFFLE_USED := "FACT_MATCH3_SHUFFLE_USED"
 
 const PAYLOAD_LEVEL_NUMBER := "levelNumber"
+const PAYLOAD_NEXT_LEVEL := "nextLevel"
+const PAYLOAD_DOUBLE_DOWN := "doubleDown"
 const PAYLOAD_GAME_STATUS := "gameStatus"
 const PAYLOAD_SCORE := "currentScore"
 const PAYLOAD_SCORE_TO_WIN := "targetScore"

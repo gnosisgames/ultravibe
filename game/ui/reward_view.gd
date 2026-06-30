@@ -120,12 +120,12 @@ func _present_rewards_stepwise() -> void:
 		var result = m3.invoke_function("GrantNextRoundRewardStep", params)
 		if not (result is GnosisFunctionResult):
 			break
-		if not result.is_ok or not result.data.is_valid():
+		if not result.is_ok or not result.payload.is_valid():
 			break
-		var granted := _node_bool(result.data, "granted", false)
-		var complete := _node_bool(result.data, "complete", false)
-		var amount := _node_int(result.data, "amount", 0)
-		var reason_key := _node_str(result.data, "reasonKey")
+		var granted := _node_bool(result.payload, "granted", false)
+		var complete := _node_bool(result.payload, "complete", false)
+		var amount := _node_int(result.payload, "amount", 0)
+		var reason_key := _node_str(result.payload, "reasonKey")
 		if granted and amount > 0:
 			_add_row(_localized(reason_key, reason_key), amount)
 			await get_tree().create_timer(STEP_PAUSE_SEC).timeout

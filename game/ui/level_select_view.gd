@@ -8,6 +8,8 @@ const ROW_BG := Color(0.356863, 0.368627, 0.560784, 1)
 
 @onready var _rounds: VBoxContainer = %Rounds
 @onready var _play_button: Button = %PlayButton
+@onready var _double_down_button: Button = %DoubleDownButton
+@onready var _skip_button: Button = %SkipButton
 @onready var _card: PanelContainer = $Center/Card
 
 var _row_font: Font = null
@@ -17,6 +19,8 @@ func _ready() -> void:
 	add_to_group("gnosis_ui_view")
 	_row_font = load("res://assets/fonts/Comic Lemon.otf")
 	_play_button.pressed.connect(_on_play_pressed)
+	_double_down_button.pressed.connect(_on_double_down_pressed)
+	_skip_button.pressed.connect(_on_skip_pressed)
 	call_deferred("_resolve_host")
 
 func set_view_visible(is_visible: bool) -> void:
@@ -64,6 +68,8 @@ func _refresh() -> void:
 	var rounds := planned.get_node("rounds")
 	if not rounds.is_valid() or rounds.get_type() != GnosisValueType.LIST:
 		return
+	var current_skippable := false
+	var double_down_mult := 0
 	for i in range(rounds.get_count()):
 		var row := rounds.get_node(i)
 		if not row.is_valid():
@@ -72,7 +78,19 @@ func _refresh() -> void:
 		var round_num := _node_int(row, "round", 0)
 		var reward := _node_int(row, "rewardAmount", 0)
 		var current := _node_bool(row, "isCurrent", false)
+		if current:
+			current_skippable = _node_bool(row, "isSkippable", false)
+			double_down_mult = _node_int(row, "doubleDownTargetScoreMultiplier", 0)
 		_add_round_row(stage, round_num, reward, current)
+	_configure_action_buttons(current_skippable, double_down_mult)
+
+func _configure_action_buttons(skippable: bool, double_down_mult: int) -> void:
+	if _skip_button:
+		_skip_button.visible = skippable
+	if _double_down_button:
+		_double_down_button.visible = double_down_mult > 1
+		if double_down_mult > 1:
+			_double_down_button.text = "x%d" % double_down_mult
 
 func _add_round_row(stage: String, round_num: int, reward: int, is_current: bool) -> void:
 	var panel := PanelContainer.new()
@@ -107,13 +125,30 @@ func _add_round_row(stage: String, round_num: int, reward: int, is_current: bool
 	_rounds.add_child(panel)
 
 func _on_play_pressed() -> void:
+	_play(false)
+
+func _on_double_down_pressed() -> void:
+	_play(true)
+
+func _play(double_down: bool) -> void:
 	var eng := _engine()
 	var m3 = _match3_service()
 	var ui := _game_ui()
 	if eng == null or m3 == null or ui == null:
 		return
-	m3.invoke_function("PlayLevel", eng.store.create_object())
+	var params := eng.store.create_object()
+	params.set_key("doubleDown", double_down)
+	m3.invoke_function("PlayLevel", params)
 	_dismiss_overlays(ui, eng)
+
+func _on_skip_pressed() -> void:
+	var eng := _engine()
+	var m3 = _match3_service()
+	if eng == null or m3 == null:
+		return
+	var result = m3.invoke_function("SkipLevel", eng.store.create_object())
+	if result is GnosisFunctionResult and result.is_ok and _node_bool(result.payload, "success", false):
+		_refresh()
 
 func _dismiss_overlays(ui: GnosisGameUIService, eng: GnosisEngine) -> void:
 	for _i in 4:

@@ -95,11 +95,16 @@ layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 10
 
-[node name="PlayButton" type="Button" parent="Center/Card/VBox"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(280, 64)
+[node name="Buttons" type="HBoxContainer" parent="Center/Card/VBox"]
 layout_mode = 2
-size_flags_horizontal = 4
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="PlayButton" type="Button" parent="Center/Card/VBox/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 64)
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_fonts/font = ExtResource("6")
 theme_override_font_sizes/font_size = 28
 theme_override_styles/normal = SubResource("SB_play")
@@ -107,3 +112,29 @@ theme_override_styles/hover = SubResource("SB_play")
 theme_override_styles/pressed = SubResource("SB_play")
 theme_override_styles/focus = SubResource("SB_play")
 text = "core__verb__play"
+
+[node name="DoubleDownButton" type="Button" parent="Center/Card/VBox/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 64)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("6")
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("SB_play")
+theme_override_styles/hover = SubResource("SB_play")
+theme_override_styles/pressed = SubResource("SB_play")
+theme_override_styles/focus = SubResource("SB_play")
+text = "x10"
+
+[node name="SkipButton" type="Button" parent="Center/Card/VBox/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 64)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("6")
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = SubResource("SB_play")
+theme_override_styles/hover = SubResource("SB_play")
+theme_override_styles/pressed = SubResource("SB_play")
+theme_override_styles/focus = SubResource("SB_play")
+text = "core__verb__skip"
