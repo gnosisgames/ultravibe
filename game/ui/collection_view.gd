@@ -2,7 +2,7 @@ class_name UltravibeCollectionView
 extends GnosisUIElementView
 
 ## Compendium / gallery (viewId "collection"). Browses every catalog entry
-## (boons, consumables, abilities, upgrades, bosses) as an icon grid, mirroring
+## (boons, consumables, upgrades, bosses) as an icon grid, mirroring
 ## the Unity collection screen. Tiles show persistent discovery state and open a
 ## read-only detail panel.
 
@@ -11,6 +11,12 @@ const BLOCK_ICON_DIR := "res://assets/blocks/"
 const SPECIAL_ICON_IDS := {
 	"abilities:gridShift": "gridSwap"
 }
+
+## Display font for boss starting-letter tokens — mirrors Unity's
+## StartingCharacterText (PolygonParty, guid 744d4e... in the legacy font set).
+const BOSS_LETTER_FONT := "res://assets/fonts/PolygonParty-3KXM.ttf"
+const BOSS_TOKEN_DEFAULT_BG := Color(0.345098, 0.345098, 0.572549)
+const BOSS_TOKEN_DEFAULT_FG := Color.WHITE
 
 ## The itemUpgrade level-up grants reuse the colored gem block sprites rather than
 ## a dedicated consumable icon (see Unity sprite registry in game.unity). Keyed by
@@ -31,20 +37,24 @@ const TOOLTIP_MAX_WIDTH := 360.0
 const TABS := {
 	"boons": {"catalog": "boons", "folder": "boons", "variant": false, "label": "ultravibe__collection__type__boon"},
 	"consumables": {"catalog": "consumables", "folder": "consumables", "variant": false, "label": "ultravibe__collection__type__consumable"},
-	"abilities": {"catalog": "abilities", "folder": "abilities", "variant": false, "label": "ultravibe__collection__type__ability"},
 	"upgrades": {"catalog": "runUpgrades", "folder": "upgrades", "variant": false, "label": "ultravibe__collection__type__upgrade"},
 	"itemUpgrades": {"catalog": "itemUpgrades", "folder": "upgrades", "variant": false, "label": "ultravibe__collection__type__itemUpgrade"},
-	"bosses": {"catalog": "bosses", "folder": "bosses", "variant": false, "label": "ultravibe__collection__type__boss"},
+	"bosses": {"catalog": "levels", "folder": "bosses", "variant": false, "letter": true, "label": "ultravibe__collection__type__boss"},
 }
 
 ## Consumables whose id starts with this are the itemUpgrade grants; they are
 ## surfaced under the dedicated Item Upgrades tab instead of the Consumables grid.
 const HIDDEN_CONSUMABLE_PREFIX := "ItemUpgradeGrant"
 
+## Non-boss level profiles shown in gameplay but omitted from the collection grid.
+const HIDDEN_LEVEL_IDS := {
+	"normal": true,
+	"advanced": true,
+}
+
 @onready var _back_button: Button = %BackButton
 @onready var _boons_tab: Button = %BoonsTab
 @onready var _consumables_tab: Button = %ConsumablesTab
-@onready var _abilities_tab: Button = %AbilitiesTab
 @onready var _upgrades_tab: Button = %UpgradesTab
 @onready var _item_upgrades_tab: Button = %ItemUpgradesTab
 @onready var _bosses_tab: Button = %BossesTab
@@ -68,7 +78,6 @@ func _ready() -> void:
 	_back_button.pressed.connect(_on_back_pressed)
 	_boons_tab.pressed.connect(func(): _show_tab("boons"))
 	_consumables_tab.pressed.connect(func(): _show_tab("consumables"))
-	_abilities_tab.pressed.connect(func(): _show_tab("abilities"))
 	_upgrades_tab.pressed.connect(func(): _show_tab("upgrades"))
 	_item_upgrades_tab.pressed.connect(func(): _show_tab("itemUpgrades"))
 	_bosses_tab.pressed.connect(func(): _show_tab("bosses"))
@@ -112,7 +121,6 @@ func _show_tab(which: String) -> void:
 	_current_tab = which
 	_boons_tab.button_pressed = which == "boons"
 	_consumables_tab.button_pressed = which == "consumables"
-	_abilities_tab.button_pressed = which == "abilities"
 	_upgrades_tab.button_pressed = which == "upgrades"
 	_item_upgrades_tab.button_pressed = which == "itemUpgrades"
 	_bosses_tab.button_pressed = which == "bosses"
@@ -142,6 +150,8 @@ func _populate(tab: String) -> void:
 			continue
 		if tab == "consumables" and str(key).begins_with(HIDDEN_CONSUMABLE_PREFIX):
 			continue
+		if tab == "bosses" and HIDDEN_LEVEL_IDS.has(str(key)):
+			continue
 		_add_tile(str(key), entry, spec)
 
 func _add_tile(item_id: String, entry: GnosisNode, spec: Dictionary) -> void:
@@ -151,12 +161,6 @@ func _add_tile(item_id: String, entry: GnosisNode, spec: Dictionary) -> void:
 	var desc_key := _meta_str(meta, "descriptionKey")
 	var display_name := _localized(name_key, item_id.capitalize())
 	var description := _localized(desc_key, "")
-
-	var icon_path := ""
-	if spec.variant:
-		icon_path = _block_icon_path(item_id, sprite_id)
-	else:
-		icon_path = _icon_path(spec.catalog, spec.folder, item_id, sprite_id)
 
 	var tile := Button.new()
 	tile.custom_minimum_size = Vector2(150, 150)
@@ -177,18 +181,68 @@ func _add_tile(item_id: String, entry: GnosisNode, spec: Dictionary) -> void:
 	icon_wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	tile.add_child(icon_wrap)
 
-	var icon := TextureRect.new()
-	icon.custom_minimum_size = Vector2(120, 120)
-	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	if not icon_path.is_empty():
-		icon.texture = load(icon_path)
+	if spec.get("letter", false):
+		icon_wrap.add_child(_make_boss_token(item_id, meta))
 	else:
-		icon.modulate = Color(0.3, 0.34, 0.42)
-	icon_wrap.add_child(icon)
+		var icon_path := ""
+		if spec.variant:
+			icon_path = _block_icon_path(item_id, sprite_id)
+		else:
+			icon_path = _icon_path(spec.catalog, spec.folder, item_id, sprite_id)
+		var icon := TextureRect.new()
+		icon.custom_minimum_size = Vector2(120, 120)
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		if not icon_path.is_empty():
+			icon.texture = load(icon_path)
+		else:
+			icon.modulate = Color(0.3, 0.34, 0.42)
+		icon_wrap.add_child(icon)
 
 	_grid.add_child(tile)
+
+## Builds a boss "token": a rounded square tinted with the profile background
+## color, with the starting letter rendered in the boss display font (darling_coffe)
+## using the profile text color. Mirrors the in-game level token.
+func _make_boss_token(item_id: String, meta: GnosisNode) -> Control:
+	var letter := _meta_str(meta, "startingLetter").strip_edges()
+	if letter.is_empty():
+		letter = item_id.substr(0, 1).to_upper()
+	var bg := _parse_color(_meta_str(meta, "backgroundColor"), BOSS_TOKEN_DEFAULT_BG)
+	var fg := _parse_color(_meta_str(meta, "textColor"), BOSS_TOKEN_DEFAULT_FG)
+
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size = Vector2(120, 120)
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var box := StyleBoxFlat.new()
+	box.bg_color = bg
+	box.set_corner_radius_all(24)
+	box.set_border_width_all(4)
+	box.border_color = bg.lightened(0.18)
+	panel.add_theme_stylebox_override("panel", box)
+
+	var label := Label.new()
+	label.text = letter
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	label.add_theme_color_override("font_color", fg)
+	label.add_theme_font_size_override("font_size", 72)
+	var font := load(BOSS_LETTER_FONT)
+	if font:
+		label.add_theme_font_override("font", font)
+	panel.add_child(label)
+	return panel
+
+## Parses a "#RRGGBB"/"#RRGGBBAA" string into a Color, falling back when invalid.
+func _parse_color(value: String, fallback: Color) -> Color:
+	var raw := value.strip_edges()
+	if raw.is_empty() or not raw.begins_with("#"):
+		return fallback
+	if not Color.html_is_valid(raw):
+		return fallback
+	return Color.html(raw)
 
 func _show_detail(detail: Dictionary) -> void:
 	_detail_overlay.visible = true
