@@ -25,6 +25,23 @@ const TAG_COLORS := {
 	"move": "1591dc",
 }
 
+## Rarity / type "smart chips" rendered below the body. Colors mirror the Unity
+## platform adapter's tooltipTagTypeStyles (game.unity) so a chip keyed by the
+## catalog tag's `tagType` looks identical to the Unity build. Unknown types fall
+## back to neutral gray.
+const TAG_CHIP_STYLES := {
+	"rare": {"bg": Color(0.0, 0.4392157, 1.0), "fg": Color.WHITE},
+	"common": {"bg": Color(0.5333334, 0.5333334, 0.5333334), "fg": Color.WHITE},
+	"uncommon": {"bg": Color(0.0, 0.7843137, 0.3254902), "fg": Color.WHITE},
+	"legendary": {"bg": Color(1.0, 0.3411765, 0.1333333), "fg": Color.WHITE},
+	"upgrade": {"bg": Color(0.9372549, 0.7490196, 0.0156863), "fg": Color.WHITE},
+	"consumable": {"bg": Color(0.5019608, 0.0, 0.5019608), "fg": Color.WHITE},
+}
+const TAG_CHIP_DEFAULT := {"bg": Color(0.5, 0.5, 0.5), "fg": Color.WHITE}
+
+## Max chips shown, matching Unity's GnosisTooltipTrigger.MaxTooltipTagChips.
+const MAX_TAG_CHIPS := 5
+
 @export var text: String = "":
 	set(new_text):
 		text = new_text
@@ -46,6 +63,8 @@ const TAG_COLORS := {
 var active: bool = true
 var tween_tooltip: Tween
 var title_label: RichTextLabel = null
+var _chips_row: HFlowContainer = null
+var _chips_wrap: MarginContainer = null
 
 @onready var description: RichTextLabel = $MarginContainer/VBoxContainer/Description
 
@@ -116,7 +135,12 @@ func apply_standard_skin() -> void:
 ## Fills the tooltip with a title and a raw (un-formatted) description string.
 ## Semantic `<money>`/`<move>`/`<shuffle>`/`<multi>`/`<point>`/`<chance>` tags
 ## are converted to the shared accent colors automatically.
-func set_content(title: String, description_raw: String, width: float = DEFAULT_CONTENT_WIDTH) -> void:
+##
+## `tags` is an optional array of "smart chips" rendered below the body. Each
+## entry is a Dictionary `{ "type": <tagType>, "label": <already-localized text> }`
+## mirroring the uniform `metadata.tags` catalog format (consumables, boons,
+## upgrades, bosses). Pass `[]` (default) for no chips.
+func set_content(title: String, description_raw: String, width: float = DEFAULT_CONTENT_WIDTH, tags: Array = []) -> void:
 	if description == null:
 		return
 	description.fit_content = true
@@ -128,6 +152,82 @@ func set_content(title: String, description_raw: String, width: float = DEFAULT_
 		title_label.visible = not title.strip_edges().is_empty()
 		title_label.text = "[center][font_size=28]%s[/font_size][/center]" % title
 	text = format_bbcode(description_raw)
+	set_tags(tags)
+
+## Rebuilds the smart-chip row below the body. Each entry is a Dictionary with a
+## `type` (tagType -> chip color) and a `label` (already-localized text). Hidden
+## when `tags` is empty.
+func set_tags(tags: Array) -> void:
+	_ensure_chips_row()
+	if _chips_row == null:
+		return
+	for child in _chips_row.get_children():
+		child.free()
+	var shown := 0
+	for entry in tags:
+		if shown >= MAX_TAG_CHIPS:
+			break
+		if typeof(entry) != TYPE_DICTIONARY:
+			continue
+		var label_text := str(entry.get("label", "")).strip_edges()
+		if label_text.is_empty():
+			continue
+		var type_id := str(entry.get("type", "")).strip_edges().to_lower()
+		_chips_row.add_child(_make_chip(type_id, label_text))
+		shown += 1
+	if _chips_wrap:
+		_chips_wrap.visible = shown > 0
+
+## Lazily creates the HFlowContainer that holds the chips, placed directly under
+## the Description inside the body VBox. A MarginContainer wrapper adds a small
+## top gap so chips never visually touch the body text.
+func _ensure_chips_row() -> void:
+	if _chips_row and is_instance_valid(_chips_row):
+		return
+	if description == null:
+		return
+	var vbox := description.get_parent()
+	if vbox == null:
+		return
+	_chips_wrap = MarginContainer.new()
+	_chips_wrap.name = "TagChipsWrap"
+	_chips_wrap.add_theme_constant_override("margin_top", 4)
+	_chips_wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_chips_wrap.visible = false
+	vbox.add_child(_chips_wrap)
+	_chips_row = HFlowContainer.new()
+	_chips_row.name = "TagChips"
+	_chips_row.alignment = FlowContainer.ALIGNMENT_CENTER
+	_chips_row.add_theme_constant_override("h_separation", 6)
+	_chips_row.add_theme_constant_override("v_separation", 6)
+	_chips_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_chips_wrap.add_child(_chips_row)
+
+## Builds a single rounded chip: colored pill background (per tagType) with the
+## localized label in the matching text color.
+func _make_chip(type_id: String, label_text: String) -> Control:
+	var style: Dictionary = TAG_CHIP_STYLES.get(type_id, TAG_CHIP_DEFAULT)
+	var chip := PanelContainer.new()
+	chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var box := StyleBoxFlat.new()
+	box.bg_color = style.bg
+	box.set_corner_radius_all(10)
+	box.content_margin_left = 14.0
+	box.content_margin_right = 14.0
+	box.content_margin_top = 5.0
+	box.content_margin_bottom = 6.0
+	chip.add_theme_stylebox_override("panel", box)
+
+	var label := Label.new()
+	label.text = label_text.to_upper()
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	label.add_theme_color_override("font_color", style.fg)
+	label.add_theme_font_size_override("font_size", 20)
+	var chip_font := description.get_theme_font("normal_font")
+	if chip_font:
+		label.add_theme_font_override("font", chip_font)
+	chip.add_child(label)
+	return chip
 
 ## Converts the engine's semantic markup into bbcode with the shared palette.
 static func format_bbcode(value: String) -> String:

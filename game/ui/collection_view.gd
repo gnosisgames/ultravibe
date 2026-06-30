@@ -161,6 +161,7 @@ func _add_tile(item_id: String, entry: GnosisNode, spec: Dictionary) -> void:
 	var desc_key := _meta_str(meta, "descriptionKey")
 	var display_name := _localized(name_key, item_id.capitalize())
 	var description := _localized(desc_key, "")
+	var tags := _tags_for(meta)
 
 	var tile := Button.new()
 	tile.custom_minimum_size = Vector2(150, 150)
@@ -171,10 +172,10 @@ func _add_tile(item_id: String, entry: GnosisNode, spec: Dictionary) -> void:
 	tile.clip_contents = false
 	tile.modulate.a = 0.6
 	tile.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
-	tile.focus_entered.connect(func(): _on_tile_focused(tile, display_name, description))
+	tile.focus_entered.connect(func(): _on_tile_focused(tile, display_name, description, tags))
 	tile.focus_exited.connect(func(): _on_tile_unfocused(tile))
 	tile.mouse_entered.connect(tile.grab_focus)
-	tile.pressed.connect(func(): _show_tooltip_for_tile(tile, display_name, description))
+	tile.pressed.connect(func(): _show_tooltip_for_tile(tile, display_name, description, tags))
 
 	var icon_wrap := CenterContainer.new()
 	icon_wrap.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -263,10 +264,10 @@ func _hide_detail() -> void:
 	if _detail_overlay:
 		_detail_overlay.visible = false
 
-func _on_tile_focused(tile: Control, title: String, description: String) -> void:
+func _on_tile_focused(tile: Control, title: String, description: String, tags: Array = []) -> void:
 	UltraUiFx.play_ui_sfx(self, UltraUiFx.CLIP_HOVER, -4.0)
 	_animate_tile(tile, true)
-	_show_tooltip_for_tile(tile, title, description)
+	_show_tooltip_for_tile(tile, title, description, tags)
 
 func _on_tile_unfocused(tile: Control) -> void:
 	_animate_tile(tile, false)
@@ -296,7 +297,7 @@ func _animate_tile(tile: Control, focused: bool) -> void:
 		tile.z_index = 0
 	tile.set_meta("focus_tween", tween)
 
-func _show_tooltip_for_tile(tile: Control, title: String, description: String) -> void:
+func _show_tooltip_for_tile(tile: Control, title: String, description: String, tags: Array = []) -> void:
 	if _tooltip == null:
 		return
 	_active_tile = tile
@@ -306,7 +307,7 @@ func _show_tooltip_for_tile(tile: Control, title: String, description: String) -
 	_tooltip.grow_vertical = Control.GROW_DIRECTION_END
 	_tooltip.visible = true
 	var raw := description if not description.strip_edges().is_empty() else tr("ultravibe__collection__noDescription")
-	_tooltip.set_content(title, raw, TOOLTIP_WIDTH)
+	_tooltip.set_content(title, raw, TOOLTIP_WIDTH, tags)
 	# Let the layout settle for one frame, then shrink-wrap to content and place it.
 	await get_tree().process_frame
 	if _active_tile != tile or not is_instance_valid(tile):
@@ -429,4 +430,31 @@ func _on_back_pressed() -> void:
 func _meta_str(node: GnosisNode, key: String) -> String:
 	var n := node.get_node(key)
 	return str(n.value) if n.is_valid() and n.value != null else ""
+
+## Reads the uniform `metadata.tags` list (each entry `{tagType, tagLocKey}`) into
+## tooltip smart-chip dictionaries `{type, label}` with the label localized.
+## Mirrors Unity's GnosisTooltipTagEntry parsing so every catalog (boons,
+## consumables, upgrades, bosses) shares one format.
+func _tags_for(meta: GnosisNode) -> Array:
+	var result: Array = []
+	var tags_node := meta.get_node("tags")
+	if not tags_node.is_valid() or tags_node.get_type() != GnosisValueType.LIST:
+		return result
+	for i in range(tags_node.get_count()):
+		var item := tags_node.get_node(i)
+		if not item.is_valid() or item.get_type() != GnosisValueType.OBJECT:
+			continue
+		var type_id := _meta_str(item, "tagType")
+		if type_id.is_empty():
+			type_id = _meta_str(item, "type")
+		var loc_key := _meta_str(item, "tagLocKey")
+		if loc_key.is_empty():
+			loc_key = _meta_str(item, "locKey")
+		if loc_key.is_empty():
+			continue
+		var label := _localized(loc_key, type_id.capitalize())
+		if label.strip_edges().is_empty():
+			continue
+		result.append({"type": type_id, "label": label})
+	return result
 

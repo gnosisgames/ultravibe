@@ -19,9 +19,7 @@ const CATEGORY_LABELS := {
 	"ui": "ultravibe__settings__category__ui",
 	"console": "ultravibe__settings__category__console",
 }
-const UltraAccessibilitySettings = preload("res://game/ultra_accessibility_settings.gd")
 const HAPTICS_ENABLED_KEY := "haptic.hapticsEnabled"
-const LIGHT_FLASHES_ENABLED_KEY := UltraAccessibilitySettings.LIGHT_FLASHES_ENABLED_KEY
 const LOG_LEVEL_KEY := "settings.logLevel"
 const SHOW_FPS_KEY := "settings.showFps"
 const SHOW_VERSION_KEY := "settings.showVersion"
@@ -101,7 +99,6 @@ func _input_bindings() -> Dictionary:
 @onready var _show_device_info_toggle: JuicyToggle = %ShowDeviceInfoToggle
 @onready var _enable_console_toggle: JuicyToggle = %EnableConsoleToggle
 @onready var _vibration_toggle: JuicyToggle = %VibrationToggle
-@onready var _light_flashes_toggle: JuicyToggle = %LightFlashesToggle
 @onready var _flag_grid: GridContainer = %FlagGrid
 @onready var _keyboard_grid: GridContainer = %KeyboardGrid
 @onready var _gamepad_grid: GridContainer = %GamepadGrid
@@ -144,7 +141,6 @@ func _ready() -> void:
 	if not Input.joy_connection_changed.is_connected(_on_joy_connection_changed):
 		Input.joy_connection_changed.connect(_on_joy_connection_changed)
 	_vibration_toggle.toggled.connect(_on_vibration_toggled)
-	_light_flashes_toggle.toggled.connect(_on_light_flashes_toggled)
 	_log_level_option.item_selected.connect(_on_log_level_selected)
 	_scanlines_slider.value_changed.connect(func(v): _set_setting_slider(SCANLINES_KEY, v))
 	_vignette_slider.value_changed.connect(func(v): _set_setting_slider(VIGNETTE_INTENSITY_KEY, v))
@@ -349,22 +345,12 @@ func _sync_from_services() -> void:
 	_refresh_option.select(clampi(_read_setting_int(REFRESH_RATE_INDEX_KEY, 0), 0, max(0, _refresh_option.item_count - 1)))
 	_monitor_option.select(clampi(_read_setting_int(DISPLAY_INDEX_KEY, 0), 0, max(0, _monitor_option.item_count - 1)))
 	_vibration_toggle.set_pressed_silent(_read_haptics_enabled())
-	_light_flashes_toggle.set_pressed_silent(_read_light_flashes_enabled())
 	_log_level_option.select(_read_log_level_index())
 	_show_fps_toggle.set_pressed_silent(_read_setting_bool(SHOW_FPS_KEY, false))
 	_show_version_toggle.set_pressed_silent(_read_setting_bool(SHOW_VERSION_KEY, false))
 	_show_device_info_toggle.set_pressed_silent(_read_setting_bool(SHOW_DEVICE_INFO_KEY, false))
 	_enable_console_toggle.set_pressed_silent(_read_setting_bool(ENABLE_CONSOLE_KEY, false))
 	_syncing = false
-
-func _read_light_flashes_enabled() -> bool:
-	return UltraAccessibilitySettings.light_flashes_enabled(_engine(), true)
-
-func _set_light_flashes_enabled(enabled: bool) -> void:
-	_set_setting_bool(LIGHT_FLASHES_ENABLED_KEY, enabled)
-
-func _on_light_flashes_toggled(enabled: bool) -> void:
-	_set_light_flashes_enabled(enabled)
 
 func _read_haptics_enabled() -> bool:
 	var eng := _engine()
