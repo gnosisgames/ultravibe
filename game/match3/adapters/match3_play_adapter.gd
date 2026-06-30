@@ -82,8 +82,6 @@ func _on_status_fact(event: GnosisEvent) -> void:
 	if event == null or not event.data.is_valid():
 		return
 	var status := _node_int(event.data, Events.PAYLOAD_GAME_STATUS, Match3ModelsScript.STATUS_PLAYING)
-	if status != Match3ModelsScript.STATUS_WIN and status != Match3ModelsScript.STATUS_LOSS:
-		return
 	if engine == null:
 		return
 	var game_ui := engine.get_service("GameUI") as GnosisGameUIService
@@ -91,17 +89,49 @@ func _on_status_fact(event: GnosisEvent) -> void:
 		return
 	if game_ui.get_base_view_id().strip_edges().to_lower() != "gameplay":
 		return
-	# A round win opens the reward payout overlay; a loss ends the run with the
-	# game-over summary (Unity parity: win -> rewardPanel, loss -> state panel).
-	var overlay_view_id := "reward" if status == Match3ModelsScript.STATUS_WIN else "game_over"
-	if not game_ui.get_active_overlay_state_for_view("game_over").is_empty():
-		return
-	if not game_ui.get_active_overlay_state_for_view("reward").is_empty():
+	match status:
+		Match3ModelsScript.STATUS_PLAYING:
+			_dismiss_match3_overlays(game_ui)
+		Match3ModelsScript.STATUS_WIN, Match3ModelsScript.STATUS_REWARD_PANEL:
+			_push_overlay(game_ui, "reward")
+		Match3ModelsScript.STATUS_LOSS, Match3ModelsScript.STATUS_LOSE_PANEL:
+			_push_overlay(game_ui, "game_over")
+		Match3ModelsScript.STATUS_SHOP_PANEL:
+			_switch_overlay(game_ui, "shop", "level_select")
+		Match3ModelsScript.STATUS_LEVEL_SELECT_PANEL:
+			_switch_overlay(game_ui, "level_select", "shop")
+
+
+func _push_overlay(game_ui: GnosisGameUIService, view_id: String) -> void:
+	if not game_ui.get_active_overlay_state_for_view(view_id).is_empty():
 		return
 	var params := engine.store.create_object()
-	params.set_key("viewId", overlay_view_id)
+	params.set_key("viewId", view_id)
 	params.set_key("overlayStateId", "open")
 	game_ui.invoke_function("PushViewAdditive", params)
+
+
+func _switch_overlay(game_ui: GnosisGameUIService, view_id: String, pop_view_id: String) -> void:
+	if not game_ui.get_active_overlay_state_for_view(pop_view_id).is_empty():
+		game_ui.invoke_function("PopView", engine.store.create_object())
+	_push_overlay(game_ui, view_id)
+
+
+func _dismiss_match3_overlays(game_ui: GnosisGameUIService) -> void:
+	for _i in 6:
+		var has_overlay := false
+		for view_id in ["level_select", "shop", "reward", "game_over", "pause"]:
+			if not game_ui.get_active_overlay_state_for_view(view_id).is_empty():
+				has_overlay = true
+				break
+		if not has_overlay:
+			return
+		game_ui.invoke_function("PopView", engine.store.create_object())
+
+
+func refresh_hud_after_reward() -> void:
+	if _dispatcher:
+		_dispatcher.refresh_hud()
 
 
 func _dispose_subscriptions() -> void:

@@ -13,6 +13,8 @@
 [ext_resource type="Script" path="res://game/adapters/gameplay_input_router.gd" id="13"]
 [ext_resource type="PackedScene" path="res://game/ui/game_over_view.tscn" id="14"]
 [ext_resource type="PackedScene" path="res://game/ui/reward_view.tscn" id="20"]
+[ext_resource type="PackedScene" path="res://game/ui/shop_view.tscn" id="21"]
+[ext_resource type="PackedScene" path="res://game/ui/level_select_view.tscn" id="22"]
 [ext_resource type="PackedScene" path="res://game/ui/play_view.tscn" id="15"]
 [ext_resource type="PackedScene" path="res://game/ui/credits_view.tscn" id="18"]
 [ext_resource type="Script" path="res://game/ui/gameplay_view.gd" id="19"]
@@ -123,6 +125,12 @@ visible = false
 visible = false
 
 [node name="RewardView" parent="UI" unique_id=125485957 instance=ExtResource("20")]
+visible = false
+
+[node name="ShopView" parent="UI" unique_id=125485958 instance=ExtResource("21")]
+visible = false
+
+[node name="LevelSelectView" parent="UI" unique_id=125485959 instance=ExtResource("22")]
 visible = false
 
 [node name="CreditsView" parent="UI" unique_id=471705893 instance=ExtResource("18")]

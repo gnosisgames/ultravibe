@@ -404,3 +404,78 @@ func _is_valid(x: int, y: int) -> bool:
 
 func _coord_key(coord: Models.TileCoord) -> String:
 	return "%d,%d" % [coord.x, coord.y]
+
+
+## Reshuffles existing board items (Unity ShuffleBoard / RebuildGridItems parity).
+func shuffle_board(item_points: Dictionary) -> Models.MatchResult:
+	var result := Models.MatchResult.new()
+	var target_cells: Array[Models.TileCoord] = []
+	var preserved_items: Array[Dictionary] = []
+	for y in height:
+		for x in width:
+			var tile := get_tile(x, y)
+			if tile == null or not tile.can_hold_item() or tile.is_empty():
+				continue
+			preserved_items.append({"id": tile.item_id, "type": tile.item_type_id})
+			target_cells.append(Models.TileCoord.new(x, y))
+	if target_cells.is_empty():
+		return result
+	const MAX_ATTEMPTS := 30
+	for _attempt in MAX_ATTEMPTS:
+		for coord in target_cells:
+			var tile := get_tile(coord.x, coord.y)
+			tile.item_id = ""
+			tile.item_kind = Models.KIND_NORMAL
+			tile.item_type_id = "plain"
+		var remaining: Array[Dictionary] = []
+		for entry in preserved_items:
+			remaining.append(entry.duplicate())
+		result.new_spawns.clear()
+		for coord in target_cells:
+			var picked := _pick_existing_item_index_avoiding_match(remaining, coord.x, coord.y)
+			if picked < 0:
+				picked = _rng.randi_range(0, remaining.size() - 1)
+			var chosen: Dictionary = remaining[picked]
+			remaining.remove_at(picked)
+			_set_item(coord.x, coord.y, chosen["id"], Models.KIND_NORMAL, chosen["type"], item_points)
+			var spawn := Models.TileSpawn.new()
+			spawn.at = coord
+			spawn.item_id = chosen["id"]
+			spawn.item_kind = Models.KIND_NORMAL
+			spawn.item_type_id = chosen["type"]
+			result.new_spawns.append(spawn)
+		if _find_matches().matched_tiles.is_empty() and _has_any_swappable_match():
+			break
+	return result
+
+
+func _pick_existing_item_index_avoiding_match(remaining: Array[Dictionary], x: int, y: int) -> int:
+	if remaining.is_empty():
+		return -1
+	var random_attempts := mini(remaining.size() * 2, 24)
+	for _i in random_attempts:
+		var idx := _rng.randi_range(0, remaining.size() - 1)
+		if not _would_create_immediate_match_at(x, y, remaining[idx]["id"]):
+			return idx
+	for i in range(remaining.size()):
+		if not _would_create_immediate_match_at(x, y, remaining[i]["id"]):
+			return i
+	return -1
+
+
+func _has_any_swappable_match() -> bool:
+	for y in height:
+		for x in width:
+			if x + 1 < width and _can_swap(Models.TileCoord.new(x, y), Models.TileCoord.new(x + 1, y)):
+				_swap(Models.TileCoord.new(x, y), Models.TileCoord.new(x + 1, y))
+				var has_match := not _find_matches().matched_tiles.is_empty()
+				_swap(Models.TileCoord.new(x, y), Models.TileCoord.new(x + 1, y))
+				if has_match:
+					return true
+			if y + 1 < height and _can_swap(Models.TileCoord.new(x, y), Models.TileCoord.new(x, y + 1)):
+				_swap(Models.TileCoord.new(x, y), Models.TileCoord.new(x, y + 1))
+				var has_match := not _find_matches().matched_tiles.is_empty()
+				_swap(Models.TileCoord.new(x, y), Models.TileCoord.new(x, y + 1))
+				if has_match:
+					return true
+	return false

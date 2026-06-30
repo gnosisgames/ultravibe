@@ -53,6 +53,10 @@ func _gameplay_live() -> bool:
 		return false
 	if not ui.get_active_overlay_state_for_view("reward").is_empty():
 		return false
+	if not ui.get_active_overlay_state_for_view("shop").is_empty():
+		return false
+	if not ui.get_active_overlay_state_for_view("level_select").is_empty():
+		return false
 	return true
 
 func _dispose_subscriptions() -> void:

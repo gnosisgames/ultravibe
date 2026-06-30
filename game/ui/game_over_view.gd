@@ -119,29 +119,32 @@ func _refresh() -> void:
 	var m3 = _match3_service()
 	if m3 == null:
 		return
-	var is_victory: bool = m3.has_method("get_current_status") \
-		and m3.get_current_status() == Match3ModelsScript.STATUS_WIN
+	var is_victory: bool = m3 != null and (
+		(m3.has_method("is_run_won") and m3.is_run_won()) \
+		or (m3.has_method("get_current_status") \
+			and m3.get_current_status() == Match3ModelsScript.STATUS_WIN)
+	)
 	if _endless_button:
 		_endless_button.visible = is_victory
 	var gameplay = m3.get_gameplay()
 	_high_score_value.text = str(gameplay.current_score) if gameplay else "0"
 	_round_value.text = str(m3.get_current_round()) if m3.has_method("get_current_round") else "1"
 	_floor_value.text = str(m3.get_current_floor()) if m3.has_method("get_current_floor") else "1"
-	# TODO(ultravibe-port): wire run statistics (moves/shuffles/shop purchases/rerolls)
-	# once Match3 statistics are ported. Stubbed to 0 for now (matches money/points stubs).
-	_moves_value.text = "0"
-	_shuffles_value.text = "0"
-	_purchases_value.text = "0"
-	_rerolls_value.text = "0"
+	_moves_value.text = str(m3.get_statistic_int("match3.moves.used")) if m3.has_method("get_statistic_int") else "0"
+	_shuffles_value.text = str(m3.get_statistic_int("match3.shuffles.used")) if m3.has_method("get_statistic_int") else "0"
+	_purchases_value.text = str(m3.get_statistic_int("match3.shop.purchases.total")) if m3.has_method("get_statistic_int") else "0"
+	_rerolls_value.text = str(m3.get_statistic_int("match3.shop.rerolls.total")) if m3.has_method("get_statistic_int") else "0"
 	_seed_value.text = str(_resolve_seed())
 
 func _apply_headline() -> void:
 	if _title == null:
 		return
 	var m3 = _match3_service()
-	var is_victory: bool = m3 != null \
-		and m3.has_method("get_current_status") \
-		and m3.get_current_status() == Match3ModelsScript.STATUS_WIN
+	var is_victory: bool = m3 != null and (
+		(m3.has_method("is_run_won") and m3.is_run_won()) \
+		or (m3.has_method("get_current_status") \
+			and m3.get_current_status() == Match3ModelsScript.STATUS_WIN)
+	)
 	_title.text_clean = "core__state__victory" if is_victory else "core__state__gameOver"
 
 func _apply_shuffles_label() -> void:
