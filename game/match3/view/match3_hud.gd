@@ -256,6 +256,18 @@ func get_content_frame_rect() -> Rect2:
 	return Rect2(left, top, maxf(0.0, right - left), maxf(0.0, bottom - top))
 
 
+## Play-field rect for the match-3 board: same horizontal bounds as
+## get_content_frame_rect() but extends to the bottom of the HUD so gems can
+## use the area reserved for the bottom nav (those controls are not shown during
+## active play).
+func get_board_frame_rect() -> Rect2:
+	var frame := get_content_frame_rect()
+	if frame.size.x <= 0.0 or frame.size.y <= 0.0:
+		return frame
+	var bottom := size.y - FRAME_GAP
+	return Rect2(frame.position.x, frame.position.y, frame.size.x, maxf(0.0, bottom - frame.position.y))
+
+
 ## Keeps the consumable sidebar vertically aligned with the main sidebar panel
 ## (same top/bottom), then notifies overlays the frame may have moved.
 func _on_frame_dirty() -> void:
@@ -270,7 +282,7 @@ func _on_frame_dirty() -> void:
 	# Keep the board area on the exact same rect the subscreen overlays use, so
 	# the board fills the level-select / shop / reward region.
 	if _board_host:
-		var frame := get_content_frame_rect()
+		var frame := get_board_frame_rect()
 		if frame.size.x > 0.0 and frame.size.y > 0.0:
 			_board_host.set_anchors_preset(Control.PRESET_TOP_LEFT)
 			_board_host.position = frame.position

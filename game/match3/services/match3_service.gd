@@ -302,13 +302,16 @@ func _on_move_requested(event: GnosisEvent) -> void:
 	var b = Models.TileCoord.new(x2, y2)
 	var results := _gameplay.process_move(a, b, _item_points)
 	_publish_ephemeral_state()
-	_publish_board_changed()
-	if not results.is_empty():
+	var success := not results.is_empty()
+	if success:
 		_record_move_statistics(results)
 		var last = results[results.size() - 1]
 		_last_step_points = last.move_points_so_far
 		_last_step_multi = last.move_multi_so_far
-		_publish_move_resolved(results)
+	# The board view animates the swap + cascade from this step sequence, so we no
+	# longer snap the final board instantly. Published before any win/loss status
+	# change so the view marks itself busy and the adapter defers the result panel.
+	_publish_move_resolved(a, b, success, results)
 	if _gameplay.status == Models.STATUS_WIN:
 		_handle_round_won()
 	elif _gameplay.status == Models.STATUS_LOSS:
@@ -666,12 +669,54 @@ func _publish_board_changed() -> void:
 	_publish_fact(Events.FACT_MATCH3_BOARD_CHANGED, _build_board_payload())
 
 
-func _publish_move_resolved(results: Array) -> void:
+## Serializes the resolved move (optimistic swap + per-step cascade) so the board
+## view can animate it. Each step entry carries at most one of matched/movements/
+## spawns, matching how the gameplay core emits them.
+func _publish_move_resolved(a, b, success: bool, results: Array) -> void:
 	if context == null or context.store == null:
 		return
 	var payload := context.store.create_object()
+	payload.set_key("success", success)
 	payload.set_key("stepCount", results.size())
 	payload.set_key("finalScoreGain", _gameplay.current_score)
+	var swap := context.store.create_object()
+	swap.set_key("x1", a.x)
+	swap.set_key("y1", a.y)
+	swap.set_key("x2", b.x)
+	swap.set_key("y2", b.y)
+	payload.set_node("swap", swap)
+	var steps := context.store.create_list()
+	for entry in results:
+		if entry == null:
+			continue
+		var step := context.store.create_object()
+		var matched := context.store.create_list()
+		for coord in entry.matched_tiles:
+			var c := context.store.create_object()
+			c.set_key("x", coord.x)
+			c.set_key("y", coord.y)
+			matched.add(c)
+		step.set_node("matched", matched)
+		var moves := context.store.create_list()
+		for mv in entry.movements:
+			var m := context.store.create_object()
+			m.set_key("fromX", mv.from_coord.x)
+			m.set_key("fromY", mv.from_coord.y)
+			m.set_key("toX", mv.to_coord.x)
+			m.set_key("toY", mv.to_coord.y)
+			m.set_key("itemId", mv.item_id)
+			moves.add(m)
+		step.set_node("movements", moves)
+		var spawns := context.store.create_list()
+		for sp in entry.new_spawns:
+			var s := context.store.create_object()
+			s.set_key("x", sp.at.x)
+			s.set_key("y", sp.at.y)
+			s.set_key("itemId", sp.item_id)
+			spawns.add(s)
+		step.set_node("spawns", spawns)
+		steps.add(step)
+	payload.set_node("steps", steps)
 	_publish_fact(Events.FACT_MATCH3_MOVE_RESOLVED, payload)
 
 

@@ -10,6 +10,9 @@ const Events = Match3EventsScript
 var _match3_service = null
 var _dispatcher = null
 var _subscriptions: Array = []
+## Status published mid-animation (win/loss panel) is held until the board view
+## finishes the move so the winning/losing match still animates.
+var _pending_status: int = -1
 
 
 func _ready() -> void:
@@ -69,20 +72,51 @@ func _subscribe_facts() -> void:
 	var bus := engine.event_bus
 	_subscriptions.append(bus.subscribe(Events.FACT_MATCH3_BOARD_RESET, _on_board_fact, 0))
 	_subscriptions.append(bus.subscribe(Events.FACT_MATCH3_BOARD_CHANGED, _on_board_fact, 0))
+	_subscriptions.append(bus.subscribe(Events.FACT_MATCH3_MOVE_RESOLVED, _on_move_resolved, 0))
 	_subscriptions.append(bus.subscribe(Events.FACT_MATCH3_STATUS_CHANGED, _on_status_fact, 0))
 
 
 func _on_board_fact(event: GnosisEvent) -> void:
-	if _dispatcher and event:
-		_dispatcher.apply_board_payload(event.data)
+	if _dispatcher == null or event == null:
+		return
+	# Mid-move snapshots would stomp animated item nodes.
+	if event.id == Events.FACT_MATCH3_BOARD_CHANGED and _dispatcher.is_busy():
+		return
+	_dispatcher.apply_board_payload(event.data)
+
+
+func _on_move_resolved(event: GnosisEvent) -> void:
+	if _dispatcher and event and _dispatcher.has_method("play_move_sequence"):
+		_dispatcher.play_move_sequence(event.data)
+
+
+## Called by the dispatcher once a move's swap + cascade animation completes.
+## Applies any status (reward / game over panel) that was held during the move.
+func on_move_sequence_finished() -> void:
+	if _dispatcher:
+		_dispatcher.refresh_hud()
+	if _pending_status < 0:
+		return
+	var status := _pending_status
+	_pending_status = -1
+	_route_status_to_ui(status)
 
 
 func _on_status_fact(event: GnosisEvent) -> void:
-	if _dispatcher:
-		_dispatcher.refresh_hud()
 	if event == null or not event.data.is_valid():
 		return
 	var status := _node_int(event.data, Events.PAYLOAD_GAME_STATUS, Match3ModelsScript.STATUS_LEVEL_SELECT_PANEL)
+	# Hold a post-move result panel until the board view finishes animating, so
+	# the winning/losing match is not cut off by the overlay snapping in.
+	if _dispatcher and _dispatcher.has_method("is_busy") and _dispatcher.is_busy():
+		_pending_status = status
+		return
+	if _dispatcher:
+		_dispatcher.refresh_hud()
+	_route_status_to_ui(status)
+
+
+func _route_status_to_ui(status: int) -> void:
 	if engine == null:
 		return
 	var game_ui := engine.get_service("GameUI") as GnosisGameUIService
