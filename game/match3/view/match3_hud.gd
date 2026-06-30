@@ -44,6 +44,7 @@ signal content_frame_changed
 @onready var _swap_button: Button = %SwapButton
 @onready var _score_section: PanelContainer = %ScoreSection
 @onready var _consumables_bar: PanelContainer = %ConsumablesBar
+@onready var _board_host: Control = %BoardHost
 
 var _service = null
 var _swap_target := ""
@@ -102,6 +103,10 @@ func refresh_from_service(service = null) -> void:
 	_apply_level_meta(_service.get_active_level_meta())
 	if _status_label:
 		_status_label.text = _status_text(gameplay.status)
+	# Re-assert the consumable sidebar alignment once data refreshes; by now the
+	# sidebar panel has a valid layout, so this recovers if the initial deferred
+	# pass ran before the panel was sized.
+	_on_frame_dirty.call_deferred()
 
 
 ## Fills the boss/level card from the active level metadata, tinting the token
@@ -256,8 +261,20 @@ func get_content_frame_rect() -> Rect2:
 func _on_frame_dirty() -> void:
 	if _consumables_bar and _score_section:
 		var panel := _score_section.get_global_rect()
-		_consumables_bar.offset_top = panel.position.y
-		_consumables_bar.offset_bottom = panel.position.y + panel.size.y - size.y
+		# Skip while the sidebar panel has not been laid out yet, otherwise we
+		# would collapse the consumable sidebar to zero height (it never recovers
+		# during PLAYING because nothing re-triggers a resize).
+		if panel.size.y > 0.0:
+			_consumables_bar.offset_top = panel.position.y
+			_consumables_bar.offset_bottom = panel.position.y + panel.size.y - size.y
+	# Keep the board area on the exact same rect the subscreen overlays use, so
+	# the board fills the level-select / shop / reward region.
+	if _board_host:
+		var frame := get_content_frame_rect()
+		if frame.size.x > 0.0 and frame.size.y > 0.0:
+			_board_host.set_anchors_preset(Control.PRESET_TOP_LEFT)
+			_board_host.position = frame.position
+			_board_host.size = frame.size
 	content_frame_changed.emit()
 
 

@@ -1,33 +1,13 @@
 {
   "Ephemeral": {
     "mode": "solo",
+    "gamemode": "match3",
     "playerCount": 1,
     "seed": 0,
-    "timers": {
-      "tetrisRunElapsed": {
-        "timerId": "tetrisRunElapsed",
-        "direction": "up",
-        "start": 0,
-        "value": 0,
-        "target": 0,
-        "running": true,
-        "finished": false
-      }
-    },
-    "activeTimers": {
-      "tetrisRunElapsed": true
-    },
+    "timers": {},
+    "activeTimers": {},
     "rules": [],
-    "runtimeTransforms": {
-      "lastRequestingConsumablePlayerTransform": {
-        "x": 10,
-        "y": 8,
-        "z": 4
-      }
-    },
-    "maxBoonSlots": 5,
-    "filledBoonSlotsCount": 0,
-    "emptyBoonSlotsCount": 5,
+    "runtimeTransforms": {},
     "boons": {
       "default": {
         "list": [],
@@ -35,7 +15,7 @@
         "filledSlotsCount": 0,
         "emptySlotsCount": 5,
         "maxSize": 5,
-        "allowDuplicates": false,
+        "allowDuplicates": true,
         "stackable": false,
         "maxStackSize": 1
       }
@@ -45,9 +25,9 @@
         "list": [],
         "listCount": 0,
         "filledSlotsCount": 0,
-        "emptySlotsCount": 999,
-        "maxSize": 999,
-        "allowDuplicates": false,
+        "emptySlotsCount": 3,
+        "maxSize": 3,
+        "allowDuplicates": true,
         "stackable": false,
         "maxStackSize": 1,
         "totalStackQuantity": 0
@@ -55,16 +35,16 @@
     },
     "upgrades": {
       "run": {
-        "configId": "upgrades",
+        "configId": "runUpgrades",
         "list": [],
         "listCount": 0,
         "filledSlotsCount": 0,
         "emptySlotsCount": 999999,
-        "totalStackQuantity": 0,
         "maxSize": 999999,
         "allowDuplicates": true,
         "stackable": true,
-        "maxStackSize": 999999
+        "maxStackSize": 999999,
+        "totalStackQuantity": 0
       },
       "itemUpgrades": {
         "configId": "itemUpgrades",
@@ -72,24 +52,11 @@
         "listCount": 0,
         "filledSlotsCount": 0,
         "emptySlotsCount": 999999,
-        "totalStackQuantity": 0,
         "maxSize": 999999,
         "allowDuplicates": true,
         "stackable": true,
-        "maxStackSize": 999999
-      }
-    },
-    "scalings": {
-      "fallingBlockObjective": {
-        "base": 10000,
-        "steps": "multiplier",
-        "linearStep": 0,
-        "multiplier": 1.2,
-        "exponent": 1,
-        "min": 10000,
-        "max": 0,
-        "rounding": "round",
-        "targetType": "scalable"
+        "maxStackSize": 999999,
+        "totalStackQuantity": 0
       }
     },
     "abilities": {
@@ -105,216 +72,150 @@
         "maxStackSize": 1
       }
     },
-    "lastConsumedConsumableId": "",
-    "secondLastConsumedConsumableId": "",
-    "rewardChoiceCount": 0,
-    "selectedRewardSlotIndex": 0,
-    "rewardSelectionPending": false,
-    "rewardOffers": [],
+    "currencies": {
+      "money": {
+        "currencyId": "money",
+        "currentValue": 4,
+        "min": 0,
+        "max": 9999,
+        "interestBaseCap": 25,
+        "interestRateDivisor": 5,
+        "increaseSfx": [],
+        "decreaseSfx": []
+      }
+    },
     "statistics": {
-      "totalDiscardsUsed": 0,
-      "totalDiscardsAdded": 0,
-      "tetris": {
-        "linesCleared": {
-          "total": 0,
-          "lines1": 0,
-          "lines2": 0,
-          "lines3": 0,
-          "lines4": 0,
-          "lines5": 0,
-          "lines6": 0,
-          "lines7": 0,
-          "lines8": 0,
-          "lines9": 0,
-          "lines10": 0,
-          "lines11Plus": 0
-        },
-        "ultravibePlaced": {
-          "total": 0,
-          "withoutRotation": 0,
-          "withoutHorizontalMove": 0,
-          "hardDrop": 0,
-          "softDrop": 0,
-          "tags": {},
-          "ultravibeIds": {},
-          "blockCount": {
-            "even": 0,
-            "odd": 0,
-            "blocks2": 0,
-            "blocks3": 0,
-            "blocks4": 0,
-            "blocks5": 0,
-            "blocks6": 0,
-            "blocks7": 0,
-            "blocks8": 0,
-            "blocks9": 0
-          }
-        },
-        "deck": {
-          "entriesAdded": 0,
-          "entriesRemoved": 0,
-          "present": {
-            "total": 0,
-            "ultravibeIds": {},
-            "variantIds": {},
-            "tags": {},
-            "blockCount": {
-              "even": 0,
-              "odd": 0,
-              "blocks2": 0,
-              "blocks3": 0,
-              "blocks4": 0,
-              "blocks5": 0,
-              "blocks6": 0,
-              "blocks7": 0,
-              "blocks8": 0,
-              "blocks9": 0
-            },
-            "summary": {
-              "bigUltravibes5Plus": 0,
-              "smallUltravibesMax4": 0,
-              "positiveVariantEntries": 0,
-              "negativeVariantEntries": 0
-            }
-          }
+      "currency": {
+        "money": {
+          "earned": 0,
+          "spent": 0,
+          "interest": 0
         }
       },
-      "consumables": {
-        "added": {
+      "match3": {
+        "rounds": {
+          "played": 0,
+          "skipped": 0,
+          "doubleDown": 0,
           "total": 0
         },
-        "removed": {
+        "moves": {
+          "used": 0,
+          "unused": 0
+        },
+        "shuffles": {
+          "used": 0,
+          "unused": 0
+        },
+        "matches": {
           "total": 0
         },
-        "used": {
-          "total": 0
-        }
-      },
-      "upgrades": {
-        "added": {
-          "total": 0
-        },
-        "removed": {
-          "total": 0
+        "items": {
+          "destroyed": {
+            "total": 0
+          }
         }
       }
     },
-    "fallingBlock": {
-      "tetrisGridWidth": 10,
-      "tetrisGridVisibleHeight": 20,
-      "tetrisGridHiddenRows": 4,
-      "tetrisGridCells": [],
-      "tetrisGridPlayers": [],
-      "currentDiscards": 3,
-      "baseDiscards": 3,
-      "persistDiscards": false,
-      "minDiscards": 0,
-      "maxDiscards": 9999,
-      "deckCount": 0,
-      "gameFlags": {
-        "originalOnly": false,
-        "includeNegatives": true,
-        "negativeOnly": false,
-        "maxSpeedOnly": false,
-        "includeSpecialUltravibes": true,
-        "includeBosses": true,
-        "bossOnly": false,
-        "includeRewards": true,
-        "includeBoons": true,
-        "includeConsumables": true,
-        "includeUpgrades": true,
-        "includeAbilities": true,
-        "includeDiscards": true,
-        "infiniteDiscards": false
+    "match3Shop": {
+      "minPrice": 1,
+      "shopDiscountPercent": 0.0,
+      "maxShopDiscountPercent": 0.5,
+      "priceInflationPerFloorPercent": 0.0,
+      "upgrades": {
+        "basePrice": 10
       },
-      "negativeUltravibeChance": 1,
-      "negativeUltravibeChanceMin": 1,
-      "negativeUltravibeChanceMax": 25,
-      "negativeUltravibeChanceIncrement": 1,
-      "runScalingLinesPerInterval": 10,
-      "runScalingLastLineIntervalIndex": 0,
-      "negativeScalingLinesPerInterval": 5,
-      "negativeScalingLastLineIntervalIndex": 0,
-      "steadyHandsLastRewardInterval": 0,
-      "roundRewardRareOfferChancePercent": 30,
-      "rewardNeedPressureBandPercent": 20,
-      "rewardNeedMaxWeightMultiplier": 3.5,
-      "rewardNeedGridPressureStartFillPercent": 70,
-      "rewardNeedGridPressureFullFillPercent": 90,
-      "fallSpeedDifficulty": "normal",
-      "gravitySecondsPerCell": 1.0,
-      "gravitySecondsPerCellStarting": 1.0,
-      "gravityLevelOffset": 0,
-      "tagChanceSinking": 35,
-      "tagChanceContagious": 15,
-      "tagChanceExpansive": 30,
-      "tagChanceRising": 30,
-      "tagChanceHealing": 20,
-      "tagChancePoisoning": 20,
-      "tetrisTrashLineLastGapColumn": -1,
-      "minDeckSize": 1,
-      "maxDeckSize": 999,
-      "deckLength": 0,
-      "deckEntries": [],
-      "nextPiecesQueues": {},
-      "requiredUltravibeTags": [],
-      "excludedUltravibeTags": [],
-      "currentRound": 1,
-      "bossScheduleBasis": 0,
-      "bossEncounterIsActive": false,
-      "bossEncounterLevelId": "",
-      "bossEncounterStartedAtElapsedSec": 0,
-      "bossEncounterEndsAtElapsedSec": 0,
-      "bossScheduleNextSpawnAtElapsedSec": 0,
-      "bossScheduleNextLevelId": "",
-      "bossEncounterCountsById": {},
-      "bossProgressEncountersStarted": 0,
-      "roundIsBossRound": false,
-      "bossEncountersSurvivedThisRun": 0,
-      "roundsFinishedThisRun": 0,
-      "runElapsedSecCheckpoint": 0,
-      "roundThemeId": "normal",
-      "roundSpriteId": "",
-      "roundDisplayLetter": "1",
-      "roundDescriptionKey": "",
-      "bossPreviewHasBoss": false,
-      "bossPreviewShowsCurrentEncounter": false,
-      "bossPreviewSecondsUntil": 0,
-      "bossPreviewLevelId": "",
-      "bossPreviewGlyph": "",
-      "bossPreviewColor": "",
-      "bossPreviewCountdownWindowSec": 0,
-      "currentAbilityId": "",
-      "currentAbilitySpriteId": "",
-      "currentAbilityCooldownSeconds": 0,
-      "currentAbilityRemainingCooldownSeconds": 0,
-      "currentAbilityP0Ready": false,
-      "currentAbilityP1Ready": false,
-      "currentAbilityP2Ready": false,
-      "currentAbilityP3Ready": false,
-      "roundLinesCurrent": 0,
-      "roundLinesNeeded": 5,
-      "runTotalScore": {
-        "coefficient": 0,
-        "suffixIndex": 1
-      },
-      "selectedConsumableSlotIndex": 0,
-      "variantLevels": {
-        "blue": 1,
-        "green": 1,
+      "core": {
+        "slots": 6,
+        "boonWeightPercent": 66,
+        "consumableWeightPercent": 34,
+        "itemUpgradeWeightPercent": 0,
+        "basePrice": 4,
+        "baseRerollPrice": 5,
+        "freeRerollCount": 0,
+        "rerollFlatDiscount": 0,
+        "rerollPriceIncrement": 2,
+        "boonCommonWeightPercent": 70,
+        "boonUncommonWeightPercent": 25,
+        "boonRareWeightPercent": 5,
+        "defaultConsumableOfferChancePermille": 0,
+        "runUpgradeShopChancePermille": 120,
+        "runUpgradePityEveryN": 5,
+        "shopsSinceRunUpgradeOffer": 0
+      }
+    },
+    "match3": {
+      "nextLevel": 1,
+      "currentRound": 0,
+      "winningRound": 24,
+      "isRunComplete": false,
+      "isRunWon": false,
+      "runResult": "",
+      "currentFloor": 1,
+      "floorProgressText": "1 - 8",
+      "roundInFloor": 1,
+      "isBossRound": false,
+      "isSkippable": true,
+      "isDoubleDown": false,
+      "doubleDownActive": false,
+      "doubleDownRound": 0,
+      "totalFloors": 8,
+      "roundsPerFloor": 3,
+      "colorLimit": 5,
+      "currentMoves": 10,
+      "currentScore": 0,
+      "targetScore": 2000,
+      "roundRequiredScore": 0,
+      "stepPoints": 0,
+      "stepMulti": 0,
+      "stepIndex": 0,
+      "stepCount": 0,
+      "movesPerformed": 0,
+      "pendingRoundMovesAdd": 0,
+      "currentShuffles": 2,
+      "roundStartShuffles": 2,
+      "gameStatus": "levelSelectPanel",
+      "flags": {},
+      "itemLevels": {
         "orange": 1,
         "red": 1,
-        "lucky": 1,
-        "slime": 1,
-        "moss": 1,
-        "brick": 1,
-        "trash": 1,
-        "honeycomb": 1,
-        "heart": 1,
-        "cog": 1
+        "purple": 1,
+        "blue": 1,
+        "green": 1,
+        "pink": 1
       },
-      "nextLevel": 1,
-      "currentFloor": 1
+      "boardId": "",
+      "boardWidth": 0,
+      "boardHeight": 0,
+      "boardCellsCount": 0,
+      "boardCells": [],
+      "plannedFloor": {},
+      "floorCount": 8,
+      "totalRounds": 24,
+      "bossRoundIndexInFloor": 3,
+      "bossRoundsSkippable": false,
+      "defaultMovesPerRound": 10,
+      "defaultShufflesPerRound": 2,
+      "doubleDownTargetScoreMultiplier": 10,
+      "endlessModeEnabled": false,
+      "sandboxEndlessEnabled": false,
+      "objectiveTarget": {
+        "roundTargets": [
+          1500, 2250, 3000, 4500, 6500, 9500,
+          14000, 20000, 30000, 45000, 70000, 105000,
+          160000, 250000, 380000, 580000, 880000, 1300000,
+          1550000, 1750000, 1850000, 1920000, 1960000, 2000000
+        ],
+        "base": 2000,
+        "steps": "multiplier",
+        "linearStep": 0,
+        "multiplier": 1.4,
+        "exponent": 1,
+        "min": 1,
+        "max": 2000000,
+        "rounding": "round",
+        "targetType": "int"
+      }
     }
   }
 }

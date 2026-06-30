@@ -27,8 +27,12 @@ const ITEM_TEXTURES := {
 	"pink": "res://assets/blocks/love.png",
 }
 
-@export var cell_size: Vector2 = Vector2(56, 56)
-@export var cell_gap: float = 4.0
+## Fraction of a cell used as the gap between cells (keeps spacing proportional
+## as the board scales to fill the available area).
+const CELL_GAP_RATIO := 0.08
+
+var cell_size: Vector2 = Vector2(56, 56)
+var cell_gap: float = 4.0
 
 var _service = null
 var _adapter = null
@@ -38,12 +42,14 @@ var _tiles: Array = []
 var _textures: Dictionary = {}
 var _drag_start: Vector2i = Vector2i(-1, -1)
 var _hover_cell: Vector2i = Vector2i(-1, -1)
+var _origin: Vector2 = Vector2.ZERO
 
 
 func _ready() -> void:
 	add_to_group(GROUP)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	_preload_textures()
+	resized.connect(_update_layout)
 	call_deferred("_resolve_adapter")
 
 
@@ -119,12 +125,25 @@ func _tiles_from_payload(payload: GnosisNode) -> Array:
 	return result
 
 
+## Scales the board to fill the available rect (the shared subscreen content
+## frame) using square cells, then centers it within that rect.
 func _update_layout() -> void:
-	var board_w := _width * cell_size.x + maxi(0, _width - 1) * cell_gap
-	var board_h := _height * cell_size.y + maxi(0, _height - 1) * cell_gap
-	custom_minimum_size = Vector2(board_w, board_h)
-	set_anchors_preset(Control.PRESET_CENTER)
-	position = Vector2(-board_w * 0.5, -board_h * 0.5)
+	if _width <= 0 or _height <= 0:
+		queue_redraw()
+		return
+	var avail := size
+	if avail.x <= 0.0 or avail.y <= 0.0:
+		return
+	# Pick the largest square cell (incl. its gap) that fits both axes.
+	var step_x := avail.x / (_width + maxi(0, _width - 1) * CELL_GAP_RATIO)
+	var step_y := avail.y / (_height + maxi(0, _height - 1) * CELL_GAP_RATIO)
+	var cs := maxf(1.0, minf(step_x, step_y))
+	cell_gap = cs * CELL_GAP_RATIO
+	cell_size = Vector2(cs, cs)
+	var board_w := _width * cs + maxi(0, _width - 1) * cell_gap
+	var board_h := _height * cs + maxi(0, _height - 1) * cell_gap
+	_origin = Vector2((avail.x - board_w) * 0.5, (avail.y - board_h) * 0.5)
+	queue_redraw()
 
 
 func _draw() -> void:
@@ -175,8 +194,8 @@ func _cell_at_local(local_pos: Vector2) -> Vector2i:
 
 
 func _cell_rect(x: int, y: int) -> Rect2:
-	var px := x * (cell_size.x + cell_gap)
-	var py := y * (cell_size.y + cell_gap)
+	var px := _origin.x + x * (cell_size.x + cell_gap)
+	var py := _origin.y + y * (cell_size.y + cell_gap)
 	return Rect2(Vector2(px, py), cell_size)
 
 

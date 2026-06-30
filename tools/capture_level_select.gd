@@ -31,11 +31,14 @@ func _process(_delta: float) -> bool:
 		_start_run()
 	elif _frames == 55:
 		_save("level_select")
-		_transition("shopPanel")
+		_play_level()
 	elif _frames == 90:
+		_save("playing")
+		_transition("shopPanel")
+	elif _frames == 125:
 		_save("shop")
 		_transition("rewardPanel")
-	elif _frames == 125:
+	elif _frames == 160:
 		_save("reward")
 		quit(0)
 	return false
@@ -57,6 +60,15 @@ func _start_run() -> void:
 	var ui = _ui()
 	if ui and eng:
 		UltraGameUiNav.transition_to_gameplay(ui, eng.store, "play", "slide_up")
+
+func _play_level() -> void:
+	var eng = _engine()
+	var match3 = eng.get_service("Match3") if eng else null
+	if eng == null or match3 == null:
+		return
+	var params: GnosisNode = eng.store.create_object()
+	params.set_key("doubleDown", false)
+	match3.invoke_function("PlayLevel", params)
 
 func _transition(state: String) -> void:
 	var eng = _engine()

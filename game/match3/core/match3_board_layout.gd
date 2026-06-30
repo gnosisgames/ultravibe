@@ -41,12 +41,15 @@ static func _parse_square(raw: Dictionary) -> Square:
 	if pos is Dictionary:
 		sq.x = int(pos.get("x", 0))
 		sq.y = int(pos.get("y", 0))
+	# Slot-type resolution mirrors Unity Match3GnosisService.Gameplay (ResolveSlotType):
+	# block == 0 -> none; obstacle > 0 -> destructible; otherwise an active (playable)
+	# cell. blockLayer/obstacleLayer only contribute slot health for destructible cells.
 	var block := int(raw.get("block", 1))
 	var obstacle := int(raw.get("obstacle", 0))
-	sq.slot_health = maxi(0, int(raw.get("blockLayer", 0)) + int(raw.get("obstacleLayer", 0)))
-	if block <= 0 and obstacle <= 0:
+	sq.slot_health = maxi(0, int(raw.get("blockLayer", 1)) + int(raw.get("obstacleLayer", 0)))
+	if block == 0:
 		sq.slot_type = Models.SLOT_NONE
-	elif sq.slot_health > 0:
+	elif obstacle > 0:
 		sq.slot_type = Models.SLOT_DESTRUCTIBLE
 	else:
 		sq.slot_type = Models.SLOT_ACTIVE
