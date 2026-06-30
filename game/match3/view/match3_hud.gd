@@ -11,6 +11,18 @@ const Match3ModelsScript = preload("res://game/match3/core/match3_models.gd")
 const TOKEN_FONT_PATH := "res://assets/fonts/PolygonParty-3KXM.ttf"
 const TOKEN_DEFAULT_BG := Color(0.0980392, 0.156863, 0.227451)
 
+## Group used by subscreen overlays (shop / level select / reward) to find this
+## HUD and query the shared content frame.
+const HUD_GROUP := "match3_hud"
+## Uniform gap between the content frame and the sidebars (and between cards).
+const FRAME_GAP := 32.0
+const SWAP_ICON_SHOP := "res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/store.png"
+const SWAP_ICON_LEVELS := "res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/back.png"
+
+## Emitted whenever the content frame rect changes (sidebar relayout / resize) so
+## overlays can re-align themselves to it.
+signal content_frame_changed
+
 @onready var _level_token_panel: PanelContainer = %LevelTokenPanel
 @onready var _level_token: Label = %LevelToken
 @onready var _level_name: Label = %LevelName
@@ -29,12 +41,16 @@ const TOKEN_DEFAULT_BG := Color(0.0980392, 0.156863, 0.227451)
 @onready var _settings_button: Button = %SettingsButton
 @onready var _wiki_button: Button = %WikiButton
 @onready var _shuffle_button: Button = %ShuffleButton
-@onready var _buttons_row: HBoxContainer = %ButtonsRow
+@onready var _swap_button: Button = %SwapButton
+@onready var _score_section: PanelContainer = %ScoreSection
+@onready var _consumables_bar: PanelContainer = %ConsumablesBar
 
 var _service = null
+var _swap_target := ""
 
 
 func _ready() -> void:
+	add_to_group(HUD_GROUP)
 	var token_font = load(TOKEN_FONT_PATH)
 	if token_font and _level_token:
 		_level_token.add_theme_font_override("font", token_font)
@@ -46,9 +62,12 @@ func _ready() -> void:
 		_wiki_button.pressed.connect(_on_wiki_pressed)
 	if _shuffle_button:
 		_shuffle_button.pressed.connect(_on_shuffle_pressed)
-	if _buttons_row:
-		_buttons_row.resized.connect(_layout_action_buttons)
-		_layout_action_buttons.call_deferred()
+	if _swap_button:
+		_swap_button.pressed.connect(_on_swap_pressed)
+	if _score_section:
+		_score_section.resized.connect(_on_frame_dirty)
+	resized.connect(_on_frame_dirty)
+	_on_frame_dirty.call_deferred()
 
 
 func bind_service(service) -> void:
@@ -185,24 +204,60 @@ func _on_shuffle_pressed() -> void:
 		_service.invoke_function("TryUseShuffle", null)
 
 
-## Sizes the action buttons so they always span the full sidebar width, splitting
-## the row evenly regardless of how many buttons exist, and keeps each one square
-## by driving its height from the computed per-button width.
-func _layout_action_buttons() -> void:
-	if _buttons_row == null:
+func _on_swap_pressed() -> void:
+	if _service == null or _swap_target.is_empty():
 		return
-	var buttons: Array = []
-	for child in _buttons_row.get_children():
-		if child is Control and (child as Control).visible:
-			buttons.append(child)
-	var count := buttons.size()
-	if count == 0:
+	if _service.context == null or _service.context.engine == null:
 		return
-	var separation := float(_buttons_row.get_theme_constant("separation"))
-	var total_width := _buttons_row.size.x
-	var button_size := (total_width - separation * float(count - 1)) / float(count)
-	if button_size <= 0.0:
+	var params = _service.context.engine.store.create_object()
+	params.set_key("gameStatus", _swap_target)
+	_service.invoke_function("TransitionToState", params)
+
+
+## Shows/hides the green sidebar swap button used to toggle between the shop and
+## level-select subscreens. `mode` is "to_shop", "to_level_select", or "" (hidden).
+func set_subscreen_swap_mode(mode: String) -> void:
+	if _swap_button == null:
 		return
-	for button in buttons:
-		var control := button as Control
-		control.custom_minimum_size = Vector2(0.0, button_size)
+	match mode:
+		"to_shop":
+			_swap_button.icon = load(SWAP_ICON_SHOP)
+			_swap_button.tooltip_text = "core__noun__shop"
+			_swap_target = "shopPanel"
+			_swap_button.visible = true
+		"to_level_select":
+			_swap_button.icon = load(SWAP_ICON_LEVELS)
+			_swap_button.tooltip_text = "ultravibe__ui__levelSelect"
+			_swap_target = "levelSelectPanel"
+			_swap_button.visible = true
+		_:
+			_swap_target = ""
+			_swap_button.visible = false
+
+
+## Global rect of the shared subscreen content frame: spans the gap between the
+## main sidebar panel and the consumable sidebar, with the height of the main
+## sidebar panel. All subscreens (level select / shop / reward) fill this.
+func get_content_frame_rect() -> Rect2:
+	if _score_section == null:
+		return Rect2()
+	var panel := _score_section.get_global_rect()
+	var left := panel.position.x + panel.size.x + FRAME_GAP
+	var top := panel.position.y
+	var bottom := panel.position.y + panel.size.y
+	var right := size.x - FRAME_GAP
+	if _consumables_bar:
+		right = _consumables_bar.get_global_rect().position.x - FRAME_GAP
+	return Rect2(left, top, maxf(0.0, right - left), maxf(0.0, bottom - top))
+
+
+## Keeps the consumable sidebar vertically aligned with the main sidebar panel
+## (same top/bottom), then notifies overlays the frame may have moved.
+func _on_frame_dirty() -> void:
+	if _consumables_bar and _score_section:
+		var panel := _score_section.get_global_rect()
+		_consumables_bar.offset_top = panel.position.y
+		_consumables_bar.offset_bottom = panel.position.y + panel.size.y - size.y
+	content_frame_changed.emit()
+
+

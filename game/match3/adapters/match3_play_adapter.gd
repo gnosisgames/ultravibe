@@ -26,6 +26,7 @@ func _on_service_bound() -> void:
 	_subscribe_facts()
 	if _dispatcher:
 		_dispatcher.bind_service(_match3_service)
+	_set_board_visible(_match3_service != null and _match3_service.get_current_status() == Match3ModelsScript.STATUS_PLAYING)
 
 
 func bind_dispatcher(dispatcher) -> void:
@@ -81,7 +82,7 @@ func _on_status_fact(event: GnosisEvent) -> void:
 		_dispatcher.refresh_hud()
 	if event == null or not event.data.is_valid():
 		return
-	var status := _node_int(event.data, Events.PAYLOAD_GAME_STATUS, Match3ModelsScript.STATUS_PLAYING)
+	var status := _node_int(event.data, Events.PAYLOAD_GAME_STATUS, Match3ModelsScript.STATUS_LEVEL_SELECT_PANEL)
 	if engine == null:
 		return
 	var game_ui := engine.get_service("GameUI") as GnosisGameUIService
@@ -89,17 +90,61 @@ func _on_status_fact(event: GnosisEvent) -> void:
 		return
 	if game_ui.get_base_view_id().strip_edges().to_lower() != "gameplay":
 		return
+	_apply_status_to_ui(status, game_ui)
+
+
+## Re-applies board visibility and subscreen overlays from the current Match3 status.
+## Call when entering the gameplay view so a status event published earlier is not missed.
+func sync_subscreen_from_status() -> void:
+	if engine == null or _match3_service == null:
+		return
+	var game_ui := engine.get_service("GameUI") as GnosisGameUIService
+	if game_ui == null:
+		return
+	if game_ui.get_base_view_id().strip_edges().to_lower() != "gameplay":
+		return
+	_apply_status_to_ui(_match3_service.get_current_status(), game_ui)
+	if _dispatcher:
+		_dispatcher.refresh_hud()
+
+
+func _apply_status_to_ui(status: int, game_ui: GnosisGameUIService) -> void:
+	# The board grid belongs to the PLAYING substate only; hide it whenever a
+	# full-area panel (reward / game over / shop / level select) is shown.
+	_set_board_visible(status == Match3ModelsScript.STATUS_PLAYING)
 	match status:
 		Match3ModelsScript.STATUS_PLAYING:
+			_set_swap_mode("")
 			_dismiss_match3_overlays(game_ui)
 		Match3ModelsScript.STATUS_WIN, Match3ModelsScript.STATUS_REWARD_PANEL:
+			_set_swap_mode("")
 			_push_overlay(game_ui, "reward")
 		Match3ModelsScript.STATUS_LOSS, Match3ModelsScript.STATUS_LOSE_PANEL:
+			_set_swap_mode("")
 			_push_overlay(game_ui, "game_over")
 		Match3ModelsScript.STATUS_SHOP_PANEL:
+			_set_swap_mode("to_level_select")
 			_switch_overlay(game_ui, "shop", "level_select")
 		Match3ModelsScript.STATUS_LEVEL_SELECT_PANEL:
+			# The shop only joins the loop after the first round; keep the green
+			# switcher hidden on the opening level select.
+			if _match3_service and _match3_service.has_method("is_shop_available") \
+					and _match3_service.is_shop_available():
+				_set_swap_mode("to_shop")
+			else:
+				_set_swap_mode("")
 			_switch_overlay(game_ui, "level_select", "shop")
+
+
+func _set_board_visible(is_visible: bool) -> void:
+	if _dispatcher:
+		_dispatcher.visible = is_visible
+
+
+func _set_swap_mode(mode: String) -> void:
+	var hud = get_tree().get_first_node_in_group("match3_hud") if get_tree() else null
+	if hud and hud.has_method("set_subscreen_swap_mode"):
+		hud.set_subscreen_swap_mode(mode)
 
 
 func _push_overlay(game_ui: GnosisGameUIService, view_id: String) -> void:

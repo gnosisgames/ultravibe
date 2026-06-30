@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=19 format=3]
 
 [ext_resource type="Script" path="res://game/match3/view/match3_hud.gd" id="1"]
 [ext_resource type="Script" path="res://game/match3/view/match3_dispatcher.gd" id="2"]
@@ -8,6 +8,7 @@
 [ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/cog.png" id="6"]
 [ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/shuffle.png" id="7"]
 [ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/book.png" id="8"]
+[ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/store.png" id="9"]
 
 [sub_resource type="StyleBoxFlat" id="SB_section"]
 content_margin_left = 24.0
@@ -136,6 +137,68 @@ shadow_color = Color(0.345098, 0.137255, 0.137255, 1)
 shadow_size = 1
 shadow_offset = Vector2(3, 4)
 
+[sub_resource type="StyleBoxFlat" id="SB_swap_normal"]
+content_margin_left = 10.0
+content_margin_right = 10.0
+bg_color = Color(0.290196, 0.733333, 0.337255, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+corner_detail = 12
+shadow_color = Color(0.121569, 0.341176, 0.180392, 1)
+shadow_size = 1
+shadow_offset = Vector2(3, 4)
+
+[sub_resource type="StyleBoxFlat" id="SB_swap_pressed"]
+content_margin_left = 10.0
+content_margin_right = 10.0
+bg_color = Color(0.227451, 0.592157, 0.27451, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+corner_detail = 12
+shadow_color = Color(0.121569, 0.341176, 0.180392, 1)
+shadow_size = 1
+shadow_offset = Vector2(3, 4)
+
+[sub_resource type="StyleBoxFlat" id="SB_swap_hover"]
+content_margin_left = 10.0
+content_margin_right = 10.0
+bg_color = Color(0.34902, 0.811765, 0.4, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.152941, 0.396078, 0.215686, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+corner_detail = 12
+shadow_color = Color(0.121569, 0.341176, 0.180392, 1)
+shadow_size = 1
+shadow_offset = Vector2(3, 4)
+
+[sub_resource type="StyleBoxFlat" id="SB_swap_focus"]
+content_margin_left = 10.0
+content_margin_right = 10.0
+bg_color = Color(0.290196, 0.733333, 0.337255, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.152941, 0.396078, 0.215686, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+corner_detail = 12
+shadow_color = Color(0.121569, 0.341176, 0.180392, 1)
+shadow_size = 1
+shadow_offset = Vector2(3, 4)
+
 [node name="Match3Hud" type="Control"]
 layout_mode = 3
 anchors_preset = 15
@@ -156,7 +219,7 @@ grow_vertical = 2
 theme_override_constants/margin_left = 32
 theme_override_constants/margin_top = 32
 theme_override_constants/margin_right = 16
-theme_override_constants/margin_bottom = 32
+theme_override_constants/margin_bottom = 172
 
 [node name="Layout" type="VBoxContainer" parent="Sidebar"]
 layout_mode = 2
@@ -242,6 +305,7 @@ text = "300K"
 horizontal_alignment = 2
 
 [node name="ScoreSection" type="PanelContainer" parent="Sidebar/Layout"]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_styles/panel = SubResource("SB_section")
@@ -452,109 +516,6 @@ theme_override_font_sizes/font_size = 36
 text = "$0"
 horizontal_alignment = 1
 
-[node name="ButtonsSection" type="VBoxContainer" parent="Sidebar/Layout"]
-layout_mode = 2
-size_flags_vertical = 0
-
-[node name="ButtonsRow" type="HBoxContainer" parent="Sidebar/Layout/ButtonsSection"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_constants/separation = 16
-alignment = 1
-
-[node name="HomeButton" parent="Sidebar/Layout/ButtonsSection/ButtonsRow" instance=ExtResource("4")]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 0)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
-theme_override_colors/icon_normal_color = Color(1, 1, 1, 1)
-theme_override_colors/icon_focus_color = Color(1, 1, 1, 1)
-theme_override_colors/icon_hover_color = Color(1, 1, 1, 1)
-theme_override_colors/icon_pressed_color = Color(1, 1, 1, 1)
-theme_override_constants/icon_max_width = 64
-tooltip_text = "core__noun__home"
-icon_alignment = 1
-vertical_icon_alignment = 1
-text = ""
-icon = ExtResource("5")
-expand_icon = true
-
-[node name="SettingsButton" parent="Sidebar/Layout/ButtonsSection/ButtonsRow" instance=ExtResource("4")]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 0)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
-theme_override_colors/icon_normal_color = Color(1, 1, 1, 1)
-theme_override_colors/icon_focus_color = Color(1, 1, 1, 1)
-theme_override_colors/icon_hover_color = Color(1, 1, 1, 1)
-theme_override_colors/icon_pressed_color = Color(1, 1, 1, 1)
-theme_override_constants/icon_max_width = 64
-tooltip_text = "core__noun__settings"
-icon_alignment = 1
-vertical_icon_alignment = 1
-text = ""
-icon = ExtResource("6")
-expand_icon = true
-
-[node name="WikiButton" parent="Sidebar/Layout/ButtonsSection/ButtonsRow" instance=ExtResource("4")]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 0)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
-theme_override_colors/icon_normal_color = Color(1, 1, 1, 1)
-theme_override_colors/icon_focus_color = Color(1, 1, 1, 1)
-theme_override_colors/icon_hover_color = Color(1, 1, 1, 1)
-theme_override_colors/icon_pressed_color = Color(1, 1, 1, 1)
-theme_override_constants/icon_max_width = 64
-tooltip_text = "ultravibe__ui__collection"
-icon_alignment = 1
-vertical_icon_alignment = 1
-text = ""
-icon = ExtResource("8")
-expand_icon = true
-
-[node name="ShuffleButton" parent="Sidebar/Layout/ButtonsSection/ButtonsRow" instance=ExtResource("4")]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 0)
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 4
-theme_override_colors/icon_normal_color = Color(1, 1, 1, 1)
-theme_override_colors/icon_focus_color = Color(1, 1, 1, 1)
-theme_override_colors/icon_hover_color = Color(1, 1, 1, 1)
-theme_override_colors/icon_pressed_color = Color(1, 1, 1, 1)
-theme_override_constants/icon_max_width = 64
-theme_override_styles/normal = SubResource("SB_shuffle_normal")
-theme_override_styles/pressed = SubResource("SB_shuffle_pressed")
-theme_override_styles/hover = SubResource("SB_shuffle_hover")
-theme_override_styles/focus = SubResource("SB_shuffle_focus")
-tooltip_text = "core__noun__shuffle"
-icon_alignment = 1
-vertical_icon_alignment = 1
-text = ""
-icon = ExtResource("7")
-expand_icon = true
-
-[node name="ShuffleCount" type="Label" parent="Sidebar/Layout/ButtonsSection/ButtonsRow/ShuffleButton"]
-unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 12
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_top = -39.0
-grow_horizontal = 2
-grow_vertical = 0
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_fonts/font = ExtResource("3")
-theme_override_font_sizes/font_size = 27
-text = "2"
-horizontal_alignment = 1
-vertical_alignment = 1
-
 [node name="StatusLabel" type="Label" parent="."]
 unique_name_in_owner = true
 layout_mode = 1
@@ -664,7 +625,7 @@ anchor_bottom = 1.0
 offset_left = 528.0
 offset_top = 230.0
 offset_right = -230.0
-offset_bottom = -32.0
+offset_bottom = -172.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
@@ -672,3 +633,134 @@ mouse_filter = 2
 [node name="Match3Dispatcher" type="Control" parent="BoardHost"]
 layout_mode = 2
 script = ExtResource("2")
+
+[node name="BottomNav" type="HBoxContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 32.0
+offset_top = -140.0
+offset_right = 636.0
+offset_bottom = -32.0
+grow_vertical = 0
+mouse_filter = 2
+theme_override_constants/separation = 16
+alignment = 0
+
+[node name="HomeButton" parent="BottomNav" instance=ExtResource("4")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(108, 108)
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 4
+theme_override_colors/icon_normal_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_focus_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_pressed_color = Color(1, 1, 1, 1)
+theme_override_constants/icon_max_width = 64
+tooltip_text = "core__noun__home"
+icon_alignment = 1
+vertical_icon_alignment = 1
+text = ""
+icon = ExtResource("5")
+expand_icon = true
+
+[node name="SettingsButton" parent="BottomNav" instance=ExtResource("4")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(108, 108)
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 4
+theme_override_colors/icon_normal_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_focus_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_pressed_color = Color(1, 1, 1, 1)
+theme_override_constants/icon_max_width = 64
+tooltip_text = "core__noun__settings"
+icon_alignment = 1
+vertical_icon_alignment = 1
+text = ""
+icon = ExtResource("6")
+expand_icon = true
+
+[node name="WikiButton" parent="BottomNav" instance=ExtResource("4")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(108, 108)
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 4
+theme_override_colors/icon_normal_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_focus_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_pressed_color = Color(1, 1, 1, 1)
+theme_override_constants/icon_max_width = 64
+tooltip_text = "ultravibe__ui__collection"
+icon_alignment = 1
+vertical_icon_alignment = 1
+text = ""
+icon = ExtResource("8")
+expand_icon = true
+
+[node name="ShuffleButton" parent="BottomNav" instance=ExtResource("4")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(108, 108)
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 4
+theme_override_colors/icon_normal_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_focus_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_pressed_color = Color(1, 1, 1, 1)
+theme_override_constants/icon_max_width = 64
+theme_override_styles/normal = SubResource("SB_shuffle_normal")
+theme_override_styles/pressed = SubResource("SB_shuffle_pressed")
+theme_override_styles/hover = SubResource("SB_shuffle_hover")
+theme_override_styles/focus = SubResource("SB_shuffle_focus")
+tooltip_text = "core__noun__shuffle"
+icon_alignment = 1
+vertical_icon_alignment = 1
+text = ""
+icon = ExtResource("7")
+expand_icon = true
+
+[node name="ShuffleCount" type="Label" parent="BottomNav/ShuffleButton"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -39.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3")
+theme_override_font_sizes/font_size = 27
+text = "2"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SwapButton" parent="BottomNav" instance=ExtResource("4")]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(108, 108)
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 4
+theme_override_colors/icon_normal_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_focus_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_pressed_color = Color(1, 1, 1, 1)
+theme_override_constants/icon_max_width = 64
+theme_override_styles/normal = SubResource("SB_swap_normal")
+theme_override_styles/pressed = SubResource("SB_swap_pressed")
+theme_override_styles/hover = SubResource("SB_swap_hover")
+theme_override_styles/focus = SubResource("SB_swap_focus")
+tooltip_text = "core__noun__shop"
+icon_alignment = 1
+vertical_icon_alignment = 1
+text = ""
+icon = ExtResource("9")
+expand_icon = true

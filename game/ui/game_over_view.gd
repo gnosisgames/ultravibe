@@ -180,9 +180,6 @@ func _on_restart_pressed() -> void:
 	var m3 = _match3_service()
 	if m3:
 		m3.handle_run_started()
-	var adapter := _host.get_node_or_null("Adapters/Match3PlayAdapter") if _host else null
-	if adapter and adapter.has_method("begin_level"):
-		adapter.begin_level(1)
 
 func _on_title_pressed() -> void:
 	if _actions_blocked():

@@ -4,6 +4,7 @@ extends GnosisUIElementView
 ## Match3 shop overlay shell (Unity ShopPanel parity). Lists core offers from
 ## Match3Shop and advances to the level-select panel on continue.
 
+const SubscreenFrame = preload("res://game/ui/subscreen_frame.gd")
 const ROW_BG := Color(0.356863, 0.368627, 0.560784, 1)
 const MONEY_COLOR := Color(0.937255, 0.74902, 0.0156863, 1)
 
@@ -11,6 +12,7 @@ const MONEY_COLOR := Color(0.937255, 0.74902, 0.0156863, 1)
 @onready var _money_label: Label = %MoneyLabel
 @onready var _reroll_button: Button = %RerollButton
 @onready var _continue_button: Button = %ContinueButton
+@onready var _center: Control = %Center
 @onready var _card: PanelContainer = $Center/Card
 
 var _row_font: Font = null
@@ -29,7 +31,12 @@ func set_view_visible(is_visible: bool) -> void:
 		if _card:
 			_card.scale = Vector2.ONE
 			_card.modulate.a = 1.0
+		SubscreenFrame.connect_changes(self, _apply_frame)
+		_apply_frame()
 		_refresh()
+
+func _apply_frame() -> void:
+	SubscreenFrame.apply(self, _center)
 
 func _resolve_host() -> void:
 	var node: Node = self

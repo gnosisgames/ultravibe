@@ -140,6 +140,14 @@ func get_current_round() -> int:
 	return _current_round
 
 
+## True once the run has advanced past the opening level select (i.e. the player
+## has completed at least one round and entered the reward/shop loop). The shop is
+## not part of the very first level select, so the swap button stays hidden there.
+func is_shop_available() -> bool:
+	var m3 := get_node("match3", false)
+	return _node_int(m3, "nextLevel", 1) > 1
+
+
 func get_current_floor() -> int:
 	return _current_floor
 
@@ -256,8 +264,13 @@ func is_board_input_allowed() -> bool:
 
 func handle_run_started() -> void:
 	_ensure_run_ephemeral_defaults()
-	_begin_level(1)
+	var m3 := get_node("match3", false)
+	var next_level := maxi(1, _node_int(m3, "nextLevel", 1))
+	_prepare_queued_round_preview(next_level)
+	_gameplay.status = Models.STATUS_LEVEL_SELECT_PANEL
 	refresh_planned_floor_preview()
+	_publish_ephemeral_state()
+	_publish_status_changed()
 
 
 func _on_begin_level_requested(event: GnosisEvent) -> void:
@@ -310,6 +323,35 @@ func _on_move_requested(event: GnosisEvent) -> void:
 
 func _begin_level(level_number: int) -> void:
 	_finalize_pending_round_rewards_silent()
+	_apply_round_setup(maxi(1, level_number))
+	var setup := _resolve_round_setup(_current_round)
+	var layout = _load_board_layout(_active_board_id)
+	if layout == null:
+		layout = Match3BoardLayoutScript.new()
+		layout.id = "fallback"
+		layout.width = 8
+		layout.height = 8
+	_gameplay.load_level(
+		layout,
+		int(setup.get("target_score", BASE_SCORE_TO_WIN)),
+		int(setup.get("moves", BASE_MOVES_LIMIT)),
+		int(setup.get("color_limit", BASE_COLOR_LIMIT)),
+		_item_points
+	)
+	_publish_ephemeral_state()
+	_publish_board_reset()
+
+
+## Fills HUD / ephemeral metadata for the queued round without loading the board.
+## Used at run start so the level-select subscreen is shown first (Unity parity).
+func _prepare_queued_round_preview(level_number: int) -> void:
+	_apply_round_setup(maxi(1, level_number))
+	_gameplay.current_score = 0
+	_last_step_points = 0
+	_last_step_multi = 1
+
+
+func _apply_round_setup(level_number: int) -> void:
 	_current_round = maxi(1, level_number)
 	var seed_svc = context.engine.get_service("Seed") if context and context.engine else null
 	if seed_svc and seed_svc.has_method("get_run_seed"):
@@ -328,15 +370,10 @@ func _begin_level(level_number: int) -> void:
 	_round_in_floor = int(setup.get("round_in_floor", 1))
 	_active_stage_type = str(setup.get("stage_type", "normal"))
 	_manual_shuffles_remaining = int(setup.get("shuffles", DEFAULT_SHUFFLES_PER_ROUND))
-	_gameplay.load_level(
-		layout,
-		int(setup.get("target_score", BASE_SCORE_TO_WIN)),
-		int(setup.get("moves", BASE_MOVES_LIMIT)),
-		int(setup.get("color_limit", BASE_COLOR_LIMIT)),
-		_item_points
-	)
-	_publish_ephemeral_state()
-	_publish_board_reset()
+	_gameplay.target_score = int(setup.get("target_score", BASE_SCORE_TO_WIN))
+	_gameplay.current_moves = int(setup.get("moves", BASE_MOVES_LIMIT))
+	_gameplay.width = maxi(1, layout.width)
+	_gameplay.height = maxi(1, layout.height)
 
 
 func _load_board_layout(board_id: String):
@@ -949,6 +986,7 @@ func refresh_planned_floor_preview() -> void:
 		var stage_type := str(setup.get("stage_type", "normal"))
 		var level_id := str(setup.get("level_id", "normal"))
 		var objective_target := int(setup.get("target_score", BASE_SCORE_TO_WIN))
+		var meta := _level_meta_for_setup(setup)
 		var row := context.store.create_object()
 		row.set_key("stageType", stage_type)
 		row.set_key("round", round_num)
@@ -961,11 +999,65 @@ func refresh_planned_floor_preview() -> void:
 		row.set_key("roundActionRewardConsumableId", _get_or_lock_round_action_reward_consumable_id(round_num))
 		row.set_key("rewardAmount", _reward_amount_for_setup(setup))
 		row.set_key("levelId", level_id)
+		row.set_key("difficultySkulls", _difficulty_skulls_for_stage(stage_type))
+		row.set_key("nameKey", _name_key_for_setup(stage_type, meta))
+		row.set_key("descriptionKey", _description_key_for_setup(stage_type, meta))
+		row.set_key("startingLetter", str(meta.get("startingLetter", "")))
+		row.set_key("backgroundColor", str(meta.get("backgroundColor", "")))
+		row.set_key("textColor", str(meta.get("textColor", "")))
 		rounds.add(row)
 	preview.set_node("rounds", rounds)
 	m3.set_node("plannedFloor", preview)
 	if context.engine:
-		context.engine.commit("match3", ["Ephemeral.match3"])
+		var changed_paths: Array[String] = ["Ephemeral.match3"]
+		context.engine.commit("match3", changed_paths)
+
+
+func _level_meta_for_setup(setup: Dictionary) -> Dictionary:
+	var saved_level := _active_level_id
+	var saved_stage := _active_stage_type
+	_active_level_id = str(setup.get("level_id", "normal"))
+	_active_stage_type = str(setup.get("stage_type", "normal"))
+	var meta := get_active_level_meta()
+	_active_level_id = saved_level
+	_active_stage_type = saved_stage
+	return meta
+
+
+func _difficulty_skulls_for_stage(stage_type: String) -> int:
+	match stage_type:
+		"boss":
+			return 3
+		"advanced":
+			return 2
+		_:
+			return 1
+
+
+func _name_key_for_setup(stage_type: String, meta: Dictionary) -> String:
+	var key := str(meta.get("nameKey", ""))
+	if not key.is_empty():
+		return key
+	match stage_type:
+		"boss":
+			return "bossLevelName"
+		"advanced":
+			return "advancedLevelName"
+		_:
+			return "normalLevelName"
+
+
+func _description_key_for_setup(stage_type: String, meta: Dictionary) -> String:
+	var key := str(meta.get("descriptionKey", ""))
+	if not key.is_empty():
+		return key
+	match stage_type:
+		"boss":
+			return "bossLevelDescription"
+		"advanced":
+			return "advancedLevelDescription"
+		_:
+			return "normalLevelDescription"
 
 
 func _reward_amount_for_setup(setup: Dictionary) -> int:
@@ -1059,7 +1151,8 @@ func _prepare_pending_round_reward_after_win() -> void:
 		payout.set_key("nextStepIndex", 0)
 	m3.set_node(PENDING_ROUND_REWARD_KEY, payout)
 	if context.engine:
-		context.engine.commit("match3", ["Ephemeral.match3"])
+		var changed_paths: Array[String] = ["Ephemeral.match3"]
+		context.engine.commit("match3", changed_paths)
 
 
 func _resolve_stage_reward_amount() -> int:

@@ -1,43 +1,6 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=2 format=3]
 
 [ext_resource type="Script" path="res://game/ui/level_select_view.gd" id="1"]
-[ext_resource type="Script" path="res://game/ui/components/bbcode_effect_text_combine.gd" id="5"]
-[ext_resource type="FontFile" path="res://assets/fonts/Comic Lemon.otf" id="6"]
-
-[sub_resource type="StyleBoxFlat" id="SB_card"]
-content_margin_left = 40.0
-content_margin_top = 34.0
-content_margin_right = 40.0
-content_margin_bottom = 34.0
-bg_color = Color(0.490196, 0.490196, 0.729412, 1)
-border_width_left = 5
-border_width_top = 5
-border_width_right = 5
-border_width_bottom = 5
-border_color = Color(0.823529, 0.835294, 0.945098, 1)
-corner_radius_top_left = 28
-corner_radius_top_right = 28
-corner_radius_bottom_right = 28
-corner_radius_bottom_left = 28
-shadow_color = Color(0.0784314, 0.137255, 0.227451, 0.6)
-shadow_size = 1
-shadow_offset = Vector2(5, 8)
-
-[sub_resource type="StyleBoxFlat" id="SB_play"]
-content_margin_left = 28.0
-content_margin_top = 14.0
-content_margin_right = 28.0
-content_margin_bottom = 14.0
-bg_color = Color(0.219608, 0.45098, 0.819608, 1)
-border_width_left = 4
-border_width_top = 4
-border_width_right = 4
-border_width_bottom = 4
-border_color = Color(0.886275, 0.913725, 0.984314, 1)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
 
 [node name="LevelSelectView" type="Control"]
 layout_mode = 3
@@ -46,95 +9,24 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 script = ExtResource("1")
 view_id = "level_select"
 
-[node name="Dim" type="ColorRect" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0, 0, 0, 0.55)
-
-[node name="Center" type="CenterContainer" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="Card" type="PanelContainer" parent="Center"]
-custom_minimum_size = Vector2(720, 480)
-layout_mode = 2
-theme_override_styles/panel = SubResource("SB_card")
-
-[node name="VBox" type="VBoxContainer" parent="Center/Card"]
-layout_mode = 2
-theme_override_constants/separation = 16
-
-[node name="Title" type="RichTextLabel" parent="Center/Card/VBox"]
-layout_mode = 2
-custom_minimum_size = Vector2(0, 72)
-focus_mode = 0
+[node name="Region" type="Control" parent="."]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 400.0
+offset_bottom = 400.0
 mouse_filter = 2
-theme_override_fonts/normal_font = ExtResource("6")
-theme_override_font_sizes/normal_font_size = 48
-bbcode_enabled = true
-fit_content = true
-horizontal_alignment = 1
-script = ExtResource("5")
-text_clean = "core__verb__play"
-bbcode = "[wave amp=40.0 freq=4.0 connected=1]%s[/wave]"
 
-[node name="Rounds" type="VBoxContainer" parent="Center/Card/VBox"]
+[node name="Cards" type="HBoxContainer" parent="Region"]
 unique_name_in_owner = true
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_constants/separation = 10
-
-[node name="Buttons" type="HBoxContainer" parent="Center/Card/VBox"]
-layout_mode = 2
-theme_override_constants/separation = 16
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 32
 alignment = 1
-
-[node name="PlayButton" type="Button" parent="Center/Card/VBox/Buttons"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(200, 64)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_fonts/font = ExtResource("6")
-theme_override_font_sizes/font_size = 28
-theme_override_styles/normal = SubResource("SB_play")
-theme_override_styles/hover = SubResource("SB_play")
-theme_override_styles/pressed = SubResource("SB_play")
-theme_override_styles/focus = SubResource("SB_play")
-text = "core__verb__play"
-
-[node name="DoubleDownButton" type="Button" parent="Center/Card/VBox/Buttons"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(200, 64)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_fonts/font = ExtResource("6")
-theme_override_font_sizes/font_size = 24
-theme_override_styles/normal = SubResource("SB_play")
-theme_override_styles/hover = SubResource("SB_play")
-theme_override_styles/pressed = SubResource("SB_play")
-theme_override_styles/focus = SubResource("SB_play")
-text = "x10"
-
-[node name="SkipButton" type="Button" parent="Center/Card/VBox/Buttons"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(160, 64)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_fonts/font = ExtResource("6")
-theme_override_font_sizes/font_size = 24
-theme_override_styles/normal = SubResource("SB_play")
-theme_override_styles/hover = SubResource("SB_play")
-theme_override_styles/pressed = SubResource("SB_play")
-theme_override_styles/focus = SubResource("SB_play")
-text = "core__verb__skip"

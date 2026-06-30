@@ -3,6 +3,8 @@
   "normalLevelDescription": "Normal Board with no modifiers!",
   "advancedLevelName": "Advanced",
   "advancedLevelDescription": "Hard Board with no modifiers!",
+  "bossLevelName": "Boss",
+  "bossLevelDescription": "Defeat the boss to clear the floor!",
   "anakinChildbaneLevelName": "Anakin Childbane",
   "boromirSeanLevelName": "Boromir Sean",
   "chadJawlineLevelName": "Chad Jawline",

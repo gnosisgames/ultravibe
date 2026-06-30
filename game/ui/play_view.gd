@@ -156,9 +156,6 @@ func _start_run() -> void:
 	var match3 = eng.get_service("Match3")
 	if match3:
 		match3.handle_run_started()
-	var adapter := _host.get_node_or_null("Adapters/Match3PlayAdapter") if _host else null
-	if adapter and adapter.has_method("begin_level"):
-		adapter.begin_level(1)
 	var ui := _game_ui()
 	if ui and eng:
 		UltraGameUiNav.transition_to_gameplay(ui, eng.store, "play", "slide_up")

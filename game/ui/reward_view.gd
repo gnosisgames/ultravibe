@@ -5,6 +5,7 @@ extends GnosisUIElementView
 ## row at a time, grants money through Match3.GrantNextRoundRewardStep, then Continue
 ## transitions to the shop panel state (Unity ContinueButton parity).
 
+const SubscreenFrame = preload("res://game/ui/subscreen_frame.gd")
 const MONEY_COLOR := Color(0.937255, 0.74902, 0.0156863, 1)
 const ROW_BG := Color(0.356863, 0.368627, 0.560784, 1)
 const ACTION_COOLDOWN_SEC := 0.6
@@ -13,6 +14,7 @@ const STEP_PAUSE_SEC := 0.35
 @onready var _rows: VBoxContainer = %RewardRows
 @onready var _empty_label: Label = %EmptyLabel
 @onready var _continue_button: Button = %ContinueButton
+@onready var _center: Control = %Center
 @onready var _card: PanelContainer = $Center/Card
 
 var _row_font: Font = null
@@ -34,12 +36,17 @@ func set_view_visible(is_visible: bool) -> void:
 		if _card:
 			_card.scale = Vector2.ONE
 			_card.modulate.a = 1.0
+		SubscreenFrame.connect_changes(self, _apply_frame)
+		_apply_frame()
 		_play_card_intro()
 		_arm_action_cooldown()
 		_start_reward_presentation()
 	else:
 		_presenting = false
 		_cancel_action_cooldown()
+
+func _apply_frame() -> void:
+	SubscreenFrame.apply(self, _center)
 
 func _arm_action_cooldown() -> void:
 	_cancel_action_cooldown()

@@ -50,19 +50,26 @@ func _check_progression_boot() -> bool:
 		print("[FAIL] Match3 service missing for progression")
 		return false
 	m3.handle_run_started()
-	var state = m3.get_node("match3", false)
-	var board_id := _node_str(state, "boardId", "")
-	var width := _node_int(state, "width", 0)
-	var height := _node_int(state, "height", 0)
-	var target := _node_int(state, "targetScore", 0)
-	var moves := _node_int(state, "currentMoves", 0)
-	if board_id.is_empty() or width <= 0 or height <= 0 or target <= 0 or moves <= 0:
-		print("[FAIL] progression boot invalid board='%s' size=%dx%d target=%d moves=%d" % [
-			board_id, width, height, target, moves
-		])
+	var models = load("res://game/match3/core/match3_models.gd")
+	if m3.get_current_status() != models.STATUS_LEVEL_SELECT_PANEL:
+		print("[FAIL] run start should open level select, status=%d" % m3.get_current_status())
 		return false
-	print("[SUCCESS] progression boot board='%s' size=%dx%d target=%d moves=%d" % [
-		board_id, width, height, target, moves
+	var state = m3.get_node("match3", false)
+	var planned := state.get_node("plannedFloor")
+	if not planned.is_valid():
+		print("[FAIL] plannedFloor missing after run start")
+		return false
+	var rounds := planned.get_node("rounds")
+	if not rounds.is_valid() or rounds.get_count() < 1:
+		print("[FAIL] plannedFloor rounds missing after run start")
+		return false
+	var board_id := _node_str(state, "boardId", "")
+	var target := _node_int(state, "targetScore", 0)
+	if board_id.is_empty() or target <= 0:
+		print("[FAIL] queued round preview invalid board='%s' target=%d" % [board_id, target])
+		return false
+	print("[SUCCESS] run starts on level select with board='%s' target=%d rounds=%d" % [
+		board_id, target, rounds.get_count()
 	])
 	return true
 
