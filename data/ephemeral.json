@@ -215,6 +215,17 @@
         "max": 2000000,
         "rounding": "round",
         "targetType": "int"
+      },
+      "audio": {
+        "roundRewardCoinJuiceClipIds": [
+          "coin1Sfx",
+          "coin2Sfx",
+          "coin3Sfx",
+          "coin4Sfx",
+          "coin5Sfx",
+          "coin6Sfx",
+          "coin7Sfx"
+        ]
       }
     }
   }

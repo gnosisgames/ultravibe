@@ -18,7 +18,7 @@ const HUD_GROUP := "match3_hud"
 ## Uniform gap between the content frame and the sidebars (and between cards).
 const FRAME_GAP := 32.0
 const SWAP_ICON_SHOP := "res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/store.png"
-const SWAP_ICON_LEVELS := "res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/back.png"
+const SWAP_ICON_PLAY := "res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/play.png"
 
 ## Emitted whenever the content frame rect changes (sidebar relayout / resize) so
 ## overlays can re-align themselves to it.
@@ -246,7 +246,7 @@ func set_subscreen_swap_mode(mode: String) -> void:
 			_swap_target = "shopPanel"
 			_swap_button.visible = true
 		"to_level_select":
-			_swap_button.icon = load(SWAP_ICON_LEVELS)
+			_swap_button.icon = load(SWAP_ICON_PLAY)
 			_swap_button.tooltip_text = "ultravibe__ui__levelSelect"
 			_swap_target = "levelSelectPanel"
 			_swap_button.visible = true
@@ -307,5 +307,3 @@ func _on_frame_dirty() -> void:
 			_board_host.position = frame.position
 			_board_host.size = frame.size
 	content_frame_changed.emit()
-
-

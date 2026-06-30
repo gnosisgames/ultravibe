@@ -202,7 +202,7 @@ func _present_rewards_stepwise(gen: int) -> void:
 		await _spawn_row(gen, reason, amount, true)
 		if gen != _presentation_gen:
 			return
-		await get_tree().create_timer(STEP_PAUSE_SEC).timeout
+		await get_tree().create_timer(STEP_PAUSE_SEC, true, false, true).timeout
 		if gen != _presentation_gen:
 			return
 

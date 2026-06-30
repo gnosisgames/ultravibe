@@ -65,6 +65,6 @@ func reveal_line(reason: String, amount: int, animate_money: bool) -> void:
 	var count := glyphs.length()
 	for i in range(count):
 		_money_label.text = glyphs.substr(0, i + 1)
-		UltraUiFx.play_ui_sfx(self, UltraUiFx.CLIP_BOP, -10.0)
+		UltraUiFx.play_round_reward_coin_juice(self, i, count)
 		if i < count - 1:
-			await tree.create_timer(GLYPH_STAGGER_SEC).timeout
+			await tree.create_timer(GLYPH_STAGGER_SEC, true, false, true).timeout

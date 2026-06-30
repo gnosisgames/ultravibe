@@ -1380,6 +1380,9 @@ func _grant_next_round_reward_step() -> GnosisFunctionResult:
 	if not error_text.is_empty():
 		payload.set_key("error", error_text)
 	_publish_ephemeral_state()
+	if context.engine:
+		var changed_paths: Array[String] = ["Ephemeral.match3"]
+		context.engine.commit("match3", changed_paths)
 	return GnosisFunctionResult.ok(payload)
 
 
@@ -1485,7 +1488,8 @@ func _try_add_ephemeral_currency(currency_id: String, delta: int, outcome: Dicti
 	params.set_key("currencyId", currency_id.strip_edges())
 	params.set_key("amount", delta)
 	var result = currency.invoke_function("AddCurrency", params)
-	if result is GnosisFunctionResult and result.is_ok:
+	var node := _coerce_result_node(result)
+	if node != null and node.is_valid():
 		return true
 	outcome["error"] = "currency_grant_failed"
 	return false
