@@ -1,57 +1,151 @@
-[gd_scene load_steps=19 format=3]
+[gd_scene load_steps=16 format=3]
 
 [ext_resource type="Script" path="res://game/ui/game_over_view.gd" id="1"]
-[ext_resource type="PackedScene" path="res://game/ui/widgets/rounded_square_btn.tscn" id="3"]
 [ext_resource type="Script" path="res://game/ui/components/auto_tween.gd" id="4"]
 [ext_resource type="Script" path="res://game/ui/components/bbcode_effect_text_combine.gd" id="5"]
 [ext_resource type="FontFile" path="res://assets/fonts/Comic Lemon.otf" id="6"]
-[ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/refresh.png" id="8"]
-[ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/home.png" id="9"]
-[ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/speedometer.png" id="12"]
-[ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/crown.png" id="13"]
-[ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/trashcan.png" id="14"]
-[ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/lines.png" id="15"]
-[ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/clock.png" id="16"]
-[ext_resource type="Texture2D" path="res://assets/ui/hud/icons/speed.png" id="17"]
-[ext_resource type="Texture2D" path="res://assets/ui/hud/icons/evil.png" id="18"]
-[ext_resource type="Texture2D" path="res://assets/ui/hud/icons/ultravibe.png" id="19"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
+[sub_resource type="StyleBoxFlat" id="SB_card"]
 content_margin_left = 40.0
-content_margin_top = 30.0
+content_margin_top = 34.0
 content_margin_right = 40.0
 content_margin_bottom = 34.0
-bg_color = Color(0.0980392, 0.156863, 0.227451, 1)
+bg_color = Color(0.490196, 0.490196, 0.729412, 1)
+border_width_left = 5
+border_width_top = 5
+border_width_right = 5
+border_width_bottom = 5
+border_color = Color(0.823529, 0.835294, 0.945098, 1)
+corner_radius_top_left = 28
+corner_radius_top_right = 28
+corner_radius_bottom_right = 28
+corner_radius_bottom_left = 28
+shadow_color = Color(0.0784314, 0.137255, 0.227451, 0.6)
+shadow_size = 1
+shadow_offset = Vector2(5, 8)
+
+[sub_resource type="StyleBoxFlat" id="SB_row"]
+content_margin_left = 22.0
+content_margin_top = 14.0
+content_margin_right = 22.0
+content_margin_bottom = 14.0
+bg_color = Color(0.356863, 0.368627, 0.560784, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+corner_detail = 8
+
+[sub_resource type="StyleBoxFlat" id="SB_endless_n"]
+content_margin_left = 14.0
+content_margin_top = 14.0
+content_margin_right = 14.0
+content_margin_bottom = 14.0
+bg_color = Color(0.219608, 0.45098, 0.819608, 1)
 border_width_left = 4
 border_width_top = 4
 border_width_right = 4
 border_width_bottom = 4
-border_color = Color(0.345098, 0.345098, 0.572549, 1)
-corner_radius_top_left = 20
-corner_radius_top_right = 20
-corner_radius_bottom_right = 20
-corner_radius_bottom_left = 20
-shadow_color = Color(0.0784314, 0.137255, 0.227451, 1)
+border_color = Color(0.886275, 0.913725, 0.984314, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+corner_detail = 8
+shadow_color = Color(0.0784314, 0.137255, 0.227451, 0.5)
 shadow_size = 1
-shadow_offset = Vector2(4, 6)
+shadow_offset = Vector2(3, 5)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_row"]
-content_margin_left = 18.0
-content_margin_top = 8.0
-content_margin_right = 18.0
-content_margin_bottom = 8.0
-bg_color = Color(0.137255, 0.196078, 0.282353, 1)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
-corner_detail = 12
-
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_tabbar"]
+[sub_resource type="StyleBoxFlat" id="SB_endless_p"]
 content_margin_left = 14.0
-content_margin_top = 8.0
+content_margin_top = 14.0
 content_margin_right = 14.0
-content_margin_bottom = 8.0
+content_margin_bottom = 14.0
+bg_color = Color(0.176471, 0.376471, 0.690196, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.886275, 0.913725, 0.984314, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+corner_detail = 8
+
+[sub_resource type="StyleBoxFlat" id="SB_restart_n"]
+content_margin_left = 14.0
+content_margin_top = 14.0
+content_margin_right = 14.0
+content_margin_bottom = 14.0
+bg_color = Color(0.788235, 0.298039, 0.227451, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.964706, 0.741176, 0.694118, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+corner_detail = 8
+shadow_color = Color(0.298039, 0.0941176, 0.0627451, 0.5)
+shadow_size = 1
+shadow_offset = Vector2(3, 5)
+
+[sub_resource type="StyleBoxFlat" id="SB_restart_p"]
+content_margin_left = 14.0
+content_margin_top = 14.0
+content_margin_right = 14.0
+content_margin_bottom = 14.0
+bg_color = Color(0.65098, 0.243137, 0.184314, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.964706, 0.741176, 0.694118, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+corner_detail = 8
+
+[sub_resource type="StyleBoxFlat" id="SB_home_n"]
+content_margin_left = 14.0
+content_margin_top = 14.0
+content_margin_right = 14.0
+content_margin_bottom = 14.0
+bg_color = Color(0.92549, 0.788235, 0.4, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.992157, 0.937255, 0.788235, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+corner_detail = 8
+shadow_color = Color(0.439216, 0.337255, 0.0784314, 0.5)
+shadow_size = 1
+shadow_offset = Vector2(3, 5)
+
+[sub_resource type="StyleBoxFlat" id="SB_home_p"]
+content_margin_left = 14.0
+content_margin_top = 14.0
+content_margin_right = 14.0
+content_margin_bottom = 14.0
+bg_color = Color(0.811765, 0.682353, 0.313726, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.992157, 0.937255, 0.788235, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+corner_detail = 8
 
 [node name="GameOverView" type="Control"]
 layout_mode = 3
@@ -70,7 +164,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.6)
+color = Color(0, 0, 0, 0.55)
 
 [node name="Center" type="CenterContainer" parent="."]
 layout_mode = 1
@@ -80,25 +174,36 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Layout" type="VBoxContainer" parent="Center"]
+[node name="Card" type="PanelContainer" parent="Center"]
+custom_minimum_size = Vector2(760, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_styles/panel = SubResource("SB_card")
+
+[node name="AutoTween" type="Node" parent="Center/Card"]
+script = ExtResource("4")
+target = NodePath("..")
+anim_when = 0
+force_from = true
+
+[node name="VBox" type="VBoxContainer" parent="Center/Card"]
 layout_mode = 2
 theme_override_constants/separation = 16
-alignment = 1
 
-[node name="Title" type="RichTextLabel" parent="Center/Layout"]
+[node name="Title" type="RichTextLabel" parent="Center/Card/VBox"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 90)
+custom_minimum_size = Vector2(0, 96)
 focus_mode = 0
 mouse_filter = 2
-theme_override_colors/default_color = Color(0.992157, 0.894118, 0.72549, 1)
-theme_override_colors/font_outline_color = Color(0.345098, 0.345098, 0.572549, 1)
-theme_override_colors/font_shadow_color = Color(0.192157, 0.192157, 0.270588, 1)
-theme_override_constants/shadow_outline_size = 26
+theme_override_colors/default_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.176471, 0.184314, 0.305882, 1)
+theme_override_colors/font_shadow_color = Color(0.176471, 0.184314, 0.305882, 0.6)
+theme_override_constants/shadow_outline_size = 24
 theme_override_constants/shadow_offset_x = 3
 theme_override_constants/shadow_offset_y = 6
-theme_override_constants/outline_size = 26
+theme_override_constants/outline_size = 24
 theme_override_fonts/normal_font = ExtResource("6")
-theme_override_font_sizes/normal_font_size = 64
+theme_override_font_sizes/normal_font_size = 72
 bbcode_enabled = true
 text = "[wave amp=40.0 freq=4.0 connected=1]GAME OVER[/wave]"
 fit_content = true
@@ -109,294 +214,316 @@ script = ExtResource("5")
 text_clean = "core__state__gameOver"
 bbcode = "[wave amp=40.0 freq=4.0 connected=1]%s[/wave]"
 
-[node name="TabBar" type="PanelContainer" parent="Center/Layout"]
+[node name="HighScoreRow" type="PanelContainer" parent="Center/Card/VBox"]
 layout_mode = 2
-size_flags_horizontal = 4
-theme_override_styles/panel = SubResource("StyleBoxEmpty_tabbar")
+theme_override_styles/panel = SubResource("SB_row")
 
-[node name="Tabs" type="HBoxContainer" parent="Center/Layout/TabBar"]
+[node name="HBox" type="HBoxContainer" parent="Center/Card/VBox/HighScoreRow"]
 layout_mode = 2
 theme_override_constants/separation = 12
-alignment = 1
 
-[node name="PlayAgainButton" parent="Center/Layout/TabBar/Tabs" instance=ExtResource("3")]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(96, 76)
+[node name="Label" type="Label" parent="Center/Card/VBox/HighScoreRow/HBox"]
 layout_mode = 2
-theme_override_colors/icon_normal_color = Color(0.992157, 0.894118, 0.72549, 1)
-theme_override_colors/icon_focus_color = Color(0.992157, 0.894118, 0.72549, 1)
-theme_override_colors/icon_hover_color = Color(1, 1, 1, 1)
-theme_override_colors/icon_pressed_color = Color(0.992157, 0.894118, 0.72549, 1)
-theme_override_constants/icon_max_width = 44
-tooltip_text = "ultravibe__ui__playAgain"
-alignment = 1
-icon_alignment = 1
-vertical_icon_alignment = 1
-text = ""
-icon = ExtResource("8")
-expand_icon = true
-
-[node name="HomeButton" parent="Center/Layout/TabBar/Tabs" instance=ExtResource("3")]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(96, 76)
-layout_mode = 2
-theme_override_colors/icon_normal_color = Color(0.992157, 0.894118, 0.72549, 1)
-theme_override_colors/icon_focus_color = Color(0.992157, 0.894118, 0.72549, 1)
-theme_override_colors/icon_hover_color = Color(1, 1, 1, 1)
-theme_override_colors/icon_pressed_color = Color(0.992157, 0.894118, 0.72549, 1)
-theme_override_constants/icon_max_width = 44
-tooltip_text = "ultravibe__ui__titleScreen"
-alignment = 1
-icon_alignment = 1
-vertical_icon_alignment = 1
-text = ""
-icon = ExtResource("9")
-expand_icon = true
-
-[node name="Card" type="PanelContainer" parent="Center/Layout"]
-custom_minimum_size = Vector2(540, 0)
-layout_mode = 2
-size_flags_horizontal = 4
-theme_override_styles/panel = SubResource("StyleBoxFlat_card")
-
-[node name="AutoTween" type="Node" parent="Center/Layout/Card"]
-script = ExtResource("4")
-target = NodePath("..")
-anim_when = 0
-force_from = true
-
-[node name="VBox" type="VBoxContainer" parent="Center/Layout/Card"]
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="Subtitle" type="Label" parent="Center/Layout/Card/VBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.992157, 0.894118, 0.72549, 0.85)
+size_flags_horizontal = 3
+size_flags_vertical = 1
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("6")
-theme_override_font_sizes/font_size = 22
-text = "ultravibe__ui__runSummary"
-horizontal_alignment = 1
+theme_override_font_sizes/font_size = 30
+text = "match3__state__label__highestScore"
+vertical_alignment = 1
 
-[node name="ScoreRow" type="PanelContainer" parent="Center/Layout/Card/VBox"]
-layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_row")
-
-[node name="HBox" type="HBoxContainer" parent="Center/Layout/Card/VBox/ScoreRow"]
-layout_mode = 2
-theme_override_constants/separation = 14
-
-[node name="Icon" type="TextureRect" parent="Center/Layout/Card/VBox/ScoreRow/HBox"]
-modulate = Color(0.345098, 0.611765, 0.917647, 1)
-custom_minimum_size = Vector2(36, 30)
-layout_mode = 2
-size_flags_vertical = 4
-texture = ExtResource("12")
-expand_mode = 1
-stretch_mode = 5
-
-[node name="ScoreValue" type="Label" parent="Center/Layout/Card/VBox/ScoreRow/HBox"]
+[node name="HighScoreValue" type="Label" parent="Center/Card/VBox/HighScoreRow/HBox"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.345098, 0.611765, 0.917647, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("6")
-theme_override_font_sizes/font_size = 30
+theme_override_font_sizes/font_size = 34
 text = "0"
 horizontal_alignment = 2
 vertical_alignment = 1
 
-[node name="RoundRow" type="PanelContainer" parent="Center/Layout/Card/VBox"]
+[node name="Grid" type="GridContainer" parent="Center/Card/VBox"]
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_row")
+theme_override_constants/h_separation = 14
+theme_override_constants/v_separation = 14
+columns = 2
 
-[node name="HBox" type="HBoxContainer" parent="Center/Layout/Card/VBox/RoundRow"]
+[node name="MovesCell" type="PanelContainer" parent="Center/Card/VBox/Grid"]
 layout_mode = 2
-theme_override_constants/separation = 14
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("SB_row")
 
-[node name="Icon" type="TextureRect" parent="Center/Layout/Card/VBox/RoundRow/HBox"]
-modulate = Color(0.97, 0.83, 0.26, 1)
-custom_minimum_size = Vector2(36, 30)
+[node name="HBox" type="HBoxContainer" parent="Center/Card/VBox/Grid/MovesCell"]
 layout_mode = 2
-size_flags_vertical = 4
-texture = ExtResource("13")
-expand_mode = 1
-stretch_mode = 5
+theme_override_constants/separation = 10
 
-[node name="RoundValue" type="Label" parent="Center/Layout/Card/VBox/RoundRow/HBox"]
+[node name="Label" type="Label" parent="Center/Card/VBox/Grid/MovesCell/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("6")
+theme_override_font_sizes/font_size = 22
+text = "match3__state__label__totalMoves"
+vertical_alignment = 1
+
+[node name="MovesValue" type="Label" parent="Center/Card/VBox/Grid/MovesCell/HBox"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.97, 0.83, 0.26, 1)
+size_flags_vertical = 1
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("6")
-theme_override_font_sizes/font_size = 30
+theme_override_font_sizes/font_size = 34
+text = "0"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="ShufflesCell" type="PanelContainer" parent="Center/Card/VBox/Grid"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("SB_row")
+
+[node name="HBox" type="HBoxContainer" parent="Center/Card/VBox/Grid/ShufflesCell"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="ShufflesLabel" type="RichTextLabel" parent="Center/Card/VBox/Grid/ShufflesCell/HBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_colors/default_color = Color(1, 1, 1, 1)
+theme_override_fonts/normal_font = ExtResource("6")
+theme_override_font_sizes/normal_font_size = 22
+bbcode_enabled = true
+text = "match3__state__label__totalShuffles"
+fit_content = true
+scroll_active = false
+vertical_alignment = 1
+
+[node name="ShufflesValue" type="Label" parent="Center/Card/VBox/Grid/ShufflesCell/HBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("6")
+theme_override_font_sizes/font_size = 34
+text = "0"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="PurchasesCell" type="PanelContainer" parent="Center/Card/VBox/Grid"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("SB_row")
+
+[node name="HBox" type="HBoxContainer" parent="Center/Card/VBox/Grid/PurchasesCell"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="Center/Card/VBox/Grid/PurchasesCell/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("6")
+theme_override_font_sizes/font_size = 22
+text = "match3__state__label__totalPurchases"
+vertical_alignment = 1
+
+[node name="PurchasesValue" type="Label" parent="Center/Card/VBox/Grid/PurchasesCell/HBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("6")
+theme_override_font_sizes/font_size = 34
+text = "0"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="RerollsCell" type="PanelContainer" parent="Center/Card/VBox/Grid"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("SB_row")
+
+[node name="HBox" type="HBoxContainer" parent="Center/Card/VBox/Grid/RerollsCell"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="Center/Card/VBox/Grid/RerollsCell/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("6")
+theme_override_font_sizes/font_size = 22
+text = "match3__state__label__totalRerolls"
+vertical_alignment = 1
+
+[node name="RerollsValue" type="Label" parent="Center/Card/VBox/Grid/RerollsCell/HBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("6")
+theme_override_font_sizes/font_size = 34
+text = "0"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="RoundCell" type="PanelContainer" parent="Center/Card/VBox/Grid"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("SB_row")
+
+[node name="HBox" type="HBoxContainer" parent="Center/Card/VBox/Grid/RoundCell"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="Center/Card/VBox/Grid/RoundCell/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("6")
+theme_override_font_sizes/font_size = 26
+text = "match3__state__label__round"
+vertical_alignment = 1
+
+[node name="RoundValue" type="Label" parent="Center/Card/VBox/Grid/RoundCell/HBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("6")
+theme_override_font_sizes/font_size = 34
 text = "1"
 horizontal_alignment = 2
 vertical_alignment = 1
 
-[node name="ObjectiveRow" type="PanelContainer" parent="Center/Layout/Card/VBox"]
+[node name="FloorCell" type="PanelContainer" parent="Center/Card/VBox/Grid"]
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_row")
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("SB_row")
 
-[node name="HBox" type="HBoxContainer" parent="Center/Layout/Card/VBox/ObjectiveRow"]
+[node name="HBox" type="HBoxContainer" parent="Center/Card/VBox/Grid/FloorCell"]
 layout_mode = 2
-theme_override_constants/separation = 14
+theme_override_constants/separation = 10
 
-[node name="Icon" type="TextureRect" parent="Center/Layout/Card/VBox/ObjectiveRow/HBox"]
-modulate = Color(0.55, 0.85, 1, 1)
-custom_minimum_size = Vector2(36, 30)
+[node name="Label" type="Label" parent="Center/Card/VBox/Grid/FloorCell/HBox"]
 layout_mode = 2
-size_flags_vertical = 4
-texture = ExtResource("15")
-expand_mode = 1
-stretch_mode = 5
+size_flags_horizontal = 3
+size_flags_vertical = 1
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("6")
+theme_override_font_sizes/font_size = 26
+text = "match3__state__label__floor"
+vertical_alignment = 1
 
-[node name="ObjectiveValue" type="Label" parent="Center/Layout/Card/VBox/ObjectiveRow/HBox"]
+[node name="FloorValue" type="Label" parent="Center/Card/VBox/Grid/FloorCell/HBox"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.55, 0.85, 1, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("6")
-theme_override_font_sizes/font_size = 30
-text = "0 / 0"
+theme_override_font_sizes/font_size = 34
+text = "1"
 horizontal_alignment = 2
 vertical_alignment = 1
 
-[node name="TimeRow" type="PanelContainer" parent="Center/Layout/Card/VBox"]
+[node name="SeedRow" type="PanelContainer" parent="Center/Card/VBox"]
 layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_row")
+theme_override_styles/panel = SubResource("SB_row")
 
-[node name="HBox" type="HBoxContainer" parent="Center/Layout/Card/VBox/TimeRow"]
+[node name="HBox" type="HBoxContainer" parent="Center/Card/VBox/SeedRow"]
 layout_mode = 2
-theme_override_constants/separation = 14
+theme_override_constants/separation = 12
 
-[node name="Icon" type="TextureRect" parent="Center/Layout/Card/VBox/TimeRow/HBox"]
-modulate = Color(0.4, 0.95, 0.38, 1)
-custom_minimum_size = Vector2(36, 30)
-layout_mode = 2
-size_flags_vertical = 4
-texture = ExtResource("16")
-expand_mode = 1
-stretch_mode = 5
-
-[node name="TimeValue" type="Label" parent="Center/Layout/Card/VBox/TimeRow/HBox"]
-unique_name_in_owner = true
+[node name="Label" type="Label" parent="Center/Card/VBox/SeedRow/HBox"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.4, 0.95, 0.38, 1)
+size_flags_vertical = 1
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("6")
 theme_override_font_sizes/font_size = 30
-text = "00:00"
-horizontal_alignment = 2
+text = "match3__state__label__seed"
 vertical_alignment = 1
 
-[node name="DiscardsRow" type="PanelContainer" parent="Center/Layout/Card/VBox"]
-layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_row")
-
-[node name="HBox" type="HBoxContainer" parent="Center/Layout/Card/VBox/DiscardsRow"]
-layout_mode = 2
-theme_override_constants/separation = 14
-
-[node name="Icon" type="TextureRect" parent="Center/Layout/Card/VBox/DiscardsRow/HBox"]
-modulate = Color(0.96, 0.36, 0.42, 1)
-custom_minimum_size = Vector2(36, 30)
-layout_mode = 2
-size_flags_vertical = 4
-texture = ExtResource("14")
-expand_mode = 1
-stretch_mode = 5
-
-[node name="DiscardsValue" type="Label" parent="Center/Layout/Card/VBox/DiscardsRow/HBox"]
+[node name="SeedValue" type="Label" parent="Center/Card/VBox/SeedRow/HBox"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.96, 0.36, 0.42, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("6")
-theme_override_font_sizes/font_size = 30
+theme_override_font_sizes/font_size = 34
 text = "0"
 horizontal_alignment = 2
 vertical_alignment = 1
 
-[node name="FallSpeedRow" type="PanelContainer" parent="Center/Layout/Card/VBox"]
-layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_row")
-
-[node name="HBox" type="HBoxContainer" parent="Center/Layout/Card/VBox/FallSpeedRow"]
+[node name="Buttons" type="HBoxContainer" parent="Center/Card/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 14
 
-[node name="Icon" type="TextureRect" parent="Center/Layout/Card/VBox/FallSpeedRow/HBox"]
-modulate = Color(0.97, 0.83, 0.26, 1)
-custom_minimum_size = Vector2(36, 30)
-layout_mode = 2
-size_flags_vertical = 4
-texture = ExtResource("17")
-expand_mode = 1
-stretch_mode = 5
-
-[node name="FallSpeedValue" type="Label" parent="Center/Layout/Card/VBox/FallSpeedRow/HBox"]
+[node name="EndlessButton" type="Button" parent="Center/Card/VBox/Buttons"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.97, 0.83, 0.26, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
+theme_override_colors/font_focus_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.176471, 0.184314, 0.305882, 1)
+theme_override_constants/outline_size = 10
 theme_override_fonts/font = ExtResource("6")
-theme_override_font_sizes/font_size = 30
-text = "0"
-horizontal_alignment = 2
-vertical_alignment = 1
+theme_override_font_sizes/font_size = 28
+theme_override_styles/normal = SubResource("SB_endless_n")
+theme_override_styles/hover = SubResource("SB_endless_n")
+theme_override_styles/pressed = SubResource("SB_endless_p")
+theme_override_styles/focus = SubResource("SB_endless_n")
+text = "core__noun__endless"
 
-[node name="NegativeRow" type="PanelContainer" parent="Center/Layout/Card/VBox"]
-layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_row")
-
-[node name="HBox" type="HBoxContainer" parent="Center/Layout/Card/VBox/NegativeRow"]
-layout_mode = 2
-theme_override_constants/separation = 14
-
-[node name="Icon" type="TextureRect" parent="Center/Layout/Card/VBox/NegativeRow/HBox"]
-modulate = Color(0.93, 0.2, 0.56, 1)
-custom_minimum_size = Vector2(36, 30)
-layout_mode = 2
-size_flags_vertical = 4
-texture = ExtResource("18")
-expand_mode = 1
-stretch_mode = 5
-
-[node name="NegativeValue" type="Label" parent="Center/Layout/Card/VBox/NegativeRow/HBox"]
+[node name="RestartButton" type="Button" parent="Center/Card/VBox/Buttons"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.93, 0.2, 0.56, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
+theme_override_colors/font_focus_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.298039, 0.0941176, 0.0627451, 1)
+theme_override_constants/outline_size = 10
 theme_override_fonts/font = ExtResource("6")
-theme_override_font_sizes/font_size = 30
-text = "0"
-horizontal_alignment = 2
-vertical_alignment = 1
+theme_override_font_sizes/font_size = 28
+theme_override_styles/normal = SubResource("SB_restart_n")
+theme_override_styles/hover = SubResource("SB_restart_n")
+theme_override_styles/pressed = SubResource("SB_restart_p")
+theme_override_styles/focus = SubResource("SB_restart_n")
+text = "core__verb__restart"
 
-[node name="DeckRow" type="PanelContainer" parent="Center/Layout/Card/VBox"]
-layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_row")
-
-[node name="HBox" type="HBoxContainer" parent="Center/Layout/Card/VBox/DeckRow"]
-layout_mode = 2
-theme_override_constants/separation = 14
-
-[node name="Icon" type="TextureRect" parent="Center/Layout/Card/VBox/DeckRow/HBox"]
-modulate = Color(0.624, 0.478, 1, 1)
-custom_minimum_size = Vector2(36, 30)
-layout_mode = 2
-size_flags_vertical = 4
-texture = ExtResource("19")
-expand_mode = 1
-stretch_mode = 5
-
-[node name="DeckValue" type="Label" parent="Center/Layout/Card/VBox/DeckRow/HBox"]
+[node name="HomeButton" type="Button" parent="Center/Card/VBox/Buttons"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.624, 0.478, 1, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
+theme_override_colors/font_focus_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.439216, 0.337255, 0.0784314, 1)
+theme_override_constants/outline_size = 10
 theme_override_fonts/font = ExtResource("6")
-theme_override_font_sizes/font_size = 30
-text = "0"
-horizontal_alignment = 2
-vertical_alignment = 1
+theme_override_font_sizes/font_size = 28
+theme_override_styles/normal = SubResource("SB_home_n")
+theme_override_styles/hover = SubResource("SB_home_n")
+theme_override_styles/pressed = SubResource("SB_home_p")
+theme_override_styles/focus = SubResource("SB_home_n")
+text = "core__noun__home"

@@ -23,6 +23,17 @@ shadow_color = Color(0.0784314, 0.137255, 0.227451, 1)
 shadow_size = 1
 shadow_offset = Vector2(5, 7)
 
+[sub_resource type="StyleBoxFlat" id="SB_boons"]
+content_margin_left = 24.0
+content_margin_top = 21.0
+content_margin_right = 24.0
+content_margin_bottom = 21.0
+bg_color = Color(0, 0, 0, 0.3)
+corner_radius_top_left = 27
+corner_radius_top_right = 27
+corner_radius_bottom_right = 27
+corner_radius_bottom_left = 27
+
 [sub_resource type="StyleBoxFlat" id="SB_dark"]
 content_margin_left = 21.0
 content_margin_top = 15.0
@@ -139,17 +150,17 @@ script = ExtResource("1")
 layout_mode = 1
 anchors_preset = 9
 anchor_bottom = 1.0
-offset_left = 64.0
-offset_right = 576.0
+offset_left = 0.0
+offset_right = 528.0
 grow_vertical = 2
-theme_override_constants/margin_left = 18
-theme_override_constants/margin_top = 34
-theme_override_constants/margin_right = 18
-theme_override_constants/margin_bottom = 34
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 32
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 32
 
 [node name="Layout" type="VBoxContainer" parent="Sidebar"]
 layout_mode = 2
-theme_override_constants/separation = 18
+theme_override_constants/separation = 32
 
 [node name="BossSection" type="PanelContainer" parent="Sidebar/Layout"]
 custom_minimum_size = Vector2(0, 244)
@@ -219,7 +230,7 @@ size_flags_horizontal = 3
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3")
 theme_override_font_sizes/font_size = 24
-text = "REQ. SCORE:"
+text = "match3__hud__label__reqScore"
 
 [node name="ReqScoreValue" type="Label" parent="Sidebar/Layout/BossSection/CardLayout/Info/ReqScoreRow"]
 unique_name_in_owner = true
@@ -245,7 +256,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3")
 theme_override_font_sizes/font_size = 24
-text = "TOTAL"
+text = "match3__hud__label__total"
 horizontal_alignment = 1
 
 [node name="TotalPanel" type="PanelContainer" parent="Sidebar/Layout/ScoreSection/ScoreLayout"]
@@ -310,7 +321,7 @@ size_flags_horizontal = 3
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3")
 theme_override_font_sizes/font_size = 21
-text = "POINTS"
+text = "match3__hud__label__points"
 horizontal_alignment = 1
 
 [node name="XSpacer" type="Control" parent="Sidebar/Layout/ScoreSection/ScoreLayout/PointsMultiRow"]
@@ -323,7 +334,7 @@ size_flags_horizontal = 3
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3")
 theme_override_font_sizes/font_size = 21
-text = "MULTI"
+text = "match3__hud__label__multi"
 horizontal_alignment = 1
 
 [node name="MidGap" type="Control" parent="Sidebar/Layout/ScoreSection/ScoreLayout"]
@@ -347,7 +358,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3")
 theme_override_font_sizes/font_size = 21
-text = "ROUND"
+text = "match3__state__label__round"
 horizontal_alignment = 1
 
 [node name="RoundBox" type="PanelContainer" parent="Sidebar/Layout/ScoreSection/ScoreLayout/StatsGrid/RoundCol"]
@@ -373,7 +384,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3")
 theme_override_font_sizes/font_size = 21
-text = "MOVES"
+text = "match3__hud__label__moves"
 horizontal_alignment = 1
 
 [node name="MovesBox" type="PanelContainer" parent="Sidebar/Layout/ScoreSection/ScoreLayout/StatsGrid/MovesCol"]
@@ -399,7 +410,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3")
 theme_override_font_sizes/font_size = 21
-text = "CYCLES"
+text = "match3__hud__label__cycles"
 horizontal_alignment = 1
 
 [node name="CyclesBox" type="PanelContainer" parent="Sidebar/Layout/ScoreSection/ScoreLayout/StatsGrid/CyclesCol"]
@@ -425,7 +436,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3")
 theme_override_font_sizes/font_size = 21
-text = "MONEY"
+text = "match3__hud__label__money"
 horizontal_alignment = 1
 
 [node name="MoneyBox" type="PanelContainer" parent="Sidebar/Layout/ScoreSection/ScoreLayout/StatsGrid/MoneyCol"]
@@ -448,7 +459,7 @@ size_flags_vertical = 0
 [node name="ButtonsRow" type="HBoxContainer" parent="Sidebar/Layout/ButtonsSection"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/separation = 15
+theme_override_constants/separation = 16
 alignment = 1
 
 [node name="HomeButton" parent="Sidebar/Layout/ButtonsSection/ButtonsRow" instance=ExtResource("4")]
@@ -563,14 +574,97 @@ theme_override_font_sizes/font_size = 32
 horizontal_alignment = 1
 text = ""
 
+[node name="BoonsBar" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 528.0
+offset_top = 32.0
+offset_right = -230.0
+offset_bottom = 212.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("SB_boons")
+
+[node name="BoonsRow" type="HBoxContainer" parent="BoonsBar"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+theme_override_constants/separation = 18
+alignment = 1
+
+[node name="BoonCount" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 0
+offset_left = 534.0
+offset_top = 218.0
+offset_right = 754.0
+offset_bottom = 264.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.0784314, 0.137255, 0.227451, 1)
+theme_override_constants/outline_size = 6
+theme_override_fonts/font = ExtResource("3")
+theme_override_font_sizes/font_size = 30
+text = "0 / 6"
+horizontal_alignment = 0
+vertical_alignment = 1
+
+[node name="ConsumablesBar" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -212.0
+offset_top = 230.0
+offset_right = -32.0
+offset_bottom = -32.0
+grow_horizontal = 0
+grow_vertical = 2
+theme_override_styles/panel = SubResource("SB_boons")
+
+[node name="ConsumablesColumn" type="VBoxContainer" parent="ConsumablesBar"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 1
+size_flags_vertical = 3
+theme_override_constants/separation = 18
+alignment = 1
+
+[node name="ConsumableCount" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -232.0
+offset_top = 178.0
+offset_right = -12.0
+offset_bottom = 224.0
+grow_horizontal = 0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.0784314, 0.137255, 0.227451, 1)
+theme_override_constants/outline_size = 6
+theme_override_fonts/font = ExtResource("3")
+theme_override_font_sizes/font_size = 30
+text = "0 / 3"
+horizontal_alignment = 0
+vertical_alignment = 1
+
 [node name="BoardHost" type="CenterContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 592.0
-offset_top = 24.0
-offset_bottom = -24.0
+offset_left = 528.0
+offset_top = 230.0
+offset_right = -230.0
+offset_bottom = -32.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
