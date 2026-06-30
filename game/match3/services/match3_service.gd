@@ -25,10 +25,12 @@ var _gameplay = Match3GameplayScript.new()
 var _item_points: Dictionary = {}
 var _current_round := 1
 var _active_board_id := ""
+var _active_level_id := "normal"
 var _current_floor := 1
 var _round_in_floor := 1
 var _active_stage_type := "normal"
 var _manual_shuffles_remaining := 0
+var _boss_level_ids_cache: Array[String] = []
 var _board_pools_loaded := false
 var _normal_board_pool_ids: Array[String] = []
 var _advanced_board_pool_ids: Array[String] = []
@@ -99,6 +101,75 @@ func get_current_round() -> int:
 	return _current_round
 
 
+func get_current_floor() -> int:
+	return _current_floor
+
+
+func get_round_in_floor() -> int:
+	return _round_in_floor
+
+
+func get_rounds_per_floor() -> int:
+	return DEFAULT_ROUNDS_PER_FLOOR
+
+
+func get_shuffles_remaining() -> int:
+	return _manual_shuffles_remaining
+
+
+func is_boss_round() -> bool:
+	return _active_stage_type == "boss"
+
+
+## Run currency. Not modeled in the Godot port yet (Unity sources this from the
+## match3 ephemeral money currency); returns 0 until the economy is ported.
+func get_money() -> int:
+	return 0
+
+
+## Step scoring for the last resolved move (points x multi shown on the HUD).
+## Not modeled in the Godot port yet; returns 0 until scoring steps are ported.
+func get_step_points() -> int:
+	return 0
+
+
+func get_step_multi() -> int:
+	return 0
+
+
+## Resolves the display metadata for the current round's level/boss profile from
+## the `levels` catalog (name, description, token letter, accent colors, reward).
+func get_active_level_meta() -> Dictionary:
+	var result := {
+		"id": _active_level_id,
+		"nameKey": "",
+		"descriptionKey": "",
+		"startingLetter": "",
+		"backgroundColor": "",
+		"textColor": "",
+		"rewardAmount": 0,
+		"isBoss": _active_stage_type == "boss",
+	}
+	var config := get_node("configuration", true)
+	if not config.is_valid():
+		return result
+	var levels := config.get_node("levels")
+	if not levels.is_valid():
+		return result
+	var entry := levels.get_node(_active_level_id)
+	if not entry.is_valid():
+		return result
+	var meta := entry.get_node("metadata")
+	var props := entry.get_node("properties")
+	result["nameKey"] = _node_str(meta, "nameKey")
+	result["descriptionKey"] = _node_str(meta, "descriptionKey")
+	result["startingLetter"] = _node_str(meta, "startingLetter")
+	result["backgroundColor"] = _node_str(meta, "backgroundColor")
+	result["textColor"] = _node_str(meta, "textColor")
+	result["rewardAmount"] = _node_int(props, "rewardAmount", 0)
+	return result
+
+
 func is_board_input_allowed() -> bool:
 	return _gameplay.status == Models.STATUS_PLAYING
 
@@ -157,6 +228,7 @@ func _begin_level(level_number: int) -> void:
 		layout.width = 8
 		layout.height = 8
 	_active_board_id = str(setup.get("board_id", layout.id))
+	_active_level_id = str(setup.get("level_id", "normal"))
 	_current_floor = int(setup.get("floor", 1))
 	_round_in_floor = int(setup.get("round_in_floor", 1))
 	_active_stage_type = str(setup.get("stage_type", "normal"))
@@ -210,11 +282,58 @@ func _resolve_round_setup(round_number: int) -> Dictionary:
 		"round_in_floor": round_in_floor,
 		"stage_type": stage_type,
 		"board_id": board_id,
+		"level_id": _resolve_level_id_for_stage(stage_type, floor),
 		"target_score": _resolve_target_score(round, stage_type),
 		"moves": _resolve_moves_limit(round, stage_type),
 		"shuffles": DEFAULT_SHUFFLES_PER_ROUND,
 		"color_limit": color_limit,
 	}
+
+
+## Picks which level/boss profile backs the current round. Boss stages cycle
+## through the boss-tagged entries in the `levels` catalog by floor; normal and
+## advanced stages use their generic level profiles.
+func _resolve_level_id_for_stage(stage_type: String, floor: int) -> String:
+	if stage_type == "boss":
+		var bosses := _get_boss_level_ids()
+		if bosses.is_empty():
+			return "normal"
+		return bosses[(maxi(1, floor) - 1) % bosses.size()]
+	if stage_type == "advanced":
+		return "advanced"
+	return "normal"
+
+
+func _get_boss_level_ids() -> Array[String]:
+	if not _boss_level_ids_cache.is_empty():
+		return _boss_level_ids_cache
+	var config := get_node("configuration", true)
+	if not config.is_valid():
+		return _boss_level_ids_cache
+	var levels := config.get_node("levels")
+	if not levels.is_valid() or levels.get_type() != GnosisValueType.OBJECT:
+		return _boss_level_ids_cache
+	for level_id in levels.get_keys():
+		var entry := levels.get_node(level_id)
+		if not entry.is_valid():
+			continue
+		if _level_has_tag(entry.get_node("metadata"), "boss"):
+			_boss_level_ids_cache.append(str(level_id))
+	_boss_level_ids_cache.sort()
+	return _boss_level_ids_cache
+
+
+func _level_has_tag(meta: GnosisNode, tag: String) -> bool:
+	if meta == null or not meta.is_valid():
+		return false
+	var tags := meta.get_node("tags")
+	if not tags.is_valid() or tags.get_type() != GnosisValueType.LIST:
+		return false
+	for i in range(tags.get_count()):
+		var t := tags.get_node(i)
+		if t.is_valid() and str(t.value) == tag:
+			return true
+	return false
 
 
 func _load_board_pools() -> void:
@@ -391,6 +510,7 @@ func _publish_ephemeral_state() -> void:
 	m3.set_key("stageType", _active_stage_type)
 	m3.set_key("gameStatus", _gameplay.status)
 	m3.set_key("boardId", _active_board_id)
+	m3.set_key("levelId", _active_level_id)
 	m3.set_key("width", _gameplay.width)
 	m3.set_key("height", _gameplay.height)
 	m3.set_key("colorLimit", _gameplay.palette.size())
@@ -466,3 +586,12 @@ func _node_int(node: GnosisNode, key: String, default_value: int = 0) -> int:
 	if not child.is_valid() or child.value == null:
 		return default_value
 	return int(child.value)
+
+
+func _node_str(node: GnosisNode, key: String, default_value: String = "") -> String:
+	if node == null or not node.is_valid():
+		return default_value
+	var child := node.get_node(key)
+	if not child.is_valid() or child.value == null:
+		return default_value
+	return str(child.value)

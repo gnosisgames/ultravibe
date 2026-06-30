@@ -1,19 +1,9 @@
 class_name UltravibePlayView
 extends GnosisUIElementView
 
-## Pre-run setup screen (viewId "play"). Two tabs mirror the old Unity PlayView:
-## setup (difficulty + player count) and modifiers (game flags).
+## Pre-run setup screen (viewId "play"). Setup tab starts a solo run; modifiers tab
+## edits game flags.
 
-const DIFFICULTY_FALL_SPEED := ["easy", "normal", "hard"]
-const PLAYER_SPECS := [
-	{"count": 1, "mode": "solo", "label": "core__noun__solo", "count_label": ""},
-	{"count": 2, "mode": "coop", "label": "core__noun__duo", "count_label": "2"},
-	{"count": 3, "mode": "coop", "label": "core__noun__trio", "count_label": "3"},
-	{"count": 4, "mode": "coop", "label": "core__noun__quad", "count_label": "4"},
-]
-
-const ICON_CONTROLLER := "res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/controller.png"
-const ICON_KEYBOARD := "res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/keyboard.png"
 const UI_FONT := preload("res://assets/fonts/Comic Lemon.otf")
 
 @onready var _back_button: Button = %BackButton
@@ -21,8 +11,7 @@ const UI_FONT := preload("res://assets/fonts/Comic Lemon.otf")
 @onready var _flags_tab: Button = %FlagsTab
 @onready var _setup_panel: Control = %SetupPanel
 @onready var _flags_panel: Control = %FlagsPanel
-@onready var _difficulty_dropdown: JuicyDropdown = %DifficultyDropdown
-@onready var _players_list: VBoxContainer = %PlayersList
+@onready var _play_button: Button = %PlayButton
 @onready var _flags_list: VBoxContainer = %FlagsList
 
 var _host: GnosisGodotEngine = null
@@ -34,17 +23,21 @@ func _ready() -> void:
 	_back_button.pressed.connect(_on_back_pressed)
 	_setup_tab.pressed.connect(func(): _show_tab("setup"))
 	_flags_tab.pressed.connect(func(): _show_tab("flags"))
-	_difficulty_dropdown.item_selected.connect(_on_difficulty_selected)
+	_play_button.pressed.connect(_on_play_pressed)
 	call_deferred("_resolve_host")
 
 func set_view_visible(is_visible: bool) -> void:
 	super.set_view_visible(is_visible)
 	if is_visible:
 		_sync_from_settings()
-		call_deferred("_focus_back_button")
+		call_deferred("_focus_default_control")
 
-func _focus_back_button() -> void:
-	if is_visible_in_tree() and _back_button:
+func _focus_default_control() -> void:
+	if not is_visible_in_tree():
+		return
+	if _current_tab == "setup" and _play_button:
+		_play_button.grab_focus()
+	elif _back_button:
 		_back_button.grab_focus()
 
 func _resolve_host() -> void:
@@ -54,8 +47,6 @@ func _resolve_host() -> void:
 			_host = node as GnosisGodotEngine
 			break
 		node = node.get_parent()
-	_build_player_rows()
-	_populate_difficulty_options()
 	_populate_flags()
 	_show_tab(_current_tab)
 	_sync_from_settings()
@@ -81,82 +72,11 @@ func _show_tab(which: String) -> void:
 	_flags_panel.visible = which == "flags"
 	_setup_tab.button_pressed = which == "setup"
 	_flags_tab.button_pressed = which == "flags"
+	if which == "setup":
+		call_deferred("_focus_default_control")
 
-func _build_player_rows() -> void:
-	for child in _players_list.get_children():
-		child.free()
-	for spec in PLAYER_SPECS:
-		var row := _make_player_button(spec)
-		_players_list.add_child(row)
-
-func _make_player_button(spec: Dictionary) -> Button:
-	var btn := preload("res://game/ui/widgets/rounded_square_btn.tscn").instantiate() as Button
-	btn.custom_minimum_size = Vector2(0, 72)
-	btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	btn.text = ""
-	btn.focus_mode = Control.FOCUS_ALL
-
-	var row := HBoxContainer.new()
-	row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	row.offset_left = 22.0
-	row.offset_right = -22.0
-	row.add_theme_constant_override("separation", 12)
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	btn.add_child(row)
-
-	var title := Label.new()
-	title.text = tr(str(spec.label)).to_upper()
-	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	title.add_theme_font_override("font", UI_FONT)
-	title.add_theme_font_size_override("font_size", 28)
-	title.add_theme_color_override("font_color", Color(0.992157, 0.894118, 0.72549))
-	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(title)
-
-	var icons := HBoxContainer.new()
-	icons.add_theme_constant_override("separation", 8)
-	icons.alignment = BoxContainer.ALIGNMENT_CENTER
-	icons.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(icons)
-
-	if not str(spec.count_label).is_empty():
-		var count_lbl := Label.new()
-		count_lbl.text = str(spec.count_label)
-		count_lbl.add_theme_font_override("font", UI_FONT)
-		count_lbl.add_theme_font_size_override("font_size", 28)
-		count_lbl.add_theme_color_override("font_color", Color(0.992157, 0.894118, 0.72549))
-		count_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		icons.add_child(count_lbl)
-
-	icons.add_child(_make_icon(ICON_CONTROLLER))
-	if int(spec.count) == 1:
-		icons.add_child(_make_icon(ICON_KEYBOARD))
-
-	var player_count: int = int(spec.count)
-	var mode: String = str(spec.mode)
-	btn.pressed.connect(func(): _start_run(player_count, mode))
-	return btn
-
-func _make_icon(path: String) -> TextureRect:
-	var icon := TextureRect.new()
-	icon.custom_minimum_size = Vector2(36, 36)
-	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	icon.texture = load(path)
-	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	return icon
-
-func _populate_difficulty_options() -> void:
-	_difficulty_dropdown.clear()
-	var options := _settings_list("difficultyOptions")
-	if options.is_valid() and options.get_type() == GnosisValueType.LIST:
-		for i in range(options.get_count()):
-			var key := str(options.get_node(i).value)
-			_difficulty_dropdown.add_item(tr(key))
-	else:
-		for key in ["core__adjective__easy", "core__adjective__medium", "core__adjective__hard"]:
-			_difficulty_dropdown.add_item(tr(key))
+func _on_play_pressed() -> void:
+	_start_run()
 
 func _populate_flags() -> void:
 	for child in _flags_list.get_children():
@@ -205,40 +125,12 @@ func _add_flag_row(flag_id: String, entry: GnosisNode) -> void:
 	_flag_toggles[settings_path] = {"toggle": toggle, "default": default_value}
 
 func _sync_from_settings() -> void:
-	var difficulty_header := _setup_panel.get_node_or_null("DifficultyHeader") as Label
-	if difficulty_header:
-		difficulty_header.text = tr("core__noun__difficulty").to_upper()
-	var index := _current_difficulty_index()
-	if _difficulty_dropdown.item_count > 0:
-		_difficulty_dropdown.select(clampi(index, 0, _difficulty_dropdown.item_count - 1))
 	for settings_path in _flag_toggles.keys():
 		var spec: Dictionary = _flag_toggles[settings_path]
 		var toggle: JuicyToggle = spec.toggle
 		var default_value: bool = spec.default
 		var value := _read_bool_setting(settings_path, default_value)
 		toggle.set_pressed_silent(value)
-
-func _current_difficulty_index() -> int:
-	var setting := _setting()
-	if setting == null:
-		return 1
-	return setting.get_int("settings.difficultyIndex", true, 1)
-
-func _difficulty_id_from_index(index: int) -> String:
-	var clamped := clampi(index, 0, DIFFICULTY_FALL_SPEED.size() - 1)
-	return DIFFICULTY_FALL_SPEED[clamped]
-
-func _on_difficulty_selected(index: int) -> void:
-	var setting := _setting()
-	if setting == null:
-		return
-	var store := setting.context.store
-	var args := store.create_object()
-	args.set_key("key", "settings.difficultyIndex")
-	args.set_key("index", index)
-	setting.set_dropdown(args)
-	var fall_speed := _difficulty_id_from_index(index)
-	setting.set_state_value("settings.overrides.fallingBlock.fallSpeedDifficulty", fall_speed, true)
 
 func _on_flag_toggled(settings_path: String, on: bool) -> void:
 	var setting := _setting()
@@ -250,7 +142,7 @@ func _on_flag_toggled(settings_path: String, on: bool) -> void:
 	args.set_key("value", on)
 	setting.set_bool(args)
 
-func _start_run(player_count: int, mode: String) -> void:
+func _start_run() -> void:
 	GnosisRunSave.clear_run_save()
 	if _host:
 		_host.restart_ephemeral_run()
@@ -259,8 +151,8 @@ func _start_run(player_count: int, mode: String) -> void:
 		return
 	var ephemeral := eng.state.root.get_node("Ephemeral")
 	if ephemeral.is_valid():
-		ephemeral.set_key("playerCount", player_count)
-		ephemeral.set_key("mode", mode)
+		ephemeral.set_key("playerCount", 1)
+		ephemeral.set_key("mode", "solo")
 	var match3 = eng.get_service("Match3")
 	if match3:
 		match3.handle_run_started()
@@ -289,15 +181,6 @@ func _read_bool_setting(path: String, default_value: bool) -> bool:
 	if setting == null:
 		return default_value
 	return setting.get_bool(path, true, default_value)
-
-func _settings_list(key: String) -> GnosisNode:
-	var eng := _engine()
-	if eng == null:
-		return GnosisNode.new(null)
-	var settings := eng.state.root.get_node("Persistent.settings")
-	if not settings.is_valid():
-		return GnosisNode.new(null)
-	return settings.get_node(key)
 
 func _config_node(key: String) -> GnosisNode:
 	var eng := _engine()

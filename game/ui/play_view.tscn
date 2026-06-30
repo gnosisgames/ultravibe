@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://game/ui/play_view.gd" id="1"]
 [ext_resource type="PackedScene" path="res://game/ui/widgets/rounded_square_btn.tscn" id="2"]
@@ -7,7 +7,6 @@
 [ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/back.png" id="5"]
 [ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/infinity.png" id="6"]
 [ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/crown.png" id="7"]
-[ext_resource type="Script" path="res://game/ui/widgets/juicy_dropdown.gd" id="8"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
 content_margin_left = 36.0
@@ -156,31 +155,16 @@ theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 24
 theme_override_constants/margin_bottom = 8
 
-[node name="SetupPanel" type="VBoxContainer" parent="Center/Layout/Card/Content"]
+[node name="SetupPanel" type="CenterContainer" parent="Center/Layout/Card/Content"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 18
 
-[node name="DifficultyHeader" type="Label" parent="Center/Layout/Card/Content/SetupPanel"]
-layout_mode = 2
-theme_override_fonts/font = ExtResource("4")
-theme_override_font_sizes/font_size = 28
-text = "core__noun__difficulty"
-horizontal_alignment = 1
-
-[node name="DifficultyDropdown" type="OptionButton" parent="Center/Layout/Card/Content/SetupPanel"]
+[node name="PlayButton" parent="Center/Layout/Card/Content/SetupPanel" instance=ExtResource("2")]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 56)
+custom_minimum_size = Vector2(420, 72)
 layout_mode = 2
-size_flags_horizontal = 3
-script = ExtResource("8")
-
-[node name="PlayersList" type="VBoxContainer" parent="Center/Layout/Card/Content/SetupPanel"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_constants/separation = 12
+text = "core__verb__play"
 
 [node name="FlagsPanel" type="ScrollContainer" parent="Center/Layout/Card/Content"]
 unique_name_in_owner = true

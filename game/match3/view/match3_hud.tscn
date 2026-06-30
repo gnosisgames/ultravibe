@@ -1,8 +1,129 @@
-[gd_scene format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://game/match3/view/match3_hud.gd" id="1"]
 [ext_resource type="Script" path="res://game/match3/view/match3_dispatcher.gd" id="2"]
 [ext_resource type="FontFile" path="res://assets/fonts/Comic Lemon.otf" id="3"]
+[ext_resource type="PackedScene" path="res://game/ui/widgets/rounded_square_btn.tscn" id="4"]
+[ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/home.png" id="5"]
+[ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/cog.png" id="6"]
+[ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/shuffle.png" id="7"]
+[ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/book.png" id="8"]
+
+[sub_resource type="StyleBoxFlat" id="SB_section"]
+content_margin_left = 24.0
+content_margin_top = 21.0
+content_margin_right = 24.0
+content_margin_bottom = 21.0
+bg_color = Color(0.415686, 0.415686, 0.658824, 1)
+corner_radius_top_left = 27
+corner_radius_top_right = 27
+corner_radius_bottom_right = 27
+corner_radius_bottom_left = 27
+shadow_color = Color(0.0784314, 0.137255, 0.227451, 1)
+shadow_size = 1
+shadow_offset = Vector2(5, 7)
+
+[sub_resource type="StyleBoxFlat" id="SB_dark"]
+content_margin_left = 21.0
+content_margin_top = 15.0
+content_margin_right = 21.0
+content_margin_bottom = 15.0
+bg_color = Color(0.156863, 0.196078, 0.290196, 1)
+corner_radius_top_left = 21
+corner_radius_top_right = 21
+corner_radius_bottom_right = 21
+corner_radius_bottom_left = 21
+
+[sub_resource type="StyleBoxFlat" id="SB_token"]
+bg_color = Color(0.0980392, 0.156863, 0.227451, 1)
+corner_radius_top_left = 21
+corner_radius_top_right = 21
+corner_radius_bottom_right = 21
+corner_radius_bottom_left = 21
+
+[sub_resource type="StyleBoxFlat" id="SB_points"]
+content_margin_left = 15.0
+content_margin_top = 12.0
+content_margin_right = 15.0
+content_margin_bottom = 12.0
+bg_color = Color(0.196078, 0.45098, 0.85098, 1)
+corner_radius_top_left = 21
+corner_radius_top_right = 21
+corner_radius_bottom_right = 21
+corner_radius_bottom_left = 21
+
+[sub_resource type="StyleBoxFlat" id="SB_multi"]
+content_margin_left = 15.0
+content_margin_top = 12.0
+content_margin_right = 15.0
+content_margin_bottom = 12.0
+bg_color = Color(0.831373, 0.180392, 0.317647, 1)
+corner_radius_top_left = 21
+corner_radius_top_right = 21
+corner_radius_bottom_right = 21
+corner_radius_bottom_left = 21
+
+[sub_resource type="StyleBoxFlat" id="SB_shuffle_normal"]
+content_margin_left = 10.0
+content_margin_right = 10.0
+bg_color = Color(0.835294, 0.501961, 0.501961, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+corner_detail = 12
+shadow_color = Color(0.345098, 0.137255, 0.137255, 1)
+shadow_size = 1
+shadow_offset = Vector2(3, 4)
+
+[sub_resource type="StyleBoxFlat" id="SB_shuffle_pressed"]
+content_margin_left = 10.0
+content_margin_right = 10.0
+bg_color = Color(0.701961, 0.403922, 0.403922, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+corner_detail = 12
+shadow_color = Color(0.345098, 0.137255, 0.137255, 1)
+shadow_size = 1
+shadow_offset = Vector2(3, 4)
+
+[sub_resource type="StyleBoxFlat" id="SB_shuffle_hover"]
+content_margin_left = 10.0
+content_margin_right = 10.0
+bg_color = Color(0.901961, 0.580392, 0.580392, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.439216, 0.219608, 0.219608, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+corner_detail = 12
+shadow_color = Color(0.345098, 0.137255, 0.137255, 1)
+shadow_size = 1
+shadow_offset = Vector2(3, 4)
+
+[sub_resource type="StyleBoxFlat" id="SB_shuffle_focus"]
+content_margin_left = 10.0
+content_margin_right = 10.0
+bg_color = Color(0.835294, 0.501961, 0.501961, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.439216, 0.219608, 0.219608, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+corner_detail = 12
+shadow_color = Color(0.345098, 0.137255, 0.137255, 1)
+shadow_size = 1
+shadow_offset = Vector2(3, 4)
 
 [node name="Match3Hud" type="Control"]
 layout_mode = 3
@@ -14,37 +135,414 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1")
 
-[node name="TopBar" type="HBoxContainer" parent="."]
+[node name="Sidebar" type="MarginContainer" parent="."]
 layout_mode = 1
-anchors_preset = 10
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_left = 64.0
+offset_right = 576.0
+grow_vertical = 2
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 34
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 34
+
+[node name="Layout" type="VBoxContainer" parent="Sidebar"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="BossSection" type="PanelContainer" parent="Sidebar/Layout"]
+custom_minimum_size = Vector2(0, 244)
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_styles/panel = SubResource("SB_section")
+
+[node name="CardLayout" type="HBoxContainer" parent="Sidebar/Layout/BossSection"]
+layout_mode = 2
+theme_override_constants/separation = 21
+alignment = 1
+
+[node name="LevelTokenPanel" type="PanelContainer" parent="Sidebar/Layout/BossSection/CardLayout"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(180, 180)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("SB_token")
+
+[node name="LevelToken" type="Label" parent="Sidebar/Layout/BossSection/CardLayout/LevelTokenPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3")
+theme_override_font_sizes/font_size = 96
+text = "W"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Info" type="VBoxContainer" parent="Sidebar/Layout/BossSection/CardLayout"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 180)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_constants/separation = 6
+
+[node name="LevelName" type="Label" parent="Sidebar/Layout/BossSection/CardLayout/Info"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3")
+theme_override_font_sizes/font_size = 30
+text = "Will Slappington"
+autowrap_mode = 2
+
+[node name="LevelDesc" type="Label" parent="Sidebar/Layout/BossSection/CardLayout/Info"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "Lorem ipsum is simply dummy text."
+autowrap_mode = 3
+
+[node name="InfoGap" type="Control" parent="Sidebar/Layout/BossSection/CardLayout/Info"]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="ReqScoreRow" type="HBoxContainer" parent="Sidebar/Layout/BossSection/CardLayout/Info"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="ReqScoreLabel" type="Label" parent="Sidebar/Layout/BossSection/CardLayout/Info/ReqScoreRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3")
+theme_override_font_sizes/font_size = 24
+text = "REQ. SCORE:"
+
+[node name="ReqScoreValue" type="Label" parent="Sidebar/Layout/BossSection/CardLayout/Info/ReqScoreRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3")
+theme_override_font_sizes/font_size = 30
+text = "300K"
+horizontal_alignment = 2
+
+[node name="ScoreSection" type="PanelContainer" parent="Sidebar/Layout"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("SB_section")
+
+[node name="ScoreLayout" type="VBoxContainer" parent="Sidebar/Layout/ScoreSection"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="TotalLabel" type="Label" parent="Sidebar/Layout/ScoreSection/ScoreLayout"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3")
+theme_override_font_sizes/font_size = 24
+text = "TOTAL"
+horizontal_alignment = 1
+
+[node name="TotalPanel" type="PanelContainer" parent="Sidebar/Layout/ScoreSection/ScoreLayout"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("SB_dark")
+
+[node name="TotalValue" type="Label" parent="Sidebar/Layout/ScoreSection/ScoreLayout/TotalPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3")
+theme_override_font_sizes/font_size = 60
+text = "0"
+horizontal_alignment = 1
+
+[node name="PointsMultiRow" type="GridContainer" parent="Sidebar/Layout/ScoreSection/ScoreLayout"]
+layout_mode = 2
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 4
+columns = 3
+
+[node name="PointsBox" type="PanelContainer" parent="Sidebar/Layout/ScoreSection/ScoreLayout/PointsMultiRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("SB_points")
+
+[node name="PointsValue" type="Label" parent="Sidebar/Layout/ScoreSection/ScoreLayout/PointsMultiRow/PointsBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3")
+theme_override_font_sizes/font_size = 42
+text = "0"
+horizontal_alignment = 1
+
+[node name="XLabel" type="Label" parent="Sidebar/Layout/ScoreSection/ScoreLayout/PointsMultiRow"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3")
+theme_override_font_sizes/font_size = 36
+text = "X"
+
+[node name="MultiBox" type="PanelContainer" parent="Sidebar/Layout/ScoreSection/ScoreLayout/PointsMultiRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("SB_multi")
+
+[node name="MultiValue" type="Label" parent="Sidebar/Layout/ScoreSection/ScoreLayout/PointsMultiRow/MultiBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3")
+theme_override_font_sizes/font_size = 42
+text = "0"
+horizontal_alignment = 1
+
+[node name="PointsLabel" type="Label" parent="Sidebar/Layout/ScoreSection/ScoreLayout/PointsMultiRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3")
+theme_override_font_sizes/font_size = 21
+text = "POINTS"
+horizontal_alignment = 1
+
+[node name="XSpacer" type="Control" parent="Sidebar/Layout/ScoreSection/ScoreLayout/PointsMultiRow"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="MultiLabel" type="Label" parent="Sidebar/Layout/ScoreSection/ScoreLayout/PointsMultiRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3")
+theme_override_font_sizes/font_size = 21
+text = "MULTI"
+horizontal_alignment = 1
+
+[node name="MidGap" type="Control" parent="Sidebar/Layout/ScoreSection/ScoreLayout"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 10)
+mouse_filter = 2
+
+[node name="StatsGrid" type="GridContainer" parent="Sidebar/Layout/ScoreSection/ScoreLayout"]
+layout_mode = 2
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 12
+columns = 2
+
+[node name="RoundCol" type="VBoxContainer" parent="Sidebar/Layout/ScoreSection/ScoreLayout/StatsGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="RoundLabel" type="Label" parent="Sidebar/Layout/ScoreSection/ScoreLayout/StatsGrid/RoundCol"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3")
+theme_override_font_sizes/font_size = 21
+text = "ROUND"
+horizontal_alignment = 1
+
+[node name="RoundBox" type="PanelContainer" parent="Sidebar/Layout/ScoreSection/ScoreLayout/StatsGrid/RoundCol"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("SB_dark")
+
+[node name="RoundValue" type="Label" parent="Sidebar/Layout/ScoreSection/ScoreLayout/StatsGrid/RoundCol/RoundBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3")
+theme_override_font_sizes/font_size = 36
+text = "1"
+horizontal_alignment = 1
+
+[node name="MovesCol" type="VBoxContainer" parent="Sidebar/Layout/ScoreSection/ScoreLayout/StatsGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="MovesLabel" type="Label" parent="Sidebar/Layout/ScoreSection/ScoreLayout/StatsGrid/MovesCol"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3")
+theme_override_font_sizes/font_size = 21
+text = "MOVES"
+horizontal_alignment = 1
+
+[node name="MovesBox" type="PanelContainer" parent="Sidebar/Layout/ScoreSection/ScoreLayout/StatsGrid/MovesCol"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("SB_dark")
+
+[node name="MovesValue" type="Label" parent="Sidebar/Layout/ScoreSection/ScoreLayout/StatsGrid/MovesCol/MovesBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3")
+theme_override_font_sizes/font_size = 36
+text = "0"
+horizontal_alignment = 1
+
+[node name="CyclesCol" type="VBoxContainer" parent="Sidebar/Layout/ScoreSection/ScoreLayout/StatsGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="CyclesLabel" type="Label" parent="Sidebar/Layout/ScoreSection/ScoreLayout/StatsGrid/CyclesCol"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3")
+theme_override_font_sizes/font_size = 21
+text = "CYCLES"
+horizontal_alignment = 1
+
+[node name="CyclesBox" type="PanelContainer" parent="Sidebar/Layout/ScoreSection/ScoreLayout/StatsGrid/CyclesCol"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("SB_dark")
+
+[node name="CyclesValue" type="Label" parent="Sidebar/Layout/ScoreSection/ScoreLayout/StatsGrid/CyclesCol/CyclesBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3")
+theme_override_font_sizes/font_size = 36
+text = "1/3"
+horizontal_alignment = 1
+
+[node name="MoneyCol" type="VBoxContainer" parent="Sidebar/Layout/ScoreSection/ScoreLayout/StatsGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="MoneyLabel" type="Label" parent="Sidebar/Layout/ScoreSection/ScoreLayout/StatsGrid/MoneyCol"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3")
+theme_override_font_sizes/font_size = 21
+text = "MONEY"
+horizontal_alignment = 1
+
+[node name="MoneyBox" type="PanelContainer" parent="Sidebar/Layout/ScoreSection/ScoreLayout/StatsGrid/MoneyCol"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("SB_dark")
+
+[node name="MoneyValue" type="Label" parent="Sidebar/Layout/ScoreSection/ScoreLayout/StatsGrid/MoneyCol/MoneyBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.937255, 0.74902, 0.0156863, 1)
+theme_override_fonts/font = ExtResource("3")
+theme_override_font_sizes/font_size = 36
+text = "$0"
+horizontal_alignment = 1
+
+[node name="ButtonsSection" type="VBoxContainer" parent="Sidebar/Layout"]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="ButtonsRow" type="HBoxContainer" parent="Sidebar/Layout/ButtonsSection"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 15
+alignment = 1
+
+[node name="HomeButton" parent="Sidebar/Layout/ButtonsSection/ButtonsRow" instance=ExtResource("4")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_colors/icon_normal_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_focus_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_pressed_color = Color(1, 1, 1, 1)
+theme_override_constants/icon_max_width = 64
+tooltip_text = "core__noun__home"
+icon_alignment = 1
+vertical_icon_alignment = 1
+text = ""
+icon = ExtResource("5")
+expand_icon = true
+
+[node name="SettingsButton" parent="Sidebar/Layout/ButtonsSection/ButtonsRow" instance=ExtResource("4")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_colors/icon_normal_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_focus_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_pressed_color = Color(1, 1, 1, 1)
+theme_override_constants/icon_max_width = 64
+tooltip_text = "core__noun__settings"
+icon_alignment = 1
+vertical_icon_alignment = 1
+text = ""
+icon = ExtResource("6")
+expand_icon = true
+
+[node name="WikiButton" parent="Sidebar/Layout/ButtonsSection/ButtonsRow" instance=ExtResource("4")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_colors/icon_normal_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_focus_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_pressed_color = Color(1, 1, 1, 1)
+theme_override_constants/icon_max_width = 64
+tooltip_text = "ultravibe__ui__collection"
+icon_alignment = 1
+vertical_icon_alignment = 1
+text = ""
+icon = ExtResource("8")
+expand_icon = true
+
+[node name="ShuffleButton" parent="Sidebar/Layout/ButtonsSection/ButtonsRow" instance=ExtResource("4")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_colors/icon_normal_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_focus_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_pressed_color = Color(1, 1, 1, 1)
+theme_override_constants/icon_max_width = 64
+theme_override_styles/normal = SubResource("SB_shuffle_normal")
+theme_override_styles/pressed = SubResource("SB_shuffle_pressed")
+theme_override_styles/hover = SubResource("SB_shuffle_hover")
+theme_override_styles/focus = SubResource("SB_shuffle_focus")
+tooltip_text = "core__noun__shuffle"
+icon_alignment = 1
+vertical_icon_alignment = 1
+text = ""
+icon = ExtResource("7")
+expand_icon = true
+
+[node name="ShuffleCount" type="Label" parent="Sidebar/Layout/ButtonsSection/ButtonsRow/ShuffleButton"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
 anchor_right = 1.0
-offset_left = 24.0
-offset_top = 16.0
-offset_right = -24.0
-offset_bottom = 72.0
+anchor_bottom = 1.0
+offset_top = -39.0
 grow_horizontal = 2
-theme_override_constants/separation = 24
-
-[node name="ScoreLabel" type="Label" parent="TopBar"]
-unique_name_in_owner = true
-layout_mode = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3")
-theme_override_font_sizes/font_size = 28
-text = "Score: 0"
-
-[node name="TargetLabel" type="Label" parent="TopBar"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_fonts/font = ExtResource("3")
-theme_override_font_sizes/font_size = 28
-text = "Target: 0"
-
-[node name="MovesLabel" type="Label" parent="TopBar"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_fonts/font = ExtResource("3")
-theme_override_font_sizes/font_size = 28
-text = "Moves: 0"
+theme_override_font_sizes/font_size = 27
+text = "2"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="StatusLabel" type="Label" parent="."]
 unique_name_in_owner = true
@@ -70,8 +568,9 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = 80.0
-offset_bottom = -80.0
+offset_left = 592.0
+offset_top = 24.0
+offset_bottom = -24.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
