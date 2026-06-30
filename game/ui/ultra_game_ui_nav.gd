@@ -51,3 +51,45 @@ static func transition_between(
 	params.set_key("inDuration", DEFAULT_DURATION)
 	params.set_key("outDuration", DEFAULT_DURATION)
 	ui.invoke_function("RequestTransition", params)
+
+
+## Pushes a full-screen menu over gameplay so Back returns to the run.
+static func push_from_gameplay(
+	ui: GnosisGameUIService,
+	store: GnosisStore,
+	view_id: String,
+	transition_id: String = "slide_left"
+) -> void:
+	if ui == null or store == null or view_id.strip_edges().is_empty():
+		return
+	var params: GnosisNode = store.create_object()
+	params.set_key("viewId", view_id.strip_edges())
+	params.set_key("currentViewId", "gameplay")
+	params.set_key("transitionId", transition_id)
+	params.set_key("inDuration", DEFAULT_DURATION)
+	params.set_key("outDuration", DEFAULT_DURATION)
+	ui.invoke_function("PushView", params)
+
+
+## Standard Back for settings / collection: pop the stack, or return to gameplay
+## when opened via set_base_view (no history), else title.
+static func pop_menu_back(
+	ui: GnosisGameUIService,
+	store: GnosisStore,
+	transition_id: String = "slide_right"
+) -> void:
+	if ui == null or store == null:
+		return
+	if ui.get_navigation_history_count() > 0:
+		var params: GnosisNode = store.create_object()
+		params.set_key("transitionId", transition_id)
+		params.set_key("inDuration", DEFAULT_DURATION)
+		params.set_key("outDuration", DEFAULT_DURATION)
+		ui.invoke_function("PopView", params)
+		return
+	var current := ui.get_base_view_id().strip_edges().to_lower()
+	if current == "settings" or current == "collection":
+		transition_between(ui, store, current, "gameplay", transition_id)
+		ui.initialize_navigation_state("gameplay")
+	else:
+		ui.set_base_view("title")

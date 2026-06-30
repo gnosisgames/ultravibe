@@ -43,6 +43,12 @@ func _notification(what: int) -> void:
 		_apply_headline()
 		_apply_shuffles_label()
 
+@onready var _center: Control = $Center
+
+func get_subscreen_slide_holder() -> Control:
+	return _center
+
+
 func set_view_visible(is_visible: bool) -> void:
 	super.set_view_visible(is_visible)
 	if is_visible:

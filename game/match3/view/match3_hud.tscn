@@ -29,7 +29,7 @@ content_margin_left = 24.0
 content_margin_top = 21.0
 content_margin_right = 24.0
 content_margin_bottom = 21.0
-bg_color = Color(0, 0, 0, 0.3)
+bg_color = Color(0, 0, 0, 0.15)
 corner_radius_top_left = 27
 corner_radius_top_right = 27
 corner_radius_bottom_right = 27
@@ -226,19 +226,20 @@ layout_mode = 2
 theme_override_constants/separation = 32
 
 [node name="BossSection" type="PanelContainer" parent="Sidebar/Layout"]
-custom_minimum_size = Vector2(0, 244)
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 180)
 layout_mode = 2
 size_flags_vertical = 0
 theme_override_styles/panel = SubResource("SB_section")
 
 [node name="CardLayout" type="HBoxContainer" parent="Sidebar/Layout/BossSection"]
 layout_mode = 2
-theme_override_constants/separation = 21
+theme_override_constants/separation = 16
 alignment = 1
 
 [node name="LevelTokenPanel" type="PanelContainer" parent="Sidebar/Layout/BossSection/CardLayout"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(180, 180)
+custom_minimum_size = Vector2(132, 132)
 layout_mode = 2
 size_flags_vertical = 4
 theme_override_styles/panel = SubResource("SB_token")
@@ -248,25 +249,25 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3")
-theme_override_font_sizes/font_size = 96
+theme_override_font_sizes/font_size = 68
 text = "W"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="Info" type="VBoxContainer" parent="Sidebar/Layout/BossSection/CardLayout"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 180)
+custom_minimum_size = Vector2(0, 132)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
-theme_override_constants/separation = 6
+theme_override_constants/separation = 4
 
 [node name="LevelName" type="Label" parent="Sidebar/Layout/BossSection/CardLayout/Info"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3")
-theme_override_font_sizes/font_size = 30
+theme_override_font_sizes/font_size = 24
 text = "Will Slappington"
 autowrap_mode = 2
 
@@ -274,7 +275,7 @@ autowrap_mode = 2
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 16
 text = "Lorem ipsum is simply dummy text."
 autowrap_mode = 3
 
@@ -292,7 +293,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3")
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 20
 text = "match3__hud__label__reqScore"
 
 [node name="ReqScoreValue" type="Label" parent="Sidebar/Layout/BossSection/CardLayout/Info/ReqScoreRow"]
@@ -300,7 +301,7 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3")
-theme_override_font_sizes/font_size = 30
+theme_override_font_sizes/font_size = 24
 text = "300K"
 horizontal_alignment = 2
 
@@ -315,19 +316,25 @@ layout_mode = 2
 theme_override_constants/separation = 8
 alignment = 1
 
-[node name="TotalLabel" type="Label" parent="Sidebar/Layout/ScoreSection/ScoreLayout"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_fonts/font = ExtResource("3")
-theme_override_font_sizes/font_size = 24
-text = "match3__hud__label__total"
-horizontal_alignment = 1
-
 [node name="TotalPanel" type="PanelContainer" parent="Sidebar/Layout/ScoreSection/ScoreLayout"]
 layout_mode = 2
 theme_override_styles/panel = SubResource("SB_dark")
 
-[node name="TotalValue" type="Label" parent="Sidebar/Layout/ScoreSection/ScoreLayout/TotalPanel"]
+[node name="ScoreStack" type="VBoxContainer" parent="Sidebar/Layout/ScoreSection/ScoreLayout/TotalPanel"]
+layout_mode = 2
+theme_override_constants/separation = 0
+alignment = 1
+
+[node name="TotalValue" type="Label" parent="Sidebar/Layout/ScoreSection/ScoreLayout/TotalPanel/ScoreStack"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.65, 0.68, 0.75, 1)
+theme_override_fonts/font = ExtResource("3")
+theme_override_font_sizes/font_size = 42
+text = "0"
+horizontal_alignment = 1
+
+[node name="LastMatchValue" type="Label" parent="Sidebar/Layout/ScoreSection/ScoreLayout/TotalPanel/ScoreStack"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
@@ -547,22 +554,13 @@ offset_bottom = 212.0
 grow_horizontal = 2
 theme_override_styles/panel = SubResource("SB_boons")
 
-[node name="BoonsRow" type="HBoxContainer" parent="BoonsBar"]
+[node name="BoonsLayout" type="VBoxContainer" parent="BoonsBar"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="BoonCount" type="Label" parent="BoonsBar/BoonsLayout"]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 1
-theme_override_constants/separation = 18
-alignment = 1
-
-[node name="BoonCount" type="Label" parent="."]
-unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 0
-offset_left = 534.0
-offset_top = 218.0
-offset_right = 754.0
-offset_bottom = 264.0
 mouse_filter = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0.0784314, 0.137255, 0.227451, 1)
@@ -571,7 +569,14 @@ theme_override_fonts/font = ExtResource("3")
 theme_override_font_sizes/font_size = 30
 text = "0 / 6"
 horizontal_alignment = 0
-vertical_alignment = 1
+
+[node name="BoonsRow" type="HBoxContainer" parent="BoonsBar/BoonsLayout"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 18
+alignment = 1
 
 [node name="ConsumablesBar" type="PanelContainer" parent="."]
 unique_name_in_owner = true
@@ -588,25 +593,13 @@ grow_horizontal = 0
 grow_vertical = 2
 theme_override_styles/panel = SubResource("SB_boons")
 
-[node name="ConsumablesColumn" type="VBoxContainer" parent="ConsumablesBar"]
+[node name="ConsumablesLayout" type="VBoxContainer" parent="ConsumablesBar"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="ConsumableCount" type="Label" parent="ConsumablesBar/ConsumablesLayout"]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_horizontal = 1
-size_flags_vertical = 3
-theme_override_constants/separation = 18
-alignment = 1
-
-[node name="ConsumableCount" type="Label" parent="."]
-unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -232.0
-offset_top = 178.0
-offset_right = -12.0
-offset_bottom = 224.0
-grow_horizontal = 0
 mouse_filter = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0.0784314, 0.137255, 0.227451, 1)
@@ -614,8 +607,15 @@ theme_override_constants/outline_size = 6
 theme_override_fonts/font = ExtResource("3")
 theme_override_font_sizes/font_size = 30
 text = "0 / 3"
-horizontal_alignment = 0
-vertical_alignment = 1
+horizontal_alignment = 1
+
+[node name="ConsumablesColumn" type="VBoxContainer" parent="ConsumablesBar/ConsumablesLayout"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 1
+size_flags_vertical = 3
+theme_override_constants/separation = 18
+alignment = 1
 
 [node name="BoardHost" type="Control" parent="."]
 unique_name_in_owner = true

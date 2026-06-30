@@ -2,11 +2,12 @@ class_name Match3Hud
 extends Control
 
 ## Match-3 gameplay HUD. The left sidebar mirrors the Unity MainHud: boss/level
-## card, total score, points x multi, round/moves/cycles/money, and the
+## card, stacked round total + last-match score, points x multi, round/moves/cycles/money,
 ## home/settings/wiki/shuffle action buttons. Values are pulled from Match3Service
 ## via refresh_from_service() (driven by the dispatcher on board reset/change).
 
 const Match3ModelsScript = preload("res://game/match3/core/match3_models.gd")
+const UltraGameUiNav = preload("res://game/ui/ultra_game_ui_nav.gd")
 ## Boss letter token font — mirrors the collection view boss tokens.
 const TOKEN_FONT_PATH := "res://assets/fonts/PolygonParty-3KXM.ttf"
 const TOKEN_DEFAULT_BG := Color(0.0980392, 0.156863, 0.227451)
@@ -29,6 +30,7 @@ signal content_frame_changed
 @onready var _level_desc: Label = %LevelDesc
 @onready var _req_score_value: Label = %ReqScoreValue
 @onready var _total_value: Label = %TotalValue
+@onready var _last_match_value: Label = %LastMatchValue
 @onready var _points_value: Label = %PointsValue
 @onready var _multi_value: Label = %MultiValue
 @onready var _round_value: Label = %RoundValue
@@ -42,6 +44,8 @@ signal content_frame_changed
 @onready var _wiki_button: Button = %WikiButton
 @onready var _shuffle_button: Button = %ShuffleButton
 @onready var _swap_button: Button = %SwapButton
+@onready var _boss_section: PanelContainer = %BossSection
+@onready var _boons_bar: PanelContainer = %BoonsBar
 @onready var _score_section: PanelContainer = %ScoreSection
 @onready var _consumables_bar: PanelContainer = %ConsumablesBar
 @onready var _board_host: Control = %BoardHost
@@ -67,8 +71,15 @@ func _ready() -> void:
 		_swap_button.pressed.connect(_on_swap_pressed)
 	if _score_section:
 		_score_section.resized.connect(_on_frame_dirty)
+	if _boons_bar:
+		_boons_bar.resized.connect(_on_frame_dirty)
 	resized.connect(_on_frame_dirty)
 	_on_frame_dirty.call_deferred()
+
+
+## Re-runs sidebar + content-frame layout (e.g. after a subscreen overlay opens).
+func relayout_content_frame() -> void:
+	call_deferred("_on_frame_dirty")
 
 
 func bind_service(service) -> void:
@@ -84,6 +95,8 @@ func refresh_from_service(service = null) -> void:
 	var gameplay = _service.get_gameplay()
 	if _total_value:
 		_total_value.text = _format_score(gameplay.current_score)
+	if _last_match_value:
+		_last_match_value.text = _format_score(_service.get_last_move_score())
 	if _req_score_value:
 		_req_score_value.text = _format_score(gameplay.target_score)
 	if _moves_value:
@@ -194,14 +207,16 @@ func _on_home_pressed() -> void:
 
 func _on_settings_pressed() -> void:
 	var ui = _game_ui()
-	if ui and ui.has_method("set_base_view"):
-		ui.set_base_view("settings")
+	if ui == null or _service == null or _service.context == null:
+		return
+	UltraGameUiNav.push_from_gameplay(ui, _service.context.engine.store, "settings", "slide_left")
 
 
 func _on_wiki_pressed() -> void:
 	var ui = _game_ui()
-	if ui and ui.has_method("set_base_view"):
-		ui.set_base_view("collection")
+	if ui == null or _service == null or _service.context == null:
+		return
+	UltraGameUiNav.push_from_gameplay(ui, _service.context.engine.store, "collection", "slide_right")
 
 
 func _on_shuffle_pressed() -> void:
@@ -271,6 +286,10 @@ func get_board_frame_rect() -> Rect2:
 ## Keeps the consumable sidebar vertically aligned with the main sidebar panel
 ## (same top/bottom), then notifies overlays the frame may have moved.
 func _on_frame_dirty() -> void:
+	if _boss_section and _boons_bar:
+		var boons_h := _boons_bar.size.y
+		if boons_h > 0.0:
+			_boss_section.custom_minimum_size.y = boons_h
 	if _consumables_bar and _score_section:
 		var panel := _score_section.get_global_rect()
 		# Skip while the sidebar panel has not been laid out yet, otherwise we

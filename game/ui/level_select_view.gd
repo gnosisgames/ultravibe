@@ -8,6 +8,7 @@ extends GnosisUIElementView
 ## skip actions. The green shop button re-opens the shop panel.
 
 const SubscreenFrame = preload("res://game/ui/subscreen_frame.gd")
+const RoundedSquareBtnScene = preload("res://game/ui/widgets/rounded_square_btn.tscn")
 const ICON_DIR := "res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/"
 const SKULL_ICON := ICON_DIR + "skull-white.png"
 const PLAY_ICON := ICON_DIR + "play.png"
@@ -15,10 +16,9 @@ const CHEVRON_UP_ICON := ICON_DIR + "up.png"
 const CHEVRON_DOWN_ICON := ICON_DIR + "down.png"
 const CONSUMABLE_ICON_DIR := "res://assets/icons/consumables/"
 
-const CARD_BG := Color(0.490196, 0.490196, 0.729412, 1)
-const CARD_BG_CURRENT := Color(0.552941, 0.552941, 0.792157, 1)
-const CARD_BORDER := Color(0.823529, 0.835294, 0.945098, 1)
-const CARD_BORDER_CURRENT := Color(0.968627, 0.831373, 0.337255, 1)
+const PANEL_BG := Color(0.415686, 0.415686, 0.658824, 1)
+const PANEL_SHADOW := Color(0.0784314, 0.137255, 0.227451, 1)
+const PANEL_RADIUS := 27
 const PILL_DARK := Color(0.156863, 0.196078, 0.290196, 1)
 const PILL_WHITE := Color(0.929412, 0.941176, 0.972549, 1)
 const PILL_TEXT_DARK := Color(0.156863, 0.196078, 0.290196, 1)
@@ -39,6 +39,10 @@ func _ready() -> void:
 	add_to_group("gnosis_ui_view")
 	_font = load("res://assets/fonts/Comic Lemon.otf")
 	call_deferred("_resolve_host")
+
+func get_subscreen_slide_holder() -> Control:
+	return _region
+
 
 func set_view_visible(is_visible: bool) -> void:
 	super.set_view_visible(is_visible)
@@ -220,13 +224,12 @@ func _buttons_row(is_current: bool, skippable: bool, double_down_mult: int) -> C
 	return row
 
 func _action_button(icon_path: String, label: String, color: Color, enabled: bool) -> Button:
-	var btn := Button.new()
+	var btn: RoundedSquareBtn = RoundedSquareBtnScene.instantiate()
 	btn.custom_minimum_size = Vector2(72, 72)
 	btn.icon = load(icon_path)
 	btn.expand_icon = true
 	btn.text = label
 	btn.disabled = not enabled
-	btn.focus_mode = Control.FOCUS_NONE
 	btn.add_theme_constant_override("icon_max_width", 36)
 	btn.add_theme_color_override("icon_normal_color", WHITE)
 	btn.add_theme_color_override("icon_hover_color", WHITE)
@@ -273,19 +276,17 @@ func _round_pill(round_num: int) -> Control:
 # Styling helpers
 # ---------------------------------------------------------------------------
 
-func _card_style(is_current: bool) -> StyleBoxFlat:
+func _card_style(_is_current: bool) -> StyleBoxFlat:
 	var box := StyleBoxFlat.new()
-	box.bg_color = CARD_BG_CURRENT if is_current else CARD_BG
-	box.set_corner_radius_all(28)
-	box.set_border_width_all(5)
-	box.border_color = CARD_BORDER_CURRENT if is_current else CARD_BORDER
+	box.bg_color = PANEL_BG
+	box.set_corner_radius_all(PANEL_RADIUS)
 	box.content_margin_left = 28
 	box.content_margin_right = 28
 	box.content_margin_top = 24
 	box.content_margin_bottom = 24
-	box.shadow_color = Color(0.0784314, 0.137255, 0.227451, 0.6)
+	box.shadow_color = PANEL_SHADOW
 	box.shadow_size = 1
-	box.shadow_offset = Vector2(5, 8)
+	box.shadow_offset = Vector2(5, 7)
 	return box
 
 func _rounded_style(bg: Color, radius: int, margin_v: int, margin_h: int = -1) -> StyleBoxFlat:

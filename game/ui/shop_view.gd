@@ -25,6 +25,10 @@ func _ready() -> void:
 	_continue_button.pressed.connect(_on_continue_pressed)
 	call_deferred("_resolve_host")
 
+func get_subscreen_slide_holder() -> Control:
+	return _center
+
+
 func set_view_visible(is_visible: bool) -> void:
 	super.set_view_visible(is_visible)
 	if is_visible:
@@ -111,7 +115,7 @@ func _add_offer_row(source: String, item_id: String, price: int, index: int) -> 
 		label.add_theme_font_override("font", _row_font)
 	label.add_theme_font_size_override("font_size", 22)
 	hbox.add_child(label)
-	var buy := Button.new()
+	var buy := JuicyButton.new()
 	buy.text = "$%d" % price
 	if _row_font:
 		buy.add_theme_font_override("font", _row_font)

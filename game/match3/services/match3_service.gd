@@ -52,7 +52,8 @@ var _manual_shuffles_remaining := 0
 var _boss_level_ids_cache: Array[String] = []
 var _board_pools_loaded := false
 var _last_step_points := 0
-var _last_step_multi := 1
+var _last_step_multi := 0
+var _last_move_score := 0
 var _normal_board_pool_ids: Array[String] = []
 var _advanced_board_pool_ids: Array[String] = []
 var _boss_board_pool_ids: Array[String] = []
@@ -72,6 +73,7 @@ func on_initialize() -> void:
 	_refresh_item_catalog()
 	_load_board_pools()
 	_hydrate_runtime_from_store()
+	_gameplay.set_tile_score_resolver(Callable(self, "_resolve_item_score_profile"))
 	_gameplay.status = Models.STATUS_LEVEL_SELECT_PANEL
 	_publish_ephemeral_state()
 	if context and context.event_bus:
@@ -213,6 +215,11 @@ func get_step_multi() -> int:
 	return _last_step_multi
 
 
+## Points x multi product for the most recently resolved move.
+func get_last_move_score() -> int:
+	return _last_move_score
+
+
 func get_statistic_int(path: String, fallback: int = 0) -> int:
 	if context == null or context.engine == null:
 		return fallback
@@ -308,6 +315,7 @@ func _on_move_requested(event: GnosisEvent) -> void:
 		var last = results[results.size() - 1]
 		_last_step_points = last.move_points_so_far
 		_last_step_multi = last.move_multi_so_far
+		_last_move_score = last.final_score_for_move
 	# The board view animates the swap + cascade from this step sequence, so we no
 	# longer snap the final board instantly. Published before any win/loss status
 	# change so the view marks itself busy and the adapter defers the result panel.
@@ -351,7 +359,8 @@ func _prepare_queued_round_preview(level_number: int) -> void:
 	_apply_round_setup(maxi(1, level_number))
 	_gameplay.current_score = 0
 	_last_step_points = 0
-	_last_step_multi = 1
+	_last_step_multi = 0
+	_last_move_score = 0
 
 
 func _apply_round_setup(level_number: int) -> void:
@@ -618,6 +627,100 @@ func _refresh_item_catalog() -> void:
 		_item_points[str(item_id)] = points
 
 
+## Unity ResolveItemScoreProfile: item level + item type scoring modifiers.
+func _resolve_item_score_profile(item_id: String, item_type_id: String) -> Dictionary:
+	var fallback_points := int(_item_points.get(item_id, Models.DEFAULT_ITEM_POINTS))
+	var fallback_multi := Models.DEFAULT_ITEM_MULTI
+	var level := _resolve_item_level(item_id)
+	var points := fallback_points
+	var multi := fallback_multi
+
+	var config := get_node("configuration", true)
+	if config.is_valid():
+		var items := config.get_node("items")
+		if items.is_valid() and items.get_type() == GnosisValueType.OBJECT:
+			var entry := items.get_node(item_id.strip_edges())
+			if entry.is_valid():
+				var props := entry.get_node("properties")
+				if props.is_valid():
+					var base_points := _node_int(props, "basePoints", fallback_points)
+					var base_multi := _node_int(props, "baseMulti", fallback_multi)
+					var level_offset := maxi(0, level - 1)
+					points = maxi(0, base_points + _node_int(props, "pointsPerLevel", 0) * level_offset)
+					multi = maxi(0, base_multi + _node_int(props, "multiPerLevel", 0) * level_offset)
+
+	return _apply_item_type_scoring(item_type_id, points, multi)
+
+
+func _resolve_item_level(item_id: String) -> int:
+	var trimmed := item_id.strip_edges()
+	if trimmed.is_empty():
+		return 1
+	var m3 := get_node("match3", false)
+	if not m3.is_valid():
+		return 1
+	var levels := m3.get_node("itemLevels")
+	if not levels.is_valid() or levels.get_type() != GnosisValueType.OBJECT:
+		return 1
+	var level_node := levels.get_node(trimmed)
+	if not level_node.is_valid():
+		return 1
+	if level_node.value != null:
+		return maxi(1, int(level_node.value))
+	return maxi(1, _node_int(level_node, "value", 1))
+
+
+func _apply_item_type_scoring(item_type_id: String, base_points: int, base_multi: int) -> Dictionary:
+	var points := maxi(0, base_points)
+	var multi := maxi(0, base_multi)
+	var type_id := item_type_id.strip_edges()
+	if type_id.is_empty():
+		return {"points": points, "multi": multi}
+
+	var config := get_node("configuration", true)
+	if not config.is_valid():
+		return {"points": points, "multi": multi}
+	var types := config.get_node("itemTypes")
+	if not types.is_valid() or types.get_type() != GnosisValueType.OBJECT:
+		return {"points": points, "multi": multi}
+	var row := types.get_node(type_id)
+	if not row.is_valid():
+		return {"points": points, "multi": multi}
+	var props := row.get_node("properties")
+	if not props.is_valid():
+		return {"points": points, "multi": multi}
+
+	var mode := _node_str(props, "scoringMode", "additive").to_lower()
+	var row_points := _node_int(props, "points", 0)
+	var row_multi := _node_int(props, "multi", 0)
+	var point_multiplier := _read_node_float(props, "pointMultiplier", 1.0)
+	var multi_multiplier := _read_node_float(props, "multiMultiplier", 1.0)
+
+	match mode:
+		"override":
+			points = row_points
+			multi = row_multi
+		"multiplicative":
+			points = int(round(float(points) * point_multiplier)) + row_points
+			multi = int(round(float(multi) * multi_multiplier)) + row_multi
+		_:
+			points += row_points
+			multi += row_multi
+			points = int(round(float(points) * point_multiplier))
+			multi = int(round(float(multi) * multi_multiplier))
+
+	return {"points": maxi(0, points), "multi": maxi(0, multi)}
+
+
+func _read_node_float(node: GnosisNode, key: String, default_value: float) -> float:
+	if node == null or not node.is_valid():
+		return default_value
+	var child := node.get_node(key)
+	if not child.is_valid() or child.value == null:
+		return default_value
+	return float(child.value)
+
+
 func _hydrate_runtime_from_store() -> void:
 	var m3 := get_node("match3", false)
 	if not m3.is_valid():
@@ -697,6 +800,19 @@ func _publish_move_resolved(a, b, success: bool, results: Array) -> void:
 			c.set_key("y", coord.y)
 			matched.add(c)
 		step.set_node("matched", matched)
+		var contributions := context.store.create_list()
+		for contrib in entry.contributions:
+			if contrib is Dictionary:
+				var c := context.store.create_object()
+				var at: Dictionary = contrib.get("at", {})
+				c.set_key("x", int(at.get("x", 0)))
+				c.set_key("y", int(at.get("y", 0)))
+				c.set_key("itemId", str(contrib.get("itemId", "")))
+				c.set_key("itemTypeId", str(contrib.get("itemTypeId", "plain")))
+				c.set_key("pointsAdded", int(contrib.get("pointsAdded", 0)))
+				c.set_key("multiAdded", int(contrib.get("multiAdded", 0)))
+				contributions.add(c)
+		step.set_node("contributions", contributions)
 		var moves := context.store.create_list()
 		for mv in entry.movements:
 			var m := context.store.create_object()
@@ -864,7 +980,8 @@ func _play_level_from_queue(double_down: bool) -> GnosisFunctionResult:
 	_begin_level(round)
 	_gameplay.status = Models.STATUS_PLAYING
 	_last_step_points = 0
-	_last_step_multi = 1
+	_last_step_multi = 0
+	_last_move_score = 0
 	if m3.is_valid():
 		m3.set_key("nextLevel", round + 1)
 	refresh_planned_floor_preview()

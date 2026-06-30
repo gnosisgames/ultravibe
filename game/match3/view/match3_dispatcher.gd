@@ -9,6 +9,7 @@ const Match3ServiceScript = preload("res://game/match3/services/match3_service.g
 const Match3ModelsScript = preload("res://game/match3/core/match3_models.gd")
 const Match3EventsScript = preload("res://game/match3/match3_events.gd")
 const SparklesScene = preload("res://game/match3/view/match3_sparkles.tscn")
+const BoardFloatJuiceScript = preload("res://game/match3/view/match3_board_float_juice.gd")
 const Events = Match3EventsScript
 
 const ITEM_COLORS := {
@@ -209,7 +210,7 @@ func play_move_sequence(payload: GnosisNode) -> void:
 func _animate_step(step: GnosisNode) -> void:
 	if step == null or not step.is_valid():
 		return
-	await _animate_destroy(step.get_node("matched"))
+	await _animate_destroy(step.get_node("matched"), step.get_node("contributions"))
 	await _animate_moves(step.get_node("movements"))
 	await _animate_spawns(step.get_node("spawns"))
 
@@ -282,12 +283,13 @@ func _kill_swap_tween() -> void:
 	_active_swap_tween = null
 
 
-func _animate_destroy(matched: GnosisNode) -> void:
+func _animate_destroy(matched: GnosisNode, contributions: GnosisNode) -> void:
 	if matched == null or not matched.is_valid() or matched.get_type() != GnosisValueType.LIST:
 		return
 	if matched.get_count() > 0:
 		_combo_count += 1
 		_play_match_sfx()
+	var contrib_map := _build_contribution_lookup(contributions)
 	var nodes: Array = []
 	for i in matched.get_count():
 		var c = matched.get_node(i)
@@ -298,21 +300,57 @@ func _animate_destroy(matched: GnosisNode) -> void:
 		if node == null:
 			continue
 		_items.erase(key)
-		nodes.append(node)
+		nodes.append({"node": node, "contrib": contrib_map.get(key, null)})
 	if nodes.is_empty():
 		return
 	var batch := create_tween().set_parallel(true)
-	for node in nodes:
+	for entry in nodes:
+		var node: Control = entry["node"]
+		var contrib: GnosisNode = entry["contrib"]
+		_spawn_destroy_score_popups(node, contrib)
 		_spawn_sparkles(node)
 		_prep_destroy(node)
 		batch.tween_property(node, "scale", Vector2.ZERO, DESTROY_DURATION) \
 			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
 	batch.finished.connect(func() -> void:
-		for node in nodes:
+		for entry in nodes:
+			var node = entry["node"]
 			if is_instance_valid(node):
 				node.queue_free()
 	)
 	await _wait(STEP_PAUSE)
+
+
+func _build_contribution_lookup(contributions: GnosisNode) -> Dictionary:
+	var map: Dictionary = {}
+	if contributions == null or not contributions.is_valid() or contributions.get_type() != GnosisValueType.LIST:
+		return map
+	for i in contributions.get_count():
+		var contrib = contributions.get_node(i)
+		if not contrib.is_valid():
+			continue
+		var key := _key(_node_int(contrib, "x", 0), _node_int(contrib, "y", 0))
+		map[key] = contrib
+	return map
+
+
+func _spawn_destroy_score_popups(node: Control, contrib: GnosisNode) -> void:
+	if node == null:
+		return
+	var points := 0
+	var multi := 0
+	var item_type_id := "plain"
+	if contrib != null and contrib.is_valid():
+		points = _node_int(contrib, "pointsAdded", 0)
+		multi = _node_int(contrib, "multiAdded", 0)
+		item_type_id = _node_string(contrib, "itemTypeId", "plain")
+	if points <= 0 and multi <= 0:
+		points = int(node.get_meta("point_for_item", 0))
+		multi = int(node.get_meta("multi_for_item", 0))
+		if item_type_id == "plain":
+			item_type_id = str(node.get_meta("item_type_id", "plain"))
+	var anchor := node.position + node.size * 0.5
+	BoardFloatJuiceScript.spawn_destroy_gem_popups(self, anchor, points, multi, item_type_id)
 
 
 func _animate_moves(movements: GnosisNode) -> void:
@@ -591,6 +629,21 @@ func _place_node(wrap: Control, x: int, gameplay_y: int) -> void:
 	_layout_sprite(wrap, tile)
 	wrap.set_meta("cell", Vector2i(x, gameplay_y))
 	wrap.set_meta("rest_position", tile.position)
+	_sync_item_score_meta(wrap, x, gameplay_y)
+
+
+func _sync_item_score_meta(wrap: Control, x: int, gameplay_y: int) -> void:
+	if wrap == null or _service == null:
+		return
+	var gameplay = _service.get_gameplay()
+	if gameplay == null:
+		return
+	var data = gameplay.get_tile(x, gameplay_y)
+	if data == null:
+		return
+	wrap.set_meta("point_for_item", data.point_for_item)
+	wrap.set_meta("multi_for_item", data.multi_for_item)
+	wrap.set_meta("item_type_id", data.item_type_id)
 
 
 func _clear_items() -> void:

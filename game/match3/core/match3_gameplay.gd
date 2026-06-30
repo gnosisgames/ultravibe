@@ -19,11 +19,16 @@ var status: int = Models.STATUS_LEVEL_SELECT_PANEL
 
 var _rng := RandomNumberGenerator.new()
 var _move_points_accum: int = 0
-var _move_multi_accum: int = 1
+var _move_multi_accum: int = 0
+var _tile_score_resolver: Callable = Callable()
 
 
 func configure_rng(seed_value: int) -> void:
 	_rng.seed = seed_value
+
+
+func set_tile_score_resolver(resolver: Callable) -> void:
+	_tile_score_resolver = resolver
 
 
 func load_level(
@@ -69,7 +74,7 @@ func process_move(a: Models.TileCoord, b: Models.TileCoord, item_points: Diction
 		return results
 
 	_move_points_accum = 0
-	_move_multi_accum = 1
+	_move_multi_accum = 0
 	_swap(a, b)
 	var first_match := _find_matches()
 	if first_match.matched_tiles.is_empty():
@@ -81,7 +86,7 @@ func process_move(a: Models.TileCoord, b: Models.TileCoord, item_points: Diction
 	_process_step(first_match, results, item_points)
 	if not results.is_empty():
 		var last: Models.MatchResult = results[results.size() - 1]
-		var score_gain := _move_points_accum * maxi(1, _move_multi_accum)
+		var score_gain := _move_points_accum * _move_multi_accum
 		last.points_added = _move_points_accum
 		last.multi_added = _move_multi_accum
 		last.move_points_so_far = _move_points_accum
@@ -123,16 +128,17 @@ func _process_step(
 		var tile := get_tile(coord.x, coord.y)
 		if tile == null or tile.is_empty():
 			continue
-		var points := int(item_points.get(tile.item_id, Models.DEFAULT_ITEM_POINTS))
-		var multi := Models.DEFAULT_ITEM_MULTI
+		var points := tile.point_for_item
+		var multi := tile.multi_for_item
 		current_match.contributions.append({
 			"at": coord.to_dict(),
 			"itemId": tile.item_id,
+			"itemTypeId": tile.item_type_id,
 			"pointsAdded": points,
 			"multiAdded": multi,
 		})
 		_move_points_accum += points
-		_move_multi_accum = maxi(_move_multi_accum, multi)
+		_move_multi_accum += multi
 		scoring_eligible += 1
 		fully_cleared[key] = coord
 
@@ -369,8 +375,21 @@ func _set_item(
 	tile.item_id = item_id
 	tile.item_kind = kind
 	tile.item_type_id = item_type_id if not item_type_id.is_empty() else "plain"
-	tile.point_for_item = int(item_points.get(item_id, Models.DEFAULT_ITEM_POINTS))
-	tile.multi_for_item = Models.DEFAULT_ITEM_MULTI
+	var stats := _resolve_tile_stats(item_id, tile.item_type_id, item_points)
+	tile.point_for_item = stats.x
+	tile.multi_for_item = stats.y
+
+
+func _resolve_tile_stats(item_id: String, item_type_id: String, item_points: Dictionary) -> Vector2i:
+	if _tile_score_resolver.is_valid():
+		var resolved = _tile_score_resolver.call(item_id, item_type_id)
+		if resolved is Dictionary:
+			return Vector2i(
+				int(resolved.get("points", Models.DEFAULT_ITEM_POINTS)),
+				int(resolved.get("multi", Models.DEFAULT_ITEM_MULTI))
+			)
+	var fallback_points := int(item_points.get(item_id, Models.DEFAULT_ITEM_POINTS))
+	return Vector2i(fallback_points, Models.DEFAULT_ITEM_MULTI)
 
 
 func _resolve_palette(color_limit: int) -> PackedStringArray:

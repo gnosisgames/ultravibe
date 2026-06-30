@@ -1,28 +1,24 @@
-[gd_scene load_steps=16 format=3]
+[gd_scene load_steps=17 format=3]
 
 [ext_resource type="Script" path="res://game/ui/game_over_view.gd" id="1"]
 [ext_resource type="Script" path="res://game/ui/components/auto_tween.gd" id="4"]
 [ext_resource type="Script" path="res://game/ui/components/bbcode_effect_text_combine.gd" id="5"]
 [ext_resource type="FontFile" path="res://assets/fonts/Comic Lemon.otf" id="6"]
+[ext_resource type="Script" path="res://game/ui/widgets/juicy_button.gd" id="7"]
 
 [sub_resource type="StyleBoxFlat" id="SB_card"]
 content_margin_left = 40.0
 content_margin_top = 34.0
 content_margin_right = 40.0
 content_margin_bottom = 34.0
-bg_color = Color(0.490196, 0.490196, 0.729412, 1)
-border_width_left = 5
-border_width_top = 5
-border_width_right = 5
-border_width_bottom = 5
-border_color = Color(0.823529, 0.835294, 0.945098, 1)
-corner_radius_top_left = 28
-corner_radius_top_right = 28
-corner_radius_bottom_right = 28
-corner_radius_bottom_left = 28
-shadow_color = Color(0.0784314, 0.137255, 0.227451, 0.6)
+bg_color = Color(0.415686, 0.415686, 0.658824, 1)
+corner_radius_top_left = 27
+corner_radius_top_right = 27
+corner_radius_bottom_right = 27
+corner_radius_bottom_left = 27
+shadow_color = Color(0.0784314, 0.137255, 0.227451, 1)
 shadow_size = 1
-shadow_offset = Vector2(5, 8)
+shadow_offset = Vector2(5, 7)
 
 [sub_resource type="StyleBoxFlat" id="SB_row"]
 content_margin_left = 22.0
@@ -476,6 +472,7 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 size_flags_horizontal = 3
+script = ExtResource("7")
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
 theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
@@ -495,6 +492,7 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 size_flags_horizontal = 3
+script = ExtResource("7")
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
 theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
@@ -514,6 +512,7 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 size_flags_horizontal = 3
+script = ExtResource("7")
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
 theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)

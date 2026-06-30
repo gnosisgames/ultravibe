@@ -74,6 +74,7 @@ func _subscribe_facts() -> void:
 	_subscriptions.append(bus.subscribe(Events.FACT_MATCH3_BOARD_CHANGED, _on_board_fact, 0))
 	_subscriptions.append(bus.subscribe(Events.FACT_MATCH3_MOVE_RESOLVED, _on_move_resolved, 0))
 	_subscriptions.append(bus.subscribe(Events.FACT_MATCH3_STATUS_CHANGED, _on_status_fact, 0))
+	_subscriptions.append(bus.subscribe(GnosisGameUIService.FactBaseViewChanged, _on_game_ui_base_view_changed, 0))
 
 
 func _on_board_fact(event: GnosisEvent) -> void:
@@ -116,6 +117,17 @@ func _on_status_fact(event: GnosisEvent) -> void:
 	_route_status_to_ui(status)
 
 
+func _on_game_ui_base_view_changed(_event: GnosisEvent) -> void:
+	if engine == null:
+		return
+	var game_ui := engine.get_service("GameUI") as GnosisGameUIService
+	if game_ui == null:
+		return
+	if game_ui.get_base_view_id().strip_edges().to_lower() != "gameplay":
+		return
+	sync_subscreen_from_status()
+
+
 func _route_status_to_ui(status: int) -> void:
 	if engine == null:
 		return
@@ -137,9 +149,17 @@ func sync_subscreen_from_status() -> void:
 		return
 	if game_ui.get_base_view_id().strip_edges().to_lower() != "gameplay":
 		return
+	_relayout_hud_content_frame()
 	_apply_status_to_ui(_match3_service.get_current_status(), game_ui)
 	if _dispatcher:
 		_dispatcher.refresh_hud()
+	_relayout_hud_content_frame()
+
+
+func _relayout_hud_content_frame() -> void:
+	var hud = get_tree().get_first_node_in_group("match3_hud") if get_tree() else null
+	if hud and hud.has_method("relayout_content_frame"):
+		hud.relayout_content_frame()
 
 
 func _apply_status_to_ui(status: int, game_ui: GnosisGameUIService) -> void:
@@ -158,7 +178,10 @@ func _apply_status_to_ui(status: int, game_ui: GnosisGameUIService) -> void:
 			_push_overlay(game_ui, "game_over")
 		Match3ModelsScript.STATUS_SHOP_PANEL:
 			_set_swap_mode("to_level_select")
-			_switch_overlay(game_ui, "shop", "level_select")
+			if not game_ui.get_active_overlay_state_for_view("reward").is_empty():
+				_switch_overlay(game_ui, "shop", "reward")
+			else:
+				_switch_overlay(game_ui, "shop", "level_select")
 		Match3ModelsScript.STATUS_LEVEL_SELECT_PANEL:
 			# The shop only joins the loop after the first round; keep the green
 			# switcher hidden on the opening level select.
@@ -182,17 +205,33 @@ func _set_swap_mode(mode: String) -> void:
 
 
 func _push_overlay(game_ui: GnosisGameUIService, view_id: String) -> void:
-	if not game_ui.get_active_overlay_state_for_view(view_id).is_empty():
-		return
-	var params := engine.store.create_object()
-	params.set_key("viewId", view_id)
-	params.set_key("overlayStateId", "open")
-	game_ui.invoke_function("PushViewAdditive", params)
+	if game_ui.get_active_overlay_state_for_view(view_id).is_empty():
+		var params := engine.store.create_object()
+		params.set_key("viewId", view_id)
+		params.set_key("overlayStateId", "open")
+		game_ui.invoke_function("PushViewAdditive", params)
+	else:
+		_sync_overlay_display(view_id)
+
+
+func _sync_overlay_display(view_id: String) -> void:
+	var ui_adapter := get_tree().get_first_node_in_group("godot_game_ui_adapter") if get_tree() else null
+	if ui_adapter and ui_adapter.has_method("sync_overlay_display"):
+		ui_adapter.sync_overlay_display(view_id)
 
 
 func _switch_overlay(game_ui: GnosisGameUIService, view_id: String, pop_view_id: String) -> void:
-	if not game_ui.get_active_overlay_state_for_view(pop_view_id).is_empty():
-		game_ui.invoke_function("PopView", engine.store.create_object())
+	if not game_ui.get_active_overlay_state_for_view(view_id).is_empty():
+		_sync_overlay_display(view_id)
+		return
+	if game_ui.get_active_overlay_state_for_view(pop_view_id).is_empty():
+		_push_overlay(game_ui, view_id)
+		return
+	var ui_adapter := get_tree().get_first_node_in_group("godot_game_ui_adapter") if get_tree() else null
+	if ui_adapter and ui_adapter.has_method("switch_additive_overlay"):
+		ui_adapter.switch_additive_overlay(pop_view_id, view_id)
+		return
+	game_ui.invoke_function("PopView", engine.store.create_object())
 	_push_overlay(game_ui, view_id)
 
 

@@ -417,15 +417,10 @@ func _localized(key: String, fallback: String) -> String:
 
 func _on_back_pressed() -> void:
 	var ui := _game_ui()
-	if ui and _engine():
-		if ui.get_navigation_history_count() > 0:
-			var params := _engine().store.create_object()
-			params.set_key("transitionId", "slide_left")
-			params.set_key("inDuration", 0.35)
-			params.set_key("outDuration", 0.35)
-			ui.invoke_function("PopView", params)
-		else:
-			ui.set_base_view("title")
+	var eng := _engine()
+	if ui == null or eng == null:
+		return
+	UltraGameUiNav.pop_menu_back(ui, eng.store, "slide_left")
 
 func _meta_str(node: GnosisNode, key: String) -> String:
 	var n := node.get_node(key)

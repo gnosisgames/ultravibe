@@ -1,65 +1,24 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://game/ui/reward_view.gd" id="1"]
 [ext_resource type="Script" path="res://game/ui/components/auto_tween.gd" id="4"]
 [ext_resource type="Script" path="res://game/ui/components/bbcode_effect_text_combine.gd" id="5"]
 [ext_resource type="FontFile" path="res://assets/fonts/Comic Lemon.otf" id="6"]
+[ext_resource type="PackedScene" path="res://game/ui/widgets/rounded_square_btn.tscn" id="7"]
 
 [sub_resource type="StyleBoxFlat" id="SB_card"]
 content_margin_left = 40.0
 content_margin_top = 34.0
 content_margin_right = 40.0
 content_margin_bottom = 34.0
-bg_color = Color(0.490196, 0.490196, 0.729412, 1)
-border_width_left = 5
-border_width_top = 5
-border_width_right = 5
-border_width_bottom = 5
-border_color = Color(0.823529, 0.835294, 0.945098, 1)
-corner_radius_top_left = 28
-corner_radius_top_right = 28
-corner_radius_bottom_right = 28
-corner_radius_bottom_left = 28
-shadow_color = Color(0.0784314, 0.137255, 0.227451, 0.6)
+bg_color = Color(0.415686, 0.415686, 0.658824, 1)
+corner_radius_top_left = 27
+corner_radius_top_right = 27
+corner_radius_bottom_right = 27
+corner_radius_bottom_left = 27
+shadow_color = Color(0.0784314, 0.137255, 0.227451, 1)
 shadow_size = 1
-shadow_offset = Vector2(5, 8)
-
-[sub_resource type="StyleBoxFlat" id="SB_continue_n"]
-content_margin_left = 28.0
-content_margin_top = 14.0
-content_margin_right = 28.0
-content_margin_bottom = 14.0
-bg_color = Color(0.92549, 0.788235, 0.4, 1)
-border_width_left = 4
-border_width_top = 4
-border_width_right = 4
-border_width_bottom = 4
-border_color = Color(0.992157, 0.937255, 0.788235, 1)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
-corner_detail = 8
-shadow_color = Color(0.439216, 0.337255, 0.0784314, 0.5)
-shadow_size = 1
-shadow_offset = Vector2(3, 5)
-
-[sub_resource type="StyleBoxFlat" id="SB_continue_p"]
-content_margin_left = 28.0
-content_margin_top = 14.0
-content_margin_right = 28.0
-content_margin_bottom = 14.0
-bg_color = Color(0.811765, 0.682353, 0.313726, 1)
-border_width_left = 4
-border_width_top = 4
-border_width_right = 4
-border_width_bottom = 4
-border_color = Color(0.992157, 0.937255, 0.788235, 1)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
-corner_detail = 8
+shadow_offset = Vector2(5, 7)
 
 [node name="RewardView" type="Control"]
 layout_mode = 3
@@ -124,10 +83,17 @@ script = ExtResource("5")
 text_clean = "core__noun__reward"
 bbcode = "[wave amp=40.0 freq=4.0 connected=1]%s[/wave]"
 
-[node name="RewardRows" type="VBoxContainer" parent="Center/Card/VBox"]
+[node name="RewardScroll" type="ScrollContainer" parent="Center/Card/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 1
+
+[node name="RewardRows" type="VBoxContainer" parent="Center/Card/VBox/RewardScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_constants/separation = 12
 
 [node name="EmptyLabel" type="Label" parent="Center/Card/VBox"]
@@ -141,21 +107,9 @@ text = "ultravibe__reward__noPending"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="ContinueButton" type="Button" parent="Center/Card/VBox"]
+[node name="ContinueButton" parent="Center/Card/VBox" instance=ExtResource("7")]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(280, 64)
 layout_mode = 2
 size_flags_horizontal = 4
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
-theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
-theme_override_colors/font_focus_color = Color(1, 1, 1, 1)
-theme_override_colors/font_outline_color = Color(0.439216, 0.337255, 0.0784314, 1)
-theme_override_constants/outline_size = 10
-theme_override_fonts/font = ExtResource("6")
-theme_override_font_sizes/font_size = 28
-theme_override_styles/normal = SubResource("SB_continue_n")
-theme_override_styles/hover = SubResource("SB_continue_n")
-theme_override_styles/pressed = SubResource("SB_continue_p")
-theme_override_styles/focus = SubResource("SB_continue_n")
 text = "core__verb__continue"
