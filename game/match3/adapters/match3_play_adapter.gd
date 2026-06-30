@@ -91,10 +91,15 @@ func _on_status_fact(event: GnosisEvent) -> void:
 		return
 	if game_ui.get_base_view_id().strip_edges().to_lower() != "gameplay":
 		return
+	# A round win opens the reward payout overlay; a loss ends the run with the
+	# game-over summary (Unity parity: win -> rewardPanel, loss -> state panel).
+	var overlay_view_id := "reward" if status == Match3ModelsScript.STATUS_WIN else "game_over"
 	if not game_ui.get_active_overlay_state_for_view("game_over").is_empty():
 		return
+	if not game_ui.get_active_overlay_state_for_view("reward").is_empty():
+		return
 	var params := engine.store.create_object()
-	params.set_key("viewId", "game_over")
+	params.set_key("viewId", overlay_view_id)
 	params.set_key("overlayStateId", "open")
 	game_ui.invoke_function("PushViewAdditive", params)
 
