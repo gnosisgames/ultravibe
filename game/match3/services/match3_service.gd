@@ -11,6 +11,8 @@ const Match3FloorModifierPoolScript = preload("res://game/match3/core/match3_flo
 const Match3BoonRuntimeScript = preload("res://game/match3/boons/match3_boon_runtime.gd")
 const Match3Match3EffectsScript = preload("res://game/match3/effects/match3_match3_effects.gd")
 const Match3CellFloorRuntimeScript = preload("res://game/match3/core/match3_cell_floor_runtime.gd")
+const Match3CellFloorBoardScript = preload("res://game/match3/core/match3_cell_floor_board.gd")
+const Match3BoonScalingScript = preload("res://game/match3/boons/match3_boon_scaling.gd")
 const SupportScript = preload("res://game/match3/boons/match3_boon_support.gd")
 
 const Events = Match3EventsScript
@@ -99,6 +101,7 @@ func on_initialize() -> void:
 	_gameplay.set_boon_score_finalize_hook(Callable(_boon_runtime, "apply_finalize_for_move"))
 	_gameplay.set_cell_floor_scoring_hook(Callable(_cell_floor_runtime, "on_scoring_destroy"))
 	_gameplay.set_cell_floor_finalize_hook(Callable(_cell_floor_runtime, "on_move_finalize"))
+	_gameplay.set_cell_floor_griefing_hook(Callable(_cell_floor_runtime, "on_griefing_pre_score"))
 	_gameplay.set_tile_score_resolver(Callable(self, "_resolve_item_score_profile"))
 	_gameplay.status = Models.STATUS_LEVEL_SELECT_PANEL
 	_publish_ephemeral_state()
@@ -184,6 +187,130 @@ func add_current_moves(delta: int) -> void:
 	_gameplay.current_moves = maxi(0, _gameplay.current_moves + delta)
 
 
+func play_cell_floor_type_sfx(type_row: GnosisNode, key: String) -> void:
+	if context == null or context.engine == null or type_row == null or not type_row.is_valid():
+		return
+	var clip_id := _node_str(type_row, key)
+	if clip_id.is_empty():
+		return
+	var audio = context.engine.get_service("Audio")
+	if audio == null or not audio.has_method("play_sound"):
+		return
+	var options := context.store.create_object()
+	audio.play_sound(clip_id, 0, false, false, options)
+
+
+func try_add_floor_modifier_pool_slots(floor_type_id: String, count: int) -> int:
+	if context == null or context.store == null or count <= 0:
+		return 0
+	var type_id := floor_type_id.strip_edges()
+	if type_id.is_empty():
+		return 0
+	var m3 := get_node("match3", false)
+	if not m3.is_valid():
+		return 0
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash("%d:%s:pool_grant" % [_try_get_run_seed(), type_id])
+	var result: Dictionary = Match3FloorModifierPoolScript.add_delta(
+		m3,
+		context.store,
+		type_id,
+		count,
+		_cell_floor_catalog_type_ids(),
+		rng
+	)
+	var applied := int(result.get("applied", 0))
+	if applied <= 0:
+		return 0
+	if _is_board_grid_ready():
+		Match3FloorModifierPoolScript.apply_layout_to_gameplay(
+			_gameplay,
+			m3.get_node(Match3FloorModifierPoolScript.POOL_KEY),
+			rng
+		)
+		_notify_enhanced_floors_on_board(true)
+		sync_floor_modifier_tile_statistics_from_grid()
+		_publish_board_reset()
+	else:
+		_publish_ephemeral_state()
+	return applied
+
+
+func sync_floor_modifier_tile_statistics_from_grid() -> void:
+	if context == null or context.store == null or _gameplay == null:
+		return
+	_ensure_statistics_root()
+	var stats := get_node("statistics", false)
+	if not stats.is_valid():
+		return
+	var match3_stats := stats.get_node("match3")
+	if not match3_stats.is_valid() or match3_stats.get_type() != GnosisValueType.OBJECT:
+		match3_stats = context.store.create_object()
+		stats.set_node("match3", match3_stats)
+	var tiles := context.store.create_object()
+	if not _is_board_grid_ready():
+		tiles.set_key("capacity", 0)
+		tiles.set_key("plain", 0)
+		tiles.set_key("total", 0)
+		tiles.set_key("enhanced", 0)
+	else:
+		var counts: Dictionary = {}
+		var enhanced_by_type: Dictionary = {}
+		var capacity_count := 0
+		var plain_count := 0
+		var total_non_empty := 0
+		var enhanced_count := 0
+		for y in _gameplay.height:
+			for x in _gameplay.width:
+				var tile = _gameplay.get_tile(x, y)
+				if tile == null or not tile.can_hold_item():
+					continue
+				capacity_count += 1
+				var tid: String = tile.cell_floor_type_id.strip_edges()
+				if tid.is_empty():
+					plain_count += 1
+					continue
+				total_non_empty += 1
+				var stat_key: String = tid.to_lower()
+				counts[stat_key] = int(counts.get(stat_key, 0)) + 1
+				if Match3CellFloorBoardScript.cell_floor_type_has_gameplay_tag(self, tid, "enhanced"):
+					enhanced_count += 1
+					enhanced_by_type[stat_key] = int(enhanced_by_type.get(stat_key, 0)) + 1
+		tiles.set_key("capacity", capacity_count)
+		tiles.set_key("plain", plain_count)
+		tiles.set_key("total", total_non_empty)
+		tiles.set_key("enhanced", enhanced_count)
+		for key in counts.keys():
+			tiles.set_key(str(key), int(counts[key]))
+		for key in enhanced_by_type.keys():
+			tiles.set_key("%s_enhanced" % str(key), int(enhanced_by_type[key]))
+	var floor_mods := context.store.create_object()
+	floor_mods.set_node("tiles", tiles)
+	match3_stats.set_node("floorModifiers", floor_mods)
+
+
+func _notify_enhanced_floors_on_board(prefer_immediate_juice: bool) -> void:
+	if not _is_board_grid_ready():
+		return
+	for y in _gameplay.height:
+		for x in _gameplay.width:
+			var tile = _gameplay.get_tile(x, y)
+			if tile == null or not tile.can_hold_item():
+				continue
+			var tid: String = tile.cell_floor_type_id.strip_edges()
+			if tid.is_empty():
+				continue
+			Match3CellFloorBoardScript.notify_enhanced_floor_added(self, tid, "", prefer_immediate_juice)
+
+
+func _apply_round_end_floor_boon_hooks() -> void:
+	if _boon_runtime != null and _boon_runtime.has_method("apply_round_end_scaling_increments"):
+		_boon_runtime.apply_round_end_scaling_increments()
+	Match3CellFloorBoardScript.apply_red_flag_round_end_for_all_equipped(self, _gameplay)
+	Match3CellFloorBoardScript.apply_boomer_round_end_pool_grants(self)
+	_publish_ephemeral_state()
+
+
 ## Positive counts per enhanced floor type in the run pool (HUD left-rail tile panel).
 func get_enhanced_floor_tile_counts() -> Dictionary:
 	var m3 := get_node("match3", false)
@@ -226,6 +353,8 @@ func _add_floor_modifier_pool_delta(parameters: GnosisNode) -> GnosisFunctionRes
 			m3.get_node(Match3FloorModifierPoolScript.POOL_KEY),
 			rng
 		)
+		_notify_enhanced_floors_on_board(true)
+		sync_floor_modifier_tile_statistics_from_grid()
 		_publish_board_reset()
 	_publish_ephemeral_state()
 	var ok := context.store.create_object()
@@ -600,6 +729,7 @@ func _on_move_requested(event: GnosisEvent) -> void:
 		_handle_round_won()
 	elif _gameplay.status == Models.STATUS_LOSS:
 		_record_round_end_unused_budget_statistics()
+		_apply_round_end_floor_boon_hooks()
 		_update_run_completion_state(false)
 		_gameplay.status = Models.STATUS_LOSE_PANEL
 		_publish_ephemeral_state()
@@ -657,6 +787,8 @@ func _apply_floor_modifier_pool_to_board() -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash("%d:%d:floor_layout" % [_try_get_run_seed(), _current_round])
 	Match3FloorModifierPoolScript.apply_layout_to_gameplay(_gameplay, pool, rng)
+	_notify_enhanced_floors_on_board(true)
+	sync_floor_modifier_tile_statistics_from_grid()
 
 
 ## Fills HUD / ephemeral metadata for the queued round without loading the board.
@@ -1400,7 +1532,40 @@ func _publish_move_resolved(a, b, success: bool, results: Array) -> void:
 				floor_cleared.add(cleared_node)
 			if floor_cleared.get_count() > 0:
 				step.set_node("floorCellsCleared", floor_cleared)
+			var finalize_steps := context.store.create_list()
+			for fin_step in entry.cell_floor_finalize_steps:
+				if not (fin_step is Dictionary):
+					continue
+				var fin_node := context.store.create_object()
+				fin_node.set_key("floorTypeId", str(fin_step.get("floorTypeId", "")))
+				fin_node.set_key("x", int(fin_step.get("x", 0)))
+				fin_node.set_key("y", int(fin_step.get("y", 0)))
+				fin_node.set_key("multiDelta", int(fin_step.get("multiDelta", 0)))
+				fin_node.set_key("multiDisplayText", str(fin_step.get("multiDisplayText", "")))
+				fin_node.set_key("multiDisplayOp", str(fin_step.get("multiDisplayOp", "")))
+				fin_node.set_key("multiDisplayFactor", float(fin_step.get("multiDisplayFactor", 0.0)))
+				finalize_steps.add(fin_node)
+			if finalize_steps.get_count() > 0:
+				step.set_node("cellFloorFinalizeSteps", finalize_steps)
 		steps.add(step)
+	var cell_floor_finalize := context.store.create_list()
+	if not results.is_empty():
+		var last_entry = results[results.size() - 1]
+		if last_entry is Models.MatchResult:
+			for fin_step in last_entry.cell_floor_finalize_steps:
+				if not (fin_step is Dictionary):
+					continue
+				var fin_node := context.store.create_object()
+				fin_node.set_key("floorTypeId", str(fin_step.get("floorTypeId", "")))
+				fin_node.set_key("x", int(fin_step.get("x", 0)))
+				fin_node.set_key("y", int(fin_step.get("y", 0)))
+				fin_node.set_key("multiDelta", int(fin_step.get("multiDelta", 0)))
+				fin_node.set_key("multiDisplayText", str(fin_step.get("multiDisplayText", "")))
+				fin_node.set_key("multiDisplayOp", str(fin_step.get("multiDisplayOp", "")))
+				fin_node.set_key("multiDisplayFactor", float(fin_step.get("multiDisplayFactor", 0.0)))
+				cell_floor_finalize.add(fin_node)
+	if cell_floor_finalize.get_count() > 0:
+		payload.set_node("cellFloorFinalizeSteps", cell_floor_finalize)
 	payload.set_node("steps", steps)
 	_publish_fact(Events.FACT_MATCH3_MOVE_RESOLVED, payload)
 
@@ -1841,6 +2006,7 @@ func _reward_amount_for_setup(setup: Dictionary) -> int:
 
 func _handle_round_won() -> void:
 	_record_round_end_unused_budget_statistics()
+	_apply_round_end_floor_boon_hooks()
 	if _active_stage_type == "boss":
 		_increment_statistic("match3.rounds.bossesDefeated", 1)
 	_update_run_completion_state(true)

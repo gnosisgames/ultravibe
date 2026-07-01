@@ -6,6 +6,8 @@ extends RefCounted
 const Models = preload("res://game/match3/core/match3_models.gd")
 const PoolScript = preload("res://game/match3/core/match3_floor_modifier_pool.gd")
 const SupportScript = preload("res://game/match3/boons/match3_boon_support.gd")
+const BoardScript = preload("res://game/match3/core/match3_cell_floor_board.gd")
+const FloatTextScript = preload("res://game/match3/view/match3_score_floating_display_text.gd")
 
 const WHEN_SCORING_DESTROY := "on_scoring_destroy"
 const WHEN_MOVE_FINALIZE := "on_move_finalize"
@@ -23,7 +25,8 @@ func on_scoring_destroy(
 	tile: Models.Match3TileData,
 	coord: Models.TileCoord,
 	match_result: Models.MatchResult,
-	contrib_multi: int
+	contrib_multi: int,
+	move_multi_accum: int = 1
 ) -> Dictionary:
 	var out := {"points": 0, "multi": 0}
 	if _service == null or tile == null or match_result == null:
@@ -39,6 +42,7 @@ func on_scoring_destroy(
 	var triggers := _triggers_node(type_row)
 	if not triggers.is_valid() or triggers.get_type() != GnosisValueType.LIST:
 		return out
+	_play_type_sfx(type_row, "triggerSfxClipId")
 	var rng := _gameplay_rng()
 	for i in triggers.get_count():
 		var trigger := triggers.get_node(i)
@@ -52,7 +56,7 @@ func on_scoring_destroy(
 		for e in range(effects.get_count()):
 			var effect := effects.get_node(e)
 			var delta := _apply_scoring_destroy_effect(
-				effect, type_id, tile, coord, match_result, contrib_multi, rng
+				effect, type_id, tile, coord, match_result, contrib_multi, move_multi_accum, rng
 			)
 			out["points"] = int(out["points"]) + int(delta.get("points", 0))
 			out["multi"] = int(out["multi"]) + int(delta.get("multi", 0))
@@ -61,20 +65,26 @@ func on_scoring_destroy(
 
 func on_move_finalize(points: int, multi: int) -> Dictionary:
 	if _service == null or _floor_modifiers_disabled():
-		return {"points": 0, "multi": 0}
+		return {"points": 0, "multi": 0, "finalize_steps": []}
 	var gameplay = _service.get_gameplay() if _service.has_method("get_gameplay") else null
 	if gameplay == null:
-		return {"points": 0, "multi": 0}
+		return {"points": 0, "multi": 0, "finalize_steps": []}
+	var finalize_steps: Array = []
 	var new_points := points
 	var new_multi_f := float(maxi(1, multi))
 	new_points += _finalize_points_delta(gameplay, [])
-	new_multi_f = _finalize_multi_multiplier(gameplay, new_multi_f, [])
+	var multi_pack := _finalize_multi_multiplier(gameplay, new_multi_f, [])
+	new_multi_f = float(multi_pack.get("multi", new_multi_f))
+	finalize_steps.append_array(multi_pack.get("steps", []))
 	if SupportScript.is_boon_catalog_id_equipped(_service, BOON_LOCKED_IN):
 		new_points += _finalize_points_delta(gameplay, LOCKED_IN_RETRIGGER_TYPES)
-		new_multi_f = _finalize_multi_multiplier(gameplay, new_multi_f, LOCKED_IN_RETRIGGER_TYPES)
+		var locked_pack := _finalize_multi_multiplier(gameplay, new_multi_f, LOCKED_IN_RETRIGGER_TYPES)
+		new_multi_f = float(locked_pack.get("multi", new_multi_f))
+		finalize_steps.append_array(locked_pack.get("steps", []))
 	return {
 		"points": new_points - points,
 		"multi": int(round(new_multi_f)) - multi,
+		"finalize_steps": finalize_steps,
 	}
 
 
@@ -85,6 +95,7 @@ func _apply_scoring_destroy_effect(
 	coord: Models.TileCoord,
 	match_result: Models.MatchResult,
 	contrib_multi: int,
+	move_multi_accum: int,
 	rng: RandomNumberGenerator
 ) -> Dictionary:
 	var out := {"points": 0, "multi": 0}
@@ -100,6 +111,7 @@ func _apply_scoring_destroy_effect(
 			_add_currency(currency_id, amount)
 			if currency_id.to_lower() == "money":
 				_record_floor_pop(match_result, coord, 0, 0, amount)
+			_play_type_sfx(_floor_type_row(floor_type_id), "addSfxClipId")
 			return out
 		"add_move_points":
 			var amount := _node_int(effect, "amount", 0)
@@ -107,6 +119,7 @@ func _apply_scoring_destroy_effect(
 				return out
 			out["points"] = amount
 			_record_floor_pop(match_result, coord, amount, 0, 0)
+			_play_type_sfx(_floor_type_row(floor_type_id), "addSfxClipId")
 			return out
 		"add_move_multi":
 			var amount := _node_int(effect, "amount", 0)
@@ -114,6 +127,7 @@ func _apply_scoring_destroy_effect(
 				return out
 			out["multi"] = amount
 			_record_floor_pop(match_result, coord, 0, amount, 0)
+			_play_type_sfx(_floor_type_row(floor_type_id), "addSfxClipId")
 			return out
 		"multiply_move_multi":
 			var factor := _read_effect_float(effect, "factor", 1.0)
@@ -125,6 +139,15 @@ func _apply_scoring_destroy_effect(
 					return out
 				out["multi"] = bonus
 				_record_floor_pop(match_result, coord, 0, bonus, 0)
+			else:
+				var move_multi_before := maxi(1, move_multi_accum)
+				var scaled := int(round(float(move_multi_before) * factor))
+				var bonus := scaled - move_multi_before
+				if bonus == 0:
+					return out
+				out["multi"] = bonus
+				_record_floor_pop(match_result, coord, 0, bonus, 0)
+			_play_type_sfx(_floor_type_row(floor_type_id), "addSfxClipId")
 			return out
 		"clear_cell_floor":
 			if tile.cell_floor_type_id.strip_edges().is_empty():
@@ -133,6 +156,7 @@ func _apply_scoring_destroy_effect(
 			tile.cell_floor_type_id = ""
 			_consume_pool_slot(cleared_id)
 			_record_floor_cleared(match_result, coord)
+			_play_type_sfx(_floor_type_row(cleared_id), "removeSfxClipId")
 			return out
 		"add_manual_shuffles":
 			var add := maxi(0, _node_int(effect, "amount", 0))
@@ -186,8 +210,9 @@ func _finalize_points_delta(gameplay, restrict_types: Array[String]) -> int:
 	return delta
 
 
-func _finalize_multi_multiplier(gameplay, multi: float, restrict_types: Array[String]) -> float:
+func _finalize_multi_multiplier(gameplay, multi: float, restrict_types: Array[String]) -> Dictionary:
 	var result := multi
+	var steps: Array = []
 	var restrict := not restrict_types.is_empty()
 	for type_id in _ordered_floor_type_ids_on_board(gameplay):
 		if restrict and not restrict_types.has(type_id):
@@ -198,8 +223,8 @@ func _finalize_multi_multiplier(gameplay, multi: float, restrict_types: Array[St
 		var triggers := _triggers_node(type_row)
 		if not triggers.is_valid() or triggers.get_type() != GnosisValueType.LIST:
 			continue
-		var match_cells := _count_cells_with_floor(gameplay, type_id)
-		if match_cells <= 0:
+		var match_cells := _enumerate_cells_with_floor(gameplay, type_id)
+		if match_cells.is_empty():
 			continue
 		for i in triggers.get_count():
 			var trigger := triggers.get_node(i)
@@ -219,9 +244,22 @@ func _finalize_multi_multiplier(gameplay, multi: float, restrict_types: Array[St
 				var factor := _read_effect_float(effect, "factorPerMatchingCell", 1.0)
 				if is_equal_approx(factor, 1.0):
 					continue
-				for _n in range(match_cells):
+				for coord in match_cells:
+					var before := result
 					result *= factor
-	return result
+					var multi_delta := int(round(result - before))
+					if multi_delta == 0:
+						continue
+					steps.append({
+						"floorTypeId": type_id,
+						"x": coord.x,
+						"y": coord.y,
+						"multiDelta": multi_delta,
+						"multiDisplayText": FloatTextScript.build_for_multi_op("multiply", factor),
+						"multiDisplayOp": "multiply",
+						"multiDisplayFactor": factor,
+					})
+	return {"multi": result, "steps": steps}
 
 
 func _record_floor_pop(
@@ -320,18 +358,37 @@ func _ordered_floor_type_ids_on_board(gameplay) -> Array[String]:
 
 
 func _count_cells_with_floor(gameplay, type_id: String) -> int:
+	return _enumerate_cells_with_floor(gameplay, type_id).size()
+
+
+func _enumerate_cells_with_floor(gameplay, type_id: String) -> Array[Models.TileCoord]:
+	var out: Array[Models.TileCoord] = []
 	var needle := type_id.strip_edges().to_lower()
 	if needle.is_empty():
-		return 0
-	var count := 0
+		return out
 	for y in gameplay.height:
 		for x in gameplay.width:
 			var tile = gameplay.get_tile(x, y)
 			if tile == null or not tile.can_hold_item():
 				continue
 			if tile.cell_floor_type_id.strip_edges().to_lower() == needle:
-				count += 1
-	return count
+				out.append(Models.TileCoord.new(x, y))
+	return out
+
+
+func on_griefing_pre_score(
+	tile: Models.Match3TileData,
+	coord: Models.TileCoord,
+	match_result: Models.MatchResult
+) -> void:
+	BoardScript.try_apply_griefing_pre_score_enhanced_floor(_service, tile, coord, match_result)
+
+
+func _play_type_sfx(type_row: GnosisNode, key: String) -> void:
+	if _service == null or not type_row.is_valid():
+		return
+	if _service.has_method("play_cell_floor_type_sfx"):
+		_service.call("play_cell_floor_type_sfx", type_row, key)
 
 
 static func _random_passes(effect: GnosisNode, rng: RandomNumberGenerator) -> bool:

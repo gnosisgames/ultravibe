@@ -109,3 +109,4 @@ class MatchResult:
 	var cleared_tile_count_this_step: int = 0
 	var floor_float_pops: Array = []
 	var floor_cells_cleared: Array = []
+	var cell_floor_finalize_steps: Array = []

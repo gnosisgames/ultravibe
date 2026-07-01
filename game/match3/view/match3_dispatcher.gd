@@ -201,6 +201,9 @@ func play_move_sequence(payload: GnosisNode) -> void:
 				await _animate_step(steps.get_node(i))
 				if INTER_STEP_DELAY > 0.0:
 					await _wait(INTER_STEP_DELAY)
+		var finalize_steps := payload.get_node("cellFloorFinalizeSteps")
+		if finalize_steps.is_valid() and finalize_steps.get_type() == GnosisValueType.LIST:
+			await _animate_cell_floor_finalize_steps(finalize_steps)
 	elif a.x >= 0 and b.x >= 0:
 		_play_sfx(SFX_SWAP, false, 2.0, 0.3)
 		await _animate_swap(a, b)
@@ -232,8 +235,72 @@ func _animate_step(step: GnosisNode) -> void:
 	if step == null or not step.is_valid():
 		return
 	await _animate_destroy(step.get_node("matched"), step.get_node("contributions"), true, true, step)
+	_apply_floor_cells_cleared(step)
 	await _animate_moves(step.get_node("movements"))
 	await _animate_spawns(step.get_node("spawns"))
+
+
+func _apply_floor_cells_cleared(step: GnosisNode) -> void:
+	if step == null or not step.is_valid():
+		return
+	var cleared := step.get_node("floorCellsCleared")
+	if not cleared.is_valid() or cleared.get_type() != GnosisValueType.LIST:
+		return
+	for i in cleared.get_count():
+		var c = cleared.get_node(i)
+		if not c.is_valid():
+			continue
+		var x := _node_int(c, "x", -1)
+		var y := _node_int(c, "y", -1)
+		if x < 0 or y < 0:
+			continue
+		for cell in _cells:
+			if int(cell.get("x", -1)) == x and int(cell.get("y", -1)) == y:
+				cell["cellFloorTypeId"] = ""
+				break
+	queue_redraw()
+
+
+func _animate_cell_floor_finalize_steps(steps: GnosisNode) -> void:
+	for i in steps.get_count():
+		var step = steps.get_node(i)
+		if not step.is_valid():
+			continue
+		var x := _node_int(step, "x", -1)
+		var y := _node_int(step, "y", -1)
+		if x < 0 or y < 0:
+			continue
+		var anchor := _item_position(x, y) + cell_size * 0.5
+		_pulse_floor_cell(x, y)
+		var multi_delta := _node_int(step, "multiDelta", 0)
+		var display := _node_string(step, "multiDisplayText", "")
+		if display.is_empty() and multi_delta > 0:
+			display = Match3ScoreFloatingDisplayText.build_multi_add(multi_delta)
+		if not display.is_empty():
+			BoardFloatJuiceScript.spawn_labeled_popup(
+				self,
+				anchor,
+				display,
+				BoardFloatJuiceScript.COLOR_MULTI,
+				0.0
+			)
+		await _wait(0.18)
+
+
+func _pulse_floor_cell(x: int, y: int) -> void:
+	var rect := _cell_rect(x, y)
+	var flash := ColorRect.new()
+	flash.color = Color(1.0, 0.92, 0.45, 0.55)
+	flash.position = rect.position
+	flash.size = rect.size
+	flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(flash)
+	var tw := create_tween()
+	tw.tween_property(flash, "modulate:a", 0.0, 0.22)
+	tw.finished.connect(func() -> void:
+		if is_instance_valid(flash):
+			flash.queue_free()
+	)
 
 
 func _await_active_swap() -> void:
@@ -328,7 +395,7 @@ func _animate_destroy(
 		if node == null:
 			continue
 		_items.erase(key)
-		nodes.append({"node": node, "contrib": contrib_map.get(key, null)})
+		nodes.append({"node": node, "contrib": contrib_map.get(key, null), "cell_key": key})
 	if nodes.is_empty():
 		return
 	var batch := create_tween().set_parallel(true)
@@ -337,7 +404,7 @@ func _animate_destroy(
 		var contrib: GnosisNode = entry["contrib"]
 		if show_score:
 			_spawn_destroy_score_popups(node, contrib)
-		_spawn_floor_bonus_popups(node, floor_pop_map.get(key, null))
+		_spawn_floor_bonus_popups(node, floor_pop_map.get(str(entry.get("cell_key", "")), null))
 		_spawn_sparkles(node)
 		_prep_destroy(node)
 		batch.tween_property(node, "scale", Vector2.ZERO, DESTROY_DURATION) \

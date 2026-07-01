@@ -6,6 +6,7 @@ extends RefCounted
 const GrantsScript = preload("res://game/match3/boons/match3_boon_grants.gd")
 const ScoreScript = preload("res://game/match3/boons/match3_boon_score.gd")
 const SupportScript = preload("res://game/match3/boons/match3_boon_support.gd")
+const ScalingScript = preload("res://game/match3/boons/match3_boon_scaling.gd")
 const CatalogPolicyScript = preload("res://game/match3/catalog/match3_run_catalog_offer_policy.gd")
 
 const BOON_SLOT_CAPACITY_ENGINE_MAX := 32
@@ -70,6 +71,10 @@ func invoke(name: String, parameters: GnosisNode) -> Variant:
 
 func apply_finalize_for_move(results: Array, points: int, multi: int) -> Dictionary:
 	return _score.apply_finalize_for_move(results, points, multi)
+
+
+func apply_round_end_scaling_increments() -> void:
+	ScalingScript.apply_round_end_scaling_increments(_service, _score)
 
 
 func on_round_boundary(previous_round: int, new_round: int) -> void:

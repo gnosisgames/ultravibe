@@ -24,6 +24,7 @@ var _tile_score_resolver: Callable = Callable()
 var _boon_score_finalize_hook: Callable = Callable()
 var _cell_floor_scoring_hook: Callable = Callable()
 var _cell_floor_finalize_hook: Callable = Callable()
+var _cell_floor_griefing_hook: Callable = Callable()
 
 
 func configure_rng(seed_value: int) -> void:
@@ -44,6 +45,10 @@ func set_cell_floor_scoring_hook(hook: Callable) -> void:
 
 func set_cell_floor_finalize_hook(hook: Callable) -> void:
 	_cell_floor_finalize_hook = hook
+
+
+func set_cell_floor_griefing_hook(hook: Callable) -> void:
+	_cell_floor_griefing_hook = hook
 
 
 func load_level(
@@ -105,6 +110,9 @@ func process_move(a: Models.TileCoord, b: Models.TileCoord, item_points: Diction
 			var floor_delta: Dictionary = _cell_floor_finalize_hook.call(_move_points_accum, _move_multi_accum)
 			_move_points_accum += int(floor_delta.get("points", 0))
 			_move_multi_accum = maxi(1, _move_multi_accum + int(floor_delta.get("multi", 0)))
+			var finalize_steps: Array = floor_delta.get("finalize_steps", [])
+			if not finalize_steps.is_empty():
+				last.cell_floor_finalize_steps = finalize_steps
 		var final_points := _move_points_accum
 		var final_multi := maxi(1, _move_multi_accum)
 		if _boon_score_finalize_hook.is_valid():
@@ -168,9 +176,13 @@ func _process_step(
 		_move_multi_accum += multi
 		scoring_eligible += 1
 		if _cell_floor_scoring_hook.is_valid():
-			var floor_delta: Dictionary = _cell_floor_scoring_hook.call(tile, coord, current_match, multi)
+			var floor_delta: Dictionary = _cell_floor_scoring_hook.call(
+				tile, coord, current_match, multi, _move_multi_accum
+			)
 			_move_points_accum += int(floor_delta.get("points", 0))
 			_move_multi_accum += int(floor_delta.get("multi", 0))
+		if _cell_floor_griefing_hook.is_valid():
+			_cell_floor_griefing_hook.call(tile, coord, current_match)
 		fully_cleared[key] = coord
 
 	current_match.scoring_eligible_destroy_count = scoring_eligible
