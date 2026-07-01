@@ -86,6 +86,13 @@ func get_overlap_height() -> float:
 	return float(get_meta("overlap_height", 0.0))
 
 
+static func preferred_height(font: Font = null) -> float:
+	var score_h := float(SCORE_FONT_SIZE)
+	if font != null:
+		score_h = font.get_height(SCORE_FONT_SIZE)
+	return BADGE_PAD_V * 2.0 + SKULL_SIZE + 1.0 + score_h
+
+
 func _badge_style() -> StyleBoxFlat:
 	var box := StyleBoxFlat.new()
 	box.bg_color = BADGE_BG

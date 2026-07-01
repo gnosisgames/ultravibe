@@ -28,19 +28,22 @@ const PANEL_TEXT_OUTLINE := Color(0.176471, 0.184314, 0.305882, 1)
 const PANEL_TEXT_SHADOW := Color(0.176471, 0.184314, 0.305882, 0.6)
 const DESC_COLOR := Color(0.847059, 0.858824, 0.945098, 1)
 const CARD_MIN_WIDTH := 240.0
+const CARD_SIDE_INSET := 28
+const CARD_DESC_BUTTONS_GAP := 18.0
+const CARD_BUTTONS_REWARD_GAP := 2.0
+const CARD_TITLE_DESC_GAP := 8.0
+const CARD_TITLE_TOP_GAP := 12.0
 const BADGE_SIDE_INSET := 64
 const BADGE_OVERLAP := 18
 const ACTION_BTN_SIZE := Vector2(88, 76)
 const ACTION_BTN_ICON_MAX := 44
-const REWARD_PANEL_HEIGHT := 72.0
-const REWARD_ROW_MIN_WIDTH := 292.0
-const REWARD_SECTION_TOP_MARGIN := 12
 const REWARD_DIVIDER_WIDTH := 3
-const REWARD_DIVIDER_INSET := 8.0
-const REWARD_DOT_SIZE := 12
-const REWARD_DOT_INSET := 4
-const REWARD_PANEL_MARGIN_H := 6
-const REWARD_PANEL_MARGIN_V := 4
+const REWARD_DIVIDER_INSET := 2.0
+const REWARD_DOT_SIZE := 10
+const REWARD_DOT_INSET := 3
+const REWARD_PAD_V := 0
+const REWARD_MONEY_FONT_SIZE := 38
+const REWARD_ICON_SIZE := 56
 const CHALLENGE_MULT_ROTATION := 30.0
 const CHALLENGE_MULT_FONT_SIZE := 20
 const REWARD_TOOLTIP_WIDTH := 300.0
@@ -138,11 +141,16 @@ func _refresh() -> void:
 	var rounds := planned.get_node("rounds")
 	if not rounds.is_valid() or rounds.get_type() != GnosisValueType.LIST:
 		return
+	var card_wrappers: Array[Control] = []
 	for i in range(rounds.get_count()):
 		var row := rounds.get_node(i)
 		if not row.is_valid():
 			continue
-		_cards.add_child(_build_card(row))
+		card_wrappers.append(_build_card(row))
+	for wrapper in card_wrappers:
+		_cards.add_child(wrapper)
+	if not card_wrappers.is_empty():
+		call_deferred("_equalize_card_heights", card_wrappers)
 
 
 func _refresh_shop() -> void:
@@ -268,7 +276,13 @@ func _build_card(row: GnosisNode) -> Control:
 	wrapper.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	wrapper.size_flags_vertical = Control.SIZE_SHRINK_END
 	wrapper.alignment = BoxContainer.ALIGNMENT_CENTER
-	wrapper.add_theme_constant_override("separation", -BADGE_OVERLAP)
+	wrapper.add_theme_constant_override("separation", 0)
+
+	var badge_card := VBoxContainer.new()
+	badge_card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	badge_card.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	badge_card.alignment = BoxContainer.ALIGNMENT_CENTER
+	badge_card.add_theme_constant_override("separation", -BADGE_OVERLAP)
 
 	var badge := LevelCardBadge.build(
 		skulls,
@@ -285,33 +299,86 @@ func _build_card(row: GnosisNode) -> Control:
 	badge_host.add_theme_constant_override("margin_left", BADGE_SIDE_INSET)
 	badge_host.add_theme_constant_override("margin_right", BADGE_SIDE_INSET)
 	badge_host.add_child(badge)
-	wrapper.add_child(badge_host)
+	badge_card.add_child(badge_host)
 
 	var card := PanelContainer.new()
 	card.z_index = 0
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	card.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	card.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	card.add_theme_stylebox_override("panel", _card_style(is_current))
 
 	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 8)
+	vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	vbox.add_theme_constant_override("separation", 0)
 	card.add_child(vbox)
 
+	vbox.add_child(_card_spacer(CARD_TITLE_TOP_GAP))
 	vbox.add_child(_title_label(name_text))
+	vbox.add_child(_card_spacer(CARD_TITLE_DESC_GAP))
 	vbox.add_child(_desc_label(desc_text))
-	vbox.add_child(_buttons_row(is_current, skippable, double_down_mult))
-	vbox.add_child(_action_rewards_row(reward, consumable_id))
 
-	wrapper.add_child(card)
+	var desc_fill := Control.new()
+	desc_fill.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	desc_fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	vbox.add_child(desc_fill)
+
+	vbox.add_child(_card_spacer(CARD_DESC_BUTTONS_GAP))
+	vbox.add_child(_buttons_row(is_current, skippable, double_down_mult))
+	vbox.add_child(_card_spacer(CARD_BUTTONS_REWARD_GAP))
+
+	var reward_overlap := _reward_overlap()
+	vbox.add_child(_card_spacer(reward_overlap))
+
+	badge_card.add_child(card)
+	wrapper.add_child(badge_card)
+
+	var rewards := _action_rewards_row(reward, consumable_id)
+	rewards.z_index = 1
+	rewards.clip_contents = false
+	var reward_host := MarginContainer.new()
+	reward_host.clip_contents = false
+	reward_host.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	reward_host.add_theme_constant_override("margin_left", CARD_SIDE_INSET)
+	reward_host.add_theme_constant_override("margin_right", CARD_SIDE_INSET)
+	reward_host.add_theme_constant_override("margin_top", -int(reward_overlap))
+	reward_host.add_child(rewards)
+	wrapper.add_child(reward_host)
 
 	return wrapper
+
+func _card_spacer(height: float) -> Control:
+	var spacer := Control.new()
+	spacer.custom_minimum_size = Vector2(0, height)
+	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return spacer
+
+
+func _equalize_card_heights(wrappers: Array) -> void:
+	if wrappers.is_empty():
+		return
+	await get_tree().process_frame
+	await get_tree().process_frame
+	var max_h := 0.0
+	for wrapper in wrappers:
+		if wrapper == null or not is_instance_valid(wrapper):
+			continue
+		max_h = maxf(max_h, wrapper.get_minimum_size().y)
+	if max_h <= 0.0:
+		return
+	for wrapper in wrappers:
+		if wrapper == null or not is_instance_valid(wrapper):
+			continue
+		wrapper.custom_minimum_size = Vector2(
+			maxf(wrapper.custom_minimum_size.x, CARD_MIN_WIDTH),
+			max_h
+		)
 
 func _title_label(text: String) -> Label:
 	var label := Label.new()
 	label.text = text
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_apply_font(label, 26, WHITE)
+	_apply_badge_like_font(label, 26, WHITE)
 	return label
 
 func _desc_label(text: String) -> RichTextLabel:
@@ -331,21 +398,21 @@ func _desc_label(text: String) -> RichTextLabel:
 	return label
 
 func _action_rewards_row(reward: int, consumable_id: String) -> Control:
-	var wrap := MarginContainer.new()
-	wrap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	wrap.add_theme_constant_override("margin_top", REWARD_SECTION_TOP_MARGIN)
-
+	var panel_h := _reward_panel_height()
 	var root := Control.new()
-	root.custom_minimum_size = Vector2(REWARD_ROW_MIN_WIDTH, REWARD_PANEL_HEIGHT)
+	root.custom_minimum_size = Vector2(0, panel_h)
 	root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	root.clip_contents = false
 
 	var outer := PanelContainer.new()
 	outer.set_anchors_preset(Control.PRESET_FULL_RECT)
-	outer.add_theme_stylebox_override("panel", _rounded_style(PILL_DARK, 14, REWARD_PANEL_MARGIN_V, REWARD_PANEL_MARGIN_H))
+	outer.clip_contents = false
+	outer.add_theme_stylebox_override("panel", _reward_panel_style())
 	root.add_child(outer)
 
 	var row := HBoxContainer.new()
 	row.set_anchors_preset(Control.PRESET_FULL_RECT)
+	row.clip_contents = false
 	row.add_theme_constant_override("separation", 0)
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	outer.add_child(row)
@@ -357,24 +424,29 @@ func _action_rewards_row(reward: int, consumable_id: String) -> Control:
 		row.add_child(_reward_divider())
 		row.add_child(_reward_consumable_side(preview))
 
-	wrap.add_child(root)
-	return wrap
+	return root
 
 
 func _reward_money_side(reward: int) -> Control:
 	var side := Control.new()
 	side.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	side.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	side.clip_contents = false
 
-	var center := CenterContainer.new()
+	var center := Control.new()
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	center.clip_contents = false
 	var label := Label.new()
 	label.text = ConsumableCatalogUi.format_level_money_reward(reward)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_apply_font(label, 30, GOLD)
+	label.clip_contents = false
+	label.set_anchors_preset(Control.PRESET_CENTER)
+	_apply_font(label, REWARD_MONEY_FONT_SIZE, GOLD)
 	center.add_child(label)
+	label.resized.connect(func() -> void: _pin_centered(label))
+	call_deferred("_pin_centered", label)
 	side.add_child(center)
 	side.add_child(_reward_corner_dots([BTN_BLUE, BTN_RED], true))
 	return side
@@ -385,10 +457,12 @@ func _reward_consumable_side(preview: Dictionary) -> Control:
 	side.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	side.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	side.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	side.clip_contents = false
 
-	var center := CenterContainer.new()
+	var center := Control.new()
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	center.clip_contents = false
 	var icon_path := str(preview.get("icon_path", ""))
 	if not icon_path.is_empty():
 		center.add_child(_consumable_reward_button(icon_path, preview))
@@ -398,8 +472,17 @@ func _reward_consumable_side(preview: Dictionary) -> Control:
 
 
 func _consumable_reward_button(icon_path: String, preview: Dictionary) -> Button:
+	var icon_size := float(REWARD_ICON_SIZE)
 	var btn := Button.new()
-	btn.custom_minimum_size = Vector2(48, 48)
+	btn.clip_contents = false
+	btn.custom_minimum_size = Vector2(icon_size, icon_size)
+	btn.set_anchors_preset(Control.PRESET_CENTER)
+	var half := icon_size * 0.5
+	btn.offset_left = -half
+	btn.offset_top = -half
+	btn.offset_right = half
+	btn.offset_bottom = half
+	btn.z_index = 2
 	btn.flat = true
 	btn.focus_mode = Control.FOCUS_ALL
 	btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
@@ -411,20 +494,24 @@ func _consumable_reward_button(icon_path: String, preview: Dictionary) -> Button
 
 	var icon := TextureRect.new()
 	icon.texture = load(icon_path)
-	icon.custom_minimum_size = Vector2(42, 42)
+	icon.custom_minimum_size = Vector2(icon_size, icon_size)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	icon.set_anchors_preset(Control.PRESET_CENTER)
-	icon.offset_left = -21.0
-	icon.offset_top = -21.0
-	icon.offset_right = 21.0
-	icon.offset_bottom = 21.0
+	icon.offset_left = -half
+	icon.offset_top = -half
+	icon.offset_right = half
+	icon.offset_bottom = half
 	btn.add_child(icon)
 
-	btn.mouse_entered.connect(btn.grab_focus)
-	btn.focus_entered.connect(func() -> void: _show_consumable_tooltip(btn, preview))
-	btn.focus_exited.connect(_on_consumable_focus_exited)
+	btn.mouse_entered.connect(func() -> void:
+		btn.grab_focus()
+		_show_consumable_tooltip(btn, preview)
+	)
+	btn.mouse_exited.connect(func() -> void:
+		call_deferred("_hide_consumable_tooltip_if_mouse_left", btn)
+	)
 	return btn
 
 
@@ -511,21 +598,18 @@ func _show_consumable_tooltip(anchor: Control, preview: Dictionary) -> void:
 		REWARD_TOOLTIP_WIDTH,
 		preview.get("tags", [])
 	)
-	call_deferred("_finalize_consumable_tooltip")
+	_tooltip.reset_size()
+	_position_consumable_tooltip(anchor)
+	_tooltip.appear()
 
 
-func _finalize_consumable_tooltip() -> void:
-	if _tooltip == null or _tooltip_anchor == null or not is_instance_valid(_tooltip_anchor):
+func _process(_delta: float) -> void:
+	if _tooltip_anchor == null or not is_instance_valid(_tooltip_anchor):
+		return
+	if _tooltip == null or not _tooltip.visible:
 		return
 	_tooltip.reset_size()
-	call_deferred("_position_and_appear_consumable_tooltip")
-
-
-func _position_and_appear_consumable_tooltip() -> void:
-	if _tooltip == null or _tooltip_anchor == null or not is_instance_valid(_tooltip_anchor):
-		return
 	_position_consumable_tooltip(_tooltip_anchor)
-	_tooltip.appear()
 
 
 func _position_consumable_tooltip(anchor: Control) -> void:
@@ -550,12 +634,10 @@ func _position_consumable_tooltip(anchor: Control) -> void:
 	_tooltip.pivot_offset = Vector2(tooltip_size.x * 0.5, tooltip_size.y)
 
 
-func _on_consumable_focus_exited() -> void:
-	call_deferred("_hide_consumable_tooltip_if_unfocused")
-
-
-func _hide_consumable_tooltip_if_unfocused() -> void:
-	if _tooltip_anchor != null and is_instance_valid(_tooltip_anchor) and _tooltip_anchor.has_focus():
+func _hide_consumable_tooltip_if_mouse_left(btn: Control) -> void:
+	if _tooltip_anchor != btn:
+		return
+	if btn.get_global_rect().has_point(btn.get_global_mouse_position()):
 		return
 	_hide_consumable_tooltip()
 
@@ -698,8 +780,8 @@ func _card_style(_is_current: bool) -> StyleBoxFlat:
 	var box := StyleBoxFlat.new()
 	box.bg_color = PANEL_BG
 	box.set_corner_radius_all(PANEL_RADIUS)
-	box.content_margin_left = 28
-	box.content_margin_right = 28
+	box.content_margin_left = CARD_SIDE_INSET
+	box.content_margin_right = CARD_SIDE_INSET
 	box.content_margin_top = 22
 	box.content_margin_bottom = 20
 	box.shadow_color = PANEL_SHADOW
@@ -726,6 +808,45 @@ func _rounded_style(bg: Color, radius: int, margin_v: int, margin_h: int = -1) -
 	box.content_margin_left = margin_v if margin_h < 0 else margin_h
 	box.content_margin_right = margin_v if margin_h < 0 else margin_h
 	return box
+
+
+func _reward_panel_style() -> StyleBoxFlat:
+	var box := _rounded_style(
+		PILL_DARK,
+		LevelCardBadge.BADGE_RADIUS,
+		REWARD_PAD_V,
+		LevelCardBadge.BADGE_PAD_H
+	)
+	box.shadow_color = PANEL_SHADOW
+	box.shadow_size = 1
+	box.shadow_offset = Vector2(3, 4)
+	return box
+
+
+func _reward_panel_height() -> float:
+	return LevelCardBadge.preferred_height(_font)
+
+
+func _reward_overlap() -> float:
+	return _reward_panel_height() * 0.5
+
+
+func _pin_centered(control: Control) -> void:
+	if control == null or not is_instance_valid(control):
+		return
+	control.set_anchors_preset(Control.PRESET_CENTER)
+	var size := control.get_combined_minimum_size()
+	control.offset_left = -size.x * 0.5
+	control.offset_top = -size.y * 0.5
+	control.offset_right = size.x * 0.5
+	control.offset_bottom = size.y * 0.5
+
+
+func _apply_badge_like_font(label: Label, size: int, color: Color) -> void:
+	if _font:
+		label.add_theme_font_override("font", _font)
+	label.add_theme_font_size_override("font_size", size)
+	label.add_theme_color_override("font_color", color)
 
 
 func _apply_font(label: Label, size: int, color: Color) -> void:
