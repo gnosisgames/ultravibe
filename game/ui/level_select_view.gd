@@ -8,13 +8,10 @@ extends GnosisUIElementView
 ## skip actions. The green shop button re-opens the shop panel.
 
 const SubscreenFrame = preload("res://game/ui/subscreen_frame.gd")
+const LevelCardBadge = preload("res://game/ui/widgets/level_card_badge.gd")
 const RoundedSquareBtnScene = preload("res://game/ui/widgets/rounded_square_btn.tscn")
-const ICON_DIR := "res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/"
-const SKULL_ICON := ICON_DIR + "skull-white.png"
-const PLAY_ICON := ICON_DIR + "play.png"
-const CHEVRON_UP_ICON := ICON_DIR + "up.png"
-const CHEVRON_DOWN_ICON := ICON_DIR + "down.png"
-const CONSUMABLE_ICON_DIR := "res://assets/icons/consumables/"
+const TooltipPopupScene = preload("res://game/ui/widgets/tooltip_popup.tscn")
+const ConsumableCatalogUi = preload("res://game/ui/consumable_catalog_ui.gd")
 
 const PANEL_BG := Color(0.415686, 0.415686, 0.658824, 1)
 const PANEL_SHADOW := Color(0.0784314, 0.137255, 0.227451, 1)
@@ -22,22 +19,49 @@ const PANEL_RADIUS := 27
 const PILL_DARK := Color(0.156863, 0.196078, 0.290196, 1)
 const PILL_WHITE := Color(0.929412, 0.941176, 0.972549, 1)
 const PILL_TEXT_DARK := Color(0.156863, 0.196078, 0.290196, 1)
-const YELLOW := Color(0.968627, 0.78, 0.301961, 1)
-const RED := Color(0.858824, 0.301961, 0.34902, 1)
+const BTN_PURPLE := Color(0.415686, 0.415686, 0.658824, 1)
+const BTN_YELLOW := Color(0.968627, 0.78, 0.301961, 1)
+const BTN_RED := Color(0.971387, 0.354281, 0.290535, 1)
+const BTN_DISABLED_GREY := Color(0.52, 0.52, 0.56, 1)
+const BTN_ICON_DISABLED := Color(0.78, 0.78, 0.82, 1)
+const DEFAULT_DOUBLE_DOWN_MULT := 10
 const GOLD := Color(0.937255, 0.74902, 0.0156863, 1)
 const WHITE := Color(1, 1, 1, 1)
 const DESC_COLOR := Color(0.847059, 0.858824, 0.945098, 1)
 const CARD_MIN_WIDTH := 240.0
+const BADGE_SIDE_INSET := 64
+const BADGE_OVERLAP := 24
+const ACTION_BTN_SIZE := Vector2(88, 88)
+const ACTION_BTN_ICON_MAX := 44
+const REWARD_PANEL_HEIGHT := 96.0
+const REWARD_ROW_MIN_WIDTH := 292.0
+const REWARD_SECTION_BOTTOM_MARGIN := 24
+const REWARD_DIVIDER_WIDTH := 3
+const REWARD_DIVIDER_INSET := 12.0
+const REWARD_DOT_SIZE := 16
+const REWARD_DOT_INSET := 6
+const REWARD_PANEL_MARGIN_H := 6
+const REWARD_PANEL_MARGIN_V := 6
+const CHALLENGE_MULT_ROTATION := 30.0
+const CHALLENGE_MULT_FONT_SIZE := 24
+const REWARD_TOOLTIP_WIDTH := 300.0
+const ICON_DIR := "res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/"
+const SKULL_ICON := ICON_DIR + "skull-white.png"
+const PLAY_ICON := ICON_DIR + "play.png"
+const SKIP_ICON := ICON_DIR + "skip.png"
 
 @onready var _region: Control = %Region
 @onready var _cards: HBoxContainer = %Cards
 
 var _font: Font = null
 var _host: GnosisGodotEngine = null
+var _tooltip: TooltipPopup = null
+var _tooltip_anchor: Control = null
 
 func _ready() -> void:
 	add_to_group("gnosis_ui_view")
 	_font = load("res://assets/fonts/Comic Lemon.otf")
+	_build_tooltip()
 	call_deferred("_resolve_host")
 
 func get_subscreen_slide_holder() -> Control:
@@ -50,6 +74,8 @@ func set_view_visible(is_visible: bool) -> void:
 		SubscreenFrame.connect_changes(self, _apply_frame)
 		_apply_frame()
 		_refresh()
+	else:
+		_hide_consumable_tooltip()
 
 func _apply_frame() -> void:
 	SubscreenFrame.apply(self, _region)
@@ -75,6 +101,7 @@ func _match3_service():
 	return eng.get_service("Match3") if eng else null
 
 func _refresh() -> void:
+	_hide_consumable_tooltip()
 	if _cards == null:
 		return
 	for child in _cards.get_children():
@@ -103,7 +130,6 @@ func _refresh() -> void:
 
 func _build_card(row: GnosisNode) -> Control:
 	var stage := _node_str(row, "stageType")
-	var round_num := _node_int(row, "round", 0)
 	var skulls := _node_int(row, "difficultySkulls", 1)
 	var objective := _node_int(row, "objectiveTarget", 0)
 	var reward := _node_int(row, "rewardAmount", 0)
@@ -115,41 +141,50 @@ func _build_card(row: GnosisNode) -> Control:
 	if stage == "normal" or stage == "advanced":
 		name_text = "%s %s" % [name_text, tr("core__noun__level") if tr("core__noun__level") != "core__noun__level" else "Level"]
 	var desc_text := _localized(_node_str(row, "descriptionKey"), "")
+	var badge_accent := _badge_accent_color(row, stage)
+
+	var wrapper := VBoxContainer.new()
+	wrapper.custom_minimum_size = Vector2(CARD_MIN_WIDTH, 0)
+	wrapper.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	wrapper.size_flags_vertical = Control.SIZE_FILL
+	wrapper.alignment = BoxContainer.ALIGNMENT_CENTER
+	wrapper.add_theme_constant_override("separation", -BADGE_OVERLAP)
+
+	var badge := LevelCardBadge.build(
+		skulls,
+		_format_score(objective),
+		badge_accent,
+		_font,
+		BADGE_OVERLAP
+	)
+	badge.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	badge.z_index = 1
+
+	var badge_host := MarginContainer.new()
+	badge_host.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	badge_host.add_theme_constant_override("margin_left", BADGE_SIDE_INSET)
+	badge_host.add_theme_constant_override("margin_right", BADGE_SIDE_INSET)
+	badge_host.add_child(badge)
+	wrapper.add_child(badge_host)
 
 	var card := PanelContainer.new()
-	card.custom_minimum_size = Vector2(CARD_MIN_WIDTH, 0)
+	card.z_index = 0
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	card.size_flags_vertical = Control.SIZE_FILL
+	card.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	card.add_theme_stylebox_override("panel", _card_style(is_current))
 
 	var vbox := VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 12)
 	card.add_child(vbox)
 
-	vbox.add_child(_skulls_row(skulls))
-	vbox.add_child(_pill(_format_score(objective), PILL_DARK, WHITE, 32))
 	vbox.add_child(_title_label(name_text))
 	vbox.add_child(_desc_label(desc_text))
-	vbox.add_child(_chevron(CHEVRON_UP_ICON))
-	vbox.add_child(_reward_row(reward, consumable_id))
-	vbox.add_child(_chevron(CHEVRON_DOWN_ICON))
+	vbox.add_child(_action_rewards_row(reward, consumable_id))
 	vbox.add_child(_buttons_row(is_current, skippable, double_down_mult))
-	vbox.add_child(_round_pill(round_num))
-	return card
 
-func _skulls_row(count: int) -> Control:
-	var row := HBoxContainer.new()
-	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.add_theme_constant_override("separation", 6)
-	for _i in range(maxi(1, count)):
-		var skull := TextureRect.new()
-		skull.texture = load(SKULL_ICON)
-		skull.custom_minimum_size = Vector2(38, 38)
-		skull.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		skull.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		skull.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		row.add_child(skull)
-	return row
+	wrapper.add_child(card)
+
+	return wrapper
 
 func _title_label(text: String) -> Label:
 	var label := Label.new()
@@ -169,108 +204,365 @@ func _desc_label(text: String) -> Label:
 	_apply_font(label, 18, DESC_COLOR)
 	return label
 
-func _chevron(icon_path: String) -> Control:
+func _action_rewards_row(reward: int, consumable_id: String) -> Control:
+	var wrap := MarginContainer.new()
+	wrap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	wrap.add_theme_constant_override("margin_bottom", REWARD_SECTION_BOTTOM_MARGIN)
+
+	var root := Control.new()
+	root.custom_minimum_size = Vector2(REWARD_ROW_MIN_WIDTH, REWARD_PANEL_HEIGHT)
+	root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+
+	var outer := PanelContainer.new()
+	outer.set_anchors_preset(Control.PRESET_FULL_RECT)
+	outer.add_theme_stylebox_override("panel", _rounded_style(PILL_DARK, 18, REWARD_PANEL_MARGIN_V, REWARD_PANEL_MARGIN_H))
+	root.add_child(outer)
+
+	var row := HBoxContainer.new()
+	row.set_anchors_preset(Control.PRESET_FULL_RECT)
+	row.add_theme_constant_override("separation", 0)
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	outer.add_child(row)
+
+	row.add_child(_reward_money_side(reward))
+
+	var preview := ConsumableCatalogUi.build_level_preview(_engine(), consumable_id)
+	if not preview.is_empty():
+		row.add_child(_reward_divider())
+		row.add_child(_reward_consumable_side(preview))
+
+	wrap.add_child(root)
+	return wrap
+
+
+func _reward_money_side(reward: int) -> Control:
+	var side := Control.new()
+	side.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	side.size_flags_vertical = Control.SIZE_EXPAND_FILL
+
 	var center := CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	var label := Label.new()
+	label.text = ConsumableCatalogUi.format_level_money_reward(reward)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_apply_font(label, 38, GOLD)
+	center.add_child(label)
+	side.add_child(center)
+	side.add_child(_reward_corner_dots([BTN_PURPLE, BTN_RED], true))
+	return side
+
+
+func _reward_consumable_side(preview: Dictionary) -> Control:
+	var side := Control.new()
+	side.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	side.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	side.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	var center := CenterContainer.new()
+	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var icon_path := str(preview.get("icon_path", ""))
+	if not icon_path.is_empty():
+		center.add_child(_consumable_reward_button(icon_path, preview))
+	side.add_child(center)
+	side.add_child(_reward_corner_dots([BTN_YELLOW, BTN_RED], false))
+	return side
+
+
+func _consumable_reward_button(icon_path: String, preview: Dictionary) -> Button:
+	var btn := Button.new()
+	btn.custom_minimum_size = Vector2(64, 64)
+	btn.flat = true
+	btn.focus_mode = Control.FOCUS_ALL
+	btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	btn.add_theme_stylebox_override("normal", StyleBoxEmpty.new())
+	btn.add_theme_stylebox_override("hover", StyleBoxEmpty.new())
+	btn.add_theme_stylebox_override("pressed", StyleBoxEmpty.new())
+	btn.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	btn.add_theme_stylebox_override("disabled", StyleBoxEmpty.new())
+
 	var icon := TextureRect.new()
 	icon.texture = load(icon_path)
-	icon.custom_minimum_size = Vector2(34, 22)
+	icon.custom_minimum_size = Vector2(56, 56)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	icon.modulate = Color(1, 1, 1, 0.7)
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	center.add_child(icon)
-	return center
+	icon.set_anchors_preset(Control.PRESET_CENTER)
+	icon.offset_left = -28.0
+	icon.offset_top = -28.0
+	icon.offset_right = 28.0
+	icon.offset_bottom = 28.0
+	btn.add_child(icon)
 
-func _reward_row(reward: int, consumable_id: String) -> Control:
+	btn.mouse_entered.connect(btn.grab_focus)
+	btn.focus_entered.connect(func() -> void: _show_consumable_tooltip(btn, preview))
+	btn.focus_exited.connect(_on_consumable_focus_exited)
+	return btn
+
+
+func _reward_divider() -> Control:
+	var wrap := MarginContainer.new()
+	wrap.add_theme_constant_override("margin_top", REWARD_DIVIDER_INSET)
+	wrap.add_theme_constant_override("margin_bottom", REWARD_DIVIDER_INSET)
+	wrap.custom_minimum_size = Vector2(REWARD_DIVIDER_WIDTH, 0)
+	wrap.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	var line := ColorRect.new()
+	line.custom_minimum_size = Vector2(REWARD_DIVIDER_WIDTH, 0)
+	line.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	line.color = Color(1, 1, 1, 0.18)
+	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	wrap.add_child(line)
+	return wrap
+
+
+func _reward_corner_dots(colors: Array[Color], top_left: bool) -> Control:
+	var layer := Control.new()
+	layer.set_anchors_preset(Control.PRESET_FULL_RECT)
+	layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.z_index = 1
+
+	var margin := MarginContainer.new()
+	margin.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	margin.add_theme_constant_override("margin_top", REWARD_DOT_INSET)
+	if top_left:
+		margin.add_theme_constant_override("margin_left", REWARD_DOT_INSET)
+	else:
+		margin.add_theme_constant_override("margin_right", REWARD_DOT_INSET)
+
 	var row := HBoxContainer.new()
-	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.add_theme_constant_override("separation", 18)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.alignment = BoxContainer.ALIGNMENT_BEGIN if top_left else BoxContainer.ALIGNMENT_END
+	row.add_theme_constant_override("separation", 4)
+	for color in colors:
+		row.add_child(_reward_dot(color))
+	margin.add_child(row)
+	layer.add_child(margin)
+	return layer
 
-	var money_pill := _pill("$%d" % maxi(0, reward), PILL_DARK, GOLD, 34)
-	row.add_child(money_pill)
 
-	var consumable_path := _consumable_icon_path(consumable_id)
-	if not consumable_path.is_empty():
-		var slot := PanelContainer.new()
-		slot.add_theme_stylebox_override("panel", _rounded_style(PILL_DARK, 14, 8))
-		var icon := TextureRect.new()
-		icon.texture = load(consumable_path)
-		icon.custom_minimum_size = Vector2(56, 56)
-		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		slot.add_child(icon)
-		row.add_child(slot)
-	return row
+func _reward_dot(color: Color) -> Control:
+	var dot := PanelContainer.new()
+	dot.custom_minimum_size = Vector2(REWARD_DOT_SIZE, REWARD_DOT_SIZE)
+	dot.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	dot.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var style := StyleBoxFlat.new()
+	style.bg_color = color
+	style.set_corner_radius_all(REWARD_DOT_SIZE / 2)
+	dot.add_theme_stylebox_override("panel", style)
+	return dot
+
+
+func _build_tooltip() -> void:
+	if _tooltip != null:
+		return
+	_tooltip = TooltipPopupScene.instantiate() as TooltipPopup
+	_tooltip.name = "ConsumableTooltip"
+	_tooltip.top_level = true
+	_tooltip.z_index = 100
+	_tooltip.visible = false
+	_tooltip.scale = Vector2.ZERO
+	add_child(_tooltip)
+
+
+func _show_consumable_tooltip(anchor: Control, preview: Dictionary) -> void:
+	if _tooltip == null or anchor == null or not is_instance_valid(anchor):
+		return
+	var description := str(preview.get("description", "")).strip_edges()
+	if description.is_empty():
+		return
+	_tooltip_anchor = anchor
+	_tooltip.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	_tooltip.grow_horizontal = Control.GROW_DIRECTION_END
+	_tooltip.grow_vertical = Control.GROW_DIRECTION_END
+	_tooltip.visible = true
+	_tooltip.set_content(
+		str(preview.get("title", "")),
+		description,
+		REWARD_TOOLTIP_WIDTH,
+		preview.get("tags", [])
+	)
+	call_deferred("_finalize_consumable_tooltip")
+
+
+func _finalize_consumable_tooltip() -> void:
+	if _tooltip == null or _tooltip_anchor == null or not is_instance_valid(_tooltip_anchor):
+		return
+	_tooltip.reset_size()
+	call_deferred("_position_and_appear_consumable_tooltip")
+
+
+func _position_and_appear_consumable_tooltip() -> void:
+	if _tooltip == null or _tooltip_anchor == null or not is_instance_valid(_tooltip_anchor):
+		return
+	_position_consumable_tooltip(_tooltip_anchor)
+	_tooltip.appear()
+
+
+func _position_consumable_tooltip(anchor: Control) -> void:
+	if _tooltip == null or anchor == null or not is_instance_valid(anchor):
+		return
+	var anchor_rect := anchor.get_global_rect()
+	var bounds := _region.get_global_rect() if _region else get_global_rect()
+	var tooltip_size := _tooltip.get_combined_minimum_size()
+	tooltip_size.x = maxf(tooltip_size.x, _tooltip.size.x)
+	tooltip_size.y = maxf(tooltip_size.y, _tooltip.size.y)
+	tooltip_size.x = minf(tooltip_size.x, bounds.size.x - 16.0)
+	tooltip_size.y = minf(tooltip_size.y, bounds.size.y - 16.0)
+	var min_y := bounds.position.y + 8.0
+	var max_y := maxf(min_y, bounds.end.y - tooltip_size.y - 8.0)
+	var x := anchor_rect.position.x + (anchor_rect.size.x - tooltip_size.x) * 0.5
+	var y := anchor_rect.position.y - tooltip_size.y - 12.0
+	if y < min_y:
+		y = anchor_rect.end.y + 12.0
+	x = clampf(x, bounds.position.x + 8.0, maxf(bounds.position.x + 8.0, bounds.end.x - tooltip_size.x - 8.0))
+	y = clampf(y, min_y, max_y)
+	_tooltip.global_position = Vector2(x, y)
+	_tooltip.pivot_offset = Vector2(tooltip_size.x * 0.5, tooltip_size.y)
+
+
+func _on_consumable_focus_exited() -> void:
+	call_deferred("_hide_consumable_tooltip_if_unfocused")
+
+
+func _hide_consumable_tooltip_if_unfocused() -> void:
+	if _tooltip_anchor != null and is_instance_valid(_tooltip_anchor) and _tooltip_anchor.has_focus():
+		return
+	_hide_consumable_tooltip()
+
+
+func _hide_consumable_tooltip() -> void:
+	_tooltip_anchor = null
+	if _tooltip:
+		_tooltip.disappear()
 
 func _buttons_row(is_current: bool, skippable: bool, double_down_mult: int) -> Control:
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_theme_constant_override("separation", 14)
 
-	var play := _action_button(PLAY_ICON, "", YELLOW, is_current)
+	var play := _action_button(PLAY_ICON, "", BTN_PURPLE, is_current)
 	play.pressed.connect(_on_play_pressed)
-	row.add_child(play)
+	row.add_child(_action_button_slot(play))
 
-	if double_down_mult > 1:
-		var dd := _action_button(PLAY_ICON, "x%d" % double_down_mult, YELLOW, is_current)
-		dd.pressed.connect(_on_double_down_pressed)
-		row.add_child(dd)
+	var skip := _action_button(SKIP_ICON, "", BTN_YELLOW, is_current and skippable)
+	skip.pressed.connect(_on_skip_pressed)
+	row.add_child(_action_button_slot(skip))
 
-	if skippable:
-		var skip := _action_button(SKULL_ICON, "", RED, is_current)
-		skip.pressed.connect(_on_skip_pressed)
-		row.add_child(skip)
+	var mult := maxi(1, double_down_mult if double_down_mult > 0 else DEFAULT_DOUBLE_DOWN_MULT)
+	var challenge := _action_button(SKULL_ICON, "", BTN_RED, is_current)
+	challenge.pressed.connect(_on_double_down_pressed)
+	row.add_child(_action_button_slot(challenge, "x%d" % mult))
 	return row
 
-func _action_button(icon_path: String, label: String, color: Color, enabled: bool) -> Button:
+
+func _action_button_slot(btn: Button, overlay_label: String = "") -> Control:
+	var slot := Control.new()
+	slot.custom_minimum_size = ACTION_BTN_SIZE
+	slot.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	btn.set_anchors_preset(Control.PRESET_FULL_RECT)
+	btn.offset_right = 0.0
+	btn.offset_bottom = 0.0
+	slot.add_child(btn)
+
+	if not overlay_label.is_empty():
+		var mult_label := Label.new()
+		mult_label.text = overlay_label
+		mult_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		mult_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		mult_label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+		mult_label.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+		mult_label.offset_left = -56.0
+		mult_label.offset_top = 0.0
+		mult_label.offset_right = 22.0
+		mult_label.offset_bottom = 32.0
+		mult_label.rotation_degrees = CHALLENGE_MULT_ROTATION
+		mult_label.z_index = 1
+		_apply_font(mult_label, CHALLENGE_MULT_FONT_SIZE, WHITE)
+		slot.add_child(mult_label)
+		mult_label.resized.connect(func() -> void:
+			mult_label.pivot_offset = Vector2(mult_label.size.x, 0.0)
+		)
+		mult_label.pivot_offset = Vector2(48.0, 0.0)
+
+	return slot
+
+
+func _action_button(icon_path: String, label: String, base_color: Color, enabled: bool) -> Button:
 	var btn: RoundedSquareBtn = RoundedSquareBtnScene.instantiate()
-	btn.custom_minimum_size = Vector2(72, 72)
+	btn.custom_minimum_size = ACTION_BTN_SIZE
+	btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	btn.icon = load(icon_path)
 	btn.expand_icon = true
+	btn.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	btn.vertical_icon_alignment = VERTICAL_ALIGNMENT_CENTER
 	btn.text = label
 	btn.disabled = not enabled
-	btn.add_theme_constant_override("icon_max_width", 36)
-	btn.add_theme_color_override("icon_normal_color", WHITE)
-	btn.add_theme_color_override("icon_hover_color", WHITE)
-	btn.add_theme_color_override("icon_pressed_color", WHITE)
-	btn.add_theme_color_override("icon_disabled_color", WHITE)
-	btn.add_theme_color_override("font_color", WHITE)
+	btn.hover_animate = true
+	btn.add_theme_constant_override("icon_max_width", ACTION_BTN_ICON_MAX)
+	var icon_color := WHITE if enabled else BTN_ICON_DISABLED
+	btn.add_theme_color_override("icon_normal_color", icon_color)
+	btn.add_theme_color_override("icon_hover_color", icon_color)
+	btn.add_theme_color_override("icon_pressed_color", icon_color)
+	btn.add_theme_color_override("icon_disabled_color", BTN_ICON_DISABLED)
+	btn.add_theme_color_override("font_color", icon_color)
+	btn.add_theme_color_override("font_disabled_color", BTN_ICON_DISABLED)
 	if _font:
 		btn.add_theme_font_override("font", _font)
 	btn.add_theme_font_size_override("font_size", 20)
-	var style := _rounded_style(color, 16, 8)
-	btn.add_theme_stylebox_override("normal", style)
-	btn.add_theme_stylebox_override("hover", _rounded_style(color.lightened(0.08), 16, 8))
-	btn.add_theme_stylebox_override("pressed", _rounded_style(color.darkened(0.12), 16, 8))
-	btn.add_theme_stylebox_override("disabled", _rounded_style(color.darkened(0.25), 16, 8))
-	btn.add_theme_stylebox_override("focus", style)
-	if not enabled:
-		btn.modulate.a = 0.6
+	_apply_juicy_button_styles(btn, base_color, enabled)
 	return btn
 
-func _pill(text: String, bg: Color, fg: Color, font_size: int) -> Control:
-	var pill := PanelContainer.new()
-	pill.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	pill.add_theme_stylebox_override("panel", _rounded_style(bg, 18, 10, 22))
-	var label := Label.new()
-	label.text = text
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_apply_font(label, font_size, fg)
-	pill.add_child(label)
-	return pill
 
-func _round_pill(round_num: int) -> Control:
-	var center := CenterContainer.new()
-	var pill := PanelContainer.new()
-	pill.add_theme_stylebox_override("panel", _rounded_style(PILL_WHITE, 14, 8, 26))
-	var label := Label.new()
-	label.text = "-%d-" % round_num
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_apply_font(label, 24, PILL_TEXT_DARK)
-	pill.add_child(label)
-	center.add_child(pill)
-	return center
+func _apply_juicy_button_styles(btn: Button, base_color: Color, enabled: bool) -> void:
+	var inactive_fill := base_color.lerp(BTN_DISABLED_GREY, 0.72)
+	var active_shadow := _button_shadow_color(base_color)
+	var inactive_shadow := _button_shadow_color(inactive_fill)
+	btn.add_theme_stylebox_override("normal", _juicy_button_style(
+		base_color if enabled else inactive_fill,
+		active_shadow if enabled else inactive_shadow
+	))
+	btn.add_theme_stylebox_override("hover", _juicy_button_style(
+		base_color.lightened(0.08), active_shadow, true
+	))
+	btn.add_theme_stylebox_override("pressed", _juicy_button_style(
+		base_color.darkened(0.12), active_shadow
+	))
+	btn.add_theme_stylebox_override("disabled", _juicy_button_style(inactive_fill, inactive_shadow))
+	btn.add_theme_stylebox_override("focus", _juicy_button_style(
+		base_color if enabled else inactive_fill,
+		active_shadow if enabled else inactive_shadow,
+		true
+	))
+
+
+func _button_shadow_color(base: Color) -> Color:
+	return base.darkened(0.42)
+
+
+func _juicy_button_style(bg: Color, shadow: Color, outlined: bool = false) -> StyleBoxFlat:
+	var box := StyleBoxFlat.new()
+	box.bg_color = bg
+	box.set_corner_radius_all(16)
+	box.corner_detail = 12
+	box.content_margin_left = 10
+	box.content_margin_right = 10
+	box.content_margin_top = 10
+	box.content_margin_bottom = 10
+	box.shadow_color = shadow
+	box.shadow_size = 1
+	box.shadow_offset = Vector2(3, 4)
+	if outlined:
+		box.set_border_width_all(4)
+		box.border_color = bg.darkened(0.35)
+	return box
+
 
 # ---------------------------------------------------------------------------
 # Styling helpers
@@ -282,12 +574,22 @@ func _card_style(_is_current: bool) -> StyleBoxFlat:
 	box.set_corner_radius_all(PANEL_RADIUS)
 	box.content_margin_left = 28
 	box.content_margin_right = 28
-	box.content_margin_top = 24
-	box.content_margin_bottom = 24
+	box.content_margin_top = 32
+	box.content_margin_bottom = 32
 	box.shadow_color = PANEL_SHADOW
 	box.shadow_size = 1
 	box.shadow_offset = Vector2(5, 7)
 	return box
+
+
+func _badge_accent_color(row: GnosisNode, stage: String) -> Color:
+	if stage != "boss":
+		return PILL_TEXT_DARK
+	var hex := _node_str(row, "textColor").strip_edges()
+	if hex.is_empty() or not hex.begins_with("#") or not Color.html_is_valid(hex):
+		return PILL_TEXT_DARK
+	return Color.html(hex)
+
 
 func _rounded_style(bg: Color, radius: int, margin_v: int, margin_h: int = -1) -> StyleBoxFlat:
 	var box := StyleBoxFlat.new()
@@ -299,21 +601,12 @@ func _rounded_style(bg: Color, radius: int, margin_v: int, margin_h: int = -1) -
 	box.content_margin_right = margin_v if margin_h < 0 else margin_h
 	return box
 
+
 func _apply_font(label: Label, size: int, color: Color) -> void:
 	if _font:
 		label.add_theme_font_override("font", _font)
 	label.add_theme_font_size_override("font_size", size)
 	label.add_theme_color_override("font_color", color)
-
-func _consumable_icon_path(consumable_id: String) -> String:
-	if consumable_id.strip_edges().is_empty():
-		return ""
-	var candidates := [consumable_id, consumable_id.capitalize().replace(" ", "")]
-	for candidate in candidates:
-		var path := "%s%s.png" % [CONSUMABLE_ICON_DIR, candidate]
-		if ResourceLoader.exists(path):
-			return path
-	return ""
 
 func _format_score(value: int) -> String:
 	if value >= 1000000:

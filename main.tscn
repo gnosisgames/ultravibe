@@ -107,7 +107,6 @@ layout_mode = 1
 visible = false
 
 [node name="TitleView" parent="UI" unique_id=1991399643 instance=ExtResource("5")]
-visible = false
 
 [node name="SettingsView" parent="UI" unique_id=920900561 instance=ExtResource("6")]
 visible = false

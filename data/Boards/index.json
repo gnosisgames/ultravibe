@@ -537,8 +537,8 @@
         },
         {
             "id": "grid9x9_bm_3",
-            "path": "Easy/grid9x9_bm_3.json",
-            "difficulty": "easy"
+            "path": "Normal/grid9x9_bm_3.json",
+            "difficulty": "advanced"
         },
         {
             "id": "grid9x9_bm_4",

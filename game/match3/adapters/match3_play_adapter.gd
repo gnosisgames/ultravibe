@@ -73,6 +73,7 @@ func _subscribe_facts() -> void:
 	_subscriptions.append(bus.subscribe(Events.FACT_MATCH3_BOARD_RESET, _on_board_fact, 0))
 	_subscriptions.append(bus.subscribe(Events.FACT_MATCH3_BOARD_CHANGED, _on_board_fact, 0))
 	_subscriptions.append(bus.subscribe(Events.FACT_MATCH3_MOVE_RESOLVED, _on_move_resolved, 0))
+	_subscriptions.append(bus.subscribe(Events.FACT_MATCH3_SHUFFLE_USED, _on_shuffle_used, 0))
 	_subscriptions.append(bus.subscribe(Events.FACT_MATCH3_STATUS_CHANGED, _on_status_fact, 0))
 	_subscriptions.append(bus.subscribe(GnosisGameUIService.FactBaseViewChanged, _on_game_ui_base_view_changed, 0))
 
@@ -89,6 +90,28 @@ func _on_board_fact(event: GnosisEvent) -> void:
 func _on_move_resolved(event: GnosisEvent) -> void:
 	if _dispatcher and event and _dispatcher.has_method("play_move_sequence"):
 		_dispatcher.play_move_sequence(event.data)
+
+
+func _on_shuffle_used(event: GnosisEvent) -> void:
+	if _dispatcher == null or event == null or not event.data.is_valid():
+		return
+	var spawns := event.data.get_node("spawns")
+	if not spawns.is_valid() or spawns.get_type() != GnosisValueType.LIST or spawns.get_count() == 0:
+		return
+	_play_shuffle_feedback()
+	if _dispatcher.has_method("play_shuffle_sequence"):
+		_dispatcher.play_shuffle_sequence(event.data)
+
+
+func _play_shuffle_feedback() -> void:
+	if engine == null or engine.store == null:
+		return
+	var anim := engine.get_service("Animation") as GnosisAnimationService
+	if anim == null:
+		return
+	var params := engine.store.create_object()
+	params.set_key("id", "shuffle")
+	anim.invoke_function("PlayFeedback", params)
 
 
 ## Called by the dispatcher once a move's swap + cascade animation completes.

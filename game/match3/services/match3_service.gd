@@ -49,7 +49,11 @@ var _current_floor := 1
 var _round_in_floor := 1
 var _active_stage_type := "normal"
 var _manual_shuffles_remaining := 0
-var _boss_level_ids_cache: Array[String] = []
+var _boss_profiles_loaded := false
+var _boss_profile_ids: Array[String] = []
+var _normal_profile_ids: Array[String] = []
+var _advanced_profile_ids: Array[String] = []
+var _floor_bundle_plans: Dictionary = {}
 var _board_pools_loaded := false
 var _last_step_points := 0
 var _last_step_multi := 0
@@ -270,6 +274,7 @@ func is_board_input_allowed() -> bool:
 
 
 func handle_run_started() -> void:
+	_floor_bundle_plans.clear()
 	_ensure_run_ephemeral_defaults()
 	var m3 := get_node("match3", false)
 	var next_level := maxi(1, _node_int(m3, "nextLevel", 1))
@@ -413,58 +418,325 @@ func _resolve_round_setup(round_number: int) -> Dictionary:
 	var rounds_per_floor := DEFAULT_ROUNDS_PER_FLOOR
 	var floor := int((round - 1) / rounds_per_floor) + 1
 	var round_in_floor := int((round - 1) % rounds_per_floor) + 1
-	var stage_type := "boss" if round_in_floor == rounds_per_floor else ("advanced" if round_in_floor == 2 else "normal")
-	var board_id := _pick_board_id_for_stage(stage_type, floor)
+	var bundle := _ensure_floor_bundle(floor)
+	match round_in_floor:
+		2:
+			return (bundle.get("advanced", {}) as Dictionary).duplicate(true)
+		DEFAULT_ROUNDS_PER_FLOOR:
+			return (bundle.get("boss", {}) as Dictionary).duplicate(true)
+		_:
+			return (bundle.get("normal", {}) as Dictionary).duplicate(true)
+
+
+func _ensure_floor_bundle(floor: int) -> Dictionary:
+	var safe_floor := maxi(1, floor)
+	if _floor_bundle_plans.has(safe_floor):
+		return _floor_bundle_plans[safe_floor]
+	_ensure_boss_profiles_loaded()
+	_load_board_pools()
+	var all_board_ids := _get_all_board_ids()
+	var used_ids: Array[String] = []
+	var first_round := (safe_floor - 1) * DEFAULT_ROUNDS_PER_FLOOR + 1
+	var boss_round_number := first_round + DEFAULT_ROUNDS_PER_FLOOR - 1
+	var normal_board := _pick_board_id_for_stage("normal", safe_floor, used_ids, all_board_ids)
+	var advanced_board := _pick_board_id_for_stage("advanced", safe_floor, used_ids, all_board_ids)
+	var boss_profile_id := _pick_boss_profile_id_for_round(safe_floor, boss_round_number)
+	var boss_board := _pick_boss_board_for_profile(boss_profile_id, safe_floor, used_ids, all_board_ids)
+	var bundle := {
+		"normal": _build_stage_plan(
+			first_round, safe_floor, 1, "normal", normal_board,
+			_pick_profile_id_for_stage("normal", safe_floor)
+		),
+		"advanced": _build_stage_plan(
+			first_round + 1, safe_floor, 2, "advanced", advanced_board,
+			_pick_profile_id_for_stage("advanced", safe_floor)
+		),
+		"boss": _build_stage_plan(
+			boss_round_number, safe_floor, DEFAULT_ROUNDS_PER_FLOOR, "boss", boss_board,
+			boss_profile_id
+		),
+	}
+	_floor_bundle_plans[safe_floor] = bundle
+	return bundle
+
+
+func _build_stage_plan(
+	round_num: int,
+	floor: int,
+	round_in_floor: int,
+	stage_type: String,
+	board_id: String,
+	level_id: String
+) -> Dictionary:
 	var layout = _load_board_layout(board_id)
 	if layout == null:
 		layout = _load_board_layout(DEFAULT_BOARD_ID)
 		board_id = DEFAULT_BOARD_ID
-	var color_limit := _resolve_adaptive_color_limit(layout)
 	return {
-		"round": round,
+		"round": round_num,
 		"floor": floor,
 		"round_in_floor": round_in_floor,
 		"stage_type": stage_type,
 		"board_id": board_id,
-		"level_id": _resolve_level_id_for_stage(stage_type, floor),
-		"target_score": _resolve_target_score_for_round(round, _resolve_target_score(round, stage_type)),
-		"moves": _resolve_moves_limit(round, stage_type),
+		"level_id": level_id,
+		"target_score": _resolve_target_score_for_round(round_num, _resolve_target_score(round_num, stage_type)),
+		"moves": _resolve_moves_limit(round_num, stage_type),
 		"shuffles": DEFAULT_SHUFFLES_PER_ROUND,
-		"color_limit": color_limit,
+		"color_limit": _resolve_adaptive_color_limit(layout),
 	}
 
 
-## Picks which level/boss profile backs the current round. Boss stages cycle
-## through the boss-tagged entries in the `levels` catalog by floor; normal and
-## advanced stages use their generic level profiles.
-func _resolve_level_id_for_stage(stage_type: String, floor: int) -> String:
-	if stage_type == "boss":
-		var bosses := _get_boss_level_ids()
-		if bosses.is_empty():
-			return "normal"
-		return bosses[(maxi(1, floor) - 1) % bosses.size()]
-	if stage_type == "advanced":
-		return "advanced"
-	return "normal"
-
-
-func _get_boss_level_ids() -> Array[String]:
-	if not _boss_level_ids_cache.is_empty():
-		return _boss_level_ids_cache
+func _get_all_board_ids() -> Array[String]:
+	var ids: Array[String] = []
 	var config := get_node("configuration", true)
 	if not config.is_valid():
-		return _boss_level_ids_cache
+		return ids
+	var boards := config.get_node("match3Boards")
+	if not boards.is_valid() or boards.get_type() != GnosisValueType.OBJECT:
+		return ids
+	for board_id in boards.get_keys():
+		var key := str(board_id).strip_edges()
+		if not key.is_empty():
+			ids.append(key)
+	ids.sort()
+	return ids
+
+
+func _ensure_boss_profiles_loaded() -> void:
+	if _boss_profiles_loaded:
+		return
+	_boss_profiles_loaded = true
+	_boss_profile_ids.clear()
+	_normal_profile_ids.clear()
+	_advanced_profile_ids.clear()
+	var config := get_node("configuration", true)
+	if not config.is_valid():
+		return
 	var levels := config.get_node("levels")
 	if not levels.is_valid() or levels.get_type() != GnosisValueType.OBJECT:
-		return _boss_level_ids_cache
+		return
 	for level_id in levels.get_keys():
 		var entry := levels.get_node(level_id)
 		if not entry.is_valid():
 			continue
-		if _level_has_tag(entry.get_node("metadata"), "boss"):
-			_boss_level_ids_cache.append(str(level_id))
-	_boss_level_ids_cache.sort()
-	return _boss_level_ids_cache
+		var id := str(level_id).strip_edges()
+		if id.is_empty():
+			continue
+		var meta := entry.get_node("metadata")
+		if _level_has_tag(meta, "boss"):
+			_add_unique(_boss_profile_ids, id)
+		if _level_has_tag(meta, "normal") or id == "normal":
+			_add_unique(_normal_profile_ids, id)
+		if _level_has_tag(meta, "advanced") or id == "advanced":
+			_add_unique(_advanced_profile_ids, id)
+	_boss_profile_ids.sort()
+	_normal_profile_ids.sort()
+	_advanced_profile_ids.sort()
+
+
+func _pick_profile_id_for_stage(stage_type: String, floor: int) -> String:
+	_ensure_boss_profiles_loaded()
+	var pool: Array[String] = _normal_profile_ids
+	var offset := 0
+	if stage_type == "advanced":
+		pool = _advanced_profile_ids
+		offset = 1
+	if pool.is_empty():
+		return stage_type
+	var index := _compute_deterministic_seeded_index(pool.size(), floor, stage_type, "profile", offset)
+	return pool[index]
+
+
+func _read_boss_minimum_round(profile_id: String) -> int:
+	var profile := _get_level_profile(profile_id)
+	if profile == null or not profile.is_valid():
+		return 1
+	var props := profile.get_node("properties")
+	var min_round := _node_int(props, "minimumRound", 0)
+	return 1 if min_round <= 0 else min_round
+
+
+func _build_eligible_boss_profile_ids(boss_round_number: int) -> Array[String]:
+	_ensure_boss_profiles_loaded()
+	var round := maxi(1, boss_round_number)
+	var eligible: Array[String] = []
+	for id in _boss_profile_ids:
+		if round >= _read_boss_minimum_round(id):
+			eligible.append(id)
+	if eligible.is_empty():
+		eligible = _boss_profile_ids.duplicate()
+	eligible.sort()
+	return eligible
+
+
+func _filter_boss_profiles_to_peak_tier(eligible: Array[String]) -> Array[String]:
+	if eligible.is_empty():
+		return []
+	var peak_tier := 0
+	for id in eligible:
+		peak_tier = maxi(peak_tier, _read_boss_minimum_round(id))
+	if peak_tier <= 0:
+		return eligible.duplicate()
+	var preferred: Array[String] = []
+	for id in eligible:
+		if _read_boss_minimum_round(id) == peak_tier:
+			preferred.append(id)
+	if preferred.is_empty():
+		return eligible.duplicate()
+	preferred.sort()
+	return preferred
+
+
+func _pick_boss_profile_id_for_round(floor: int, boss_round_number: int) -> String:
+	var pool := _filter_boss_profiles_to_peak_tier(_build_eligible_boss_profile_ids(boss_round_number))
+	if pool.is_empty():
+		return "normal"
+	var index := _compute_deterministic_seeded_index(pool.size(), floor, "boss", "profile", 2)
+	return pool[index]
+
+
+func _pick_boss_board_for_profile(
+	boss_profile_id: String,
+	floor: int,
+	used_ids: Array[String],
+	fallback_all_ids: Array[String]
+) -> String:
+	var profile := _get_level_profile(boss_profile_id)
+	if profile != null and profile.is_valid():
+		var props := profile.get_node("properties")
+		var allowed := props.get_node("allowedBoards")
+		if allowed.is_valid() and allowed.get_type() == GnosisValueType.LIST and allowed.get_count() > 0:
+			var allow_set: Dictionary = {}
+			for i in range(allowed.get_count()):
+				var bid := str(_node_value(allowed.get_node(i))).strip_edges()
+				if not bid.is_empty():
+					allow_set[bid] = true
+			if not allow_set.is_empty():
+				var narrowed: Array[String] = []
+				for board_id in _boss_board_pool_ids:
+					if allow_set.has(board_id):
+						narrowed.append(board_id)
+				if narrowed.is_empty():
+					for board_id in fallback_all_ids:
+						if allow_set.has(board_id):
+							narrowed.append(board_id)
+				if not narrowed.is_empty():
+					var picked := _pick_random_boss_board_from_candidates(narrowed, used_ids, floor, boss_profile_id)
+					if not picked.is_empty():
+						return picked
+	return _pick_board_id_for_stage("boss", floor, used_ids, fallback_all_ids)
+
+
+func _pick_random_boss_board_from_candidates(
+	candidate_ids: Array[String],
+	used_ids: Array[String],
+	floor: int,
+	boss_profile_id: String
+) -> String:
+	if candidate_ids.is_empty():
+		return ""
+	var usable: Array[String] = []
+	for board_id in candidate_ids:
+		if board_id.is_empty() or used_ids.has(board_id):
+			continue
+		usable.append(board_id)
+	if usable.is_empty():
+		usable = candidate_ids.duplicate()
+	if usable.is_empty():
+		return ""
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash("%d:%d:%s:bossboard" % [_try_get_run_seed(), floor, boss_profile_id])
+	var selected := usable[rng.randi_range(0, usable.size() - 1)]
+	_add_unique(used_ids, selected)
+	return selected
+
+
+func _get_level_profile(profile_id: String) -> GnosisNode:
+	if profile_id.strip_edges().is_empty():
+		return null
+	var config := get_node("configuration", true)
+	if not config.is_valid():
+		return null
+	var levels := config.get_node("levels")
+	if not levels.is_valid():
+		return null
+	var entry := levels.get_node(profile_id.strip_edges())
+	if entry.is_valid():
+		return entry
+	return null
+
+
+func _pick_board_id_for_stage(
+	stage_type: String,
+	floor: int,
+	used_ids: Array[String],
+	fallback_all_ids: Array[String]
+) -> String:
+	var pool: Array[String] = _normal_board_pool_ids
+	if stage_type == "advanced":
+		pool = _advanced_board_pool_ids
+	elif stage_type == "boss":
+		pool = _boss_board_pool_ids
+	var picked := _pick_from_pool(pool, floor, stage_type, used_ids)
+	if not picked.is_empty():
+		return picked
+	return _pick_from_pool(fallback_all_ids, floor, stage_type, used_ids)
+
+
+func _pick_from_pool(
+	pool: Array[String],
+	floor: int,
+	stage_type: String,
+	used_ids: Array[String]
+) -> String:
+	if pool.is_empty():
+		return ""
+	var candidates: Array[String] = []
+	for board_id in pool:
+		if board_id.is_empty() or used_ids.has(board_id):
+			continue
+		candidates.append(board_id)
+	if candidates.is_empty():
+		candidates = pool.duplicate()
+	if candidates.is_empty():
+		return ""
+	var offset := 0
+	if stage_type == "advanced":
+		offset = 1
+	elif stage_type == "boss":
+		offset = 2
+	var index := _compute_deterministic_seeded_index(candidates.size(), floor, stage_type, "board", offset)
+	var selected := candidates[index]
+	_add_unique(used_ids, selected)
+	return selected
+
+
+func _compute_deterministic_seeded_index(
+	count: int,
+	floor: int,
+	stage_type: String,
+	kind: String,
+	offset: int
+) -> int:
+	if count <= 1:
+		return 0
+	var run_seed := _try_get_run_seed()
+	var normalized_floor := maxi(1, floor)
+	var stage_hash := _stable_string_hash(stage_type)
+	var kind_hash := _stable_string_hash(kind)
+	var hash_val: int = 2166136261
+	hash_val = int((hash_val ^ run_seed) * 16777619) & 0xFFFFFFFF
+	hash_val = int((hash_val ^ normalized_floor) * 16777619) & 0xFFFFFFFF
+	hash_val = int((hash_val ^ offset) * 16777619) & 0xFFFFFFFF
+	hash_val = int((hash_val ^ stage_hash) * 16777619) & 0xFFFFFFFF
+	hash_val = int((hash_val ^ kind_hash) * 16777619) & 0xFFFFFFFF
+	return int(hash_val % count)
+
+
+func _node_value(node: GnosisNode) -> Variant:
+	if node == null or not node.is_valid():
+		return null
+	return node.value
 
 
 func _level_has_tag(meta: GnosisNode, tag: String) -> bool:
@@ -510,6 +782,8 @@ func _load_board_pools() -> void:
 			"normal":
 				_add_unique(_normal_board_pool_ids, board_id)
 				_add_unique(_advanced_board_pool_ids, board_id)
+			"advanced":
+				_add_unique(_advanced_board_pool_ids, board_id)
 			"hard", "extreme", "boss":
 				_add_unique(_boss_board_pool_ids, board_id)
 	_normal_board_pool_ids.sort()
@@ -531,39 +805,6 @@ func _infer_board_difficulty(entry: Dictionary) -> String:
 	if path.begins_with("extreme/"):
 		return "extreme"
 	return ""
-
-
-func _pick_board_id_for_stage(stage_type: String, floor: int) -> String:
-	var pool: Array[String] = _normal_board_pool_ids
-	if stage_type == "advanced":
-		pool = _advanced_board_pool_ids
-	elif stage_type == "boss":
-		pool = _boss_board_pool_ids
-	var picked := _pick_from_pool(pool, floor, stage_type)
-	if not picked.is_empty():
-		return picked
-	return DEFAULT_BOARD_ID
-
-
-func _pick_from_pool(pool: Array[String], floor: int, stage_type: String) -> String:
-	if pool.is_empty():
-		return ""
-	var offset := 0
-	if stage_type == "advanced":
-		offset = 1
-	elif stage_type == "boss":
-		offset = 2
-	var index := _compute_deterministic_index(pool.size(), floor, stage_type, offset)
-	return pool[index]
-
-
-func _compute_deterministic_index(count: int, floor: int, stage_type: String, offset: int) -> int:
-	if count <= 1:
-		return 0
-	var acc := floor * 1103515245 + offset * 12345
-	for i in stage_type.length():
-		acc += stage_type.unicode_at(i) * (i + 17)
-	return absi(acc) % count
 
 
 func _resolve_target_score(round_number: int, stage_type: String) -> int:
@@ -1107,10 +1348,9 @@ func _try_use_shuffle() -> GnosisFunctionResult:
 		return GnosisFunctionResult.ok(payload)
 	_manual_shuffles_remaining -= 1
 	_increment_statistic("match3.shuffles.used", 1)
-	_gameplay.shuffle_board(_item_points)
+	var shuffle_result := _gameplay.shuffle_board(_item_points)
 	_publish_ephemeral_state()
-	_publish_board_changed()
-	_publish_fact(Events.FACT_MATCH3_SHUFFLE_USED, _build_shuffle_payload())
+	_publish_fact(Events.FACT_MATCH3_SHUFFLE_USED, _build_shuffle_payload(shuffle_result))
 	payload.set_key("success", true)
 	payload.set_key("reason", "ok")
 	payload.set_key(Events.PAYLOAD_SHUFFLES_REMAINING, _manual_shuffles_remaining)
@@ -1119,10 +1359,26 @@ func _try_use_shuffle() -> GnosisFunctionResult:
 	return GnosisFunctionResult.ok(payload)
 
 
-func _build_shuffle_payload() -> GnosisNode:
+func _build_shuffle_payload(shuffle_result = null) -> GnosisNode:
 	var payload := context.store.create_object()
 	payload.set_key(Events.PAYLOAD_SHUFFLES_REMAINING, _manual_shuffles_remaining)
 	payload.set_key("currentMoves", _gameplay.current_moves)
+	if shuffle_result == null or shuffle_result.new_spawns.is_empty():
+		return payload
+	var matched := context.store.create_list()
+	var spawns := context.store.create_list()
+	for sp in shuffle_result.new_spawns:
+		var coord := context.store.create_object()
+		coord.set_key("x", sp.at.x)
+		coord.set_key("y", sp.at.y)
+		matched.add(coord)
+		var spawn := context.store.create_object()
+		spawn.set_key("x", sp.at.x)
+		spawn.set_key("y", sp.at.y)
+		spawn.set_key("itemId", sp.item_id)
+		spawns.add(spawn)
+	payload.set_node("matched", matched)
+	payload.set_node("spawns", spawns)
 	return payload
 
 

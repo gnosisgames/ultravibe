@@ -207,6 +207,22 @@ func play_move_sequence(payload: GnosisNode) -> void:
 		_adapter.on_move_sequence_finished()
 
 
+func play_shuffle_sequence(payload: GnosisNode) -> void:
+	_busy = true
+	_cancel_drag()
+	refresh_hud()
+	var matched := payload.get_node("matched") if payload != null and payload.is_valid() else null
+	var spawns := payload.get_node("spawns") if payload != null and payload.is_valid() else null
+	if matched != null and matched.is_valid() and matched.get_type() == GnosisValueType.LIST and matched.get_count() > 0:
+		await _animate_destroy(matched, null, false, false)
+	if spawns != null and spawns.is_valid() and spawns.get_type() == GnosisValueType.LIST and spawns.get_count() > 0:
+		await _animate_spawns(spawns)
+	else:
+		_sync_from_service()
+	_busy = false
+	refresh_hud()
+
+
 func _animate_step(step: GnosisNode) -> void:
 	if step == null or not step.is_valid():
 		return
@@ -283,10 +299,15 @@ func _kill_swap_tween() -> void:
 	_active_swap_tween = null
 
 
-func _animate_destroy(matched: GnosisNode, contributions: GnosisNode) -> void:
+func _animate_destroy(
+	matched: GnosisNode,
+	contributions: GnosisNode,
+	show_score: bool = true,
+	play_match_sfx: bool = true
+) -> void:
 	if matched == null or not matched.is_valid() or matched.get_type() != GnosisValueType.LIST:
 		return
-	if matched.get_count() > 0:
+	if matched.get_count() > 0 and play_match_sfx:
 		_combo_count += 1
 		_play_match_sfx()
 	var contrib_map := _build_contribution_lookup(contributions)
@@ -307,7 +328,8 @@ func _animate_destroy(matched: GnosisNode, contributions: GnosisNode) -> void:
 	for entry in nodes:
 		var node: Control = entry["node"]
 		var contrib: GnosisNode = entry["contrib"]
-		_spawn_destroy_score_popups(node, contrib)
+		if show_score:
+			_spawn_destroy_score_popups(node, contrib)
 		_spawn_sparkles(node)
 		_prep_destroy(node)
 		batch.tween_property(node, "scale", Vector2.ZERO, DESTROY_DURATION) \
