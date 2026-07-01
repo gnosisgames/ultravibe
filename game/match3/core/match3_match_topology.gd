@@ -61,6 +61,67 @@ static func count_match5_plus_components(results: Array) -> int:
 	return count
 
 
+static func accumulate_intersection_five_tile_shape_counts(results: Array) -> Dictionary:
+	var out := {"l": 0, "t": 0, "plus": 0}
+	for step in results:
+		if step == null or not ("topology_components" in step):
+			continue
+		for topo in step.topology_components:
+			if not (topo is Dictionary):
+				continue
+			if str(topo.get("shapeKind", "")) != SHAPE_INTERSECTION:
+				continue
+			if int(topo.get("tileCount", 0)) != 5:
+				continue
+			var tiles: Array = topo.get("tiles", [])
+			match classify_five_tile_intersection_shape(tiles):
+				"l":
+					out["l"] = int(out.get("l", 0)) + 1
+				"t":
+					out["t"] = int(out.get("t", 0)) + 1
+				"plus":
+					out["plus"] = int(out.get("plus", 0)) + 1
+	return out
+
+
+static func classify_five_tile_intersection_shape(tiles: Array) -> String:
+	if tiles.size() != 5:
+		return ""
+	var cells: Dictionary = {}
+	for coord in tiles:
+		var x := int(coord.x) if coord != null and "x" in coord else -1
+		var y := int(coord.y) if coord != null and "y" in coord else -1
+		if x < 0 or y < 0:
+			return ""
+		cells["%d,%d" % [x, y]] = true
+	if cells.size() != 5:
+		return ""
+	var max_deg := 0
+	for key in cells.keys():
+		var parts: PackedStringArray = str(key).split(",")
+		var x := int(parts[0])
+		var y := int(parts[1])
+		var deg := 0
+		if cells.has("%d,%d" % [x - 1, y]):
+			deg += 1
+		if cells.has("%d,%d" % [x + 1, y]):
+			deg += 1
+		if cells.has("%d,%d" % [x, y - 1]):
+			deg += 1
+		if cells.has("%d,%d" % [x, y + 1]):
+			deg += 1
+		max_deg = maxi(max_deg, deg)
+	match max_deg:
+		4:
+			return "plus"
+		3:
+			return "t"
+		2:
+			return "l"
+		_:
+			return ""
+
+
 static func _connected_components(matched: Dictionary) -> Array:
 	var remaining: Dictionary = matched.duplicate()
 	var components: Array = []

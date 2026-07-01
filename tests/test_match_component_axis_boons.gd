@@ -1,6 +1,6 @@
 extends SceneTree
 
-## Aura / Friendzoned / ClipIt / Cooked axis match_component boons.
+## Aura / Friendzoned / ClipIt / Cooked / FourthWall / SkillIssue axis match_component boons.
 
 const ADDON := "res://addons/com.gnosisgames.gnosisengine/services"
 const Match3ServiceScript = preload("res://game/match3/services/match3_service.gd")
@@ -15,6 +15,8 @@ func _initialize() -> void:
 		and _test_aura()
 		and _test_clipit()
 		and _test_cooked()
+		and _test_fourthwall()
+		and _test_skill_issue()
 	)
 	print("--- Match Component Axis Boons Test %s ---" % ("Passed" if ok else "FAILED"))
 	quit(0 if ok else 1)
@@ -184,6 +186,74 @@ func _test_cooked() -> bool:
 		print("[FAIL] Cooked: missing x4 multi resolve step")
 		return false
 	print("[OK] Cooked multi=%d" % move_multi)
+	return true
+
+
+func _test_fourthwall() -> bool:
+	var engine = _engine()
+	var match3 = engine.get_service("Match3")
+	var boon = engine.get_service("Boon")
+	_activate(boon, engine.store, "FourthWall")
+	var gameplay = match3.get_gameplay()
+	gameplay.load_level(_layout_5x1(), 99999, 20, 3, {"red": 10, "blue": 10, "green": 10})
+	_setup_tile(gameplay, 0, 0, "red")
+	_setup_tile(gameplay, 1, 0, "red")
+	_setup_tile(gameplay, 2, 0, "red")
+	_setup_tile(gameplay, 3, 0, "blue")
+	_setup_tile(gameplay, 4, 0, "red")
+	var results: Array = gameplay.process_move(Models.TileCoord.new(3, 0), Models.TileCoord.new(4, 0), {"red": 10})
+	if results.is_empty():
+		print("[FAIL] FourthWall: expected scoring move")
+		return false
+	var move_multi := 1
+	var saw_step := false
+	for entry in results:
+		if entry is Models.MatchResult and entry.matched_tiles.size() > 0:
+			move_multi = maxi(move_multi, entry.move_multi_so_far)
+			for step in entry.boon_resolve_steps:
+				if (
+					str(step.get("boonId", "")).to_lower() == "fourthwall"
+					and int(step.get("multiDelta", 0)) >= 20
+				):
+					saw_step = true
+	if move_multi < 24:
+		print("[FAIL] FourthWall: expected multi >= 24 got %d" % move_multi)
+		return false
+	if not saw_step:
+		print("[FAIL] FourthWall: missing +20 multi resolve step")
+		return false
+	print("[OK] FourthWall multi=%d" % move_multi)
+	return true
+
+
+func _test_skill_issue() -> bool:
+	var engine = _engine()
+	var match3 = engine.get_service("Match3")
+	var boon = engine.get_service("Boon")
+	_activate(boon, engine.store, "SkillIssue")
+	var gameplay = match3.get_gameplay()
+	gameplay.load_level(_layout_6x1(), 99999, 20, 3, {"red": 10, "blue": 10, "green": 10})
+	for x in 6:
+		_setup_tile(gameplay, x, 0, "red" if x != 4 else "blue")
+	var results: Array = gameplay.process_move(Models.TileCoord.new(4, 0), Models.TileCoord.new(5, 0), {"red": 10})
+	if results.is_empty():
+		print("[FAIL] SkillIssue: expected scoring move")
+		return false
+	var move_multi := 1
+	var saw_step := false
+	for entry in results:
+		if entry is Models.MatchResult and entry.matched_tiles.size() > 0:
+			move_multi = maxi(move_multi, entry.move_multi_so_far)
+			for step in entry.boon_resolve_steps:
+				if str(step.get("boonId", "")).to_lower() == "skillissue":
+					saw_step = true
+	if move_multi < 25:
+		print("[FAIL] SkillIssue: expected multi >= 25 got %d" % move_multi)
+		return false
+	if not saw_step:
+		print("[FAIL] SkillIssue: missing x5 multi resolve step")
+		return false
+	print("[OK] SkillIssue multi=%d" % move_multi)
 	return true
 
 

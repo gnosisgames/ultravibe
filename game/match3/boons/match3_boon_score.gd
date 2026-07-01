@@ -380,6 +380,7 @@ func _build_score_finalize_payload(points_total: GnosisScalableValue, multi_tota
 	score.set_key("isFirstMoveOfRound", 1 if _service.get_gameplay().moves_performed == 1 else 0)
 	var axis_counts := _accumulate_axis_straight_line_match_counts(results)
 	score.set_key("axisStraightMatch3Count", axis_counts.get("match3", 0))
+	score.set_key("hasTwoAxisStraightMatch3", 1 if int(axis_counts.get("match3", 0)) >= 2 else 0)
 	score.set_key("axisStraightMatch4Count", axis_counts.get("match4", 0))
 	score.set_key("axisStraightMatch5OrLongerCount", axis_counts.get("match5", 0))
 	score.set_key("hasAxisMatch3", 1 if axis_counts.get("match3", 0) > 0 else 0)
@@ -413,6 +414,16 @@ static func _apply_topology_counts_to_score_node(score: GnosisNode, results: Arr
 	var topology5 := TopologyScript.count_match5_plus_components(results)
 	score.set_key("topologyMatch5PlusComponentCount", topology5)
 	score.set_key("hasTopologyMatch5Plus", 1 if topology5 > 0 else 0)
+	var intersection := TopologyScript.accumulate_intersection_five_tile_shape_counts(results)
+	var l_count := int(intersection.get("l", 0))
+	var t_count := int(intersection.get("t", 0))
+	var plus_count := int(intersection.get("plus", 0))
+	score.set_key("intersectionLShape5Count", l_count)
+	score.set_key("intersectionTShape5Count", t_count)
+	score.set_key("intersectionPlusShape5Count", plus_count)
+	score.set_key("hasIntersectionLShape5", 1 if l_count > 0 else 0)
+	score.set_key("hasIntersectionTShape5", 1 if t_count > 0 else 0)
+	score.set_key("hasIntersectionPlusShape5", 1 if plus_count > 0 else 0)
 
 
 static func _last_scoring_match_result(results: Array):
