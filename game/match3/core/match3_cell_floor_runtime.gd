@@ -263,6 +263,14 @@ func _finalize_multi_multiplier(gameplay, multi: float, restrict_types: Array[St
 						"multiDisplayOp": "multiply",
 						"multiDisplayFactor": factor,
 					})
+					if _service != null and _service.has_method("apply_cell_floor_finalize_echo"):
+						var echo_out: Dictionary = _service.call(
+							"apply_cell_floor_finalize_echo",
+							type_id,
+							0,
+							int(round(result))
+						)
+						result = maxf(1.0, float(echo_out.get("multi", int(round(result)))))
 	return {"multi": result, "steps": steps}
 
 

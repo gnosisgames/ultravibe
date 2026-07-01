@@ -98,6 +98,10 @@ func apply_resolve_step_cascade(
 	return _score.apply_resolve_step_cascade(step, results, points, multi, destroyed_count)
 
 
+func apply_cell_floor_finalize_echo(floor_type_id: String, points: int, multi: int) -> Dictionary:
+	return _score.apply_cell_floor_finalize_echo(floor_type_id, points, multi)
+
+
 func apply_round_end_scaling_increments() -> void:
 	ScalingScript.apply_round_end_scaling_increments(_service, _score)
 

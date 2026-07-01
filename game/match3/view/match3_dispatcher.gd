@@ -12,6 +12,7 @@ const SparklesScene = preload("res://game/match3/view/match3_sparkles.tscn")
 const BoardFloatJuiceScript = preload("res://game/match3/view/match3_board_float_juice.gd")
 const Match3ScoreFloatingDisplayText = preload("res://game/match3/view/match3_score_floating_display_text.gd")
 const Match3FloorSpritesScript = preload("res://game/match3/view/match3_floor_sprites.gd")
+const Match3BoonJuiceScript = preload("res://game/match3/boons/match3_boon_juice.gd")
 const Events = Match3EventsScript
 
 const ITEM_COLORS := {
@@ -204,6 +205,9 @@ func play_move_sequence(payload: GnosisNode) -> void:
 		var finalize_steps := payload.get_node("cellFloorFinalizeSteps")
 		if finalize_steps.is_valid() and finalize_steps.get_type() == GnosisValueType.LIST:
 			await _animate_cell_floor_finalize_steps(finalize_steps)
+		var boon_finalize_steps := payload.get_node("boonFinalizeSteps")
+		if boon_finalize_steps.is_valid() and boon_finalize_steps.get_type() == GnosisValueType.LIST:
+			await _animate_boon_resolve_steps(boon_finalize_steps)
 	elif a.x >= 0 and b.x >= 0:
 		_play_sfx(SFX_SWAP, false, 2.0, 0.3)
 		await _animate_swap(a, b)
@@ -236,6 +240,7 @@ func _animate_step(step: GnosisNode) -> void:
 		return
 	await _animate_destroy(step.get_node("matched"), step.get_node("contributions"), true, true, step)
 	_apply_floor_cells_cleared(step)
+	await _animate_boon_resolve_steps(step.get_node("boonResolveSteps"))
 	await _animate_moves(step.get_node("movements"))
 	await _animate_spawns(step.get_node("spawns"))
 
@@ -285,6 +290,38 @@ func _animate_cell_floor_finalize_steps(steps: GnosisNode) -> void:
 				0.0
 			)
 		await _wait(0.18)
+
+
+func _animate_boon_resolve_steps(steps: GnosisNode) -> void:
+	if steps == null or not steps.is_valid() or steps.get_type() != GnosisValueType.LIST:
+		return
+	var hud = _find_hud()
+	if hud == null or not is_instance_valid(hud):
+		return
+	for i in steps.get_count():
+		var resolve_step = steps.get_node(i)
+		if not resolve_step.is_valid():
+			continue
+		var slot_index := _node_int(resolve_step, "slotIndex", -1)
+		if slot_index < 0:
+			continue
+		var points_display := _node_string(resolve_step, "pointsDisplayText", "")
+		var multi_display := _node_string(resolve_step, "multiDisplayText", "")
+		var kind := Match3BoonJuiceScript.KIND_POINTS
+		var display := points_display
+		if not multi_display.is_empty():
+			kind = Match3BoonJuiceScript.KIND_MULTI
+			display = multi_display
+		elif _node_int(resolve_step, "multiDelta", 0) != 0:
+			kind = Match3BoonJuiceScript.KIND_MULTI
+			display = Match3ScoreFloatingDisplayText.build_multi_add(_node_int(resolve_step, "multiDelta", 0))
+		if display.is_empty() and _node_int(resolve_step, "pointsDelta", 0) != 0:
+			display = Match3ScoreFloatingDisplayText.build_points_add(_node_int(resolve_step, "pointsDelta", 0))
+		if display.is_empty():
+			continue
+		if hud.has_method("play_boon_score_juice_on_slot"):
+			hud.call("play_boon_score_juice_on_slot", slot_index, kind, display)
+		await _wait(0.12)
 
 
 func _pulse_floor_cell(x: int, y: int) -> void:

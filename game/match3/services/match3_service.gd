@@ -211,6 +211,12 @@ func play_boon_scaling_juice_now(slot_index: int, counter_key: String = "") -> v
 	Match3BoonJuiceScript.publish_scaling_juice(self, slot_index, counter_key)
 
 
+func apply_cell_floor_finalize_echo(floor_type_id: String, points: int, multi: int) -> Dictionary:
+	if _boon_runtime != null and _boon_runtime.has_method("apply_cell_floor_finalize_echo"):
+		return _boon_runtime.call("apply_cell_floor_finalize_echo", floor_type_id, points, multi)
+	return {"points": points, "multi": multi}
+
+
 func _destroy_random_cell_floor_on_board(parameters: GnosisNode) -> GnosisFunctionResult:
 	if context == null or context.store == null:
 		return GnosisFunctionResult.fail("Store unavailable.")
@@ -1577,6 +1583,21 @@ func _publish_move_resolved(a, b, success: bool, results: Array) -> void:
 				finalize_steps.add(fin_node)
 			if finalize_steps.get_count() > 0:
 				step.set_node("cellFloorFinalizeSteps", finalize_steps)
+			var boon_resolve := context.store.create_list()
+			for resolve_step in entry.boon_resolve_steps:
+				if not (resolve_step is Dictionary):
+					continue
+				var resolve_node := context.store.create_object()
+				resolve_node.set_key("boonId", str(resolve_step.get("boonId", "")))
+				resolve_node.set_key("slotIndex", int(resolve_step.get("slotIndex", 0)))
+				resolve_node.set_key("calculationId", str(resolve_step.get("calculationId", "")))
+				resolve_node.set_key("pointsDelta", int(resolve_step.get("pointsDelta", 0)))
+				resolve_node.set_key("multiDelta", int(resolve_step.get("multiDelta", 0)))
+				resolve_node.set_key("pointsDisplayText", str(resolve_step.get("pointsDisplayText", "")))
+				resolve_node.set_key("multiDisplayText", str(resolve_step.get("multiDisplayText", "")))
+				boon_resolve.add(resolve_node)
+			if boon_resolve.get_count() > 0:
+				step.set_node("boonResolveSteps", boon_resolve)
 		steps.add(step)
 	var cell_floor_finalize := context.store.create_list()
 	if not results.is_empty():
@@ -1596,6 +1617,24 @@ func _publish_move_resolved(a, b, success: bool, results: Array) -> void:
 				cell_floor_finalize.add(fin_node)
 	if cell_floor_finalize.get_count() > 0:
 		payload.set_node("cellFloorFinalizeSteps", cell_floor_finalize)
+	var boon_finalize := context.store.create_list()
+	if not results.is_empty():
+		var last_entry = results[results.size() - 1]
+		if last_entry is Models.MatchResult:
+			for fin_step in last_entry.boon_finalize_steps:
+				if not (fin_step is Dictionary):
+					continue
+				var fin_node := context.store.create_object()
+				fin_node.set_key("boonId", str(fin_step.get("boonId", "")))
+				fin_node.set_key("slotIndex", int(fin_step.get("slotIndex", 0)))
+				fin_node.set_key("calculationId", str(fin_step.get("calculationId", "")))
+				fin_node.set_key("pointsDelta", int(fin_step.get("pointsDelta", 0)))
+				fin_node.set_key("multiDelta", int(fin_step.get("multiDelta", 0)))
+				fin_node.set_key("pointsDisplayText", str(fin_step.get("pointsDisplayText", "")))
+				fin_node.set_key("multiDisplayText", str(fin_step.get("multiDisplayText", "")))
+				boon_finalize.add(fin_node)
+	if boon_finalize.get_count() > 0:
+		payload.set_node("boonFinalizeSteps", boon_finalize)
 	payload.set_node("steps", steps)
 	_publish_fact(Events.FACT_MATCH3_MOVE_RESOLVED, payload)
 

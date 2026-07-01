@@ -112,3 +112,5 @@ class MatchResult:
 	var cell_floor_finalize_steps: Array = []
 	var cell_floor_lucky_successful_trigger_count: int = 0
 	var boon_resolve_steps: Array = []
+	var boon_finalize_steps: Array = []
+	var topology_components: Array = []

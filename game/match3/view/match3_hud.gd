@@ -583,3 +583,9 @@ func _on_boon_score_juice(event: GnosisEvent) -> void:
 	var kind := str(event.data.get_node("scoreKind").value if event.data.get_node("scoreKind").is_valid() else Match3BoonJuiceScript.KIND_POINTS)
 	var display := str(event.data.get_node("displayText").value if event.data.get_node("displayText").is_valid() else "")
 	_boons_row.play_score_juice(slot_index, kind, display)
+
+
+func play_boon_score_juice_on_slot(slot_index: int, score_kind: String, display_text: String) -> void:
+	if _boons_row == null:
+		return
+	_boons_row.play_score_juice(slot_index, score_kind, display_text)

@@ -4,6 +4,7 @@ extends RefCounted
 ## Headless match-3 board simulation (ported from Match3GnosisService.Gameplay).
 
 const Models = preload("res://game/match3/core/match3_models.gd")
+const TopologyScript = preload("res://game/match3/core/match3_match_topology.gd")
 
 var width: int = 0
 var height: int = 0
@@ -298,6 +299,7 @@ func _find_matches() -> Models.MatchResult:
 
 	for coord in matched.values():
 		result.matched_tiles.append(coord)
+	TopologyScript.fill_result_topology(result, matched)
 	return result
 
 
