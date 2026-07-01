@@ -10,6 +10,7 @@ const Match3ModelsScript = preload("res://game/match3/core/match3_models.gd")
 const Match3EventsScript = preload("res://game/match3/match3_events.gd")
 const SparklesScene = preload("res://game/match3/view/match3_sparkles.tscn")
 const BoardFloatJuiceScript = preload("res://game/match3/view/match3_board_float_juice.gd")
+const Match3FloorSpritesScript = preload("res://game/match3/view/match3_floor_sprites.gd")
 const Events = Match3EventsScript
 
 const ITEM_COLORS := {
@@ -128,6 +129,7 @@ func apply_board_payload(payload: GnosisNode) -> void:
 				"y": _node_int(tile_node, "y", 0),
 				"itemId": _node_string(tile_node, "itemId", ""),
 				"slotType": _node_int(tile_node, "slotType", Match3ModelsScript.SLOT_ACTIVE),
+				"cellFloorTypeId": _node_string(tile_node, "cellFloorTypeId", ""),
 			})
 	_rebuild_from_cells(cells)
 
@@ -147,6 +149,7 @@ func _sync_from_service() -> void:
 				"y": y,
 				"itemId": tile.item_id if tile else "",
 				"slotType": tile.slot_type if tile else Match3ModelsScript.SLOT_NONE,
+				"cellFloorTypeId": tile.cell_floor_type_id if tile else "",
 			})
 	_rebuild_from_cells(cells)
 
@@ -202,6 +205,7 @@ func play_move_sequence(payload: GnosisNode) -> void:
 		await _animate_swap(a, b)
 
 	_busy = false
+	_sync_cell_floors_from_service()
 	refresh_hud()
 	if _adapter and _adapter.has_method("on_move_sequence_finished"):
 		_adapter.on_move_sequence_finished()
@@ -702,6 +706,20 @@ func _update_layout() -> void:
 	queue_redraw()
 
 
+func _sync_cell_floors_from_service() -> void:
+	if _service == null or _cells.is_empty():
+		return
+	var gameplay = _service.get_gameplay()
+	if gameplay == null:
+		return
+	for cell in _cells:
+		var x := int(cell.get("x", 0))
+		var y := int(cell.get("y", 0))
+		var tile = gameplay.get_tile(x, y)
+		cell["cellFloorTypeId"] = tile.cell_floor_type_id if tile else ""
+	queue_redraw()
+
+
 func _draw() -> void:
 	for cell in _cells:
 		var slot_type := int(cell.get("slotType", Match3ModelsScript.SLOT_ACTIVE))
@@ -709,6 +727,12 @@ func _draw() -> void:
 			continue
 		var rect := _cell_rect(int(cell.get("x", 0)), int(cell.get("y", 0)))
 		draw_rect(rect, Color(0.12, 0.14, 0.2, 0.35), true)
+		var floor_type_id := str(cell.get("cellFloorTypeId", "")).strip_edges()
+		if floor_type_id.is_empty():
+			continue
+		var floor_tex: Texture2D = Match3FloorSpritesScript.texture_for_floor_type(floor_type_id)
+		if floor_tex:
+			_draw_floor_texture(rect, floor_tex)
 	if _dragging and _drag_start_cell.x >= 0:
 		draw_rect(_cell_rect(_drag_start_cell.x, _drag_start_cell.y), Color(1, 1, 1, 0.45), false, 3.0)
 		if _hover_cell.x >= 0 and _hover_cell != _drag_start_cell:
@@ -934,3 +958,13 @@ func _node_bool(node: GnosisNode, key: String, default_value: bool = false) -> b
 
 func _key(x: int, y: int) -> String:
 	return "%d,%d" % [x, y]
+
+
+func _draw_floor_texture(rect: Rect2, texture: Texture2D) -> void:
+	var tex_size := texture.get_size()
+	if tex_size.x <= 0.0 or tex_size.y <= 0.0:
+		return
+	var scale := minf(rect.size.x / tex_size.x, rect.size.y / tex_size.y)
+	var draw_size := tex_size * scale
+	var pos := rect.position + (rect.size - draw_size) * 0.5
+	draw_texture_rect(texture, Rect2(pos, draw_size), false)

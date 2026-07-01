@@ -3,7 +3,7 @@ extends Control
 
 ## Match-3 gameplay HUD. The left sidebar mirrors the Unity MainHud: boss/level
 ## card, stacked round total + last-match score, points x multi, round/moves/cycles/money,
-## home/settings/wiki/shuffle action buttons. Values are pulled from Match3Service
+## home/settings/wiki on the left; shuffle sits below the consumables column on the right.
 ## via refresh_from_service() (driven by the dispatcher on board reset/change).
 
 const Match3ModelsScript = preload("res://game/match3/core/match3_models.gd")
@@ -17,6 +17,13 @@ const TOKEN_DEFAULT_BG := Color(0.0980392, 0.156863, 0.227451)
 const HUD_GROUP := "match3_hud"
 ## Uniform gap between the content frame and the sidebars (and between cards).
 const FRAME_GAP := 32.0
+## Main sidebar action chrome (home / settings / wiki); shuffle lives on the right dock.
+const ACTION_BUTTON_SIZE := 120
+const ACTION_BUTTON_GAP := 12
+const ACTION_ICON_MAX := 72
+const SIDEBAR_MARGIN_H := 48.0
+const LEFT_RAIL_WIDTH := 48.0
+const SHUFFLE_DOCK_GAP := 16.0
 
 ## Emitted whenever the content frame rect changes (sidebar relayout / resize) so
 ## overlays can re-align themselves to it.
@@ -48,11 +55,17 @@ signal content_frame_changed
 @onready var _consumables_bar: PanelContainer = %ConsumablesBar
 @onready var _consumables_column: Match3HudConsumablesColumn = %ConsumablesColumn
 @onready var _consumable_count: Label = %ConsumableCount
+@onready var _shuffle_dock: VBoxContainer = %ShuffleDock
+@onready var _left_rail: VBoxContainer = %LeftRail
+@onready var _run_upgrades_column = %RunUpgradesColumn
+@onready var _enhanced_tiles_column = %EnhancedTilesColumn
+@onready var _item_upgrades_column = %ItemUpgradesColumn
 @onready var _score_section: PanelContainer = %ScoreSection
 @onready var _board_host: Control = %BoardHost
 
 var _service = null
 var _last_inventory_count_signature := ""
+var _last_upgrade_rail_signature := ""
 
 
 func _ready() -> void:
@@ -74,6 +87,8 @@ func _ready() -> void:
 		_score_section.resized.connect(_on_frame_dirty)
 	if _boons_bar:
 		_boons_bar.resized.connect(_on_frame_dirty)
+	if _consumables_bar:
+		_consumables_bar.resized.connect(_on_frame_dirty)
 	resized.connect(_on_frame_dirty)
 	set_process(true)
 	_on_frame_dirty.call_deferred()
@@ -90,7 +105,14 @@ func bind_service(service) -> void:
 		_boons_row.bind_service(service)
 	if _consumables_column:
 		_consumables_column.bind_service(service)
+	if _run_upgrades_column:
+		_run_upgrades_column.bind_service(service)
+	if _enhanced_tiles_column:
+		_enhanced_tiles_column.bind_service(service)
+	if _item_upgrades_column:
+		_item_upgrades_column.bind_service(service)
 	_last_inventory_count_signature = ""
+	_last_upgrade_rail_signature = ""
 	refresh_from_service(service)
 
 
@@ -124,6 +146,8 @@ func refresh_from_service(service = null) -> void:
 	if _status_label:
 		_status_label.text = _status_text(gameplay.status)
 	_refresh_inventory_counts()
+	_sync_inventory_signatures()
+	_refresh_upgrade_rail()
 	# Re-assert the consumable sidebar alignment once data refreshes; by now the
 	# sidebar panel has a valid layout, so this recovers if the initial deferred
 	# pass ran before the panel was sized.
@@ -233,7 +257,21 @@ func _on_shuffle_pressed() -> void:
 
 
 func _process(_delta: float) -> void:
+	_refresh_upgrade_rail_if_changed()
 	_refresh_inventory_counts_if_changed()
+
+
+func _refresh_upgrade_rail_if_changed() -> void:
+	if _service == null:
+		return
+	var eph := _ephemeral()
+	if not eph.is_valid():
+		return
+	var signature := _upgrade_rail_signature(eph)
+	if signature == _last_upgrade_rail_signature:
+		return
+	_last_upgrade_rail_signature = signature
+	_refresh_upgrade_rail()
 
 
 func _refresh_inventory_counts_if_changed() -> void:
@@ -245,6 +283,29 @@ func _refresh_inventory_counts_if_changed() -> void:
 		return
 	_last_inventory_count_signature = signature
 	_refresh_inventory_counts()
+
+
+func _sync_inventory_signatures() -> void:
+	if _service == null:
+		_last_inventory_count_signature = ""
+		_last_upgrade_rail_signature = ""
+		return
+	var eph := _ephemeral()
+	if not eph.is_valid():
+		_last_inventory_count_signature = ""
+		_last_upgrade_rail_signature = ""
+		return
+	_last_inventory_count_signature = _inventory_count_signature()
+	_last_upgrade_rail_signature = _upgrade_rail_signature(eph)
+
+
+func _refresh_upgrade_rail() -> void:
+	if _run_upgrades_column:
+		_run_upgrades_column.force_refresh()
+	if _item_upgrades_column:
+		_item_upgrades_column.force_refresh()
+	if _enhanced_tiles_column and _enhanced_tiles_column.has_method("force_refresh"):
+		_enhanced_tiles_column.force_refresh()
 
 
 func _refresh_inventory_counts() -> void:
@@ -265,10 +326,60 @@ func _inventory_count_signature() -> String:
 	var eph := _ephemeral()
 	if not eph.is_valid():
 		return ""
-	return "%s|%s" % [
+	return "%s|%s|%s" % [
 		_bag_count_signature(eph.get_node("boons").get_node("default")),
 		_bag_count_signature(eph.get_node("consumables").get_node("default")),
+		_upgrade_rail_signature(eph),
 	]
+
+
+func _upgrade_rail_signature(eph: GnosisNode) -> String:
+	var upgrades := eph.get_node("upgrades")
+	if not upgrades.is_valid():
+		return ""
+	var run_sig := _upgrade_list_signature(upgrades.get_node("run").get_node("list"))
+	var item_sig := _upgrade_list_signature(upgrades.get_node("itemUpgrades").get_node("list"))
+	var pool_sig := ""
+	var m3 := eph.get_node("match3")
+	if m3.is_valid():
+		var pool := m3.get_node("floorModifierPool")
+		if pool.is_valid() and pool.get_type() == GnosisValueType.OBJECT:
+			var parts: PackedStringArray = []
+			for key in pool.get_keys():
+				var id := str(key).strip_edges()
+				if id.is_empty():
+					continue
+				parts.append("%s=%s" % [id, str(pool.get_node(id).value)])
+			pool_sig = ",".join(parts)
+	return "%s|%s|%s" % [run_sig, item_sig, pool_sig]
+
+
+func _upgrade_list_signature(list: GnosisNode) -> String:
+	if not list.is_valid() or list.get_type() != GnosisValueType.LIST:
+		return ""
+	var parts: PackedStringArray = []
+	for i in list.get_count():
+		var entry := list.get_node(i)
+		if not entry.is_valid():
+			continue
+		var id := ""
+		for key in ["upgradeId", "id"]:
+			var node := entry.get_node(key)
+			if node.is_valid() and node.value != null:
+				id = str(node.value).strip_edges()
+				if not id.is_empty():
+					break
+		parts.append("%s:%d" % [id, _entry_int(entry, "currentCount", 1)])
+	return "|".join(parts)
+
+
+func _entry_int(entry: GnosisNode, key: String, default_value: int) -> int:
+	if not entry.is_valid():
+		return default_value
+	var child := entry.get_node(key)
+	if child.is_valid() and child.value != null:
+		return int(child.value)
+	return default_value
 
 
 func _bag_count_signature(bag: GnosisNode) -> String:
@@ -308,6 +419,18 @@ func _ephemeral() -> GnosisNode:
 	if _service == null or _service.context == null or _service.context.state == null:
 		return GnosisNode.new(null)
 	return _service.context.state.root.get_node("Ephemeral")
+
+
+func get_sidebar_width() -> float:
+	return SIDEBAR_MARGIN_H + ACTION_BUTTON_SIZE * 3.0 + ACTION_BUTTON_GAP * 2.0
+
+
+func get_sidebar_offset_left() -> float:
+	return FRAME_GAP + LEFT_RAIL_WIDTH
+
+
+func get_sidebar_offset_right() -> float:
+	return get_sidebar_offset_left() + get_sidebar_width()
 
 
 ## Global rect of the shared subscreen content frame: spans the gap between the
@@ -350,6 +473,8 @@ func get_board_frame_rect() -> Rect2:
 ## Keeps the boons strip and consumable sidebar aligned with the main sidebar
 ## panels, then notifies overlays the frame may have moved.
 func _on_frame_dirty() -> void:
+	_layout_left_rail()
+	_layout_sidebar_width()
 	if _boss_section and _boons_bar:
 		var boss_rect := _boss_section.get_global_rect()
 		if boss_rect.size.y > 0.0:
@@ -370,6 +495,7 @@ func _on_frame_dirty() -> void:
 		if panel.size.y > 0.0:
 			_consumables_bar.offset_top = panel.position.y
 			_consumables_bar.offset_bottom = panel.position.y + panel.size.y - size.y
+	_layout_shuffle_dock()
 	# Keep the board area on the exact same rect the subscreen overlays use, so
 	# the board fills the level-select / reward region.
 	if _board_host:
@@ -379,3 +505,33 @@ func _on_frame_dirty() -> void:
 			_board_host.position = frame.position
 			_board_host.size = frame.size
 	content_frame_changed.emit()
+
+
+func _layout_sidebar_width() -> void:
+	var sidebar := get_node_or_null("Sidebar") as Control
+	if sidebar:
+		sidebar.offset_left = get_sidebar_offset_left()
+		sidebar.offset_right = get_sidebar_offset_right()
+
+
+func _layout_left_rail() -> void:
+	if _left_rail == null:
+		return
+	_left_rail.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	_left_rail.position = Vector2(FRAME_GAP, FRAME_GAP)
+	_left_rail.size = Vector2(LEFT_RAIL_WIDTH, maxf(0.0, size.y - FRAME_GAP * 2.0))
+
+
+func _layout_shuffle_dock() -> void:
+	if _shuffle_dock == null or _consumables_bar == null or _score_section == null:
+		return
+	var consumables_rect := _consumables_bar.get_global_rect()
+	var score_rect := _score_section.get_global_rect()
+	if score_rect.size.y <= 0.0 or consumables_rect.size.x <= 0.0:
+		return
+	var top_y := score_rect.end.y + SHUFFLE_DOCK_GAP
+	var bottom_y := size.y - FRAME_GAP
+	var dock_h := maxf(0.0, bottom_y - top_y)
+	_shuffle_dock.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	_shuffle_dock.position = Vector2(consumables_rect.position.x, top_y)
+	_shuffle_dock.size = Vector2(consumables_rect.size.x, dock_h)

@@ -21,10 +21,15 @@ var _rng := RandomNumberGenerator.new()
 var _move_points_accum: int = 0
 var _move_multi_accum: int = 0
 var _tile_score_resolver: Callable = Callable()
+var _boon_score_finalize_hook: Callable = Callable()
 
 
 func configure_rng(seed_value: int) -> void:
 	_rng.seed = seed_value
+
+
+func set_boon_score_finalize_hook(hook: Callable) -> void:
+	_boon_score_finalize_hook = hook
 
 
 func set_tile_score_resolver(resolver: Callable) -> void:
@@ -86,7 +91,15 @@ func process_move(a: Models.TileCoord, b: Models.TileCoord, item_points: Diction
 	_process_step(first_match, results, item_points)
 	if not results.is_empty():
 		var last: Models.MatchResult = results[results.size() - 1]
-		var score_gain := _move_points_accum * _move_multi_accum
+		var final_points := _move_points_accum
+		var final_multi := maxi(1, _move_multi_accum)
+		if _boon_score_finalize_hook.is_valid():
+			var adjusted: Dictionary = _boon_score_finalize_hook.call(results, final_points, final_multi)
+			final_points = int(adjusted.get("points", final_points))
+			final_multi = maxi(1, int(adjusted.get("multi", final_multi)))
+			_move_points_accum = final_points
+			_move_multi_accum = final_multi
+		var score_gain := final_points * final_multi
 		last.points_added = _move_points_accum
 		last.multi_added = _move_multi_accum
 		last.move_points_so_far = _move_points_accum

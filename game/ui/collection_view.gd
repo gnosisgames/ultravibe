@@ -19,16 +19,8 @@ const BOSS_TOKEN_DEFAULT_BG := Color(0.345098, 0.345098, 0.572549)
 const BOSS_TOKEN_DEFAULT_FG := Color.WHITE
 
 ## The itemUpgrade level-up grants reuse the colored gem block sprites rather than
-## a dedicated consumable icon (see Unity sprite registry in game.unity). Keyed by
-## lowercased spriteId so the collection grid can fall back to assets/blocks/.
-const SPRITE_BLOCK_FALLBACKS := {
-	"upgradeorangelevelupsprite": "joy",
-	"upgraderedlevelupsprite": "anger",
-	"upgradepurplelevelupsprite": "sadness",
-	"upgradebluelevelupsprite": "fear",
-	"upgradegreenlevelupsprite": "disgust",
-	"upgradepinklevelupsprite": "love",
-}
+## a dedicated consumable icon (see Unity sprite registry in game.unity).
+const CatalogSpritePathsScript = preload("res://game/ui/catalog_sprite_paths.gd")
 
 const TOOLTIP_WIDTH := 300.0
 const TOOLTIP_MAX_WIDTH := 360.0
@@ -386,11 +378,7 @@ func _icon_path(category: String, folder: String, item_id: String, sprite_id: St
 ## Resolves sprite IDs that point at the shared gem block art (e.g. the colored
 ## itemUpgrade level-up grants) to a texture under assets/blocks/.
 func _block_sprite_fallback(sprite_id: String) -> String:
-	var block_name := str(SPRITE_BLOCK_FALLBACKS.get(sprite_id.to_lower(), ""))
-	if block_name.is_empty():
-		return ""
-	var path := "%s%s.png" % [BLOCK_ICON_DIR, block_name]
-	return path if ResourceLoader.exists(path) else ""
+	return CatalogSpritePathsScript.resolve_item_upgrade_icon(sprite_id)
 
 func _block_icon_path(item_id: String, sprite_id: String) -> String:
 	var candidates: Array[String] = []

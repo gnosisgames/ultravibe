@@ -4,6 +4,8 @@ extends GnosisService
 ## Minimal Godot port of Unity Match3ShopService.
 ## It exposes the Unity invoke surface and publishes a simple mixed catalog offer list.
 
+const CatalogPolicyScript = preload("res://game/match3/catalog/match3_run_catalog_offer_policy.gd")
+
 const DEFAULT_OFFER_COUNT := 5
 const CURRENCY_ID := "money"
 
@@ -109,14 +111,46 @@ func _add_catalog_candidates(result: Array[Dictionary], config_id: String, base_
 		return
 	var ids := catalog.get_keys()
 	ids.sort()
+	var owned := _owned_catalog_ids_for_config(config_id)
 	for item_id in ids:
-		if str(item_id).strip_edges().is_empty():
+		var sid := str(item_id).strip_edges()
+		if sid.is_empty():
+			continue
+		if not _catalog_offer_allowed(config_id, sid, owned):
 			continue
 		result.append({
 			"sourceConfigId": config_id,
-			"itemId": str(item_id),
+			"itemId": sid,
 			"price": base_price,
 		})
+
+
+func _owned_catalog_ids_for_config(config_id: String) -> Dictionary:
+	var owned_all := CatalogPolicyScript.collect_owned_catalog_ids(
+		get_node("boons", false),
+		get_node("consumables", false),
+		get_node("upgrades", false),
+	)
+	match config_id:
+		"boons":
+			return owned_all.get("boon", {})
+		"consumables":
+			return owned_all.get("consumable", {})
+		"runUpgrades":
+			return owned_all.get("itemUpgrade", {})
+		_:
+			return {}
+
+
+func _catalog_offer_allowed(config_id: String, item_id: String, owned: Dictionary) -> bool:
+	if config_id != "boons" and config_id != "consumables":
+		return true
+	var m3 := get_node("match3", false)
+	var boons_root := get_node("boons", false)
+	var allow_dup := CatalogPolicyScript.read_allow_duplicate_catalog_offers(m3, boons_root)
+	if allow_dup:
+		return true
+	return not owned.has(item_id.to_lower())
 
 
 func _purchase_core_item(parameters: GnosisNode) -> GnosisFunctionResult:

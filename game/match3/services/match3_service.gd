@@ -7,6 +7,10 @@ const Match3EventsScript = preload("res://game/match3/match3_events.gd")
 const Match3ModelsScript = preload("res://game/match3/core/match3_models.gd")
 const Match3GameplayScript = preload("res://game/match3/core/match3_gameplay.gd")
 const Match3BoardLayoutScript = preload("res://game/match3/core/match3_board_layout.gd")
+const Match3FloorModifierPoolScript = preload("res://game/match3/core/match3_floor_modifier_pool.gd")
+const Match3BoonRuntimeScript = preload("res://game/match3/boons/match3_boon_runtime.gd")
+const Match3Match3EffectsScript = preload("res://game/match3/effects/match3_match3_effects.gd")
+const SupportScript = preload("res://game/match3/boons/match3_boon_support.gd")
 
 const Events = Match3EventsScript
 const Models = Match3ModelsScript
@@ -37,6 +41,7 @@ const BOON_CATALOG_ID_PASSIVE_INCOME := "PassiveIncome"
 const BOON_CATALOG_ID_COOKIE_TIME := "CookieTime"
 const BOON_CATALOG_ID_DOUBLE_DOWN := "DoubleDown"
 const BOON_CATALOG_ID_SLEEPER := "Sleeper"
+const BOON_CATALOG_ID_SIMP := "Simp"
 const EPHEMERAL_SELECTED_CONSUMABLE_SLOT := "selectedConsumableSlotIndex"
 const CONSUMABLE_JUICE_DISPLAY_USE := "Use"
 const CONSUMABLE_USE_DISPLAY_KEY := "match3__phrase__consumableUse"
@@ -67,6 +72,8 @@ var _boss_board_pool_ids: Array[String] = []
 var _board_difficulty_by_id: Dictionary = {}
 var _round_action_reward_locks: Dictionary = {}
 var _consumable_use_presentation_pending := false
+var _boon_runtime: RefCounted = null
+var _match3_effects: RefCounted = null
 
 var _move_subscription: RefCounted = null
 var _reset_subscription: RefCounted = null
@@ -81,6 +88,12 @@ func on_initialize() -> void:
 	_refresh_item_catalog()
 	_load_board_pools()
 	_hydrate_runtime_from_store()
+	_boon_runtime = Match3BoonRuntimeScript.new(self)
+	_match3_effects = Match3Match3EffectsScript.new(self)
+	var m3 := get_node("match3", false)
+	if m3.is_valid() and _match3_effects != null:
+		_match3_effects.hydrate_from_store(m3)
+	_gameplay.set_boon_score_finalize_hook(Callable(_boon_runtime, "apply_finalize_for_move"))
 	_gameplay.set_tile_score_resolver(Callable(self, "_resolve_item_score_profile"))
 	_gameplay.status = Models.STATUS_LEVEL_SELECT_PANEL
 	_publish_ephemeral_state()
@@ -112,10 +125,20 @@ func get_functions() -> Array:
 		"TryUseShuffle",
 		"GrantNextRoundRewardStep",
 		"TransitionToState",
+		"AddFloorModifierPoolDelta",
+		"RollRandomBoon",
+		"DuplicateRandomEquippedBoon",
+		"PanicSwapAllEquippedBoons",
+		"ApplyBoonSlotCapacityDelta",
+		"ApplyConsumableSlotCapacityDelta",
+		"JuiceBoonMatch3RoundEffectOnActivate",
+		"SyncEquippedBoonMatch3RoundEffects",
 	]
 
 
 func invoke_function(name: String, parameters: GnosisNode) -> Variant:
+	if _boon_runtime != null and _boon_runtime.handles_invoke(name):
+		return _boon_runtime.invoke(name, parameters)
 	match name:
 		"PlayLevel":
 			var double_down := false
@@ -135,11 +158,123 @@ func invoke_function(name: String, parameters: GnosisNode) -> Variant:
 			if parameters != null and parameters.is_valid():
 				raw_status = _node_str(parameters, Events.PAYLOAD_GAME_STATUS)
 			return _transition_to_state(raw_status)
+		"AddFloorModifierPoolDelta":
+			return _add_floor_modifier_pool_delta(parameters)
 	return GnosisFunctionResult.fail("Unknown Match3 function '%s'." % name)
 
 
 func get_gameplay():
 	return _gameplay
+
+
+## Positive counts per enhanced floor type in the run pool (HUD left-rail tile panel).
+func get_enhanced_floor_tile_counts() -> Dictionary:
+	var m3 := get_node("match3", false)
+	if not m3.is_valid():
+		return {}
+	var pool := m3.get_node(Match3FloorModifierPoolScript.POOL_KEY)
+	return Match3FloorModifierPoolScript.enhanced_counts_from_pool(
+		pool,
+		_enhanced_cell_floor_type_ids()
+	)
+
+
+func _add_floor_modifier_pool_delta(parameters: GnosisNode) -> GnosisFunctionResult:
+	if context == null or context.store == null:
+		return GnosisFunctionResult.fail("Store unavailable.")
+	var floor_type_id := _node_str(parameters, "floorTypeId")
+	if floor_type_id.is_empty():
+		return GnosisFunctionResult.fail("floor_pool_invalid_type")
+	var requested := _node_int(parameters, "count", 0)
+	if requested <= 0:
+		requested = _node_int(parameters, "amount", 3)
+	var m3 := get_node("match3", false)
+	if not m3.is_valid() or m3.get_type() != GnosisValueType.OBJECT:
+		return GnosisFunctionResult.fail("match3_missing")
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash("%d:%s" % [_try_get_run_seed(), floor_type_id])
+	var result: Dictionary = Match3FloorModifierPoolScript.add_delta(
+		m3,
+		context.store,
+		floor_type_id,
+		requested,
+		_cell_floor_catalog_type_ids(),
+		rng
+	)
+	if int(result.get("applied", 0)) <= 0:
+		return GnosisFunctionResult.fail(str(result.get("error", "floor_pool_no_slots_applied")))
+	if _is_board_grid_ready():
+		Match3FloorModifierPoolScript.apply_layout_to_gameplay(
+			_gameplay,
+			m3.get_node(Match3FloorModifierPoolScript.POOL_KEY),
+			rng
+		)
+		_publish_board_reset()
+	_publish_ephemeral_state()
+	var ok := context.store.create_object()
+	ok.set_key("success", true)
+	ok.set_key("floorTypeId", floor_type_id)
+	ok.set_key("poolSlotsMoved", int(result.get("applied", 0)))
+	return GnosisFunctionResult.ok(ok)
+
+
+func _cell_floor_catalog_type_ids() -> Array[String]:
+	var out: Array[String] = []
+	var catalog := _cell_floor_types_catalog()
+	if not catalog.is_valid() or catalog.get_type() != GnosisValueType.OBJECT:
+		return out
+	for type_id in catalog.get_keys():
+		var id := str(type_id).strip_edges()
+		if id.is_empty():
+			continue
+		out.append(id)
+	out.sort()
+	return out
+
+
+func _enhanced_cell_floor_type_ids() -> Array[String]:
+	var out: Array[String] = []
+	var catalog := _cell_floor_types_catalog()
+	if not catalog.is_valid() or catalog.get_type() != GnosisValueType.OBJECT:
+		return out
+	for type_id in catalog.get_keys():
+		var id := str(type_id).strip_edges()
+		if id.is_empty():
+			continue
+		var row := catalog.get_node(id)
+		if not row.is_valid() or row.get_type() != GnosisValueType.OBJECT:
+			continue
+		var props := row.get_node("properties")
+		if not props.is_valid():
+			continue
+		var tags := props.get_node("gameplayTags")
+		if not tags.is_valid() or tags.get_type() != GnosisValueType.LIST:
+			continue
+		for i in tags.get_count():
+			var tag_node := tags.get_node(i)
+			if tag_node.is_valid() and str(tag_node.value).strip_edges().to_lower() == "enhanced":
+				out.append(id)
+				break
+	out.sort()
+	return out
+
+
+func _cell_floor_types_catalog() -> GnosisNode:
+	var config := get_node("configuration", true)
+	if not config.is_valid():
+		return GnosisNode.new(null)
+	return config.get_node("match3CellFloorTypes")
+
+
+func _ensure_floor_modifier_pool_published(m3: GnosisNode) -> void:
+	if context == null or context.store == null or not m3.is_valid():
+		return
+	Match3FloorModifierPoolScript.ensure_pool(m3, context.store)
+	m3.set_key("floorModifierPoolSize", Match3FloorModifierPoolScript.POOL_SIZE)
+
+
+func _is_board_grid_ready() -> bool:
+	return Match3FloorModifierPoolScript.is_board_grid_ready(_gameplay)
 
 
 func get_current_status() -> int:
@@ -318,6 +453,27 @@ func get_step_multi() -> int:
 
 
 ## Points x multi product for the most recently resolved move.
+func on_boon_activated(boon_catalog_id: String) -> void:
+	if _match3_effects == null:
+		return
+	_match3_effects.try_juice_boon_on_activate(boon_catalog_id)
+	_match3_effects.sync_equipped_boon_round_effects()
+	_publish_ephemeral_state()
+
+
+func sync_equipped_boon_match3_round_effects() -> void:
+	if _match3_effects == null:
+		return
+	_match3_effects.sync_equipped_boon_round_effects()
+	_publish_ephemeral_state()
+
+
+func get_match3_effects_active_count() -> int:
+	if _match3_effects == null:
+		return 0
+	return _match3_effects.active_effect_count()
+
+
 func get_last_move_score() -> int:
 	return _last_move_score
 
@@ -437,7 +593,10 @@ func _on_move_requested(event: GnosisEvent) -> void:
 
 func _begin_level(level_number: int) -> void:
 	_finalize_pending_round_rewards_silent()
+	var previous_round := _current_round
 	_apply_round_setup(maxi(1, level_number))
+	if _boon_runtime != null:
+		_boon_runtime.on_round_boundary(previous_round, _current_round)
 	var setup := _resolve_round_setup(_current_round)
 	var layout = _load_board_layout(_active_board_id)
 	if layout == null:
@@ -445,15 +604,42 @@ func _begin_level(level_number: int) -> void:
 		layout.id = "fallback"
 		layout.width = 8
 		layout.height = 8
+	var base_moves := int(setup.get("moves", BASE_MOVES_LIMIT))
+	var base_shuffles := int(setup.get("shuffles", DEFAULT_SHUFFLES_PER_ROUND))
+	var budget := {"moves": base_moves, "shuffles": base_shuffles}
+	if _match3_effects != null:
+		budget = _match3_effects.apply_round_budget(base_moves, base_shuffles)
+		_match3_effects.sync_equipped_boon_round_effects()
+		budget = _match3_effects.apply_round_budget(base_moves, base_shuffles)
+	if SupportScript.is_boon_catalog_id_equipped(self, BOON_CATALOG_ID_SIMP):
+		budget["moves"] = maxi(1, int(budget.get("moves", base_moves)) + 5)
+		budget["shuffles"] = 0
+	_manual_shuffles_remaining = int(budget.get("shuffles", base_shuffles))
 	_gameplay.load_level(
 		layout,
 		int(setup.get("target_score", BASE_SCORE_TO_WIN)),
-		int(setup.get("moves", BASE_MOVES_LIMIT)),
+		int(budget.get("moves", base_moves)),
 		int(setup.get("color_limit", BASE_COLOR_LIMIT)),
 		_item_points
 	)
+	_apply_floor_modifier_pool_to_board()
 	_publish_ephemeral_state()
 	_publish_board_reset()
+
+
+func _apply_floor_modifier_pool_to_board() -> void:
+	if not _is_board_grid_ready():
+		return
+	var m3 := get_node("match3", false)
+	if not m3.is_valid():
+		return
+	_ensure_floor_modifier_pool_published(m3)
+	var pool := m3.get_node(Match3FloorModifierPoolScript.POOL_KEY)
+	if not pool.is_valid():
+		return
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash("%d:%d:floor_layout" % [_try_get_run_seed(), _current_round])
+	Match3FloorModifierPoolScript.apply_layout_to_gameplay(_gameplay, pool, rng)
 
 
 ## Fills HUD / ephemeral metadata for the queued round without loading the board.
@@ -1094,6 +1280,9 @@ func _publish_ephemeral_state() -> void:
 	m3.set_key("colorLimit", _gameplay.palette.size())
 	m3.set_key("currentShuffles", _manual_shuffles_remaining)
 	m3.set_key("roundStartShuffles", _manual_shuffles_remaining)
+	if _match3_effects != null:
+		_match3_effects.persist_to_store(m3)
+	_ensure_floor_modifier_pool_published(m3)
 	if not m3.get_node("nextLevel").is_valid():
 		m3.set_key("nextLevel", _current_round)
 	if not m3.get_node("winningRound").is_valid():
@@ -1199,6 +1388,7 @@ func _build_board_payload() -> GnosisNode:
 			tile_node.set_key("y", y)
 			tile_node.set_key("itemId", tile.item_id if tile else "")
 			tile_node.set_key("slotType", tile.slot_type if tile else Models.SLOT_NONE)
+			tile_node.set_key("cellFloorTypeId", tile.cell_floor_type_id if tile else "")
 			tiles.add(tile_node)
 	payload.set_node(Events.PAYLOAD_TILES, tiles)
 	return payload
@@ -1228,6 +1418,7 @@ func _ensure_run_ephemeral_defaults() -> void:
 		m3.set_key("winningRound", DEFAULT_WINNING_ROUND)
 	if not m3.get_node("nextLevel").is_valid():
 		m3.set_key("nextLevel", 1)
+	_ensure_floor_modifier_pool_published(m3)
 	_ensure_match3_animation_defaults(m3)
 	_ensure_statistics_root()
 	var consumable = context.engine.get_service("Consumable")
@@ -1383,6 +1574,8 @@ func _skip_level_from_queue() -> GnosisFunctionResult:
 		m3.set_key("nextLevel", next_level)
 	_increment_statistic("match3.rounds.skipped", 1)
 	_increment_statistic("match3.rounds.total", 1)
+	if _boon_runtime != null:
+		_boon_runtime.on_round_skipped()
 	refresh_planned_floor_preview()
 	_publish_ephemeral_state()
 	payload.set_key("success", true)

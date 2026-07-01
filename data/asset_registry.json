@@ -1,5 +1,17 @@
 {
-  "sprites": {},
+  "sprites": {
+    "floorGoldSprite": "res://assets/ui/backgrounds/Gold.png",
+    "floorSteelSprite": "res://assets/ui/backgrounds/Steel.png",
+    "floorLuckySprite": "res://assets/ui/backgrounds/Lucky.png",
+    "floorBonusPointsSprite": "res://assets/ui/backgrounds/BonusPoints.png",
+    "floorBonusMultiSprite": "res://assets/ui/backgrounds/BonusMulti.png",
+    "upgradeRedLevelUpSprite": "res://assets/blocks/anger.png",
+    "upgradeBlueLevelUpSprite": "res://assets/blocks/fear.png",
+    "upgradeGreenLevelUpSprite": "res://assets/blocks/disgust.png",
+    "upgradeOrangeLevelUpSprite": "res://assets/blocks/joy.png",
+    "upgradePinkLevelUpSprite": "res://assets/blocks/love.png",
+    "upgradePurpleLevelUpSprite": "res://assets/blocks/sadness.png"
+  },
   "audio": {
     "move": "res://assets/audio/gameplay/move.mp3",
     "rotate": "res://assets/audio/gameplay/rotate.mp3",

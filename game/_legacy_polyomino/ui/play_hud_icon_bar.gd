@@ -7,6 +7,7 @@ extends BoxContainer
 
 const TOOLTIP_SCENE := preload("res://game/ui/widgets/tooltip_popup.tscn")
 const ICON_ROOT := "res://assets/icons/"
+const CatalogSpritePathsScript = preload("res://game/ui/catalog_sprite_paths.gd")
 
 ## Icons are intentionally taller than the bar (~46px content) so they overflow
 ## upward and read as "hovering" above it.
@@ -353,13 +354,15 @@ func _icon_path(item_id: String, sprite_id: String) -> String:
 		candidates.append(base)
 	if sprite_id.begins_with("runUpgrade") and sprite_id.ends_with("Sprite"):
 		candidates.append(sprite_id.trim_prefix("runUpgrade").trim_suffix("Sprite"))
+	if sprite_id.begins_with("upgrade") and sprite_id.ends_with("Sprite"):
+		candidates.append(sprite_id.trim_prefix("upgrade").trim_suffix("Sprite"))
 	candidates.append(item_id)
 	candidates.append(item_id.capitalize())
 	for candidate in candidates:
 		var path := "%s%s.png" % [folder, candidate]
 		if ResourceLoader.exists(path):
 			return path
-	return ""
+	return CatalogSpritePathsScript.resolve_item_upgrade_icon(sprite_id, item_id)
 
 func _localized(key: String, fallback: String) -> String:
 	if key.strip_edges().is_empty() or _service == null or _service.context == null:
