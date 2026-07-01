@@ -1,8 +1,8 @@
 class_name UltravibeShopView
 extends GnosisUIElementView
 
-## Match3 shop overlay shell (Unity ShopPanel parity). Lists core offers from
-## Match3Shop and advances to the level-select panel on continue.
+## Match3 shop overlay (legacy). Shop UI now lives inside the level-select panel;
+## this view is kept registered but is no longer pushed by the play adapter.
 
 const SubscreenFrame = preload("res://game/ui/subscreen_frame.gd")
 const ROW_BG := Color(0.356863, 0.368627, 0.560784, 1)
@@ -146,15 +146,7 @@ func _on_reroll_pressed() -> void:
 	_refresh()
 
 func _on_continue_pressed() -> void:
-	var eng := _engine()
-	var m3 = _match3_service()
-	var ui := _game_ui()
-	if eng == null or m3 == null or ui == null:
-		return
-	var params := eng.store.create_object()
-	params.set_key("gameStatus", "levelSelectPanel")
-	m3.invoke_function("TransitionToState", params)
-	ui.invoke_function("PopView", eng.store.create_object())
+	# Merged planning panel: no separate shop overlay to dismiss.
 	var adapter := _host.get_node_or_null("Adapters/Match3PlayAdapter") if _host else null
 	if adapter and adapter.has_method("refresh_hud_after_reward"):
 		adapter.refresh_hud_after_reward()

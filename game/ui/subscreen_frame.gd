@@ -28,6 +28,28 @@ static func apply(view: Control, holder: Control) -> bool:
 	return true
 
 
+## Aligns `holder` to the extended planning frame (shop + level cards).
+static func apply_planning(view: Control, holder: Control) -> bool:
+	if view == null or holder == null or not view.is_inside_tree():
+		return false
+	var hud := view.get_tree().get_first_node_in_group(HUD_GROUP)
+	if hud == null:
+		return false
+	var rect: Rect2
+	if hud.has_method("get_planning_frame_rect"):
+		rect = hud.get_planning_frame_rect()
+	elif hud.has_method("get_content_frame_rect"):
+		rect = hud.get_content_frame_rect()
+	else:
+		return false
+	if rect.size.x <= 0.0 or rect.size.y <= 0.0:
+		return false
+	holder.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	holder.position = rect.position
+	holder.size = rect.size
+	return true
+
+
 ## Connects `callback` to the HUD's content_frame_changed signal (idempotent).
 static func connect_changes(view: Control, callback: Callable) -> void:
 	if view == null or not view.is_inside_tree():

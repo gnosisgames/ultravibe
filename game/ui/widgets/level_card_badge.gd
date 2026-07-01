@@ -10,12 +10,12 @@ const BADGE_BG := Color(0.929412, 0.941176, 0.972549, 1)
 const BADGE_SHADOW := Color(0.72, 0.76, 0.84, 1)
 const DEFAULT_ACCENT := Color(0.156863, 0.196078, 0.290196, 1)
 
-const SKULL_SIZE := 30.0
-const SKULL_GAP := 4
-const SCORE_FONT_SIZE := 28
-const BADGE_RADIUS := 18
-const BADGE_PAD_H := 18
-const BADGE_PAD_V := 8
+const SKULL_SIZE := 24.0
+const SKULL_GAP := 3
+const SCORE_FONT_SIZE := 22
+const BADGE_RADIUS := 14
+const BADGE_PAD_H := 12
+const BADGE_PAD_V := 4
 
 
 static func build(
@@ -44,7 +44,7 @@ func configure(skull_count: int, score_text: String, accent: Color, font: Font) 
 
 	var vbox := VBoxContainer.new()
 	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	vbox.add_theme_constant_override("separation", 2)
+	vbox.add_theme_constant_override("separation", 1)
 	vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(vbox)
 

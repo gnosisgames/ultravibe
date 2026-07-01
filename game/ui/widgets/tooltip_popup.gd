@@ -239,8 +239,10 @@ static func format_bbcode(value: String) -> String:
 		text_value = arg_re.sub(text_value, "0", true)
 	for tag in TAG_COLORS.keys():
 		var color: String = TAG_COLORS[tag]
-		text_value = text_value.replace("<%s>" % tag, "[color=#%s]" % color)
-		text_value = text_value.replace("</%s>" % tag, "[/color]")
+		var tag_re := RegEx.new()
+		if tag_re.compile("(?i)<%s>(.*?)</%s>" % [tag, tag]) != OK:
+			continue
+		text_value = tag_re.sub(text_value, "[color=#%s]$1[/color]" % color, true)
 	return text_value
 
 func _set_pivot_point() -> void:

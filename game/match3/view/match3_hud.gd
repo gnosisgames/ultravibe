@@ -17,8 +17,6 @@ const TOKEN_DEFAULT_BG := Color(0.0980392, 0.156863, 0.227451)
 const HUD_GROUP := "match3_hud"
 ## Uniform gap between the content frame and the sidebars (and between cards).
 const FRAME_GAP := 32.0
-const SWAP_ICON_SHOP := "res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/store.png"
-const SWAP_ICON_PLAY := "res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/play.png"
 
 ## Emitted whenever the content frame rect changes (sidebar relayout / resize) so
 ## overlays can re-align themselves to it.
@@ -43,7 +41,6 @@ signal content_frame_changed
 @onready var _settings_button: Button = %SettingsButton
 @onready var _wiki_button: Button = %WikiButton
 @onready var _shuffle_button: Button = %ShuffleButton
-@onready var _swap_button: Button = %SwapButton
 @onready var _boss_section: PanelContainer = %BossSection
 @onready var _boons_bar: PanelContainer = %BoonsBar
 @onready var _score_section: PanelContainer = %ScoreSection
@@ -51,7 +48,6 @@ signal content_frame_changed
 @onready var _board_host: Control = %BoardHost
 
 var _service = null
-var _swap_target := ""
 
 
 func _ready() -> void:
@@ -67,8 +63,6 @@ func _ready() -> void:
 		_wiki_button.pressed.connect(_on_wiki_pressed)
 	if _shuffle_button:
 		_shuffle_button.pressed.connect(_on_shuffle_pressed)
-	if _swap_button:
-		_swap_button.pressed.connect(_on_swap_pressed)
 	if _score_section:
 		_score_section.resized.connect(_on_frame_dirty)
 	if _boons_bar:
@@ -224,40 +218,9 @@ func _on_shuffle_pressed() -> void:
 		_service.invoke_function("TryUseShuffle", null)
 
 
-func _on_swap_pressed() -> void:
-	if _service == null or _swap_target.is_empty():
-		return
-	if _service.context == null or _service.context.engine == null:
-		return
-	var params = _service.context.engine.store.create_object()
-	params.set_key("gameStatus", _swap_target)
-	_service.invoke_function("TransitionToState", params)
-
-
-## Shows/hides the green sidebar swap button used to toggle between the shop and
-## level-select subscreens. `mode` is "to_shop", "to_level_select", or "" (hidden).
-func set_subscreen_swap_mode(mode: String) -> void:
-	if _swap_button == null:
-		return
-	match mode:
-		"to_shop":
-			_swap_button.icon = load(SWAP_ICON_SHOP)
-			_swap_button.tooltip_text = "core__noun__shop"
-			_swap_target = "shopPanel"
-			_swap_button.visible = true
-		"to_level_select":
-			_swap_button.icon = load(SWAP_ICON_PLAY)
-			_swap_button.tooltip_text = "ultravibe__ui__levelSelect"
-			_swap_target = "levelSelectPanel"
-			_swap_button.visible = true
-		_:
-			_swap_target = ""
-			_swap_button.visible = false
-
-
 ## Global rect of the shared subscreen content frame: spans the gap between the
 ## main sidebar panel and the consumable sidebar, with the height of the main
-## sidebar panel. All subscreens (level select / shop / reward) fill this.
+## sidebar panel. All subscreens (level select / reward) fill this.
 func get_content_frame_rect() -> Rect2:
 	if _score_section == null:
 		return Rect2()
@@ -271,10 +234,19 @@ func get_content_frame_rect() -> Rect2:
 	return Rect2(left, top, maxf(0.0, right - left), maxf(0.0, bottom - top))
 
 
+## Level-select / shop planning region: same top and width as the main sidebar
+## stats panel, but extends to the bottom of the HUD so the shop can use the
+## vertical strip above the sidebar button row.
+func get_planning_frame_rect() -> Rect2:
+	var frame := get_content_frame_rect()
+	if frame.size.x <= 0.0 or frame.size.y <= 0.0:
+		return frame
+	var bottom := size.y - FRAME_GAP
+	return Rect2(frame.position.x, frame.position.y, frame.size.x, maxf(0.0, bottom - frame.position.y))
+
+
 ## Play-field rect for the match-3 board: same horizontal bounds as
-## get_content_frame_rect() but extends to the bottom of the HUD so gems can
-## use the area reserved for the bottom nav (those controls are not shown during
-## active play).
+## get_content_frame_rect() but extends to the bottom of the HUD.
 func get_board_frame_rect() -> Rect2:
 	var frame := get_content_frame_rect()
 	if frame.size.x <= 0.0 or frame.size.y <= 0.0:
@@ -299,7 +271,7 @@ func _on_frame_dirty() -> void:
 			_consumables_bar.offset_top = panel.position.y
 			_consumables_bar.offset_bottom = panel.position.y + panel.size.y - size.y
 	# Keep the board area on the exact same rect the subscreen overlays use, so
-	# the board fills the level-select / shop / reward region.
+	# the board fills the level-select / reward region.
 	if _board_host:
 		var frame := get_board_frame_rect()
 		if frame.size.x > 0.0 and frame.size.y > 0.0:

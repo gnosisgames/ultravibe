@@ -1,17 +1,14 @@
 class_name UltravibeLevelSelectView
 extends GnosisUIElementView
 
-## Match3 level selector overlay (Unity LevelSelectorPanel parity). Renders the
-## queued floor as a row of level cards in the board play area (to the right of
-## the HUD sidebar, not a fullscreen modal). Each card shows difficulty skulls,
-## required score, name/description, the round reward and the play / double-down /
-## skip actions. The green shop button re-opens the shop panel.
+## Match3 planning overlay: shop shell (empty before round 1) above compact level cards.
 
 const SubscreenFrame = preload("res://game/ui/subscreen_frame.gd")
 const LevelCardBadge = preload("res://game/ui/widgets/level_card_badge.gd")
 const RoundedSquareBtnScene = preload("res://game/ui/widgets/rounded_square_btn.tscn")
 const TooltipPopupScene = preload("res://game/ui/widgets/tooltip_popup.tscn")
 const ConsumableCatalogUi = preload("res://game/ui/consumable_catalog_ui.gd")
+const SHOP_ROW_BG := Color(0.356863, 0.368627, 0.560784, 1)
 
 const PANEL_BG := Color(0.415686, 0.415686, 0.658824, 1)
 const PANEL_SHADOW := Color(0.0784314, 0.137255, 0.227451, 1)
@@ -19,7 +16,7 @@ const PANEL_RADIUS := 27
 const PILL_DARK := Color(0.156863, 0.196078, 0.290196, 1)
 const PILL_WHITE := Color(0.929412, 0.941176, 0.972549, 1)
 const PILL_TEXT_DARK := Color(0.156863, 0.196078, 0.290196, 1)
-const BTN_PURPLE := Color(0.415686, 0.415686, 0.658824, 1)
+const BTN_BLUE := Color(0.196078, 0.45098, 0.85098, 1)
 const BTN_YELLOW := Color(0.968627, 0.78, 0.301961, 1)
 const BTN_RED := Color(0.971387, 0.354281, 0.290535, 1)
 const BTN_DISABLED_GREY := Color(0.52, 0.52, 0.56, 1)
@@ -27,23 +24,25 @@ const BTN_ICON_DISABLED := Color(0.78, 0.78, 0.82, 1)
 const DEFAULT_DOUBLE_DOWN_MULT := 10
 const GOLD := Color(0.937255, 0.74902, 0.0156863, 1)
 const WHITE := Color(1, 1, 1, 1)
+const PANEL_TEXT_OUTLINE := Color(0.176471, 0.184314, 0.305882, 1)
+const PANEL_TEXT_SHADOW := Color(0.176471, 0.184314, 0.305882, 0.6)
 const DESC_COLOR := Color(0.847059, 0.858824, 0.945098, 1)
 const CARD_MIN_WIDTH := 240.0
 const BADGE_SIDE_INSET := 64
-const BADGE_OVERLAP := 24
-const ACTION_BTN_SIZE := Vector2(88, 88)
+const BADGE_OVERLAP := 18
+const ACTION_BTN_SIZE := Vector2(88, 76)
 const ACTION_BTN_ICON_MAX := 44
-const REWARD_PANEL_HEIGHT := 96.0
+const REWARD_PANEL_HEIGHT := 72.0
 const REWARD_ROW_MIN_WIDTH := 292.0
-const REWARD_SECTION_BOTTOM_MARGIN := 24
+const REWARD_SECTION_TOP_MARGIN := 12
 const REWARD_DIVIDER_WIDTH := 3
-const REWARD_DIVIDER_INSET := 12.0
-const REWARD_DOT_SIZE := 16
-const REWARD_DOT_INSET := 6
+const REWARD_DIVIDER_INSET := 8.0
+const REWARD_DOT_SIZE := 12
+const REWARD_DOT_INSET := 4
 const REWARD_PANEL_MARGIN_H := 6
-const REWARD_PANEL_MARGIN_V := 6
+const REWARD_PANEL_MARGIN_V := 4
 const CHALLENGE_MULT_ROTATION := 30.0
-const CHALLENGE_MULT_FONT_SIZE := 24
+const CHALLENGE_MULT_FONT_SIZE := 20
 const REWARD_TOOLTIP_WIDTH := 300.0
 const ICON_DIR := "res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/"
 const SKULL_ICON := ICON_DIR + "skull-white.png"
@@ -51,6 +50,9 @@ const PLAY_ICON := ICON_DIR + "play.png"
 const SKIP_ICON := ICON_DIR + "skip.png"
 
 @onready var _region: Control = %Region
+@onready var _shop_section: PanelContainer = %ShopSection
+@onready var _shop_offers: VBoxContainer = %ShopOffers
+@onready var _shop_reroll_button: Button = %ShopRerollButton
 @onready var _cards: HBoxContainer = %Cards
 
 var _font: Font = null
@@ -61,6 +63,17 @@ var _tooltip_anchor: Control = null
 func _ready() -> void:
 	add_to_group("gnosis_ui_view")
 	_font = load("res://assets/fonts/Comic Lemon.otf")
+	if _cards:
+		_cards.alignment = BoxContainer.ALIGNMENT_END
+	if _shop_reroll_button:
+		_shop_reroll_button.pressed.connect(_on_shop_reroll_pressed)
+		var reroll_key := "core__verb__reroll"
+		_shop_reroll_button.text = tr(reroll_key) if tr(reroll_key) != reroll_key else "Reroll"
+	if _shop_section:
+		var shop_title := _shop_section.get_node_or_null("ShopVBox/ShopTitle") as Label
+		if shop_title:
+			shop_title.text = tr("core__noun__shop") if tr("core__noun__shop") != "core__noun__shop" else "Shop"
+			_apply_font(shop_title, 40, WHITE)
 	_build_tooltip()
 	call_deferred("_resolve_host")
 
@@ -78,7 +91,7 @@ func set_view_visible(is_visible: bool) -> void:
 		_hide_consumable_tooltip()
 
 func _apply_frame() -> void:
-	SubscreenFrame.apply(self, _region)
+	SubscreenFrame.apply_planning(self, _region)
 
 func _resolve_host() -> void:
 	var node: Node = self
@@ -100,8 +113,15 @@ func _match3_service():
 	var eng := _engine()
 	return eng.get_service("Match3") if eng else null
 
+
+func _shop_service():
+	var eng := _engine()
+	return eng.get_service("Match3Shop") if eng else null
+
+
 func _refresh() -> void:
 	_hide_consumable_tooltip()
+	_refresh_shop()
 	if _cards == null:
 		return
 	for child in _cards.get_children():
@@ -123,6 +143,106 @@ func _refresh() -> void:
 		if not row.is_valid():
 			continue
 		_cards.add_child(_build_card(row))
+
+
+func _refresh_shop() -> void:
+	if _shop_section == null:
+		return
+	var m3 = _match3_service()
+	if m3 == null:
+		_shop_section.visible = false
+		return
+	_shop_section.visible = true
+	var shop_available: bool = m3.has_method("is_shop_available") and m3.is_shop_available()
+	if _shop_reroll_button:
+		_shop_reroll_button.visible = true
+		_shop_reroll_button.disabled = not shop_available
+	_clear_shop_offers()
+	if not shop_available:
+		return
+	var shop = _shop_service()
+	var eng := _engine()
+	if shop == null or eng == null:
+		return
+	var result = shop.invoke_function("GetCoreShop", eng.store.create_object())
+	if not (result is GnosisFunctionResult) or not result.is_ok:
+		return
+	var offers: GnosisNode = result.payload.get_node("core.offers")
+	if not offers.is_valid() or offers.get_type() != GnosisValueType.LIST:
+		return
+	for i in range(offers.get_count()):
+		var offer: GnosisNode = offers.get_node(i)
+		if not offer.is_valid():
+			continue
+		if _node_bool(offer, "purchased", false):
+			continue
+		_add_shop_offer_row(
+			str(_node_str(offer, "sourceConfigId")),
+			str(_node_str(offer, "itemId")),
+			_node_int(offer, "price", 0),
+			i,
+		)
+
+
+func _clear_shop_offers() -> void:
+	if _shop_offers == null:
+		return
+	for child in _shop_offers.get_children():
+		child.queue_free()
+
+
+func _add_shop_offer_row(source: String, item_id: String, price: int, index: int) -> void:
+	var panel := PanelContainer.new()
+	var box := StyleBoxFlat.new()
+	box.bg_color = SHOP_ROW_BG
+	box.set_corner_radius_all(12)
+	box.content_margin_left = 18
+	box.content_margin_right = 18
+	box.content_margin_top = 10
+	box.content_margin_bottom = 10
+	panel.add_theme_stylebox_override("panel", box)
+	var hbox := HBoxContainer.new()
+	panel.add_child(hbox)
+	var label := Label.new()
+	label.text = "%s / %s" % [source, item_id]
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_apply_font(label, 22, WHITE)
+	hbox.add_child(label)
+	var buy := JuicyButton.new()
+	buy.text = "$%d" % price
+	if _font:
+		buy.add_theme_font_override("font", _font)
+	buy.add_theme_color_override("font_color", GOLD)
+	buy.pressed.connect(_on_shop_buy_pressed.bind(index))
+	hbox.add_child(buy)
+	_shop_offers.add_child(panel)
+
+
+func _on_shop_buy_pressed(index: int) -> void:
+	var shop = _shop_service()
+	var eng := _engine()
+	if shop == null or eng == null:
+		return
+	var params := eng.store.create_object()
+	params.set_key("index", index)
+	shop.invoke_function("PurchaseCoreItem", params)
+	_refresh()
+	_refresh_hud()
+
+
+func _on_shop_reroll_pressed() -> void:
+	var shop = _shop_service()
+	var eng := _engine()
+	if shop == null or eng == null:
+		return
+	shop.invoke_function("RerollCoreShop", eng.store.create_object())
+	_refresh()
+
+
+func _refresh_hud() -> void:
+	var adapter := _host.get_node_or_null("Adapters/Match3PlayAdapter") if _host else null
+	if adapter and adapter.has_method("refresh_hud_after_reward"):
+		adapter.refresh_hud_after_reward()
 
 # ---------------------------------------------------------------------------
 # Card construction
@@ -146,7 +266,7 @@ func _build_card(row: GnosisNode) -> Control:
 	var wrapper := VBoxContainer.new()
 	wrapper.custom_minimum_size = Vector2(CARD_MIN_WIDTH, 0)
 	wrapper.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	wrapper.size_flags_vertical = Control.SIZE_FILL
+	wrapper.size_flags_vertical = Control.SIZE_SHRINK_END
 	wrapper.alignment = BoxContainer.ALIGNMENT_CENTER
 	wrapper.add_theme_constant_override("separation", -BADGE_OVERLAP)
 
@@ -170,17 +290,17 @@ func _build_card(row: GnosisNode) -> Control:
 	var card := PanelContainer.new()
 	card.z_index = 0
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	card.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	card.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	card.add_theme_stylebox_override("panel", _card_style(is_current))
 
 	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 12)
+	vbox.add_theme_constant_override("separation", 8)
 	card.add_child(vbox)
 
 	vbox.add_child(_title_label(name_text))
 	vbox.add_child(_desc_label(desc_text))
-	vbox.add_child(_action_rewards_row(reward, consumable_id))
 	vbox.add_child(_buttons_row(is_current, skippable, double_down_mult))
+	vbox.add_child(_action_rewards_row(reward, consumable_id))
 
 	wrapper.add_child(card)
 
@@ -191,23 +311,29 @@ func _title_label(text: String) -> Label:
 	label.text = text
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_apply_font(label, 30, WHITE)
+	_apply_font(label, 26, WHITE)
 	return label
 
-func _desc_label(text: String) -> Label:
-	var label := Label.new()
-	label.text = text
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+func _desc_label(text: String) -> RichTextLabel:
+	var label := RichTextLabel.new()
+	label.bbcode_enabled = true
+	label.fit_content = true
+	label.scroll_active = false
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	label.custom_minimum_size = Vector2(0, 84)
-	label.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_apply_font(label, 18, DESC_COLOR)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	label.text = TooltipPopup.format_bbcode(text)
+	label.add_theme_color_override("default_color", DESC_COLOR)
+	if _font:
+		label.add_theme_font_override("normal_font", _font)
+	label.add_theme_font_size_override("normal_font_size", 16)
 	return label
 
 func _action_rewards_row(reward: int, consumable_id: String) -> Control:
 	var wrap := MarginContainer.new()
 	wrap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	wrap.add_theme_constant_override("margin_bottom", REWARD_SECTION_BOTTOM_MARGIN)
+	wrap.add_theme_constant_override("margin_top", REWARD_SECTION_TOP_MARGIN)
 
 	var root := Control.new()
 	root.custom_minimum_size = Vector2(REWARD_ROW_MIN_WIDTH, REWARD_PANEL_HEIGHT)
@@ -215,7 +341,7 @@ func _action_rewards_row(reward: int, consumable_id: String) -> Control:
 
 	var outer := PanelContainer.new()
 	outer.set_anchors_preset(Control.PRESET_FULL_RECT)
-	outer.add_theme_stylebox_override("panel", _rounded_style(PILL_DARK, 18, REWARD_PANEL_MARGIN_V, REWARD_PANEL_MARGIN_H))
+	outer.add_theme_stylebox_override("panel", _rounded_style(PILL_DARK, 14, REWARD_PANEL_MARGIN_V, REWARD_PANEL_MARGIN_H))
 	root.add_child(outer)
 
 	var row := HBoxContainer.new()
@@ -247,10 +373,10 @@ func _reward_money_side(reward: int) -> Control:
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_apply_font(label, 38, GOLD)
+	_apply_font(label, 30, GOLD)
 	center.add_child(label)
 	side.add_child(center)
-	side.add_child(_reward_corner_dots([BTN_PURPLE, BTN_RED], true))
+	side.add_child(_reward_corner_dots([BTN_BLUE, BTN_RED], true))
 	return side
 
 
@@ -273,7 +399,7 @@ func _reward_consumable_side(preview: Dictionary) -> Control:
 
 func _consumable_reward_button(icon_path: String, preview: Dictionary) -> Button:
 	var btn := Button.new()
-	btn.custom_minimum_size = Vector2(64, 64)
+	btn.custom_minimum_size = Vector2(48, 48)
 	btn.flat = true
 	btn.focus_mode = Control.FOCUS_ALL
 	btn.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
@@ -285,15 +411,15 @@ func _consumable_reward_button(icon_path: String, preview: Dictionary) -> Button
 
 	var icon := TextureRect.new()
 	icon.texture = load(icon_path)
-	icon.custom_minimum_size = Vector2(56, 56)
+	icon.custom_minimum_size = Vector2(42, 42)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	icon.set_anchors_preset(Control.PRESET_CENTER)
-	icon.offset_left = -28.0
-	icon.offset_top = -28.0
-	icon.offset_right = 28.0
-	icon.offset_bottom = 28.0
+	icon.offset_left = -21.0
+	icon.offset_top = -21.0
+	icon.offset_right = 21.0
+	icon.offset_bottom = 21.0
 	btn.add_child(icon)
 
 	btn.mouse_entered.connect(btn.grab_focus)
@@ -335,7 +461,7 @@ func _reward_corner_dots(colors: Array[Color], top_left: bool) -> Control:
 	var row := HBoxContainer.new()
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.alignment = BoxContainer.ALIGNMENT_BEGIN if top_left else BoxContainer.ALIGNMENT_END
-	row.add_theme_constant_override("separation", 4)
+	row.add_theme_constant_override("separation", 3)
 	for color in colors:
 		row.add_child(_reward_dot(color))
 	margin.add_child(row)
@@ -442,9 +568,9 @@ func _hide_consumable_tooltip() -> void:
 func _buttons_row(is_current: bool, skippable: bool, double_down_mult: int) -> Control:
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.add_theme_constant_override("separation", 14)
+	row.add_theme_constant_override("separation", 10)
 
-	var play := _action_button(PLAY_ICON, "", BTN_PURPLE, is_current)
+	var play := _action_button(PLAY_ICON, "", BTN_BLUE, is_current)
 	play.pressed.connect(_on_play_pressed)
 	row.add_child(_action_button_slot(play))
 
@@ -480,7 +606,7 @@ func _action_button_slot(btn: Button, overlay_label: String = "") -> Control:
 		mult_label.offset_left = -56.0
 		mult_label.offset_top = 0.0
 		mult_label.offset_right = 22.0
-		mult_label.offset_bottom = 32.0
+		mult_label.offset_bottom = 28.0
 		mult_label.rotation_degrees = CHALLENGE_MULT_ROTATION
 		mult_label.z_index = 1
 		_apply_font(mult_label, CHALLENGE_MULT_FONT_SIZE, WHITE)
@@ -553,8 +679,8 @@ func _juicy_button_style(bg: Color, shadow: Color, outlined: bool = false) -> St
 	box.corner_detail = 12
 	box.content_margin_left = 10
 	box.content_margin_right = 10
-	box.content_margin_top = 10
-	box.content_margin_bottom = 10
+	box.content_margin_top = 8
+	box.content_margin_bottom = 8
 	box.shadow_color = shadow
 	box.shadow_size = 1
 	box.shadow_offset = Vector2(3, 4)
@@ -574,8 +700,8 @@ func _card_style(_is_current: bool) -> StyleBoxFlat:
 	box.set_corner_radius_all(PANEL_RADIUS)
 	box.content_margin_left = 28
 	box.content_margin_right = 28
-	box.content_margin_top = 32
-	box.content_margin_bottom = 32
+	box.content_margin_top = 22
+	box.content_margin_bottom = 20
 	box.shadow_color = PANEL_SHADOW
 	box.shadow_size = 1
 	box.shadow_offset = Vector2(5, 7)
@@ -607,6 +733,12 @@ func _apply_font(label: Label, size: int, color: Color) -> void:
 		label.add_theme_font_override("font", _font)
 	label.add_theme_font_size_override("font_size", size)
 	label.add_theme_color_override("font_color", color)
+	var outline_size := maxi(8, int(round(float(size) * 0.38)))
+	label.add_theme_color_override("font_outline_color", PANEL_TEXT_OUTLINE)
+	label.add_theme_constant_override("outline_size", outline_size)
+	label.add_theme_color_override("font_shadow_color", PANEL_TEXT_SHADOW)
+	label.add_theme_constant_override("shadow_offset_x", 2)
+	label.add_theme_constant_override("shadow_offset_y", 3)
 
 func _format_score(value: int) -> String:
 	if value >= 1000000:

@@ -36,7 +36,7 @@ func _process(_delta: float) -> bool:
 		_save("playing")
 		_transition("shopPanel")
 	elif _frames == 125:
-		_save("shop")
+		_save("planning_shop")
 		_transition("rewardPanel")
 	elif _frames == 160:
 		_save("reward")
