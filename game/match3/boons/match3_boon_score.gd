@@ -9,11 +9,13 @@ const EchoesScript = preload("res://game/match3/boons/match3_boon_contribution_e
 const JuiceScript = preload("res://game/match3/boons/match3_boon_juice.gd")
 const DisplayTextScript = preload("res://game/match3/view/match3_score_floating_display_text.gd")
 const TopologyScript = preload("res://game/match3/core/match3_match_topology.gd")
+const FinalizePlaybackScript = preload("res://game/match3/boons/match3_finalize_playback.gd")
 
 const SCORE_CALC_TRIGGER_ITEM_DESTROYED := "item_destroyed"
 const SCORE_CALC_TRIGGER_MATCH_COMPONENT := "match_component"
 const CONTRIBUTION_LIST_FINALIZE := "boonFinalizeSteps"
 const CONTRIBUTION_LIST_RESOLVE := "boonResolveSteps"
+const BOON_SCALING_UP_CALCULATION_ID := "boon_scaling_counter_up"
 
 var _service: GnosisService
 var _rng := RandomNumberGenerator.new()
@@ -23,6 +25,10 @@ var _pending_finalize_echo_steps: Array = []
 
 func _init(service: GnosisService) -> void:
 	_service = service
+
+
+func configure_rng(seed_value: int) -> void:
+	_rng.seed = seed_value
 
 
 func begin_resolve_step(step, results: Array, points: int, multi: int, destroyed_count: int) -> void:
@@ -160,6 +166,8 @@ func apply_resolve_step_cascade(
 func apply_finalize_for_move(results: Array, points: int, multi: int) -> Dictionary:
 	if _service.context == null or _service.context.store == null or results.is_empty():
 		return {"points": points, "multi": multi}
+	if _service.has_method("sync_floor_modifier_tile_statistics_from_grid"):
+		_service.call("sync_floor_modifier_tile_statistics_from_grid")
 	var points_sv := SupportScript.scalable_from_int(points)
 	var multi_sv := SupportScript.scalable_from_int(maxi(1, multi))
 	var destroyed := _count_destroyed(results)
@@ -172,6 +180,7 @@ func apply_finalize_for_move(results: Array, points: int, multi: int) -> Diction
 			"steelFinalizeStepCount",
 			_count_cell_floor_finalize_steps_for_type(results, "Steel")
 		)
+	ScalingScript.apply_move_finalize_scaling_increments(_service, self, results, points, multi)
 	_ensure_contribution_list(payload, CONTRIBUTION_LIST_FINALIZE)
 	_run_finalize_calcs(payload)
 	var finalize_steps := _copy_contribution_steps(payload, CONTRIBUTION_LIST_FINALIZE)
@@ -180,6 +189,8 @@ func apply_finalize_for_move(results: Array, points: int, multi: int) -> Diction
 	var scoring_result = _last_scoring_match_result(results)
 	if scoring_result != null and "boon_finalize_steps" in scoring_result:
 		scoring_result.boon_finalize_steps = finalize_steps
+	if scoring_result != null:
+		scoring_result.finalize_playback_steps = FinalizePlaybackScript.build_from_match_result(scoring_result)
 	return _totals_from_payload(payload, points, multi)
 
 
@@ -251,6 +262,68 @@ func _run_finalize_calcs(payload: GnosisNode) -> void:
 				false,
 				true
 			)
+			_try_apply_scaling_counter_increments_after_calc(
+				calc,
+				slot_entry,
+				boon_id,
+				slot_index,
+				payload,
+				CONTRIBUTION_LIST_FINALIZE
+			)
+
+
+func _try_apply_scaling_counter_increments_after_calc(
+	calc: GnosisNode,
+	slot_entry: GnosisNode,
+	boon_id: String,
+	slot_index: int,
+	payload: GnosisNode,
+	contribution_list_key: String
+) -> void:
+	var list := calc.get_node("incrementScalingCountersAfterApply")
+	if not list.is_valid() or list.get_type() != GnosisValueType.LIST or list.get_count() == 0:
+		return
+	if slot_entry == null or not slot_entry.is_valid() or _service.context == null or _service.context.store == null:
+		return
+	var props := slot_entry.get_node("properties")
+	if not props.is_valid() or props.get_type() != GnosisValueType.OBJECT:
+		props = _service.context.store.create_object()
+		slot_entry.set_node("properties", props)
+	var scaling := props.get_node("scaling")
+	if not scaling.is_valid() or scaling.get_type() != GnosisValueType.OBJECT:
+		scaling = _service.context.store.create_object()
+		props.set_node("scaling", scaling)
+	var counters := scaling.get_node("counters")
+	if not counters.is_valid() or counters.get_type() != GnosisValueType.OBJECT:
+		counters = _service.context.store.create_object()
+		scaling.set_node("counters", counters)
+	var bumped := false
+	for i in list.get_count():
+		var entry := list.get_node(i)
+		if not entry.is_valid() or entry.get_type() != GnosisValueType.OBJECT:
+			continue
+		var key := SupportScript._node_str(entry, "counter")
+		if key.is_empty():
+			continue
+		var delta := SupportScript._node_int(entry, "delta", 1)
+		if delta == 0:
+			continue
+		var cur := SupportScript._node_int(counters, key, 0)
+		counters.set_key(key, cur + delta)
+		bumped = true
+	if bumped:
+		_append_contribution_step(
+			payload,
+			contribution_list_key,
+			boon_id,
+			slot_index,
+			BOON_SCALING_UP_CALCULATION_ID,
+			0,
+			0,
+			"",
+			"UP"
+		)
+		SupportScript.publish_ephemeral_state(_service)
 
 
 func _run_resolve_step_calcs(
@@ -691,7 +764,12 @@ func _score_calc_uses_trigger(calc: GnosisNode, trigger_id: String) -> bool:
 
 
 func _resolve_score_expr_binding(path: String, payload: GnosisNode, parameters: GnosisNode) -> float:
-	var node := _resolve_context_path(path.strip_edges(), payload, parameters)
+	var trimmed := path.strip_edges()
+	if trimmed.to_lower().begins_with("ephemeral.statistics."):
+		var subpath := trimmed.substr("ephemeral.statistics.".length())
+		if _service.has_method("get_statistic_int"):
+			return float(_service.call("get_statistic_int", subpath, 0))
+	var node := _resolve_context_path(trimmed, payload, parameters)
 	return _read_double(node, 0.0)
 
 
@@ -746,56 +824,18 @@ func _count_destroyed(results: Array) -> int:
 
 
 func _accumulate_axis_straight_line_match_counts(results: Array) -> Dictionary:
-	var match3 := 0
-	var match4 := 0
-	var match5 := 0
-	var counts := {"match3": match3, "match4": match4, "match5": match5}
+	var counts := {"match3": 0, "match4": 0, "match5": 0}
 	for step in results:
-		if step == null or not ("matched_tiles" in step):
+		if step == null or not ("topology_components" in step):
 			continue
-		var tiles: Array = step.matched_tiles
-		if tiles.is_empty():
-			continue
-		var by_row: Dictionary = {}
-		var by_col: Dictionary = {}
-		for coord in tiles:
-			var x := int(coord.x) if "x" in coord else 0
-			var y := int(coord.y) if "y" in coord else 0
-			if not by_row.has(y):
-				by_row[y] = []
-			if not by_col.has(x):
-				by_col[x] = []
-			(by_row[y] as Array).append(x)
-			(by_col[x] as Array).append(y)
-		for y in by_row.keys():
-			_add_axis_run_counts(_sorted_int_array(by_row[y]), counts)
-		for x in by_col.keys():
-			_add_axis_run_counts(_sorted_int_array(by_col[x]), counts)
+		for topo in step.topology_components:
+			if not (topo is Dictionary):
+				continue
+			var inc := TopologyScript.increment_axis_straight_line_run_counts(str(topo.get("shapeKind", "")))
+			counts["match3"] += int(inc.get("match3", 0))
+			counts["match4"] += int(inc.get("match4", 0))
+			counts["match5"] += int(inc.get("match5", 0))
 	return counts
-
-
-func _add_axis_run_counts(sorted_coords: Array, counts: Dictionary) -> void:
-	if sorted_coords.size() < 3:
-		return
-	var run_start := 0
-	for i in range(1, sorted_coords.size() + 1):
-		var contiguous := i < sorted_coords.size() and int(sorted_coords[i]) == int(sorted_coords[i - 1]) + 1
-		if contiguous:
-			continue
-		var run_len := i - run_start
-		if run_len >= 5:
-			counts["match5"] = int(counts.get("match5", 0)) + 1
-		elif run_len == 4:
-			counts["match4"] = int(counts.get("match4", 0)) + 1
-		elif run_len == 3:
-			counts["match3"] = int(counts.get("match3", 0)) + 1
-		run_start = i
-
-
-func _sorted_int_array(values: Array) -> Array:
-	var copy := values.duplicate()
-	copy.sort()
-	return copy
 
 
 func _sum_palette_destroyed(counters: Dictionary, palette: Array[String]) -> int:

@@ -109,10 +109,12 @@ class MatchResult:
 	var cleared_tile_count_this_step: int = 0
 	var floor_float_pops: Array = []
 	var floor_cells_cleared: Array = []
+	var floor_cells_placed: Array = []
 	var cell_floor_finalize_steps: Array = []
 	var cell_floor_lucky_successful_trigger_count: int = 0
 	var boon_resolve_steps: Array = []
 	var boon_finalize_steps: Array = []
+	var finalize_playback_steps: Array = []
 	var topology_components: Array = []
 
 

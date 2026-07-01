@@ -17,6 +17,36 @@ const SHAPE_V6 := "straight_line_vertical_six_plus"
 const SHAPE_INTERSECTION := "intersection_lt_plus"
 const SHAPE_IRREGULAR := "irregular"
 
+const UNITY_SHAPE_NAMES := {
+	"StraightLineHorizontalThree": SHAPE_H3,
+	"StraightLineVerticalThree": SHAPE_V3,
+	"StraightLineHorizontalFour": SHAPE_H4,
+	"StraightLineVerticalFour": SHAPE_V4,
+	"StraightLineHorizontalFive": SHAPE_H5,
+	"StraightLineVerticalFive": SHAPE_V5,
+	"StraightLineHorizontalSixPlus": SHAPE_H6,
+	"StraightLineVerticalSixPlus": SHAPE_V6,
+	"IntersectionLTPlus": SHAPE_INTERSECTION,
+	"Irregular": SHAPE_IRREGULAR,
+	"Unknown": SHAPE_UNKNOWN,
+}
+
+
+static func shape_kind_from_json_name(shape_name: String) -> String:
+	var trimmed := shape_name.strip_edges()
+	if trimmed.is_empty():
+		return SHAPE_UNKNOWN
+	if UNITY_SHAPE_NAMES.has(trimmed):
+		return UNITY_SHAPE_NAMES[trimmed]
+	var snake := trimmed.to_snake_case().to_lower()
+	for kind in [
+		SHAPE_H3, SHAPE_V3, SHAPE_H4, SHAPE_V4, SHAPE_H5, SHAPE_V5,
+		SHAPE_H6, SHAPE_V6, SHAPE_INTERSECTION, SHAPE_IRREGULAR, SHAPE_UNKNOWN,
+	]:
+		if kind == snake:
+			return kind
+	return SHAPE_UNKNOWN
+
 
 static func fill_result_topology(result: Models.MatchResult, matched: Dictionary) -> void:
 	if result == null:

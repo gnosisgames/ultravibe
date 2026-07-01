@@ -104,6 +104,30 @@ static func apply_resolve_step_scaling_increments(
 	_apply_scaling_increments_for_on(service, payload, score_helper, "resolve_step", false)
 
 
+static func apply_move_finalize_scaling_increments(
+	service: GnosisService,
+	score_helper: RefCounted,
+	results: Array,
+	points: int,
+	multi: int
+) -> void:
+	if service == null or results.is_empty() or score_helper == null:
+		return
+	if not score_helper.has_method("_build_score_finalize_payload"):
+		return
+	var destroyed := 0
+	if score_helper.has_method("_count_destroyed"):
+		destroyed = int(score_helper.call("_count_destroyed", results))
+	var payload: GnosisNode = score_helper.call(
+		"_build_score_finalize_payload",
+		SupportScript.scalable_from_int(points),
+		SupportScript.scalable_from_int(maxi(1, multi)),
+		destroyed,
+		results
+	)
+	_apply_scaling_increments_for_on(service, payload, score_helper, "move_finalize", false)
+
+
 static func apply_round_end_scaling_increments(service: GnosisService, score_helper: RefCounted) -> void:
 	if service == null or service.context == null or service.context.store == null:
 		return

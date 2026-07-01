@@ -29,6 +29,7 @@ var _boon_resolve_step_cascade_hook: Callable = Callable()
 var _cell_floor_scoring_hook: Callable = Callable()
 var _cell_floor_finalize_hook: Callable = Callable()
 var _cell_floor_griefing_hook: Callable = Callable()
+var _match_floor_conversion_hook: Callable = Callable()
 
 
 func configure_rng(seed_value: int) -> void:
@@ -65,6 +66,10 @@ func set_cell_floor_finalize_hook(hook: Callable) -> void:
 
 func set_cell_floor_griefing_hook(hook: Callable) -> void:
 	_cell_floor_griefing_hook = hook
+
+
+func set_match_floor_conversion_hook(hook: Callable) -> void:
+	_match_floor_conversion_hook = hook
 
 
 func load_level(
@@ -238,6 +243,9 @@ func _process_step(
 		tile.item_id = ""
 		tile.item_kind = Models.KIND_NORMAL
 		tile.item_type_id = "plain"
+
+	if _match_floor_conversion_hook.is_valid():
+		_match_floor_conversion_hook.call(current_match)
 
 	const MAX_SETTLE := 32
 	for _i in MAX_SETTLE:

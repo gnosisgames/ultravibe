@@ -217,10 +217,84 @@ static func _record_floor_cleared(match_result: Models.MatchResult, coord: Model
 	match_result.floor_cells_cleared.append({"x": coord.x, "y": coord.y})
 
 
+static func try_set_cell_floor_at(
+	service: GnosisService,
+	x: int,
+	y: int,
+	floor_type_id: String,
+	match_result: Models.MatchResult,
+	replace_existing: bool = true
+) -> bool:
+	if service == null or match_result == null:
+		return false
+	var want := floor_type_id.strip_edges()
+	if want.is_empty():
+		return false
+	if service.has_method("are_cell_floor_modifiers_disabled") and service.call("are_cell_floor_modifiers_disabled"):
+		return false
+	var gameplay = service.get_gameplay() if service.has_method("get_gameplay") else null
+	if gameplay == null:
+		return false
+	var tile = gameplay.get_tile(x, y)
+	if tile == null or not tile.can_hold_item():
+		return false
+	var row := _floor_type_row(service, want)
+	if not row.is_valid():
+		return false
+	var prev: String = tile.cell_floor_type_id.strip_edges()
+	if not replace_existing and not prev.is_empty():
+		return false
+	if prev.to_lower() == want.to_lower():
+		return false
+	tile.cell_floor_type_id = want
+	if service.has_method("play_cell_floor_type_sfx"):
+		service.call("play_cell_floor_type_sfx", row, "addSfxClipId")
+	notify_enhanced_floor_added(service, want, prev)
+	_record_floor_placed(match_result, Models.TileCoord.new(x, y), want, row)
+	return true
+
+
+static func _record_floor_placed(
+	match_result: Models.MatchResult,
+	coord: Models.TileCoord,
+	floor_type_id: String,
+	type_row: GnosisNode
+) -> void:
+	if match_result == null or floor_type_id.strip_edges().is_empty():
+		return
+	for entry in match_result.floor_cells_placed:
+		if int(entry.get("x", -1)) == coord.x and int(entry.get("y", -1)) == coord.y:
+			return
+	var sprite_id := ""
+	var sort_base := 55
+	if type_row != null and type_row.is_valid() and type_row.get_type() == GnosisValueType.OBJECT:
+		var metadata := type_row.get_node("metadata")
+		if metadata.is_valid():
+			sprite_id = str(metadata.get_node("spriteId").value if metadata.get_node("spriteId").is_valid() else "").strip_edges()
+		if sprite_id.is_empty():
+			var props := type_row.get_node("properties")
+			if props.is_valid():
+				sprite_id = str(props.get_node("spriteId").value if props.get_node("spriteId").is_valid() else "").strip_edges()
+		var sort_node := type_row.get_node("properties").get_node("sortingOrderBase")
+		if sort_node.is_valid() and sort_node.value != null:
+			sort_base = int(sort_node.value)
+	match_result.floor_cells_placed.append({
+		"x": coord.x,
+		"y": coord.y,
+		"cellFloorTypeId": floor_type_id.strip_edges(),
+		"spriteId": sprite_id,
+		"sortingOrderBase": sort_base,
+	})
+
+
 static func _play_floor_remove_sfx(service: GnosisService, type_id: String) -> void:
 	var row := _floor_type_row(service, type_id)
 	if row.is_valid() and service.has_method("play_cell_floor_type_sfx"):
 		service.call("play_cell_floor_type_sfx", row, "removeSfxClipId")
+
+
+static func floor_type_row(service: GnosisService, type_id: String) -> GnosisNode:
+	return _floor_type_row(service, type_id)
 
 
 static func _floor_type_row(service: GnosisService, type_id: String) -> GnosisNode:

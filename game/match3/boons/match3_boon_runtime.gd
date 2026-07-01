@@ -110,6 +110,11 @@ func apply_resolve_step_scaling_for_step(step) -> void:
 	ScalingScript.apply_resolve_step_scaling_increments(_service, _score, step)
 
 
+func configure_rng(seed_value: int) -> void:
+	if _score != null and _score.has_method("configure_rng"):
+		_score.configure_rng(seed_value)
+
+
 func on_round_boundary(previous_round: int, new_round: int) -> void:
 	_grants.try_grant_hype_train_round_start_common_boons(previous_round, new_round)
 	_previous_round_for_boon_hooks = new_round

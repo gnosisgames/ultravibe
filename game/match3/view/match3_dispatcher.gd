@@ -12,6 +12,8 @@ const SparklesScene = preload("res://game/match3/view/match3_sparkles.tscn")
 const BoardFloatJuiceScript = preload("res://game/match3/view/match3_board_float_juice.gd")
 const Match3ScoreFloatingDisplayText = preload("res://game/match3/view/match3_score_floating_display_text.gd")
 const Match3FloorSpritesScript = preload("res://game/match3/view/match3_floor_sprites.gd")
+const FinalizePlaybackScript = preload("res://game/match3/boons/match3_finalize_playback.gd")
+const Match3CellFloorBoardScript = preload("res://game/match3/core/match3_cell_floor_board.gd")
 const Match3BoonJuiceScript = preload("res://game/match3/boons/match3_boon_juice.gd")
 const Events = Match3EventsScript
 
@@ -202,12 +204,16 @@ func play_move_sequence(payload: GnosisNode) -> void:
 				await _animate_step(steps.get_node(i))
 				if INTER_STEP_DELAY > 0.0:
 					await _wait(INTER_STEP_DELAY)
-		var finalize_steps := payload.get_node("cellFloorFinalizeSteps")
-		if finalize_steps.is_valid() and finalize_steps.get_type() == GnosisValueType.LIST:
-			await _animate_cell_floor_finalize_steps(finalize_steps)
-		var boon_finalize_steps := payload.get_node("boonFinalizeSteps")
-		if boon_finalize_steps.is_valid() and boon_finalize_steps.get_type() == GnosisValueType.LIST:
-			await _animate_boon_resolve_steps(boon_finalize_steps)
+		var playback_steps := payload.get_node("finalizePlaybackSteps")
+		if playback_steps.is_valid() and playback_steps.get_type() == GnosisValueType.LIST and playback_steps.get_count() > 0:
+			await _animate_finalize_playback_steps(playback_steps)
+		else:
+			var finalize_steps := payload.get_node("cellFloorFinalizeSteps")
+			if finalize_steps.is_valid() and finalize_steps.get_type() == GnosisValueType.LIST:
+				await _animate_cell_floor_finalize_steps(finalize_steps)
+			var boon_finalize_steps := payload.get_node("boonFinalizeSteps")
+			if boon_finalize_steps.is_valid() and boon_finalize_steps.get_type() == GnosisValueType.LIST:
+				await _animate_boon_resolve_steps(boon_finalize_steps)
 	elif a.x >= 0 and b.x >= 0:
 		_play_sfx(SFX_SWAP, false, 2.0, 0.3)
 		await _animate_swap(a, b)
@@ -240,6 +246,7 @@ func _animate_step(step: GnosisNode) -> void:
 		return
 	await _animate_destroy(step.get_node("matched"), step.get_node("contributions"), true, true, step)
 	_apply_floor_cells_cleared(step)
+	_apply_floor_cells_placed(step)
 	await _animate_boon_resolve_steps(step.get_node("boonResolveSteps"))
 	await _animate_moves(step.get_node("movements"))
 	await _animate_spawns(step.get_node("spawns"))
@@ -264,6 +271,79 @@ func _apply_floor_cells_cleared(step: GnosisNode) -> void:
 				cell["cellFloorTypeId"] = ""
 				break
 	queue_redraw()
+
+
+func _apply_floor_cells_placed(step: GnosisNode) -> void:
+	if step == null or not step.is_valid():
+		return
+	var placed := step.get_node("floorCellsPlaced")
+	if not placed.is_valid() or placed.get_type() != GnosisValueType.LIST:
+		return
+	for i in placed.get_count():
+		var p = placed.get_node(i)
+		if not p.is_valid():
+			continue
+		var x := _node_int(p, "x", -1)
+		var y := _node_int(p, "y", -1)
+		if x < 0 or y < 0:
+			continue
+		var floor_type_id := _node_string(p, "cellFloorTypeId", "")
+		for cell in _cells:
+			if int(cell.get("x", -1)) == x and int(cell.get("y", -1)) == y:
+				cell["cellFloorTypeId"] = floor_type_id
+				break
+		if _service != null and _service.has_method("get_gameplay"):
+			var gameplay = _service.get_gameplay()
+			if gameplay != null:
+				var tile = gameplay.get_tile(x, y)
+				if tile != null:
+					tile.cell_floor_type_id = floor_type_id
+		if not floor_type_id.is_empty() and _service != null and _service.has_method("play_cell_floor_type_sfx"):
+			var type_row := Match3CellFloorBoardScript.floor_type_row(_service, floor_type_id)
+			_service.call("play_cell_floor_type_sfx", type_row, "addSfxClipId")
+		_pulse_floor_cell(x, y)
+	queue_redraw()
+
+
+func _animate_finalize_playback_steps(steps: GnosisNode) -> void:
+	for i in steps.get_count():
+		var step = steps.get_node(i)
+		if not step.is_valid():
+			continue
+		var kind := _node_string(step, "playbackKind", "").to_lower()
+		if kind == FinalizePlaybackScript.KIND_CELL_FLOOR:
+			var x := _node_int(step, "x", -1)
+			var y := _node_int(step, "y", -1)
+			if x < 0 or y < 0:
+				continue
+			_pulse_floor_cell(x, y)
+			var multi_delta := _node_int(step, "multiDelta", 0)
+			var display := _node_string(step, "multiDisplayText", "")
+			if display.is_empty() and multi_delta > 0:
+				display = Match3ScoreFloatingDisplayText.build_multi_add(multi_delta)
+			if not display.is_empty():
+				var anchor := _item_position(x, y) + cell_size * 0.5
+				BoardFloatJuiceScript.spawn_labeled_popup(
+					self,
+					anchor,
+					display,
+					BoardFloatJuiceScript.COLOR_MULTI,
+					0.0
+				)
+			await _wait(0.18)
+		elif (
+			kind == FinalizePlaybackScript.KIND_BOON_SCORE
+			or kind == FinalizePlaybackScript.KIND_BOON_ECHO
+		):
+			await _animate_boon_resolve_steps(_wrap_single_step(step))
+
+
+func _wrap_single_step(step: GnosisNode) -> GnosisNode:
+	if step == null or not step.is_valid() or _service == null or _service.context == null:
+		return GnosisNode.new(null)
+	var list := _service.context.store.create_list()
+	list.add(step)
+	return list
 
 
 func _animate_cell_floor_finalize_steps(steps: GnosisNode) -> void:

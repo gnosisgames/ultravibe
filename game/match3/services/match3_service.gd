@@ -13,6 +13,7 @@ const Match3Match3EffectsScript = preload("res://game/match3/effects/match3_matc
 const Match3CellFloorRuntimeScript = preload("res://game/match3/core/match3_cell_floor_runtime.gd")
 const Match3CellFloorBoardScript = preload("res://game/match3/core/match3_cell_floor_board.gd")
 const Match3BoonScalingScript = preload("res://game/match3/boons/match3_boon_scaling.gd")
+const Match3BoonMatchFloorConversionsScript = preload("res://game/match3/boons/match3_boon_match_floor_conversions.gd")
 const Match3BoonJuiceScript = preload("res://game/match3/boons/match3_boon_juice.gd")
 const SupportScript = preload("res://game/match3/boons/match3_boon_support.gd")
 
@@ -106,6 +107,7 @@ func on_initialize() -> void:
 	_gameplay.set_cell_floor_scoring_hook(Callable(_cell_floor_runtime, "on_scoring_destroy"))
 	_gameplay.set_cell_floor_finalize_hook(Callable(_cell_floor_runtime, "on_move_finalize"))
 	_gameplay.set_cell_floor_griefing_hook(Callable(_cell_floor_runtime, "on_griefing_pre_score"))
+	_gameplay.set_match_floor_conversion_hook(Callable(self, "_apply_match_floor_conversions_after_clear"))
 	_gameplay.set_tile_score_resolver(Callable(self, "_resolve_item_score_profile"))
 	_gameplay.status = Models.STATUS_LEVEL_SELECT_PANEL
 	_publish_ephemeral_state()
@@ -205,6 +207,15 @@ func play_cell_floor_type_sfx(type_row: GnosisNode, key: String) -> void:
 		return
 	var options := context.store.create_object()
 	audio.play_sound(clip_id, 0, false, false, options)
+
+
+func _apply_match_floor_conversions_after_clear(match_result: Models.MatchResult) -> void:
+	Match3BoonMatchFloorConversionsScript.try_apply_after_match_clear(self, match_result)
+
+
+func configure_boon_score_rng(seed_value: int) -> void:
+	if _boon_runtime != null and _boon_runtime.has_method("configure_rng"):
+		_boon_runtime.configure_rng(seed_value)
 
 
 func play_boon_scaling_juice_now(slot_index: int, counter_key: String = "") -> void:
@@ -663,13 +674,24 @@ func get_last_move_score() -> int:
 func get_statistic_int(path: String, fallback: int = 0) -> int:
 	if context == null or context.engine == null:
 		return fallback
+	var key := path.strip_edges()
+	if key.is_empty():
+		return fallback
+	var statistic = context.engine.get_service("Statistic")
+	if statistic != null and statistic.has_method("get_value"):
+		var event_data = statistic.get_value(false, key)
+		if event_data != null and event_data.is_valid():
+			var value_node: GnosisNode = event_data.get_node("value")
+			if value_node.is_valid() and value_node.value != null:
+				return int(value_node.value)
+	_ensure_statistics_root()
 	var stats := get_node("statistics", false)
 	if not stats.is_valid():
 		return fallback
-	var node := stats.get_node(path.strip_edges())
-	if not node.is_valid() or node.value == null:
-		return fallback
-	return int(node.value)
+	var node := stats.get_node(key)
+	if node.is_valid() and node.value != null:
+		return int(node.value)
+	return fallback
 
 
 ## Resolves the display metadata for the current round's level/boss profile from
@@ -841,7 +863,10 @@ func _apply_round_setup(level_number: int) -> void:
 	_current_round = maxi(1, level_number)
 	var seed_svc = context.engine.get_service("Seed") if context and context.engine else null
 	if seed_svc and seed_svc.has_method("get_run_seed"):
-		_gameplay.configure_rng(int(seed_svc.get_run_seed()))
+		var run_seed := int(seed_svc.get_run_seed())
+		_gameplay.configure_rng(run_seed)
+		if _boon_runtime != null and _boon_runtime.has_method("configure_rng"):
+			_boon_runtime.configure_rng(run_seed)
 	var setup := _resolve_round_setup(_current_round)
 	var layout = _load_board_layout(str(setup.get("board_id", DEFAULT_BOARD_ID)))
 	if layout == null:
@@ -1568,6 +1593,19 @@ func _publish_move_resolved(a, b, success: bool, results: Array) -> void:
 				floor_cleared.add(cleared_node)
 			if floor_cleared.get_count() > 0:
 				step.set_node("floorCellsCleared", floor_cleared)
+			var floor_placed := context.store.create_list()
+			for placed in entry.floor_cells_placed:
+				if not (placed is Dictionary):
+					continue
+				var placed_node := context.store.create_object()
+				placed_node.set_key("x", int(placed.get("x", 0)))
+				placed_node.set_key("y", int(placed.get("y", 0)))
+				placed_node.set_key("cellFloorTypeId", str(placed.get("cellFloorTypeId", "")))
+				placed_node.set_key("spriteId", str(placed.get("spriteId", "")))
+				placed_node.set_key("sortingOrderBase", int(placed.get("sortingOrderBase", 55)))
+				floor_placed.add(placed_node)
+			if floor_placed.get_count() > 0:
+				step.set_node("floorCellsPlaced", floor_placed)
 			var finalize_steps := context.store.create_list()
 			for fin_step in entry.cell_floor_finalize_steps:
 				if not (fin_step is Dictionary):
@@ -1632,6 +1670,24 @@ func _publish_move_resolved(a, b, success: bool, results: Array) -> void:
 			boon_finalize.add(fin_node)
 	if boon_finalize.get_count() > 0:
 		payload.set_node("boonFinalizeSteps", boon_finalize)
+	const PlaybackScript = preload("res://game/match3/boons/match3_finalize_playback.gd")
+	var playback_steps := context.store.create_list()
+	if scoring_entry != null and "finalize_playback_steps" in scoring_entry:
+		for pb_step in scoring_entry.finalize_playback_steps:
+			if not (pb_step is Dictionary):
+				continue
+			var pb_node := context.store.create_object()
+			for key in pb_step.keys():
+				pb_node.set_key(str(key), pb_step[key])
+			playback_steps.add(pb_node)
+	if playback_steps.get_count() == 0 and scoring_entry != null:
+		for tagged in PlaybackScript.build_from_match_result(scoring_entry):
+			var pb_node := context.store.create_object()
+			for key in tagged.keys():
+				pb_node.set_key(str(key), tagged[key])
+			playback_steps.add(pb_node)
+	if playback_steps.get_count() > 0:
+		payload.set_node("finalizePlaybackSteps", playback_steps)
 	payload.set_node("steps", steps)
 	_publish_fact(Events.FACT_MATCH3_MOVE_RESOLVED, payload)
 
