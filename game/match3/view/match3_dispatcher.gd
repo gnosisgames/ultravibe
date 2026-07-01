@@ -10,6 +10,7 @@ const Match3ModelsScript = preload("res://game/match3/core/match3_models.gd")
 const Match3EventsScript = preload("res://game/match3/match3_events.gd")
 const SparklesScene = preload("res://game/match3/view/match3_sparkles.tscn")
 const BoardFloatJuiceScript = preload("res://game/match3/view/match3_board_float_juice.gd")
+const Match3ScoreFloatingDisplayText = preload("res://game/match3/view/match3_score_floating_display_text.gd")
 const Match3FloorSpritesScript = preload("res://game/match3/view/match3_floor_sprites.gd")
 const Events = Match3EventsScript
 
@@ -230,7 +231,7 @@ func play_shuffle_sequence(payload: GnosisNode) -> void:
 func _animate_step(step: GnosisNode) -> void:
 	if step == null or not step.is_valid():
 		return
-	await _animate_destroy(step.get_node("matched"), step.get_node("contributions"))
+	await _animate_destroy(step.get_node("matched"), step.get_node("contributions"), true, true, step)
 	await _animate_moves(step.get_node("movements"))
 	await _animate_spawns(step.get_node("spawns"))
 
@@ -307,7 +308,8 @@ func _animate_destroy(
 	matched: GnosisNode,
 	contributions: GnosisNode,
 	show_score: bool = true,
-	play_match_sfx: bool = true
+	play_match_sfx: bool = true,
+	step: GnosisNode = null
 ) -> void:
 	if matched == null or not matched.is_valid() or matched.get_type() != GnosisValueType.LIST:
 		return
@@ -315,6 +317,7 @@ func _animate_destroy(
 		_combo_count += 1
 		_play_match_sfx()
 	var contrib_map := _build_contribution_lookup(contributions)
+	var floor_pop_map := _build_floor_pop_lookup(step)
 	var nodes: Array = []
 	for i in matched.get_count():
 		var c = matched.get_node(i)
@@ -334,6 +337,7 @@ func _animate_destroy(
 		var contrib: GnosisNode = entry["contrib"]
 		if show_score:
 			_spawn_destroy_score_popups(node, contrib)
+		_spawn_floor_bonus_popups(node, floor_pop_map.get(key, null))
 		_spawn_sparkles(node)
 		_prep_destroy(node)
 		batch.tween_property(node, "scale", Vector2.ZERO, DESTROY_DURATION) \
@@ -358,6 +362,55 @@ func _build_contribution_lookup(contributions: GnosisNode) -> Dictionary:
 		var key := _key(_node_int(contrib, "x", 0), _node_int(contrib, "y", 0))
 		map[key] = contrib
 	return map
+
+
+func _build_floor_pop_lookup(step: GnosisNode) -> Dictionary:
+	var map: Dictionary = {}
+	if step == null or not step.is_valid():
+		return map
+	var pops := step.get_node("floorFloatPops")
+	if not pops.is_valid() or pops.get_type() != GnosisValueType.LIST:
+		return map
+	for i in pops.get_count():
+		var pop = pops.get_node(i)
+		if not pop.is_valid():
+			continue
+		var key := _key(_node_int(pop, "x", 0), _node_int(pop, "y", 0))
+		map[key] = pop
+	return map
+
+
+func _spawn_floor_bonus_popups(node: Control, pop: GnosisNode) -> void:
+	if node == null or pop == null or not pop.is_valid():
+		return
+	var anchor := node.position + node.size * 0.5
+	var points := _node_int(pop, "pointsDelta", 0)
+	var multi := _node_int(pop, "multiDelta", 0)
+	var money := _node_int(pop, "moneyDelta", 0)
+	if points > 0:
+		BoardFloatJuiceScript.spawn_labeled_popup(
+			self,
+			anchor + Vector2(0, -18),
+			Match3ScoreFloatingDisplayText.build_points_add(points),
+			BoardFloatJuiceScript.COLOR_POINTS,
+			0.08
+		)
+	if multi > 0:
+		BoardFloatJuiceScript.spawn_labeled_popup(
+			self,
+			anchor + Vector2(0, 10),
+			Match3ScoreFloatingDisplayText.build_multi_add(multi),
+			BoardFloatJuiceScript.COLOR_MULTI,
+			0.12
+		)
+	if money > 0:
+		BoardFloatJuiceScript.spawn_labeled_popup(
+			self,
+			anchor,
+			Match3ScoreFloatingDisplayText.build_points_add(money),
+			BoardFloatJuiceScript.COLOR_MONEY,
+			0.0
+		)
 
 
 func _spawn_destroy_score_popups(node: Control, contrib: GnosisNode) -> void:

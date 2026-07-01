@@ -107,3 +107,5 @@ class MatchResult:
 	var final_score_for_move: int = 0
 	var scoring_eligible_destroy_count: int = 0
 	var cleared_tile_count_this_step: int = 0
+	var floor_float_pops: Array = []
+	var floor_cells_cleared: Array = []

@@ -204,6 +204,19 @@ static func _is_board_grid_ready(gameplay) -> bool:
 	return row.size() == gameplay.width
 
 
+static func consume_one_from_pool(pool: GnosisNode, floor_type_id: String) -> bool:
+	var tid := floor_type_id.strip_edges()
+	if tid.is_empty() or tid.to_lower() == KEY_EMPTY.to_lower() or tid.to_lower() == KEY_RANDOM.to_lower():
+		return false
+	var counts := read_pool_dict(pool)
+	if int(counts.get(tid, 0)) <= 0:
+		return false
+	counts[tid] = int(counts[tid]) - 1
+	counts[KEY_EMPTY] = int(counts.get(KEY_EMPTY, 0)) + 1
+	write_pool_dict(pool, counts)
+	return true
+
+
 static func pool_sum(counts: Dictionary) -> int:
 	var total := 0
 	for key in counts.keys():

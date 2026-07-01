@@ -10,6 +10,7 @@ const Match3BoardLayoutScript = preload("res://game/match3/core/match3_board_lay
 const Match3FloorModifierPoolScript = preload("res://game/match3/core/match3_floor_modifier_pool.gd")
 const Match3BoonRuntimeScript = preload("res://game/match3/boons/match3_boon_runtime.gd")
 const Match3Match3EffectsScript = preload("res://game/match3/effects/match3_match3_effects.gd")
+const Match3CellFloorRuntimeScript = preload("res://game/match3/core/match3_cell_floor_runtime.gd")
 const SupportScript = preload("res://game/match3/boons/match3_boon_support.gd")
 
 const Events = Match3EventsScript
@@ -74,6 +75,7 @@ var _round_action_reward_locks: Dictionary = {}
 var _consumable_use_presentation_pending := false
 var _boon_runtime: RefCounted = null
 var _match3_effects: RefCounted = null
+var _cell_floor_runtime: RefCounted = null
 
 var _move_subscription: RefCounted = null
 var _reset_subscription: RefCounted = null
@@ -90,10 +92,13 @@ func on_initialize() -> void:
 	_hydrate_runtime_from_store()
 	_boon_runtime = Match3BoonRuntimeScript.new(self)
 	_match3_effects = Match3Match3EffectsScript.new(self)
+	_cell_floor_runtime = Match3CellFloorRuntimeScript.new(self)
 	var m3 := get_node("match3", false)
 	if m3.is_valid() and _match3_effects != null:
 		_match3_effects.hydrate_from_store(m3)
 	_gameplay.set_boon_score_finalize_hook(Callable(_boon_runtime, "apply_finalize_for_move"))
+	_gameplay.set_cell_floor_scoring_hook(Callable(_cell_floor_runtime, "on_scoring_destroy"))
+	_gameplay.set_cell_floor_finalize_hook(Callable(_cell_floor_runtime, "on_move_finalize"))
 	_gameplay.set_tile_score_resolver(Callable(self, "_resolve_item_score_profile"))
 	_gameplay.status = Models.STATUS_LEVEL_SELECT_PANEL
 	_publish_ephemeral_state()
@@ -165,6 +170,18 @@ func invoke_function(name: String, parameters: GnosisNode) -> Variant:
 
 func get_gameplay():
 	return _gameplay
+
+
+func are_cell_floor_modifiers_disabled() -> bool:
+	return _match3_effects != null and _match3_effects.disable_all_cell_floor_modifiers
+
+
+func add_manual_shuffles(delta: int) -> void:
+	_manual_shuffles_remaining = maxi(0, _manual_shuffles_remaining + delta)
+
+
+func add_current_moves(delta: int) -> void:
+	_gameplay.current_moves = maxi(0, _gameplay.current_moves + delta)
 
 
 ## Positive counts per enhanced floor type in the run pool (HUD left-rail tile panel).
@@ -1359,6 +1376,30 @@ func _publish_move_resolved(a, b, success: bool, results: Array) -> void:
 			s.set_key("itemId", sp.item_id)
 			spawns.add(s)
 		step.set_node("spawns", spawns)
+		if entry is Models.MatchResult:
+			var floor_pops := context.store.create_list()
+			for pop in entry.floor_float_pops:
+				if not (pop is Dictionary):
+					continue
+				var pop_node := context.store.create_object()
+				pop_node.set_key("x", int(pop.get("x", 0)))
+				pop_node.set_key("y", int(pop.get("y", 0)))
+				pop_node.set_key("pointsDelta", int(pop.get("pointsDelta", 0)))
+				pop_node.set_key("multiDelta", int(pop.get("multiDelta", 0)))
+				pop_node.set_key("moneyDelta", int(pop.get("moneyDelta", 0)))
+				floor_pops.add(pop_node)
+			if floor_pops.get_count() > 0:
+				step.set_node("floorFloatPops", floor_pops)
+			var floor_cleared := context.store.create_list()
+			for cleared in entry.floor_cells_cleared:
+				if not (cleared is Dictionary):
+					continue
+				var cleared_node := context.store.create_object()
+				cleared_node.set_key("x", int(cleared.get("x", 0)))
+				cleared_node.set_key("y", int(cleared.get("y", 0)))
+				floor_cleared.add(cleared_node)
+			if floor_cleared.get_count() > 0:
+				step.set_node("floorCellsCleared", floor_cleared)
 		steps.add(step)
 	payload.set_node("steps", steps)
 	_publish_fact(Events.FACT_MATCH3_MOVE_RESOLVED, payload)
