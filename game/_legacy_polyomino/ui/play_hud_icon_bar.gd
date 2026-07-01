@@ -1,5 +1,5 @@
 class_name PlayHudIconBar
-extends HBoxContainer
+extends BoxContainer
 
 ## Shared bottom-bar icon row: floating slots, hover tooltips, and icon resolution
 ## from ephemeral inventory entries. Subclasses override category, alignment,
@@ -28,7 +28,7 @@ const ICON_ROOT := "res://assets/icons/"
 @export var dot_filled_color: Color = Color(1, 1, 1, 0.9)
 @export var dot_empty_color: Color = Color(1, 1, 1, 0.22)
 
-var _service: FallingBlockService = null
+var _service: GnosisService = null
 var _tooltip: TooltipPopup = null
 var _tooltip_index := -1
 var _slot_nodes: Array[Control] = []
@@ -41,7 +41,7 @@ func _ready() -> void:
 	_build_tooltip()
 	set_process(true)
 
-func bind_service(service: FallingBlockService) -> void:
+func bind_service(service: GnosisService) -> void:
 	_service = service
 	_last_signature = "__unset__"
 	_refresh()
@@ -79,6 +79,10 @@ func _on_slot_pressed(_index: int) -> void:
 ## bottom edge so icons float up; the topbar overrides this to center instead.
 func _slot_size_flags_vertical() -> int:
 	return Control.SIZE_SHRINK_END
+
+
+func _slot_size_flags_horizontal() -> int:
+	return Control.SIZE_SHRINK_CENTER
 
 func _apply_bar_alignment() -> void:
 	alignment = BoxContainer.ALIGNMENT_BEGIN
@@ -174,6 +178,7 @@ func _make_slot(index: int, details: Dictionary) -> Control:
 	slot.custom_minimum_size = Vector2(slot_size, slot_size + float_offset)
 	slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	slot.size_flags_vertical = _slot_size_flags_vertical()
+	slot.size_flags_horizontal = _slot_size_flags_horizontal()
 
 	var alpha := _slot_alpha(index, details)
 	var icon := TextureRect.new()
@@ -217,12 +222,16 @@ func _make_slot(index: int, details: Dictionary) -> Control:
 	hit.add_theme_stylebox_override("hover", StyleBoxEmpty.new())
 	hit.add_theme_stylebox_override("pressed", StyleBoxEmpty.new())
 	var idx := index
-	hit.pressed.connect(func(): _on_slot_pressed(idx))
+	_connect_slot_hit(hit, idx)
 	hit.mouse_entered.connect(func(): _on_slot_hovered(idx))
 	hit.mouse_exited.connect(_on_slot_unhovered)
 	slot.add_child(hit)
 
 	return slot
+
+
+func _connect_slot_hit(hit: Button, index: int) -> void:
+	hit.pressed.connect(func(): _on_slot_pressed(index))
 
 func _on_slot_hovered(index: int) -> void:
 	UltraUiFx.play_ui_sfx(self, UltraUiFx.CLIP_HOVER, -4.0)

@@ -37,6 +37,9 @@ const BOON_CATALOG_ID_PASSIVE_INCOME := "PassiveIncome"
 const BOON_CATALOG_ID_COOKIE_TIME := "CookieTime"
 const BOON_CATALOG_ID_DOUBLE_DOWN := "DoubleDown"
 const BOON_CATALOG_ID_SLEEPER := "Sleeper"
+const EPHEMERAL_SELECTED_CONSUMABLE_SLOT := "selectedConsumableSlotIndex"
+const CONSUMABLE_JUICE_DISPLAY_USE := "Use"
+const CONSUMABLE_USE_DISPLAY_KEY := "match3__phrase__consumableUse"
 const COLOR_LIMIT_PLAYABLE_SMALL := 42
 const COLOR_LIMIT_PLAYABLE_MEDIUM := 63
 
@@ -63,6 +66,7 @@ var _advanced_board_pool_ids: Array[String] = []
 var _boss_board_pool_ids: Array[String] = []
 var _board_difficulty_by_id: Dictionary = {}
 var _round_action_reward_locks: Dictionary = {}
+var _consumable_use_presentation_pending := false
 
 var _move_subscription: RefCounted = null
 var _reset_subscription: RefCounted = null
@@ -188,6 +192,100 @@ func get_money() -> int:
 	if node != null and node.is_valid():
 		return _node_int(node, "balance", 0)
 	return 0
+
+
+func get_consumable_use_display_text() -> String:
+	if context == null or context.engine == null:
+		return CONSUMABLE_JUICE_DISPLAY_USE
+	var localization = context.engine.get_service("Localization")
+	if localization == null or not localization.has_method("get_string_value"):
+		return CONSUMABLE_JUICE_DISPLAY_USE
+	return localization.get_string_value(CONSUMABLE_USE_DISPLAY_KEY, CONSUMABLE_JUICE_DISPLAY_USE)
+
+
+func select_consumable_slot(index: int) -> void:
+	var count := _consumable_list_count()
+	if count <= 0:
+		return
+	set_node(EPHEMERAL_SELECTED_CONSUMABLE_SLOT, clampi(index, 0, count - 1), false)
+	if context and context.engine:
+		var changed_paths: Array[String] = ["Ephemeral.%s" % EPHEMERAL_SELECTED_CONSUMABLE_SLOT]
+		context.engine.commit("match3", changed_paths)
+
+
+func get_selected_consumable_slot() -> int:
+	var count := _consumable_list_count()
+	if count <= 0:
+		return 0
+	var slot := get_node(EPHEMERAL_SELECTED_CONSUMABLE_SLOT, false)
+	var idx := int(slot.value) if slot.is_valid() and slot.value != null else 0
+	return clampi(idx, 0, count - 1)
+
+
+func request_use_selected_consumable() -> void:
+	try_consume_selected_consumable_presentation()
+
+
+func is_consumable_use_presentation_active() -> bool:
+	return _consumable_use_presentation_pending
+
+
+## Consumes the selected consumable and holds the presentation session open until
+## the HUD calls complete_consumable_use_presentation_hud_step() after juice.
+func try_consume_selected_consumable_presentation() -> bool:
+	return try_consume_consumable_at_slot_presentation(get_selected_consumable_slot())
+
+
+## Unity parity: pointer / controller row uses the consumable at index immediately.
+func try_consume_consumable_at_slot_presentation(index: int) -> bool:
+	if _consumable_use_presentation_pending:
+		return false
+	if context == null or context.store == null:
+		return false
+	var count := _consumable_list_count()
+	if count <= 0:
+		return false
+	index = clampi(index, 0, count - 1)
+	set_node(EPHEMERAL_SELECTED_CONSUMABLE_SLOT, index, false)
+	var consumable_id := _read_consumable_id_at_index(index)
+	if consumable_id.is_empty():
+		return false
+	_begin_consumable_use_presentation_session()
+	var params := context.store.create_object()
+	params.set_key("consumableId", consumable_id)
+	params.set_key("bucketId", "default")
+	var result = call_service("Consumable", "ConsumeConsumable", params)
+	if _coerce_result_node(result) != null:
+		_publish_ephemeral_state()
+		return true
+	_end_consumable_use_presentation_session_immediate()
+	return false
+
+
+func complete_consumable_use_presentation_hud_step() -> void:
+	if not _consumable_use_presentation_pending:
+		return
+	_end_consumable_use_presentation_session_immediate()
+
+
+func _begin_consumable_use_presentation_session() -> void:
+	_consumable_use_presentation_pending = true
+	_publish_consumable_use_presentation_active(true)
+
+
+func _end_consumable_use_presentation_session_immediate() -> void:
+	if not _consumable_use_presentation_pending:
+		return
+	_consumable_use_presentation_pending = false
+	_publish_consumable_use_presentation_active(false)
+
+
+func _publish_consumable_use_presentation_active(active: bool) -> void:
+	if context == null or context.store == null:
+		return
+	var payload := context.store.create_object()
+	payload.set_key(Events.PAYLOAD_CONSUMABLE_USE_PRESENTATION_ACTIVE, active)
+	_publish_fact(Events.FACT_MATCH3_CONSUMABLE_USE_PRESENTATION_ACTIVE, payload)
 
 
 ## Currency/Match3 service invokes return either a GnosisFunctionResult (Match3,
@@ -1130,6 +1228,7 @@ func _ensure_run_ephemeral_defaults() -> void:
 		m3.set_key("winningRound", DEFAULT_WINNING_ROUND)
 	if not m3.get_node("nextLevel").is_valid():
 		m3.set_key("nextLevel", 1)
+	_ensure_match3_animation_defaults(m3)
 	_ensure_statistics_root()
 	var consumable = context.engine.get_service("Consumable")
 	if consumable and consumable.has_method("invoke_function"):
@@ -1145,6 +1244,21 @@ func _ensure_statistics_root() -> void:
 	if context == null or context.store == null:
 		return
 	set_node("statistics", context.store.create_object(), false)
+
+
+func _ensure_match3_animation_defaults(m3: GnosisNode) -> void:
+	if context == null or context.store == null:
+		return
+	if not m3.is_valid() or m3.get_type() != GnosisValueType.OBJECT:
+		return
+	var animation := m3.get_node("animation")
+	if animation.is_valid() and animation.get_type() == GnosisValueType.OBJECT:
+		return
+	animation = context.store.create_object()
+	animation.set_key("consumableUsePopDurationSeconds", 0.35)
+	animation.set_key("consumableUseRemoveGapSeconds", 0.4)
+	animation.set_key("consumableUseRemoveDurationSeconds", 0.25)
+	m3.set_node("animation", animation)
 
 
 func _increment_statistic(key: String, delta: int = 1) -> void:
@@ -1920,6 +2034,48 @@ func _read_consumable_bag_empty_slot_count(bucket_id: String = "default") -> int
 	var list_count := list.get_count() if list.is_valid() and list.get_type() == GnosisValueType.LIST else 0
 	var max_size := maxi(list_count, _node_int(bag, "maxSize", list_count))
 	return maxi(0, max_size - list_count)
+
+
+func _consumable_list_count(bucket_id: String = "default") -> int:
+	if context == null or context.store == null:
+		return 0
+	var consumables := get_node("consumables", false)
+	if not consumables.is_valid() or consumables.get_type() != GnosisValueType.OBJECT:
+		return 0
+	var bag := consumables.get_node(bucket_id)
+	if not bag.is_valid() or bag.get_type() != GnosisValueType.OBJECT:
+		bag = consumables.get_node("default")
+	if not bag.is_valid() or bag.get_type() != GnosisValueType.OBJECT:
+		return 0
+	var list := bag.get_node("list")
+	if list.is_valid() and list.get_type() == GnosisValueType.LIST:
+		return list.get_count()
+	return 0
+
+
+func _read_consumable_id_at_index(index: int, bucket_id: String = "default") -> String:
+	if context == null or context.store == null:
+		return ""
+	var consumables := get_node("consumables", false)
+	if not consumables.is_valid() or consumables.get_type() != GnosisValueType.OBJECT:
+		return ""
+	var bag := consumables.get_node(bucket_id)
+	if not bag.is_valid() or bag.get_type() != GnosisValueType.OBJECT:
+		bag = consumables.get_node("default")
+	if not bag.is_valid() or bag.get_type() != GnosisValueType.OBJECT:
+		return ""
+	var list := bag.get_node("list")
+	if not list.is_valid() or list.get_type() != GnosisValueType.LIST or list.get_count() == 0:
+		return ""
+	var idx := clampi(index, 0, list.get_count() - 1)
+	var entry := list.get_node(idx)
+	if not entry.is_valid() or entry.get_type() != GnosisValueType.OBJECT:
+		return ""
+	for key in ["id", "consumableId"]:
+		var id_node := entry.get_node(key)
+		if id_node.is_valid() and id_node.get_type() == GnosisValueType.STRING:
+			return str(id_node.value).strip_edges()
+	return ""
 
 
 func _build_consumable_catalog_ids_with_gameplay_tag(gameplay_tag: String) -> Array[String]:

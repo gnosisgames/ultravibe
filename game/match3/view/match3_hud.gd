@@ -43,11 +43,16 @@ signal content_frame_changed
 @onready var _shuffle_button: Button = %ShuffleButton
 @onready var _boss_section: PanelContainer = %BossSection
 @onready var _boons_bar: PanelContainer = %BoonsBar
-@onready var _score_section: PanelContainer = %ScoreSection
+@onready var _boons_row: Match3HudBoonsRow = %BoonsRow
+@onready var _boon_count: Label = %BoonCount
 @onready var _consumables_bar: PanelContainer = %ConsumablesBar
+@onready var _consumables_column: Match3HudConsumablesColumn = %ConsumablesColumn
+@onready var _consumable_count: Label = %ConsumableCount
+@onready var _score_section: PanelContainer = %ScoreSection
 @onready var _board_host: Control = %BoardHost
 
 var _service = null
+var _last_inventory_count_signature := ""
 
 
 func _ready() -> void:
@@ -70,6 +75,7 @@ func _ready() -> void:
 	if _boons_bar:
 		_boons_bar.resized.connect(_on_frame_dirty)
 	resized.connect(_on_frame_dirty)
+	set_process(true)
 	_on_frame_dirty.call_deferred()
 
 
@@ -80,6 +86,11 @@ func relayout_content_frame() -> void:
 
 func bind_service(service) -> void:
 	_service = service
+	if _boons_row:
+		_boons_row.bind_service(service)
+	if _consumables_column:
+		_consumables_column.bind_service(service)
+	_last_inventory_count_signature = ""
 	refresh_from_service(service)
 
 
@@ -112,6 +123,7 @@ func refresh_from_service(service = null) -> void:
 	_apply_level_meta(_service.get_active_level_meta())
 	if _status_label:
 		_status_label.text = _status_text(gameplay.status)
+	_refresh_inventory_counts()
 	# Re-assert the consumable sidebar alignment once data refreshes; by now the
 	# sidebar panel has a valid layout, so this recovers if the initial deferred
 	# pass ran before the panel was sized.
@@ -218,6 +230,84 @@ func _on_wiki_pressed() -> void:
 func _on_shuffle_pressed() -> void:
 	if _service and _service.has_method("invoke_function"):
 		_service.invoke_function("TryUseShuffle", null)
+
+
+func _process(_delta: float) -> void:
+	_refresh_inventory_counts_if_changed()
+
+
+func _refresh_inventory_counts_if_changed() -> void:
+	if _service and _service.has_method("is_consumable_use_presentation_active"):
+		if _service.is_consumable_use_presentation_active():
+			return
+	var signature := _inventory_count_signature()
+	if signature == _last_inventory_count_signature:
+		return
+	_last_inventory_count_signature = signature
+	_refresh_inventory_counts()
+
+
+func _refresh_inventory_counts() -> void:
+	if _service == null:
+		return
+	var eph := _ephemeral()
+	if not eph.is_valid():
+		return
+	if _boon_count:
+		_boon_count.text = _format_bag_count(eph.get_node("boons").get_node("default"))
+	if _consumable_count:
+		_consumable_count.text = _format_bag_count(eph.get_node("consumables").get_node("default"))
+
+
+func _inventory_count_signature() -> String:
+	if _service == null:
+		return ""
+	var eph := _ephemeral()
+	if not eph.is_valid():
+		return ""
+	return "%s|%s" % [
+		_bag_count_signature(eph.get_node("boons").get_node("default")),
+		_bag_count_signature(eph.get_node("consumables").get_node("default")),
+	]
+
+
+func _bag_count_signature(bag: GnosisNode) -> String:
+	if not bag.is_valid():
+		return "0/0"
+	var list := bag.get_node("list")
+	var list_count := list.get_count() if list.is_valid() and list.get_type() == GnosisValueType.LIST else 0
+	var filled := _bag_int(bag, "filledSlotsCount", -1)
+	if filled < 0 or filled != list_count:
+		filled = list_count
+	var max_size := _bag_int(bag, "maxSize", -1)
+	if max_size < 0:
+		max_size = maxi(filled, _bag_int(bag, "listCount", filled))
+	return "%d/%d" % [filled, max_size]
+
+
+func _format_bag_count(bag: GnosisNode) -> String:
+	if not bag.is_valid():
+		return "0 / 0"
+	var sig := _bag_count_signature(bag)
+	var parts := sig.split("/")
+	if parts.size() != 2:
+		return "0 / 0"
+	return "%s / %s" % [parts[0], parts[1]]
+
+
+func _bag_int(bag: GnosisNode, key: String, default_value: int) -> int:
+	if not bag.is_valid():
+		return default_value
+	var child := bag.get_node(key)
+	if child.is_valid() and child.value != null:
+		return int(child.value)
+	return default_value
+
+
+func _ephemeral() -> GnosisNode:
+	if _service == null or _service.context == null or _service.context.state == null:
+		return GnosisNode.new(null)
+	return _service.context.state.root.get_node("Ephemeral")
 
 
 ## Global rect of the shared subscreen content frame: spans the gap between the

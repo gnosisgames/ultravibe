@@ -31,12 +31,12 @@ func _bag_capacity() -> int:
 	return _node_int(_bag(), "maxSize", 0)
 
 func _extra_signature_parts() -> Array[String]:
-	if _service:
+	if _service and _service.has_method("get_selected_consumable_slot"):
 		return ["sel:%d" % _service.get_selected_consumable_slot()]
 	return []
 
 func _slot_alpha(index: int, _details: Dictionary) -> float:
-	if _service == null:
+	if _service == null or not _service.has_method("get_selected_consumable_slot"):
 		return 1.0
 	return 1.0 if index == _service.get_selected_consumable_slot() else unselected_alpha
 
@@ -44,13 +44,14 @@ func _slot_stack_count(details: Dictionary) -> int:
 	return int(details.get("count", 1))
 
 func _on_slot_pressed(index: int) -> void:
-	if _service == null:
+	if _service == null or not _service.has_method("select_consumable_slot"):
 		return
 	var entries := _entries()
 	if index < 0 or index >= entries.size():
 		return
-	if index == _service.get_selected_consumable_slot():
-		_service.request_use_selected_consumable()
+	if _service.has_method("get_selected_consumable_slot") and index == _service.get_selected_consumable_slot():
+		if _service.has_method("request_use_selected_consumable"):
+			_service.request_use_selected_consumable()
 		UltraUiFx.play_ui_sfx(self, UltraUiFx.CLIP_PRESSED, -1.0)
 	else:
 		_service.select_consumable_slot(index)

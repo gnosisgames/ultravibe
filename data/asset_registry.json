@@ -23,6 +23,7 @@
     "coin5Sfx": "res://assets/audio/ui/unity/coin5.wav",
     "coin6Sfx": "res://assets/audio/ui/unity/coin6.wav",
     "coin7Sfx": "res://assets/audio/ui/unity/coin7.wav",
+    "consumableSfx": "res://assets/audio/ui/unity/ConsumableSfx.mp3",
     "theme1": "res://assets/audio/music/normal/theme_1.ogg",
     "theme2": "res://assets/audio/music/normal/theme_2.ogg",
     "theme3": "res://assets/audio/music/normal/theme_3.ogg",
