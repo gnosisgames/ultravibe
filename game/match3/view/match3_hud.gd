@@ -7,6 +7,9 @@ extends Control
 ## via refresh_from_service() (driven by the dispatcher on board reset/change).
 
 const Match3ModelsScript = preload("res://game/match3/core/match3_models.gd")
+const Match3EventsScript = preload("res://game/match3/match3_events.gd")
+const Match3BoonJuiceScript = preload("res://game/match3/boons/match3_boon_juice.gd")
+const SupportScript = preload("res://game/match3/boons/match3_boon_support.gd")
 const UltraGameUiNav = preload("res://game/ui/ultra_game_ui_nav.gd")
 ## Boss letter token font — mirrors the collection view boss tokens.
 const TOKEN_FONT_PATH := "res://assets/fonts/PolygonParty-3KXM.ttf"
@@ -66,6 +69,7 @@ signal content_frame_changed
 var _service = null
 var _last_inventory_count_signature := ""
 var _last_upgrade_rail_signature := ""
+var _boon_juice_subscription: RefCounted = null
 
 
 func _ready() -> void:
@@ -101,6 +105,7 @@ func relayout_content_frame() -> void:
 
 func bind_service(service) -> void:
 	_service = service
+	_subscribe_boon_juice(service)
 	if _boons_row:
 		_boons_row.bind_service(service)
 	if _consumables_column:
@@ -535,3 +540,30 @@ func _layout_shuffle_dock() -> void:
 	_shuffle_dock.set_anchors_preset(Control.PRESET_TOP_LEFT)
 	_shuffle_dock.position = Vector2(consumables_rect.position.x, top_y)
 	_shuffle_dock.size = Vector2(consumables_rect.size.x, dock_h)
+
+
+func _subscribe_boon_juice(service) -> void:
+	if _boon_juice_subscription != null and _boon_juice_subscription.has_method("dispose"):
+		_boon_juice_subscription.dispose()
+	_boon_juice_subscription = null
+	if service == null or service.context == null or service.context.event_bus == null:
+		return
+	_boon_juice_subscription = service.context.event_bus.subscribe(
+		Match3EventsScript.FACT_MATCH3_BOON_SCALING_JUICE,
+		_on_boon_scaling_juice,
+		0
+	)
+
+
+func _on_boon_scaling_juice(event: GnosisEvent) -> void:
+	if _boons_row == null or _service == null or event == null or not event.data.is_valid():
+		return
+	var slot_index := int(event.data.get_node("slotIndex").value if event.data.get_node("slotIndex").is_valid() else -1)
+	if slot_index < 0:
+		return
+	var counter_key := str(event.data.get_node("counterKey").value if event.data.get_node("counterKey").is_valid() else "")
+	var rows := SupportScript.get_active_boon_inventory_slot_rows(_service)
+	if slot_index >= rows.size():
+		return
+	var kind: String = Match3BoonJuiceScript.resolve_score_kind_for_scaling(rows[slot_index], counter_key)
+	_boons_row.play_scaling_up_juice(slot_index, kind)

@@ -94,6 +94,23 @@ static func try_apply_griefing_pre_score_enhanced_floor(
 		SupportScript.publish_ephemeral_state(service)
 
 
+static func destroy_random_cell_floor_on_board(service: GnosisService, gameplay_tag: String) -> Dictionary:
+	var out := {"success": false, "x": 0, "y": 0, "cellFloorTypeId": ""}
+	if service == null or not service.has_method("get_gameplay"):
+		return out
+	var gameplay = service.get_gameplay()
+	if gameplay == null:
+		return out
+	var destroyed: Dictionary = _try_destroy_random_floor_with_tag(service, gameplay, gameplay_tag)
+	if destroyed.is_empty():
+		return out
+	out["success"] = true
+	out["x"] = int(destroyed.get("x", 0))
+	out["y"] = int(destroyed.get("y", 0))
+	out["cellFloorTypeId"] = str(destroyed.get("cellFloorTypeId", ""))
+	return out
+
+
 static func apply_red_flag_round_end_for_all_equipped(service: GnosisService, gameplay) -> void:
 	if service == null or gameplay == null:
 		return
@@ -131,8 +148,19 @@ static func _try_apply_red_flag_round_end_destroy(
 
 
 static func _try_destroy_random_enhanced_floor(service: GnosisService, gameplay) -> bool:
+	return not _try_destroy_random_floor_with_tag(service, gameplay, GAMEPLAY_TAG_ENHANCED).is_empty()
+
+
+static func _try_destroy_random_floor_with_tag(
+	service: GnosisService,
+	gameplay,
+	gameplay_tag: String
+) -> Dictionary:
 	if gameplay == null:
-		return false
+		return {}
+	var tag := gameplay_tag.strip_edges()
+	if tag.is_empty():
+		tag = GAMEPLAY_TAG_ENHANCED
 	var candidates: Array[Models.TileCoord] = []
 	for y in gameplay.height:
 		for x in gameplay.width:
@@ -140,21 +168,21 @@ static func _try_destroy_random_enhanced_floor(service: GnosisService, gameplay)
 			if tile == null or not tile.can_hold_item():
 				continue
 			var type_id: String = tile.cell_floor_type_id.strip_edges()
-			if type_id.is_empty() or not cell_floor_type_has_gameplay_tag(service, type_id, GAMEPLAY_TAG_ENHANCED):
+			if type_id.is_empty() or not cell_floor_type_has_gameplay_tag(service, type_id, tag):
 				continue
 			candidates.append(Models.TileCoord.new(x, y))
 	if candidates.is_empty():
-		return false
+		return {}
 	var rng := RandomNumberGenerator.new()
 	var pick := candidates[rng.randi_range(0, candidates.size() - 1)]
 	var destroyed_id: String = gameplay.get_tile(pick.x, pick.y).cell_floor_type_id.strip_edges()
 	if not _try_clear_cell_floor_at(service, pick.x, pick.y):
-		return false
+		return {}
 	_consume_pool_slot(service, destroyed_id)
 	if service.has_method("sync_floor_modifier_tile_statistics_from_grid"):
 		service.call("sync_floor_modifier_tile_statistics_from_grid")
 	_play_floor_remove_sfx(service, destroyed_id)
-	return true
+	return {"x": pick.x, "y": pick.y, "cellFloorTypeId": destroyed_id}
 
 
 static func _try_clear_cell_floor_at(service: GnosisService, x: int, y: int) -> bool:

@@ -402,6 +402,11 @@ func _animate_destroy(
 	for entry in nodes:
 		var node: Control = entry["node"]
 		var contrib: GnosisNode = entry["contrib"]
+		var cell_key: String = str(entry.get("cell_key", ""))
+		if floor_pop_map.has(cell_key):
+			var parts := cell_key.split(",")
+			if parts.size() == 2:
+				_pulse_floor_cell(int(parts[0]), int(parts[1]))
 		if show_score:
 			_spawn_destroy_score_popups(node, contrib)
 		_spawn_floor_bonus_popups(node, floor_pop_map.get(str(entry.get("cell_key", "")), null))

@@ -67,9 +67,35 @@ static func try_bank_boon_slot_scaling_counter(
 	slot_entry: GnosisNode,
 	counter_key: String,
 	delta: int,
-	_prefer_immediate_juice: bool = false
+	prefer_immediate_juice: bool = false
 ) -> bool:
-	return add_delta_to_boon_slot_scaling_counter(service, slot_entry, counter_key, delta)
+	if not add_delta_to_boon_slot_scaling_counter(service, slot_entry, counter_key, delta):
+		return false
+	if prefer_immediate_juice and service.has_method("play_boon_scaling_juice_now"):
+		service.call("play_boon_scaling_juice_now", slot_index, counter_key)
+	return true
+
+
+static func apply_resolve_step_scaling_increments(
+	service: GnosisService,
+	score_helper: RefCounted,
+	step
+) -> void:
+	if service == null or step == null or score_helper == null:
+		return
+	if not score_helper.has_method("_build_score_finalize_payload"):
+		return
+	var points := int(step.move_points_so_far) if "move_points_so_far" in step else 0
+	var multi := maxi(1, int(step.move_multi_so_far)) if "move_multi_so_far" in step else 1
+	var destroyed := int(step.cleared_tile_count_this_step) if "cleared_tile_count_this_step" in step else 0
+	var payload: GnosisNode = score_helper.call(
+		"_build_score_finalize_payload",
+		SupportScript.scalable_from_int(points),
+		SupportScript.scalable_from_int(multi),
+		destroyed,
+		[step]
+	)
+	_apply_scaling_increments_for_on(service, payload, score_helper, "resolve_step", false)
 
 
 static func apply_round_end_scaling_increments(service: GnosisService, score_helper: RefCounted) -> void:
@@ -89,6 +115,16 @@ static func apply_round_end_scaling_increments(service: GnosisService, score_hel
 		0,
 		[]
 	)
+	_apply_scaling_increments_for_on(service, payload, score_helper, "round_end", true)
+
+
+static func _apply_scaling_increments_for_on(
+	service: GnosisService,
+	payload: GnosisNode,
+	score_helper: RefCounted,
+	on_want: String,
+	prefer_immediate_juice: bool
+) -> void:
 	var empty_params := service.context.store.create_object()
 	var slot_rows := SupportScript.get_active_boon_inventory_slot_rows(service)
 	for slot_index in range(slot_rows.size()):
@@ -107,18 +143,23 @@ static func apply_round_end_scaling_increments(service: GnosisService, score_hel
 			var inc := increments.get_node(i)
 			if not inc.is_valid() or inc.get_type() != GnosisValueType.OBJECT:
 				continue
-			if SupportScript._node_str(inc, "on").to_lower() != "round_end":
+			if SupportScript._node_str(inc, "on", "resolve_step").to_lower() != on_want:
 				continue
 			var from_path := SupportScript._node_str(inc, "from")
 			var counter_key := SupportScript._node_str(inc, "counter")
 			if from_path.is_empty() or counter_key.is_empty():
 				continue
-			var scale := maxf(0.0, float(inc.get_node("scale").value if inc.get_node("scale").is_valid() else 1.0))
+			var scale := 1.0
+			var scale_node := inc.get_node("scale")
+			if scale_node.is_valid() and scale_node.value != null:
+				scale = maxf(0.0, float(scale_node.value))
 			var raw := _resolve_round_end_binding(from_path, payload, empty_params, score_helper)
 			var delta := maxi(0, int(round(raw * scale)))
 			if delta <= 0:
 				continue
-			try_bank_boon_slot_scaling_counter(service, slot_index, slot_entry, counter_key, delta, true)
+			try_bank_boon_slot_scaling_counter(
+				service, slot_index, slot_entry, counter_key, delta, prefer_immediate_juice
+			)
 
 
 static func _resolve_round_end_binding(

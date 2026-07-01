@@ -79,7 +79,20 @@ func _build_score_finalize_payload(points_total: GnosisScalableValue, multi_tota
 	payload.set_key("boons", SupportScript.build_active_boons_context_node(store, slot_rows))
 	payload.set_key("score", score)
 	_apply_scoring_destroy_counts_to_score_node(score, results)
+	_apply_cell_floor_lucky_trigger_count(score, results)
 	return payload
+
+
+static func _apply_cell_floor_lucky_trigger_count(score: GnosisNode, results: Array) -> void:
+	if score == null or not score.is_valid():
+		return
+	var lucky := 0
+	for step in results:
+		if step == null:
+			continue
+		if "cell_floor_lucky_successful_trigger_count" in step:
+			lucky += int(step.cell_floor_lucky_successful_trigger_count)
+	score.set_key("cellFloorLuckySuccessfulTriggerCount", maxi(0, lucky))
 
 
 func _apply_scoring_destroy_counts_to_score_node(score: GnosisNode, results: Array) -> void:

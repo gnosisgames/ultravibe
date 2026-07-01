@@ -73,8 +73,14 @@ func _slot_stack_count(_details: Dictionary) -> int:
 	return 1
 
 ## Called when a slot is clicked; no-op by default (boons are read-only).
-func _on_slot_pressed(_index: int) -> void:
-	pass
+func play_scaling_up_juice(slot_index: int, score_kind: String) -> void:
+	if slot_index < 0 or slot_index >= _slot_nodes.size():
+		return
+	var slot: Control = _slot_nodes[slot_index]
+	if slot == null or not is_instance_valid(slot):
+		return
+	var JuiceScript = preload("res://game/match3/boons/match3_boon_juice.gd")
+	JuiceScript.play_on_slot(self, slot, score_kind)
 
 ## Vertical placement of each slot within the bar. Bottom bars anchor to the
 ## bottom edge so icons float up; the topbar overrides this to center instead.

@@ -110,3 +110,4 @@ class MatchResult:
 	var floor_float_pops: Array = []
 	var floor_cells_cleared: Array = []
 	var cell_floor_finalize_steps: Array = []
+	var cell_floor_lucky_successful_trigger_count: int = 0

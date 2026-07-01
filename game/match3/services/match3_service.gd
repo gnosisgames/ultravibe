@@ -13,6 +13,7 @@ const Match3Match3EffectsScript = preload("res://game/match3/effects/match3_matc
 const Match3CellFloorRuntimeScript = preload("res://game/match3/core/match3_cell_floor_runtime.gd")
 const Match3CellFloorBoardScript = preload("res://game/match3/core/match3_cell_floor_board.gd")
 const Match3BoonScalingScript = preload("res://game/match3/boons/match3_boon_scaling.gd")
+const Match3BoonJuiceScript = preload("res://game/match3/boons/match3_boon_juice.gd")
 const SupportScript = preload("res://game/match3/boons/match3_boon_support.gd")
 
 const Events = Match3EventsScript
@@ -134,6 +135,7 @@ func get_functions() -> Array:
 		"GrantNextRoundRewardStep",
 		"TransitionToState",
 		"AddFloorModifierPoolDelta",
+		"DestroyRandomCellFloorOnBoard",
 		"RollRandomBoon",
 		"DuplicateRandomEquippedBoon",
 		"PanicSwapAllEquippedBoons",
@@ -168,6 +170,8 @@ func invoke_function(name: String, parameters: GnosisNode) -> Variant:
 			return _transition_to_state(raw_status)
 		"AddFloorModifierPoolDelta":
 			return _add_floor_modifier_pool_delta(parameters)
+		"DestroyRandomCellFloorOnBoard":
+			return _destroy_random_cell_floor_on_board(parameters)
 	return GnosisFunctionResult.fail("Unknown Match3 function '%s'." % name)
 
 
@@ -198,6 +202,29 @@ func play_cell_floor_type_sfx(type_row: GnosisNode, key: String) -> void:
 		return
 	var options := context.store.create_object()
 	audio.play_sound(clip_id, 0, false, false, options)
+
+
+func play_boon_scaling_juice_now(slot_index: int, counter_key: String = "") -> void:
+	Match3BoonJuiceScript.publish_scaling_juice(self, slot_index, counter_key)
+
+
+func _destroy_random_cell_floor_on_board(parameters: GnosisNode) -> GnosisFunctionResult:
+	if context == null or context.store == null:
+		return GnosisFunctionResult.fail("Store unavailable.")
+	var gameplay_tag := _node_str(parameters, "gameplayTag", "enhanced")
+	if gameplay_tag.is_empty():
+		gameplay_tag = "enhanced"
+	var result: Dictionary = Match3CellFloorBoardScript.destroy_random_cell_floor_on_board(self, gameplay_tag)
+	var payload := context.store.create_object()
+	payload.set_key("success", bool(result.get("success", false)))
+	payload.set_key("gameplayTag", gameplay_tag)
+	if bool(result.get("success", false)):
+		payload.set_key("x", int(result.get("x", 0)))
+		payload.set_key("y", int(result.get("y", 0)))
+		payload.set_key("cellFloorTypeId", str(result.get("cellFloorTypeId", "")))
+		_publish_board_reset()
+		_publish_ephemeral_state()
+	return GnosisFunctionResult.ok(payload)
 
 
 func try_add_floor_modifier_pool_slots(floor_type_id: String, count: int) -> int:
@@ -716,6 +743,10 @@ func _on_move_requested(event: GnosisEvent) -> void:
 	_publish_ephemeral_state()
 	var success := not results.is_empty()
 	if success:
+		for entry in results:
+			if entry is Models.MatchResult and entry.matched_tiles.size() > 0:
+				if _boon_runtime != null and _boon_runtime.has_method("apply_resolve_step_scaling_for_step"):
+					_boon_runtime.call("apply_resolve_step_scaling_for_step", entry)
 		_record_move_statistics(results)
 		var last = results[results.size() - 1]
 		_last_step_points = last.move_points_so_far

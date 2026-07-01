@@ -112,6 +112,7 @@ func _apply_scoring_destroy_effect(
 			if currency_id.to_lower() == "money":
 				_record_floor_pop(match_result, coord, 0, 0, amount)
 			_play_type_sfx(_floor_type_row(floor_type_id), "addSfxClipId")
+			_record_lucky_successful_trigger(floor_type_id, match_result)
 			return out
 		"add_move_points":
 			var amount := _node_int(effect, "amount", 0)
@@ -120,6 +121,7 @@ func _apply_scoring_destroy_effect(
 			out["points"] = amount
 			_record_floor_pop(match_result, coord, amount, 0, 0)
 			_play_type_sfx(_floor_type_row(floor_type_id), "addSfxClipId")
+			_record_lucky_successful_trigger(floor_type_id, match_result)
 			return out
 		"add_move_multi":
 			var amount := _node_int(effect, "amount", 0)
@@ -128,6 +130,7 @@ func _apply_scoring_destroy_effect(
 			out["multi"] = amount
 			_record_floor_pop(match_result, coord, 0, amount, 0)
 			_play_type_sfx(_floor_type_row(floor_type_id), "addSfxClipId")
+			_record_lucky_successful_trigger(floor_type_id, match_result)
 			return out
 		"multiply_move_multi":
 			var factor := _read_effect_float(effect, "factor", 1.0)
@@ -148,6 +151,7 @@ func _apply_scoring_destroy_effect(
 				out["multi"] = bonus
 				_record_floor_pop(match_result, coord, 0, bonus, 0)
 			_play_type_sfx(_floor_type_row(floor_type_id), "addSfxClipId")
+			_record_lucky_successful_trigger(floor_type_id, match_result)
 			return out
 		"clear_cell_floor":
 			if tile.cell_floor_type_id.strip_edges().is_empty():
@@ -278,6 +282,12 @@ func _record_floor_pop(
 		"multiDelta": multi,
 		"moneyDelta": money,
 	})
+
+
+func _record_lucky_successful_trigger(floor_type_id: String, match_result: Models.MatchResult) -> void:
+	if match_result == null or floor_type_id.strip_edges().to_lower() != "lucky":
+		return
+	match_result.cell_floor_lucky_successful_trigger_count += 1
 
 
 func _record_floor_cleared(match_result: Models.MatchResult, coord: Models.TileCoord) -> void:
