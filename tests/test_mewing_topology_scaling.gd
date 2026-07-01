@@ -1,6 +1,6 @@
 extends SceneTree
 
-## Salty should react to Steel cell-floor finalize steps (echo + finalize preview).
+## Mewing should bank match5+ topology on resolve_step and add scaling points at finalize.
 
 const ADDON := "res://addons/com.gnosisgames.gnosisengine/services"
 const Match3ServiceScript = preload("res://game/match3/services/match3_service.gd")
@@ -9,9 +9,9 @@ const SupportScript = preload("res://game/match3/boons/match3_boon_support.gd")
 
 
 func _initialize() -> void:
-	print("--- Salty Steel Finalize Test ---")
+	print("--- Mewing Topology Scaling Test ---")
 	var ok := _run()
-	print("--- Salty Steel Finalize Test %s ---" % ("Passed" if ok else "FAILED"))
+	print("--- Mewing Topology Scaling Test %s ---" % ("Passed" if ok else "FAILED"))
 	quit(0 if ok else 1)
 
 
@@ -43,66 +43,82 @@ func _run() -> bool:
 		print("[FAIL] services missing")
 		return false
 
-	var activate := store.create_object()
-	activate.set_key("boonId", "Salty")
+	var activate = store.create_object()
+	activate.set_key("boonId", "Mewing")
 	boon.invoke_function("ActivateBoon", activate)
 
 	var rows := SupportScript.get_active_boon_inventory_slot_rows(match3)
 	if rows.is_empty():
-		print("[FAIL] Salty not equipped")
+		print("[FAIL] Mewing not equipped")
 		return false
 
 	var gameplay = match3.get_gameplay()
 	gameplay.load_level(_layout(), 99999, 20, 3, {"red": 10, "blue": 10, "green": 10})
-	gameplay.get_tile(3, 0).cell_floor_type_id = "Steel"
-	_setup_tile(gameplay, 0, 0, "red")
-	_setup_tile(gameplay, 1, 0, "blue")
-	_setup_tile(gameplay, 2, 0, "red")
-	_setup_tile(gameplay, 3, 0, "green")
-	_setup_tile(gameplay, 0, 1, "red")
-	_setup_tile(gameplay, 1, 1, "red")
-	_setup_tile(gameplay, 2, 1, "green")
+	for x in 6:
+		_setup_tile(gameplay, x, 0, "red" if x != 4 else "blue")
 
-	var results: Array = gameplay.process_move(Models.TileCoord.new(1, 0), Models.TileCoord.new(1, 1), {"red": 10})
+	var score_before = gameplay.current_score
+	var results: Array = gameplay.process_move(Models.TileCoord.new(4, 0), Models.TileCoord.new(5, 0), {"red": 10})
 	if results.is_empty():
 		print("[FAIL] expected scoring move")
 		return false
 
-	var saw_steel_finalize := false
-	var saw_salty_finalize := false
-	var move_multi := 1
+	var saw_topology5 := false
+	var move_points := 0
+	var saw_mewing_finalize := false
 	for entry in results:
 		if entry is Models.MatchResult:
-			move_multi = maxi(move_multi, entry.move_multi_so_far)
-			for fin_step in entry.cell_floor_finalize_steps:
-				if str(fin_step.get("floorTypeId", "")).to_lower() == "steel":
-					saw_steel_finalize = true
-			for boon_step in entry.boon_finalize_steps:
-				if str(boon_step.get("boonId", "")).to_lower() != "salty":
-					continue
-				var calc_id := str(boon_step.get("calculationId", "")).to_lower()
-				if calc_id == "salty_steel_scored_mult" or calc_id == "salty_steel_finalize_preview":
-					saw_salty_finalize = true
+			move_points = maxi(move_points, entry.move_points_so_far)
+			if entry.matched_tiles.size() > 0:
+				for topo in entry.topology_components:
+					if int(topo.get("tileCount", 0)) >= 5:
+						saw_topology5 = true
+			for step in entry.boon_finalize_steps:
+				if (
+					str(step.get("boonId", "")).to_lower() == "mewing"
+					and str(step.get("calculationId", "")).to_lower() == "mewing_scaling_match5_points"
+					and int(step.get("pointsDelta", 0)) >= 15
+				):
+					saw_mewing_finalize = true
 
-	if not saw_steel_finalize:
-		print("[FAIL] missing Steel cell_floor_finalize_steps")
+	var counter := _read_mewing_counter(rows[0])
+	var score_gain = gameplay.current_score - score_before
+	var expected_score_gain = (5 * Models.DEFAULT_ITEM_POINTS + 15) * (5 * Models.DEFAULT_ITEM_MULTI)
+	if not saw_topology5:
+		print("[FAIL] expected match5+ topology component")
 		return false
-	if move_multi < 2:
-		print("[FAIL] Steel finalize did not raise move multi (%d)" % move_multi)
+	if counter < 1:
+		print("[FAIL] Mewing counter not incremented (got %d)" % counter)
 		return false
-	if not saw_salty_finalize:
-		print("[FAIL] missing Salty boon_finalize_steps entry")
+	if score_gain < expected_score_gain:
+		print(
+			"[FAIL] expected score gain >= %d got %d (move_points=%d)"
+			% [expected_score_gain, score_gain, move_points]
+		)
+		return false
+	if not saw_mewing_finalize:
+		print("[FAIL] missing Mewing finalize contribution step")
 		return false
 
-	print("[SUCCESS] Salty reacted to Steel finalize multi=%d" % move_multi)
+	print("[SUCCESS] Mewing scaled score_gain=%d counter=%d" % [score_gain, counter])
 	return true
+
+
+func _read_mewing_counter(slot_entry: GnosisNode) -> int:
+	var scaling := slot_entry.get_node("properties").get_node("scaling")
+	if not scaling.is_valid():
+		return 0
+	var counters := scaling.get_node("counters")
+	if not counters.is_valid():
+		return 0
+	return SupportScript._node_int(counters, "match5PlusLifetime", 0)
 
 
 func _layout():
 	var layout = preload("res://game/match3/core/match3_board_layout.gd").new()
 	layout.id = "test"
-	layout.width = 4
-	layout.height = 2
+	layout.width = 6
+	layout.height = 1
 	return layout
 
 

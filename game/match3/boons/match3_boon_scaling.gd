@@ -79,14 +79,20 @@ static func try_bank_boon_slot_scaling_counter(
 static func apply_resolve_step_scaling_increments(
 	service: GnosisService,
 	score_helper: RefCounted,
-	step
+	step,
+	move_points: int = -1,
+	move_multi: int = -1
 ) -> void:
 	if service == null or step == null or score_helper == null:
 		return
 	if not score_helper.has_method("_build_score_finalize_payload"):
 		return
-	var points := int(step.move_points_so_far) if "move_points_so_far" in step else 0
-	var multi := maxi(1, int(step.move_multi_so_far)) if "move_multi_so_far" in step else 1
+	var points := move_points
+	var multi := move_multi
+	if points < 0:
+		points = int(step.move_points_so_far) if "move_points_so_far" in step else 0
+	if multi < 0:
+		multi = maxi(1, int(step.move_multi_so_far)) if "move_multi_so_far" in step else 1
 	var destroyed := int(step.cleared_tile_count_this_step) if "cleared_tile_count_this_step" in step else 0
 	var payload: GnosisNode = score_helper.call(
 		"_build_score_finalize_payload",

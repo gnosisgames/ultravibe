@@ -114,3 +114,11 @@ class MatchResult:
 	var boon_resolve_steps: Array = []
 	var boon_finalize_steps: Array = []
 	var topology_components: Array = []
+
+
+static func last_scoring_match_result(results: Array) -> MatchResult:
+	for i in range(results.size() - 1, -1, -1):
+		var entry = results[i]
+		if entry is MatchResult and not entry.matched_tiles.is_empty():
+			return entry
+	return null

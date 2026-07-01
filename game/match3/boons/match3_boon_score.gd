@@ -140,14 +140,18 @@ func apply_resolve_step_cascade(
 	points = int(component_totals.get("points", points))
 	multi = maxi(1, int(component_totals.get("multi", multi)))
 	_refresh_resolve_step_score_payload(points, multi, destroyed_count, [step])
-	ScalingScript.apply_resolve_step_scaling_increments(_service, self, step)
+	ScalingScript.apply_resolve_step_scaling_increments(_service, self, step, points, multi)
 	_run_resolve_step_calcs(_resolve_step_payload, false, -1, -1, step, false)
 	var resolve_steps := _copy_contribution_steps(_resolve_step_payload, CONTRIBUTION_LIST_RESOLVE)
 	var totals := _totals_from_payload(_resolve_step_payload, points, multi)
 	_resolve_step_payload = GnosisNode.new(null)
+	var resolved_points := int(totals.get("points", points))
+	if resolved_points <= 0 and points > 0:
+		resolved_points = points
+	var resolved_multi := maxi(1, int(totals.get("multi", multi)))
 	return {
-		"points": int(totals.get("points", points)),
-		"multi": int(totals.get("multi", multi)),
+		"points": resolved_points,
+		"multi": resolved_multi,
 		"boon_resolve_steps": resolve_steps,
 	}
 
@@ -162,6 +166,8 @@ func apply_finalize_for_move(results: Array, points: int, multi: int) -> Diction
 	var payload := _build_score_finalize_payload(points_sv, multi_sv, destroyed, results)
 	var score := payload.get_node("score")
 	if score.is_valid():
+		score.set_key("pointsTotal", maxi(0, points))
+		score.set_key("multiTotal", maxi(1, multi))
 		score.set_key(
 			"steelFinalizeStepCount",
 			_count_cell_floor_finalize_steps_for_type(results, "Steel")
@@ -171,10 +177,9 @@ func apply_finalize_for_move(results: Array, points: int, multi: int) -> Diction
 	var finalize_steps := _copy_contribution_steps(payload, CONTRIBUTION_LIST_FINALIZE)
 	finalize_steps.append_array(_pending_finalize_echo_steps)
 	_pending_finalize_echo_steps.clear()
-	if not results.is_empty():
-		var last_entry = results[results.size() - 1]
-		if last_entry != null and "boon_finalize_steps" in last_entry:
-			last_entry.boon_finalize_steps = finalize_steps
+	var scoring_result = _last_scoring_match_result(results)
+	if scoring_result != null and "boon_finalize_steps" in scoring_result:
+		scoring_result.boon_finalize_steps = finalize_steps
 	return _totals_from_payload(payload, points, multi)
 
 
@@ -380,6 +385,7 @@ func _build_score_finalize_payload(points_total: GnosisScalableValue, multi_tota
 	score.set_key("hasAxisMatch3", 1 if axis_counts.get("match3", 0) > 0 else 0)
 	score.set_key("hasAxisMatch4", 1 if axis_counts.get("match4", 0) > 0 else 0)
 	score.set_key("hasAxisMatch5", 1 if axis_counts.get("match5", 0) > 0 else 0)
+	_apply_topology_counts_to_score_node(score, results)
 	var slot_rows := SupportScript.get_active_boon_inventory_slot_rows(_service)
 	payload.set_key("boons", SupportScript.build_active_boons_context_node(store, slot_rows))
 	payload.set_key("score", score)
@@ -398,6 +404,23 @@ func _refresh_resolve_step_score_payload(points: int, multi: int, destroyed_coun
 	score.set_key("multiTotal", maxi(1, multi))
 	score.set_key("destroyedCount", maxi(0, destroyed_count))
 	_apply_scoring_destroy_counts_to_score_node(score, results)
+	_apply_topology_counts_to_score_node(score, results)
+
+
+static func _apply_topology_counts_to_score_node(score: GnosisNode, results: Array) -> void:
+	if score == null or not score.is_valid():
+		return
+	var topology5 := TopologyScript.count_match5_plus_components(results)
+	score.set_key("topologyMatch5PlusComponentCount", topology5)
+	score.set_key("hasTopologyMatch5Plus", 1 if topology5 > 0 else 0)
+
+
+static func _last_scoring_match_result(results: Array):
+	for i in range(results.size() - 1, -1, -1):
+		var entry = results[i]
+		if entry != null and "matched_tiles" in entry and not entry.matched_tiles.is_empty():
+			return entry
+	return null
 
 
 func _totals_from_payload(payload: GnosisNode, fallback_points: int, fallback_multi: int) -> Dictionary:

@@ -50,6 +50,17 @@ static func increment_axis_straight_line_run_counts(shape_kind: String) -> Dicti
 	return out
 
 
+static func count_match5_plus_components(results: Array) -> int:
+	var count := 0
+	for step in results:
+		if step == null or not ("topology_components" in step):
+			continue
+		for topo in step.topology_components:
+			if topo is Dictionary and int(topo.get("tileCount", 0)) >= 5:
+				count += 1
+	return count
+
+
 static func _connected_components(matched: Dictionary) -> Array:
 	var remaining: Dictionary = matched.duplicate()
 	var components: Array = []
