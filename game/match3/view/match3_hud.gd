@@ -553,6 +553,11 @@ func _subscribe_boon_juice(service) -> void:
 		_on_boon_scaling_juice,
 		0
 	)
+	service.context.event_bus.subscribe(
+		Match3EventsScript.FACT_MATCH3_BOON_SCORE_JUICE,
+		_on_boon_score_juice,
+		0
+	)
 
 
 func _on_boon_scaling_juice(event: GnosisEvent) -> void:
@@ -567,3 +572,14 @@ func _on_boon_scaling_juice(event: GnosisEvent) -> void:
 		return
 	var kind: String = Match3BoonJuiceScript.resolve_score_kind_for_scaling(rows[slot_index], counter_key)
 	_boons_row.play_scaling_up_juice(slot_index, kind)
+
+
+func _on_boon_score_juice(event: GnosisEvent) -> void:
+	if _boons_row == null or event == null or not event.data.is_valid():
+		return
+	var slot_index := int(event.data.get_node("slotIndex").value if event.data.get_node("slotIndex").is_valid() else -1)
+	if slot_index < 0:
+		return
+	var kind := str(event.data.get_node("scoreKind").value if event.data.get_node("scoreKind").is_valid() else Match3BoonJuiceScript.KIND_POINTS)
+	var display := str(event.data.get_node("displayText").value if event.data.get_node("displayText").is_valid() else "")
+	_boons_row.play_score_juice(slot_index, kind, display)

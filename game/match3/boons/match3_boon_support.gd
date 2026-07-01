@@ -52,6 +52,30 @@ static func read_boon_effect_application_is_per_instance(entry: GnosisNode) -> b
 	return mode.strip_edges().to_lower() == "perinstance"
 
 
+static func boon_slot_entry_has_gameplay_tag(slot_entry: GnosisNode, tag: String) -> bool:
+	if slot_entry == null or not slot_entry.is_valid():
+		return false
+	var want := tag.strip_edges().to_lower()
+	if want.is_empty():
+		return false
+	var tags := slot_entry.get_node("properties").get_node("gameplayTags")
+	if not tags.is_valid() or tags.get_type() != GnosisValueType.LIST:
+		return false
+	for i in tags.get_count():
+		var node := tags.get_node(i)
+		if node.is_valid() and str(node.value).strip_edges().to_lower() == want:
+			return true
+	return false
+
+
+static func is_cold_palette_item_id(item_id: String) -> bool:
+	return COLD_PALETTE_ITEM_IDS.has(item_id.strip_edges().to_lower())
+
+
+static func is_warm_palette_item_id(item_id: String) -> bool:
+	return WARM_PALETTE_ITEM_IDS.has(item_id.strip_edges().to_lower())
+
+
 static func boon_configuration_gameplay_tags_include(boon_catalog_entry: GnosisNode, tag: String) -> bool:
 	var want := tag.strip_edges().to_lower()
 	if want.is_empty() or boon_catalog_entry == null or not boon_catalog_entry.is_valid():
@@ -286,16 +310,6 @@ static func multiply_scalable_by_numeric_factor(cur: GnosisScalableValue, factor
 	if absf(f - roundf(f)) < 1e-6:
 		return cur.mul(GnosisScalableValue.from_int(int(roundf(f))))
 	return cur.mul(GnosisScalableValue.from_float(f))
-
-
-static func is_cold_palette_item_id(item_id: String) -> bool:
-	var id := item_id.strip_edges().to_lower()
-	return id in COLD_PALETTE_ITEM_IDS
-
-
-static func is_warm_palette_item_id(item_id: String) -> bool:
-	var id := item_id.strip_edges().to_lower()
-	return id in WARM_PALETTE_ITEM_IDS
 
 
 static func _accumulate_tag_list_counts(counts: Dictionary, tag_list: GnosisNode) -> void:

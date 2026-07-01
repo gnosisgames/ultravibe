@@ -49,6 +49,36 @@ static func try_play_scaling_up_now(service: GnosisService, slot_index: int, cou
 	publish_scaling_juice(service, slot_index, counter_key)
 
 
+static func publish_score_juice(service: GnosisService, slot_index: int, score_kind: String, display_text: String) -> void:
+	if service == null or service.context == null or service.context.event_bus == null:
+		return
+	var payload := service.context.store.create_object()
+	payload.set_key("slotIndex", slot_index)
+	payload.set_key("scoreKind", score_kind.strip_edges().to_lower())
+	payload.set_key("displayText", display_text.strip_edges())
+	service.context.event_bus.publish(
+		GnosisEvent.new(EventsScript.FACT_MATCH3_BOON_SCORE_JUICE, payload, false)
+	)
+
+
+static func play_score_on_slot(host: Node, slot: Control, score_kind: String, display_text: String) -> void:
+	if host == null or slot == null or not is_instance_valid(slot):
+		return
+	var accent := accent_for_kind(score_kind)
+	var label := display_text.strip_edges()
+	if label.is_empty():
+		label = "+?"
+	BoardFloatJuiceScript.spawn_labeled_popup_global(
+		host,
+		slot.global_position + Vector2(slot.size.x * 0.5, slot.size.y * 0.15),
+		label,
+		accent
+	)
+	var tw := host.create_tween()
+	tw.tween_property(slot, "scale", Vector2(1.12, 1.12), 0.08).set_trans(Tween.TRANS_BACK)
+	tw.tween_property(slot, "scale", Vector2.ONE, 0.12)
+
+
 static func play_on_slot(host: Node, slot: Control, score_kind: String) -> void:
 	if host == null or slot == null or not is_instance_valid(slot):
 		return

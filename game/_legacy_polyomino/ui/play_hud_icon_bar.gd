@@ -82,6 +82,16 @@ func play_scaling_up_juice(slot_index: int, score_kind: String) -> void:
 	var JuiceScript = preload("res://game/match3/boons/match3_boon_juice.gd")
 	JuiceScript.play_on_slot(self, slot, score_kind)
 
+
+func play_score_juice(slot_index: int, score_kind: String, display_text: String) -> void:
+	if slot_index < 0 or slot_index >= _slot_nodes.size():
+		return
+	var slot: Control = _slot_nodes[slot_index]
+	if slot == null or not is_instance_valid(slot):
+		return
+	var JuiceScript = preload("res://game/match3/boons/match3_boon_juice.gd")
+	JuiceScript.play_score_on_slot(self, slot, score_kind, display_text)
+
 ## Vertical placement of each slot within the bar. Bottom bars anchor to the
 ## bottom edge so icons float up; the topbar overrides this to center instead.
 func _slot_size_flags_vertical() -> int:

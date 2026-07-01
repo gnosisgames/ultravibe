@@ -22,6 +22,9 @@ var _move_points_accum: int = 0
 var _move_multi_accum: int = 0
 var _tile_score_resolver: Callable = Callable()
 var _boon_score_finalize_hook: Callable = Callable()
+var _boon_resolve_begin_hook: Callable = Callable()
+var _boon_resolve_item_destroyed_hook: Callable = Callable()
+var _boon_resolve_step_cascade_hook: Callable = Callable()
 var _cell_floor_scoring_hook: Callable = Callable()
 var _cell_floor_finalize_hook: Callable = Callable()
 var _cell_floor_griefing_hook: Callable = Callable()
@@ -33,6 +36,18 @@ func configure_rng(seed_value: int) -> void:
 
 func set_boon_score_finalize_hook(hook: Callable) -> void:
 	_boon_score_finalize_hook = hook
+
+
+func set_boon_resolve_begin_hook(hook: Callable) -> void:
+	_boon_resolve_begin_hook = hook
+
+
+func set_boon_resolve_item_destroyed_hook(hook: Callable) -> void:
+	_boon_resolve_item_destroyed_hook = hook
+
+
+func set_boon_resolve_step_cascade_hook(hook: Callable) -> void:
+	_boon_resolve_step_cascade_hook = hook
 
 
 func set_tile_score_resolver(resolver: Callable) -> void:
@@ -153,6 +168,8 @@ func _process_step(
 		to_clear[_coord_key(coord)] = coord
 	var fully_cleared: Dictionary = {}
 	var scoring_eligible := 0
+	if _boon_resolve_begin_hook.is_valid():
+		_boon_resolve_begin_hook.call(current_match, results, _move_points_accum, _move_multi_accum, scoring_eligible)
 
 	while not to_clear.is_empty():
 		var key: String = to_clear.keys()[0]
@@ -183,10 +200,34 @@ func _process_step(
 			_move_multi_accum += int(floor_delta.get("multi", 0))
 		if _cell_floor_griefing_hook.is_valid():
 			_cell_floor_griefing_hook.call(tile, coord, current_match)
+		if _boon_resolve_item_destroyed_hook.is_valid():
+			var boon_totals: Dictionary = _boon_resolve_item_destroyed_hook.call(
+				tile.item_id,
+				current_match,
+				results,
+				_move_points_accum,
+				_move_multi_accum,
+				scoring_eligible
+			)
+			_move_points_accum = int(boon_totals.get("points", _move_points_accum))
+			_move_multi_accum = maxi(1, int(boon_totals.get("multi", _move_multi_accum)))
 		fully_cleared[key] = coord
 
 	current_match.scoring_eligible_destroy_count = scoring_eligible
 	current_match.cleared_tile_count_this_step = fully_cleared.size()
+	if _boon_resolve_step_cascade_hook.is_valid():
+		var cascade: Dictionary = _boon_resolve_step_cascade_hook.call(
+			current_match,
+			results,
+			_move_points_accum,
+			_move_multi_accum,
+			scoring_eligible
+		)
+		_move_points_accum = int(cascade.get("points", _move_points_accum))
+		_move_multi_accum = maxi(1, int(cascade.get("multi", _move_multi_accum)))
+		var resolve_steps: Array = cascade.get("boon_resolve_steps", [])
+		if not resolve_steps.is_empty():
+			current_match.boon_resolve_steps = resolve_steps
 	current_match.points_added = _move_points_accum
 	current_match.move_points_so_far = _move_points_accum
 	current_match.move_multi_so_far = _move_multi_accum

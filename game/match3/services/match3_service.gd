@@ -100,6 +100,9 @@ func on_initialize() -> void:
 	if m3.is_valid() and _match3_effects != null:
 		_match3_effects.hydrate_from_store(m3)
 	_gameplay.set_boon_score_finalize_hook(Callable(_boon_runtime, "apply_finalize_for_move"))
+	_gameplay.set_boon_resolve_begin_hook(Callable(_boon_runtime, "begin_resolve_step"))
+	_gameplay.set_boon_resolve_item_destroyed_hook(Callable(_boon_runtime, "apply_resolve_item_destroyed"))
+	_gameplay.set_boon_resolve_step_cascade_hook(Callable(_boon_runtime, "apply_resolve_step_cascade"))
 	_gameplay.set_cell_floor_scoring_hook(Callable(_cell_floor_runtime, "on_scoring_destroy"))
 	_gameplay.set_cell_floor_finalize_hook(Callable(_cell_floor_runtime, "on_move_finalize"))
 	_gameplay.set_cell_floor_griefing_hook(Callable(_cell_floor_runtime, "on_griefing_pre_score"))
@@ -743,10 +746,6 @@ func _on_move_requested(event: GnosisEvent) -> void:
 	_publish_ephemeral_state()
 	var success := not results.is_empty()
 	if success:
-		for entry in results:
-			if entry is Models.MatchResult and entry.matched_tiles.size() > 0:
-				if _boon_runtime != null and _boon_runtime.has_method("apply_resolve_step_scaling_for_step"):
-					_boon_runtime.call("apply_resolve_step_scaling_for_step", entry)
 		_record_move_statistics(results)
 		var last = results[results.size() - 1]
 		_last_step_points = last.move_points_so_far

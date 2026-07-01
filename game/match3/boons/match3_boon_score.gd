@@ -1,16 +1,95 @@
 class_name Match3BoonScore
 extends RefCounted
 
-## Data-driven boon scoreCalculations (finalize phase; Unity Policy.Score parity core).
+## Data-driven boon scoreCalculations (finalize + resolve_step; Unity Policy.Score parity core).
 
 const SupportScript = preload("res://game/match3/boons/match3_boon_support.gd")
+const ScalingScript = preload("res://game/match3/boons/match3_boon_scaling.gd")
+const EchoesScript = preload("res://game/match3/boons/match3_boon_contribution_echoes.gd")
+const JuiceScript = preload("res://game/match3/boons/match3_boon_juice.gd")
+const DisplayTextScript = preload("res://game/match3/view/match3_score_floating_display_text.gd")
+
+const SCORE_CALC_TRIGGER_ITEM_DESTROYED := "item_destroyed"
+const SCORE_CALC_TRIGGER_MATCH_COMPONENT := "match_component"
+const CONTRIBUTION_LIST_FINALIZE := "boonFinalizeSteps"
+const CONTRIBUTION_LIST_RESOLVE := "boonResolveSteps"
 
 var _service: GnosisService
 var _rng := RandomNumberGenerator.new()
+var _resolve_step_payload: GnosisNode = GnosisNode.new(null)
 
 
 func _init(service: GnosisService) -> void:
 	_service = service
+
+
+func begin_resolve_step(step, results: Array, points: int, multi: int, destroyed_count: int) -> void:
+	if _service.context == null or _service.context.store == null:
+		_resolve_step_payload = GnosisNode.new(null)
+		return
+	var points_sv := SupportScript.scalable_from_int(points)
+	var multi_sv := SupportScript.scalable_from_int(maxi(1, multi))
+	_resolve_step_payload = _build_score_finalize_payload(
+		points_sv,
+		multi_sv,
+		maxi(0, destroyed_count),
+		results if results.size() > 0 else [step]
+	)
+	_ensure_contribution_list(_resolve_step_payload, CONTRIBUTION_LIST_RESOLVE)
+
+
+func apply_item_destroyed(
+	item_id: String,
+	_step,
+	results: Array,
+	points: int,
+	multi: int,
+	destroyed_count: int
+) -> Dictionary:
+	var trimmed := item_id.strip_edges()
+	var is_cold := SupportScript.is_cold_palette_item_id(trimmed)
+	var is_warm := SupportScript.is_warm_palette_item_id(trimmed)
+	if not is_cold and not is_warm:
+		return {"points": points, "multi": multi}
+	if _resolve_step_payload == null or not _resolve_step_payload.is_valid():
+		begin_resolve_step(_step, results, points, multi, destroyed_count)
+	_refresh_resolve_step_score_payload(points, multi, destroyed_count, [_step])
+	var score := _resolve_step_payload.get_node("score")
+	score.set_key("lastDestroyedItemId", trimmed)
+	score.set_key("lastDestroyedIsCold", 1 if is_cold else 0)
+	score.set_key("lastDestroyedIsWarm", 1 if is_warm else 0)
+	_run_resolve_step_calcs(
+		_resolve_step_payload,
+		true,
+		1 if is_cold else -1,
+		1 if is_warm else -1,
+		_step,
+		true
+	)
+	return _totals_from_payload(_resolve_step_payload, points, multi)
+
+
+func apply_resolve_step_cascade(
+	step,
+	results: Array,
+	points: int,
+	multi: int,
+	destroyed_count: int
+) -> Dictionary:
+	if _resolve_step_payload == null or not _resolve_step_payload.is_valid():
+		begin_resolve_step(step, results, points, multi, destroyed_count)
+	else:
+		_refresh_resolve_step_score_payload(points, multi, destroyed_count, [step])
+	ScalingScript.apply_resolve_step_scaling_increments(_service, self, step)
+	_run_resolve_step_calcs(_resolve_step_payload, false, -1, -1, step, false)
+	var resolve_steps := _copy_contribution_steps(_resolve_step_payload, CONTRIBUTION_LIST_RESOLVE)
+	var totals := _totals_from_payload(_resolve_step_payload, points, multi)
+	_resolve_step_payload = GnosisNode.new(null)
+	return {
+		"points": int(totals.get("points", points)),
+		"multi": int(totals.get("multi", multi)),
+		"boon_resolve_steps": resolve_steps,
+	}
 
 
 ## Called from Match3Gameplay before final move score is computed.
@@ -21,6 +100,39 @@ func apply_finalize_for_move(results: Array, points: int, multi: int) -> Diction
 	var multi_sv := SupportScript.scalable_from_int(maxi(1, multi))
 	var destroyed := _count_destroyed(results)
 	var payload := _build_score_finalize_payload(points_sv, multi_sv, destroyed, results)
+	_ensure_contribution_list(payload, CONTRIBUTION_LIST_FINALIZE)
+	_run_finalize_calcs(payload)
+	return _totals_from_payload(payload, points, multi)
+
+
+func _apply_echo_outcomes(
+	echo: GnosisNode,
+	payload: GnosisNode,
+	listener_boon_id: String,
+	listener_slot_index: int,
+	echo_id: String,
+	contribution_list_key: String
+) -> void:
+	if echo == null or not echo.is_valid() or payload == null or not payload.is_valid():
+		return
+	var merged := _merge_calc_parameters_with_optional_boon_slot(echo.get_node("parameters"), GnosisNode.new(null))
+	_apply_score_calc_outcomes(
+		echo.get_node("outcomes"),
+		payload,
+		merged,
+		listener_boon_id,
+		listener_slot_index,
+		echo_id,
+		GnosisNode.new(null),
+		contribution_list_key,
+		-1,
+		-1,
+		true,
+		false
+	)
+
+
+func _run_finalize_calcs(payload: GnosisNode) -> void:
 	var slot_rows := SupportScript.get_active_boon_inventory_slot_rows(_service)
 	for slot_index in range(slot_rows.size()):
 		var slot_entry: GnosisNode = slot_rows[slot_index]
@@ -49,21 +161,74 @@ func apply_finalize_for_move(results: Array, points: int, multi: int) -> Diction
 				slot_index,
 				calculation_id,
 				slot_entry,
+				CONTRIBUTION_LIST_FINALIZE,
+				-1,
+				-1,
+				false,
+				true
 			)
-	points_sv = SupportScript.read_scalable_node(payload.get_node("score").get_node("pointsTotal"), points_sv)
-	multi_sv = SupportScript.read_scalable_node(payload.get_node("score").get_node("multiTotal"), multi_sv)
-	return {
-		"points": maxi(0, SupportScript.scalable_to_move_int(points_sv)),
-		"multi": maxi(1, SupportScript.scalable_to_move_int(multi_sv)),
-	}
+
+
+func _run_resolve_step_calcs(
+	payload: GnosisNode,
+	item_destroyed_only: bool,
+	cold_bind: int,
+	warm_bind: int,
+	step,
+	prefer_immediate_juice: bool
+) -> void:
+	var slot_rows := SupportScript.get_active_boon_inventory_slot_rows(_service)
+	for slot_index in range(slot_rows.size()):
+		var slot_entry: GnosisNode = slot_rows[slot_index]
+		var boon_id := SupportScript.read_boon_catalog_id_from_inventory_entry(slot_entry)
+		if boon_id.is_empty():
+			continue
+		var calcs := slot_entry.get_node("properties").get_node("scoreCalculations")
+		if not calcs.is_valid() or calcs.get_type() != GnosisValueType.LIST:
+			continue
+		for i in range(calcs.get_count()):
+			var calc := calcs.get_node(i)
+			if not calc.is_valid() or calc.get_type() != GnosisValueType.OBJECT:
+				continue
+			var phase := SupportScript._node_str(calc, "phase", "finalize").to_lower()
+			if phase != "resolve_step" and phase != "step" and phase != "cascade_step":
+				continue
+			var uses_item_destroyed := _score_calc_uses_trigger(calc, SCORE_CALC_TRIGGER_ITEM_DESTROYED)
+			var uses_match_component := _score_calc_uses_trigger(calc, SCORE_CALC_TRIGGER_MATCH_COMPONENT)
+			if item_destroyed_only:
+				if not uses_item_destroyed:
+					continue
+			else:
+				if uses_item_destroyed or uses_match_component:
+					continue
+			var merged_params := _merge_calc_parameters_with_optional_boon_slot(calc.get_node("parameters"), slot_entry)
+			var calculation_id := SupportScript._node_str(calc, "id")
+			if not _evaluate_score_calc_when(calc, payload, merged_params, slot_entry, calculation_id):
+				continue
+			_apply_score_calc_outcomes(
+				calc.get_node("outcomes"),
+				payload,
+				merged_params,
+				boon_id,
+				slot_index,
+				calculation_id,
+				slot_entry,
+				CONTRIBUTION_LIST_RESOLVE,
+				cold_bind,
+				warm_bind,
+				prefer_immediate_juice,
+				true
+			)
+	if step != null and "boon_resolve_steps" in step:
+		step.boon_resolve_steps = _copy_contribution_steps(payload, CONTRIBUTION_LIST_RESOLVE)
 
 
 func _build_score_finalize_payload(points_total: GnosisScalableValue, multi_total: GnosisScalableValue, destroyed_count: int, results: Array) -> GnosisNode:
 	var store := _service.context.store
 	var payload := store.create_object()
 	var score := store.create_object()
-	score.set_key("pointsTotal", SupportScript.write_scalable_node(store, points_total))
-	score.set_key("multiTotal", SupportScript.write_scalable_node(store, multi_total))
+	score.set_key("pointsTotal", SupportScript.scalable_to_move_int(points_total))
+	score.set_key("multiTotal", maxi(1, SupportScript.scalable_to_move_int(multi_total)))
 	score.set_key("destroyedCount", maxi(0, destroyed_count))
 	score.set_key("movesRemaining", maxi(0, _service.get_gameplay().current_moves))
 	score.set_key("movesPerformedThisRound", maxi(0, _service.get_gameplay().moves_performed))
@@ -81,6 +246,28 @@ func _build_score_finalize_payload(points_total: GnosisScalableValue, multi_tota
 	_apply_scoring_destroy_counts_to_score_node(score, results)
 	_apply_cell_floor_lucky_trigger_count(score, results)
 	return payload
+
+
+func _refresh_resolve_step_score_payload(points: int, multi: int, destroyed_count: int, results: Array) -> void:
+	if _resolve_step_payload == null or not _resolve_step_payload.is_valid():
+		return
+	var score := _resolve_step_payload.get_node("score")
+	if not score.is_valid():
+		return
+	score.set_key("pointsTotal", points)
+	score.set_key("multiTotal", maxi(1, multi))
+	score.set_key("destroyedCount", maxi(0, destroyed_count))
+	_apply_scoring_destroy_counts_to_score_node(score, results)
+
+
+func _totals_from_payload(payload: GnosisNode, fallback_points: int, fallback_multi: int) -> Dictionary:
+	if payload == null or not payload.is_valid():
+		return {"points": fallback_points, "multi": maxi(1, fallback_multi)}
+	var score := payload.get_node("score")
+	return {
+		"points": maxi(0, _read_score_move_int(score, "pointsTotal", fallback_points)),
+		"multi": maxi(1, _read_score_move_int(score, "multiTotal", fallback_multi)),
+	}
 
 
 static func _apply_cell_floor_lucky_trigger_count(score: GnosisNode, results: Array) -> void:
@@ -141,9 +328,15 @@ func _apply_score_calc_outcomes(
 	boon_slot_index: int,
 	calculation_id: String,
 	slot_entry: GnosisNode,
+	contribution_list_key: String = "",
+	cold_bind: int = -1,
+	warm_bind: int = -1,
+	prefer_immediate_juice: bool = false,
+	trigger_contribution_echoes: bool = true,
 ) -> void:
 	if outcomes == null or not outcomes.is_valid() or outcomes.get_type() != GnosisValueType.LIST:
 		return
+	var bind := _make_binding_func(payload, parameters, cold_bind, warm_bind)
 	for i in range(outcomes.get_count()):
 		var outcome := outcomes.get_node(i)
 		if outcome == null or not outcome.is_valid():
@@ -155,22 +348,28 @@ func _apply_score_calc_outcomes(
 		var expr := _read_expr_string(outcome.get_node("value"))
 		if expr.is_empty():
 			continue
-		var x = GnosisScoreExpr.try_evaluate_double(expr, func(path: String) -> float: return _resolve_score_expr_binding(path, payload, parameters), _rng)
+		var x = GnosisScoreExpr.try_evaluate_double(expr, bind, _rng)
 		if x == null:
 			continue
 		var score := payload.get_node("score")
+		var points_before := _read_score_move_int(score, "pointsTotal", 0)
+		var multi_before := _read_score_move_int(score, "multiTotal", 1)
+		var points_display := ""
+		var multi_display := ""
 		if target.to_lower() == "score.pointstotal":
-			var cur := SupportScript.read_scalable_node(score.get_node("pointsTotal"))
 			if op == "add":
-				score.set_key("pointsTotal", SupportScript.write_scalable_node(_service.context.store, cur.add(GnosisScalableValue.from_int(int(round(x))))))
+				_set_score_move_int(score, "pointsTotal", points_before + int(round(x)))
+				points_display = DisplayTextScript.build_points_add(int(round(x)))
 			elif op == "multiply":
-				score.set_key("pointsTotal", SupportScript.write_scalable_node(_service.context.store, SupportScript.multiply_scalable_by_numeric_factor(cur, float(x))))
+				_set_score_move_int(score, "pointsTotal", maxi(0, int(round(float(points_before) * float(x)))))
+				points_display = DisplayTextScript.build_for_multi_op(op, float(x))
 		elif target.to_lower() == "score.multitotal":
-			var cur_m := SupportScript.read_scalable_node(score.get_node("multiTotal"))
 			if op == "add":
-				score.set_key("multiTotal", SupportScript.write_scalable_node(_service.context.store, cur_m.add(GnosisScalableValue.from_int(int(round(x))))))
+				_set_score_move_int(score, "multiTotal", multi_before + int(round(x)))
+				multi_display = DisplayTextScript.build_multi_add(int(round(x)))
 			elif op == "multiply":
-				score.set_key("multiTotal", SupportScript.write_scalable_node(_service.context.store, SupportScript.multiply_scalable_by_numeric_factor(cur_m, float(x))))
+				_set_score_move_int(score, "multiTotal", maxi(1, int(round(float(multi_before) * float(x)))))
+				multi_display = DisplayTextScript.build_for_multi_op(op, float(x))
 		elif target.to_lower() == "score.destroyedcount":
 			var cur_d := SupportScript._node_int(score, "destroyedCount", 0)
 			var val := int(round(x))
@@ -178,6 +377,112 @@ func _apply_score_calc_outcomes(
 				score.set_key("destroyedCount", cur_d + val)
 			elif op == "multiply":
 				score.set_key("destroyedCount", maxi(0, cur_d * val))
+		var points_after := _read_score_move_int(score, "pointsTotal", points_before)
+		var multi_after := _read_score_move_int(score, "multiTotal", multi_before)
+		var pts_delta := points_after - points_before
+		var multi_delta := multi_after - multi_before
+		if not contribution_list_key.is_empty() and (pts_delta != 0 or multi_delta != 0):
+			_append_contribution_step(
+				payload,
+				contribution_list_key,
+				boon_id,
+				boon_slot_index,
+				calculation_id,
+				pts_delta,
+				multi_delta,
+				points_display,
+				multi_display
+			)
+			if prefer_immediate_juice:
+				var kind := JuiceScript.KIND_POINTS
+				var display := points_display
+				if not multi_display.is_empty():
+					kind = JuiceScript.KIND_MULTI
+					display = multi_display
+				elif multi_delta != 0 and display.is_empty():
+					kind = JuiceScript.KIND_MULTI
+					display = DisplayTextScript.build_multi_add(multi_delta)
+				JuiceScript.publish_score_juice(_service, boon_slot_index, kind, display)
+			if trigger_contribution_echoes:
+				EchoesScript.try_apply_after_boon_score_step(
+					_service,
+					self,
+					payload,
+					boon_id,
+					boon_slot_index,
+					contribution_list_key
+				)
+
+
+func _append_contribution_step(
+	payload: GnosisNode,
+	list_key: String,
+	boon_id: String,
+	slot_index: int,
+	calculation_id: String,
+	points_delta: int,
+	multi_delta: int,
+	points_display: String,
+	multi_display: String
+) -> void:
+	var list := _ensure_contribution_list(payload, list_key)
+	var step := _service.context.store.create_object()
+	step.set_key("boonId", boon_id)
+	step.set_key("slotIndex", slot_index)
+	step.set_key("calculationId", calculation_id)
+	step.set_key("pointsDelta", points_delta)
+	step.set_key("multiDelta", multi_delta)
+	step.set_key("pointsDisplayText", points_display)
+	step.set_key("multiDisplayText", multi_display)
+	list.add(step)
+
+
+func _ensure_contribution_list(payload: GnosisNode, list_key: String) -> GnosisNode:
+	var list := payload.get_node(list_key)
+	if not list.is_valid() or list.get_type() != GnosisValueType.LIST:
+		list = _service.context.store.create_list()
+		payload.set_node(list_key, list)
+	return list
+
+
+func _copy_contribution_steps(payload: GnosisNode, list_key: String) -> Array:
+	var out: Array = []
+	if payload == null or not payload.is_valid():
+		return out
+	var list := payload.get_node(list_key)
+	if not list.is_valid() or list.get_type() != GnosisValueType.LIST:
+		return out
+	for i in list.get_count():
+		var step := list.get_node(i)
+		if not step.is_valid():
+			continue
+		out.append({
+			"boonId": SupportScript._node_str(step, "boonId"),
+			"slotIndex": SupportScript._node_int(step, "slotIndex", 0),
+			"calculationId": SupportScript._node_str(step, "calculationId"),
+			"pointsDelta": SupportScript._node_int(step, "pointsDelta", 0),
+			"multiDelta": SupportScript._node_int(step, "multiDelta", 0),
+			"pointsDisplayText": SupportScript._node_str(step, "pointsDisplayText"),
+			"multiDisplayText": SupportScript._node_str(step, "multiDisplayText"),
+		})
+	return out
+
+
+func _make_binding_func(payload: GnosisNode, parameters: GnosisNode, cold_bind: int, warm_bind: int) -> Callable:
+	return func(path: String) -> float:
+		var normalized := path.strip_edges().to_lower()
+		if cold_bind >= 0 and normalized.ends_with("colddestroyedcount"):
+			return float(cold_bind)
+		if warm_bind >= 0 and normalized.ends_with("warmdestroyedcount"):
+			return float(warm_bind)
+		return _resolve_score_expr_binding(path, payload, parameters)
+
+
+func _score_calc_uses_trigger(calc: GnosisNode, trigger_id: String) -> bool:
+	var parameters := calc.get_node("parameters")
+	if not parameters.is_valid() or parameters.get_type() != GnosisValueType.OBJECT:
+		return false
+	return SupportScript._node_str(parameters, "trigger").to_lower() == trigger_id.to_lower()
 
 
 func _resolve_score_expr_binding(path: String, payload: GnosisNode, parameters: GnosisNode) -> float:
@@ -323,3 +628,29 @@ func _read_double(node: GnosisNode, fallback: float) -> float:
 			return SupportScript.read_scalable_node(node).to_float()
 		_:
 			return fallback
+
+
+func _read_score_move_int(score: GnosisNode, key: String, fallback: int) -> int:
+	if score == null or not score.is_valid():
+		return fallback
+	return _read_score_move_int_node(score.get_node(key), fallback)
+
+
+func _read_score_move_int_node(node: GnosisNode, fallback: int) -> int:
+	if node == null or not node.is_valid():
+		return fallback
+	match node.get_type():
+		GnosisValueType.INT, GnosisValueType.LONG:
+			return int(node.value)
+		GnosisValueType.FLOAT:
+			return int(round(float(node.value)))
+		GnosisValueType.OBJECT:
+			return SupportScript.scalable_to_move_int(SupportScript.read_scalable_node(node))
+		_:
+			return fallback
+
+
+func _set_score_move_int(score: GnosisNode, key: String, value: int) -> void:
+	if score == null or not score.is_valid():
+		return
+	score.set_key(key, value)

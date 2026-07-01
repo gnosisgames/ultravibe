@@ -73,6 +73,31 @@ func apply_finalize_for_move(results: Array, points: int, multi: int) -> Diction
 	return _score.apply_finalize_for_move(results, points, multi)
 
 
+func begin_resolve_step(step, results: Array, points: int, multi: int, destroyed_count: int) -> void:
+	_score.begin_resolve_step(step, results, points, multi, destroyed_count)
+
+
+func apply_resolve_item_destroyed(
+	item_id: String,
+	step,
+	results: Array,
+	points: int,
+	multi: int,
+	destroyed_count: int
+) -> Dictionary:
+	return _score.apply_item_destroyed(item_id, step, results, points, multi, destroyed_count)
+
+
+func apply_resolve_step_cascade(
+	step,
+	results: Array,
+	points: int,
+	multi: int,
+	destroyed_count: int
+) -> Dictionary:
+	return _score.apply_resolve_step_cascade(step, results, points, multi, destroyed_count)
+
+
 func apply_round_end_scaling_increments() -> void:
 	ScalingScript.apply_round_end_scaling_increments(_service, _score)
 
