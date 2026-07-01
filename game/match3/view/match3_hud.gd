@@ -63,6 +63,8 @@ func _ready() -> void:
 		_wiki_button.pressed.connect(_on_wiki_pressed)
 	if _shuffle_button:
 		_shuffle_button.pressed.connect(_on_shuffle_pressed)
+	if _boss_section:
+		_boss_section.resized.connect(_on_frame_dirty)
 	if _score_section:
 		_score_section.resized.connect(_on_frame_dirty)
 	if _boons_bar:
@@ -255,13 +257,21 @@ func get_board_frame_rect() -> Rect2:
 	return Rect2(frame.position.x, frame.position.y, frame.size.x, maxf(0.0, bottom - frame.position.y))
 
 
-## Keeps the consumable sidebar vertically aligned with the main sidebar panel
-## (same top/bottom), then notifies overlays the frame may have moved.
+## Keeps the boons strip and consumable sidebar aligned with the main sidebar
+## panels, then notifies overlays the frame may have moved.
 func _on_frame_dirty() -> void:
 	if _boss_section and _boons_bar:
-		var boons_h := _boons_bar.size.y
-		if boons_h > 0.0:
-			_boss_section.custom_minimum_size.y = boons_h
+		var boss_rect := _boss_section.get_global_rect()
+		if boss_rect.size.y > 0.0:
+			var frame := get_content_frame_rect()
+			_boons_bar.set_anchors_preset(Control.PRESET_TOP_LEFT)
+			var bar_pos := Vector2(boss_rect.end.x + FRAME_GAP, boss_rect.position.y)
+			var bar_size := Vector2(_boons_bar.size.x, boss_rect.size.y)
+			if frame.size.x > 0.0:
+				bar_pos.x = frame.position.x
+				bar_size.x = frame.size.x
+			_boons_bar.position = bar_pos
+			_boons_bar.size = bar_size
 	if _consumables_bar and _score_section:
 		var panel := _score_section.get_global_rect()
 		# Skip while the sidebar panel has not been laid out yet, otherwise we
