@@ -14,9 +14,20 @@ const SWAY_ANGLE_DEG := 3.5
 const SWAY_HALF_CYCLE_SEC := 3.2
 const SWAY_ANGLE_VAR := 1.25
 const SWAY_TIMING_VAR := 0.4
+const DRAG_THRESHOLD := 18.0
 
 var _bar_panel: PanelContainer = null
 var _last_layout_slot_size := -1.0
+var _pointer_down_index := -1
+var _pointer_start := Vector2.ZERO
+var _drag_active := false
+var _drag_from_index := -1
+var _drag_to_index := -1
+var _drag_slot: Control = null
+var _drag_rest_global_pos := Vector2.ZERO
+var _drag_rest_parent: Node = null
+var _drag_rest_index := -1
+var _float_host: Control = null
 
 
 func _ready() -> void:
@@ -81,11 +92,6 @@ func _apply_bar_alignment() -> void:
 
 func _slot_size_flags_vertical() -> int:
 	return Control.SIZE_SHRINK_CENTER
-
-
-func _process(_delta: float) -> void:
-	super._process(_delta)
-	_tick_idle_sway()
 
 
 func _tick_idle_sway() -> void:
@@ -156,3 +162,165 @@ func _make_slot(index: int, details: Dictionary) -> Control:
 			badge.offset_right = w + 2.0
 			badge.offset_bottom = w + 2.0
 	return slot
+
+
+func _ensure_float_host() -> Control:
+	if _float_host and is_instance_valid(_float_host):
+		return _float_host
+	var host: Node = _bar_panel if _bar_panel else self
+	_float_host = Control.new()
+	_float_host.name = "BoonFloatHost"
+	_float_host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_float_host.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	host.add_child(_float_host)
+	return _float_host
+
+
+func _connect_slot_hit(hit: Button, index: int) -> void:
+	hit.gui_input.connect(_on_hit_gui_input.bind(index))
+
+
+func _on_hit_gui_input(event: InputEvent, index: int) -> void:
+	if _is_reorder_blocked():
+		return
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
+			_pointer_down_index = index
+			_pointer_start = event.global_position
+		elif _pointer_down_index == index:
+			if _drag_active:
+				_finish_drag_reorder()
+			_reset_drag_state()
+	elif event is InputEventMouseMotion and _pointer_down_index == index and not _drag_active:
+		if event.global_position.distance_to(_pointer_start) >= DRAG_THRESHOLD:
+			_begin_drag_reorder(index)
+
+
+func _is_reorder_blocked() -> bool:
+	return _drag_active
+
+
+func _begin_drag_reorder(index: int) -> void:
+	if index < 0 or index >= _slot_nodes.size():
+		return
+	_hide_tooltip()
+	_drag_active = true
+	_drag_from_index = index
+	_drag_to_index = index
+	_drag_slot = _slot_nodes[index]
+	if _drag_slot == null or not is_instance_valid(_drag_slot):
+		_reset_drag_state()
+		return
+	_drag_rest_parent = _drag_slot.get_parent()
+	_drag_rest_index = _drag_slot.get_index()
+	_drag_rest_global_pos = _drag_slot.global_position
+	var overlay := _ensure_float_host()
+	if _drag_rest_parent:
+		_drag_rest_parent.remove_child(_drag_slot)
+	overlay.add_child(_drag_slot)
+	_drag_slot.position = overlay.get_global_transform().affine_inverse() * _drag_rest_global_pos
+	_drag_slot.z_index = 220
+	_set_slot_sway_paused(_drag_slot, true)
+
+
+func _process(delta: float) -> void:
+	super._process(delta)
+	_tick_idle_sway()
+	if not _drag_active or _drag_slot == null or not is_instance_valid(_drag_slot):
+		return
+	if not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+		_finish_drag_reorder()
+		return
+	var mouse_pos := get_global_mouse_position()
+	var overlay := _ensure_float_host()
+	_drag_slot.position = overlay.get_global_transform().affine_inverse() * mouse_pos - _drag_slot.size * 0.5
+	_drag_to_index = _drop_index_at_global_x(mouse_pos.x)
+
+
+func _drop_index_at_global_x(global_x: float) -> int:
+	var best_index := _drag_from_index
+	var best_distance := INF
+	for i in range(_slot_nodes.size()):
+		var slot := _slot_nodes[i]
+		if slot == null or not is_instance_valid(slot):
+			continue
+		var rect := slot.get_global_rect()
+		var center_x := rect.position.x + rect.size.x * 0.5
+		var distance := absf(global_x - center_x)
+		if distance < best_distance:
+			best_distance = distance
+			best_index = i
+	return best_index
+
+
+func _finish_drag_reorder() -> void:
+	if not _drag_active:
+		return
+	var from_index := _drag_from_index
+	var to_index := _drag_to_index
+	_restore_drag_slot_visual()
+	_reset_drag_state()
+	if from_index >= 0 and to_index >= 0 and from_index != to_index:
+		_commit_reorder(from_index, to_index)
+	force_refresh()
+
+
+func _restore_drag_slot_visual() -> void:
+	if _drag_slot == null or not is_instance_valid(_drag_slot):
+		return
+	_set_slot_sway_paused(_drag_slot, false)
+	_drag_slot.z_index = 0
+	if _drag_rest_parent and is_instance_valid(_drag_rest_parent):
+		if _drag_slot.get_parent():
+			_drag_slot.get_parent().remove_child(_drag_slot)
+		_drag_rest_parent.add_child(_drag_slot)
+		var insert_at := clampi(_drag_rest_index, 0, _drag_rest_parent.get_child_count())
+		_drag_rest_parent.move_child(_drag_slot, insert_at)
+
+
+func _reset_drag_state() -> void:
+	_drag_active = false
+	_pointer_down_index = -1
+	_drag_from_index = -1
+	_drag_to_index = -1
+	_drag_slot = null
+	_drag_rest_parent = null
+	_drag_rest_index = -1
+
+
+func _set_slot_sway_paused(slot: Control, paused: bool) -> void:
+	if slot:
+		slot.set_meta(&"sway_paused", paused)
+
+
+func _boon_instance_ids_in_display_order() -> Array[String]:
+	var ids: Array[String] = []
+	var list := _inventory_list()
+	if not list.is_valid() or list.get_type() != GnosisValueType.LIST:
+		return ids
+	for i in range(list.get_count()):
+		var entry := list.get_node(i)
+		var instance_id := _node_str(entry, "instanceId")
+		if instance_id.is_empty():
+			instance_id = _resolve_item_id(entry)
+		if not instance_id.is_empty():
+			ids.append(instance_id)
+	return ids
+
+
+func _commit_reorder(from_index: int, to_index: int) -> void:
+	if _service == null or _service.context == null or _service.context.store == null:
+		return
+	var ids := _boon_instance_ids_in_display_order()
+	if from_index < 0 or to_index < 0 or from_index >= ids.size() or to_index >= ids.size():
+		return
+	var moved: String = ids[from_index]
+	ids.remove_at(from_index)
+	ids.insert(to_index, moved)
+	var params := _service.context.store.create_object()
+	params.set_key("bucketId", "default")
+	var id_list := _service.context.store.create_list()
+	for catalog_id in ids:
+		id_list.add(catalog_id)
+	params.set_node("boonInstanceIds", id_list)
+	_service.call_service("Boon", "ReorderBoons", params)

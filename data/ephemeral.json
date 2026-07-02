@@ -231,7 +231,14 @@
         "scorePopJuiceClipIds": [
           "scorePopSfx1",
           "scorePopSfx2"
-        ]
+        ],
+        "heartbeatSfxClipIds": [
+          "heartbeatSfx1",
+          "heartbeatSfx2"
+        ],
+        "heartbeatMovesRemainingAtOrBelow": 3,
+        "heartbeatCooldownSeconds": 12,
+        "heartbeatDelayAfterMoveCompleteSeconds": 0.22
       }
     }
   }

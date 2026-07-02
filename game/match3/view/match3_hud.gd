@@ -11,6 +11,7 @@ const Match3DispatcherScript = preload("res://game/match3/view/match3_dispatcher
 const Match3EventsScript = preload("res://game/match3/match3_events.gd")
 const Match3BoonJuiceScript = preload("res://game/match3/boons/match3_boon_juice.gd")
 const Match3GameSpeedScript = preload("res://game/match3/core/match3_game_speed.gd")
+const Match3HudScoreFireScript = preload("res://game/match3/view/match3_hud_score_fire.gd")
 const SupportScript = preload("res://game/match3/boons/match3_boon_support.gd")
 const UltraGameUiNav = preload("res://game/ui/ultra_game_ui_nav.gd")
 ## Boss letter token font — mirrors the collection view boss tokens.
@@ -83,6 +84,7 @@ var _display_step_multi := 0
 var _display_total_score := 0
 var _display_last_match_score := 0
 var _score_display_tween: Tween = null
+var _score_fire = null
 
 
 func _ready() -> void:
@@ -98,6 +100,9 @@ func _ready() -> void:
 		_wiki_button.pressed.connect(_on_wiki_pressed)
 	if _shuffle_button:
 		_shuffle_button.pressed.connect(_on_shuffle_pressed)
+	_score_fire = Match3HudScoreFireScript.new()
+	if _score_section:
+		_score_fire.setup(_score_section)
 	if _boss_section:
 		_boss_section.resized.connect(_on_frame_dirty)
 	if _score_section:
@@ -713,6 +718,10 @@ func begin_move_score_display(pre_move_total: int) -> void:
 	_display_step_multi = 0
 	_display_last_match_score = 0
 	_display_total_score = pre_move_total
+	if _score_fire and _service:
+		var gameplay = _service.get_gameplay()
+		var target: int = gameplay.target_score if gameplay else 0
+		_score_fire.reset_move_ramp(pre_move_total, target)
 	_apply_score_display_texts()
 
 
@@ -724,8 +733,23 @@ func apply_step_metrics_display(target_points: int, target_multi: int) -> void:
 	_display_step_points = target_points
 	_display_step_multi = maxi(1, target_multi)
 	_apply_score_display_texts()
+	_update_score_fire_visual()
 	if target_points != prev_points or target_multi != prev_multi:
 		_pulse_score_lane_juice()
+
+
+func _update_score_fire_visual() -> void:
+	if _score_fire == null or _service == null:
+		return
+	var gameplay = _service.get_gameplay()
+	if gameplay == null:
+		return
+	_score_fire.update_from_step(
+		_display_total_score,
+		_display_step_points,
+		_display_step_multi,
+		gameplay.target_score,
+	)
 
 
 func finish_move_score_display(final_total: int) -> void:
@@ -736,6 +760,8 @@ func finish_move_score_display(final_total: int) -> void:
 	_display_last_match_score = 0
 	_display_total_score = final_total
 	_move_metrics_active = false
+	if _score_fire:
+		_score_fire.hide_fire()
 	_apply_score_display_texts()
 
 
@@ -760,6 +786,7 @@ func play_step_metrics_display(target_points: int, target_multi: int, duration_s
 		_multi_value.text = str(_display_step_multi)
 	if target_points != prev_points or target_multi != prev_multi:
 		_pulse_score_lane_juice()
+	_update_score_fire_visual()
 	if duration_sec > 0.0 and is_inside_tree():
 		var tree := get_tree()
 		if tree != null:
@@ -794,7 +821,11 @@ func play_score_transfer_to_total(
 	var start_total := _display_total_score
 	var last_start := _display_last_match_score
 	if move_gain > 0 and duration_sec > 0.0:
+		if _score_fire:
+			_score_fire.fade_toward_off(0.0)
 		await _play_score_bank_transfer(start_total, target_total, last_start, duration_sec)
+		if _score_fire:
+			_score_fire.fade_toward_off(1.0)
 	else:
 		_display_total_score = target_total
 		_set_total_value_display(_display_total_score)

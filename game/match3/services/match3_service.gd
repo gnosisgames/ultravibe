@@ -98,6 +98,14 @@ var _reset_subscription: RefCounted = null
 var _begin_level_subscription: RefCounted = null
 var _consumable_used_subscription: RefCounted = null
 
+const DEFAULT_HEARTBEAT_CLIP_IDS: Array[String] = ["heartbeatSfx1", "heartbeatSfx2"]
+var _cached_heartbeat_clip_ids: Array[String] = DEFAULT_HEARTBEAT_CLIP_IDS.duplicate()
+var _cached_heartbeat_moves_at_or_below := 3
+var _cached_heartbeat_cooldown_sec := 12.0
+var _cached_heartbeat_delay_sec := 0.22
+var _last_heartbeat_unscaled_time := -INF
+var _heartbeat_clip_alternator := 0
+
 
 func _init() -> void:
 	super._init("Match3", GnosisLifetime.TRANSIENT)
@@ -135,6 +143,7 @@ func on_initialize() -> void:
 			Events.REQUEST_MATCH3_BEGIN_LEVEL, _on_begin_level_requested, 0)
 		_consumable_used_subscription = context.event_bus.subscribe(
 			ConsumableServiceScript.FACT_CONSUMABLE_USED, _on_consumable_used_for_echo_tracking, 0)
+	_refresh_match3_audio_cache_from_ephemeral()
 	_publish_fact(Events.FACT_MATCH3_EPHEMERAL_SERVICE_STARTED)
 
 
@@ -284,6 +293,86 @@ func configure_boon_score_rng(seed_value: int) -> void:
 
 func play_boon_scaling_juice_now(slot_index: int, counter_key: String = "") -> void:
 	Match3BoonJuiceScript.publish_scaling_juice(self, slot_index, counter_key)
+
+
+func get_heartbeat_delay_after_move_complete_seconds() -> float:
+	var delay := _cached_heartbeat_delay_sec
+	if is_nan(delay) or is_inf(delay) or delay < 0.0:
+		return 0.22
+	return clampf(delay, 0.0, 3.0)
+
+
+func try_play_heartbeat_hint_after_move_if_needed() -> void:
+	if context == null or context.store == null:
+		return
+	if _cached_heartbeat_moves_at_or_below <= 0:
+		return
+	var moves_remaining: int = _gameplay.current_moves if _gameplay != null else 0
+	if moves_remaining <= 0 or moves_remaining > _cached_heartbeat_moves_at_or_below:
+		return
+	if _cached_heartbeat_clip_ids.is_empty():
+		return
+	var cooldown := maxf(2.0, _cached_heartbeat_cooldown_sec)
+	var now := Time.get_ticks_msec() / 1000.0
+	if now - _last_heartbeat_unscaled_time < cooldown:
+		return
+	var clip_id := _cached_heartbeat_clip_ids[_heartbeat_clip_alternator % _cached_heartbeat_clip_ids.size()].strip_edges()
+	_heartbeat_clip_alternator += 1
+	if clip_id.is_empty():
+		return
+	_play_match3_one_shot_sfx(clip_id)
+	_last_heartbeat_unscaled_time = now
+
+
+func _refresh_match3_audio_cache_from_ephemeral() -> void:
+	var m3 := get_node("match3", false)
+	if not m3.is_valid():
+		return
+	var audio := m3.get_node("audio")
+	if not audio.is_valid() or audio.get_type() != GnosisValueType.OBJECT:
+		return
+	_cached_heartbeat_clip_ids = _read_audio_clip_id_list(audio, "heartbeatSfxClipIds", DEFAULT_HEARTBEAT_CLIP_IDS)
+	_cached_heartbeat_moves_at_or_below = _node_int(audio, "heartbeatMovesRemainingAtOrBelow", 3)
+	_cached_heartbeat_delay_sec = _node_float(audio, "heartbeatDelayAfterMoveCompleteSeconds", 0.22)
+	var cooldown := _node_float(audio, "heartbeatCooldownSeconds", 12.0)
+	_cached_heartbeat_cooldown_sec = maxf(2.0, cooldown if not is_nan(cooldown) and not is_inf(cooldown) else 12.0)
+
+
+func _reset_heartbeat_hint_for_new_round() -> void:
+	_refresh_match3_audio_cache_from_ephemeral()
+	_last_heartbeat_unscaled_time = -INF
+	_heartbeat_clip_alternator = 0
+
+
+func _read_audio_clip_id_list(audio: GnosisNode, key: String, defaults: Array[String]) -> Array[String]:
+	var list_node := audio.get_node(key)
+	if not list_node.is_valid() or list_node.get_type() != GnosisValueType.LIST or list_node.get_count() == 0:
+		return defaults.duplicate()
+	var out: Array[String] = []
+	for i in range(list_node.get_count()):
+		var id := str(_node_value(list_node.get_node(i))).strip_edges()
+		if not id.is_empty():
+			out.append(id)
+	return out if not out.is_empty() else defaults.duplicate()
+
+
+func _play_match3_one_shot_sfx(clip_id: String) -> void:
+	if clip_id.is_empty() or context == null or context.engine == null:
+		return
+	var audio = context.engine.get_service("Audio")
+	if audio == null or not audio.has_method("play_sound"):
+		return
+	var options := context.store.create_object()
+	audio.play_sound(clip_id, 0, false, false, options)
+
+
+func _node_float(node: GnosisNode, key: String, default_value: float = 0.0) -> float:
+	if not node.is_valid():
+		return default_value
+	var child := node.get_node(key)
+	if not child.is_valid() or child.value == null:
+		return default_value
+	return float(child.value)
 
 
 func apply_cell_floor_finalize_echo(floor_type_id: String, points: int, multi: int) -> Dictionary:
@@ -1659,6 +1748,7 @@ func _apply_round_setup(level_number: int) -> void:
 	_gameplay.current_moves = int(setup.get("moves", BASE_MOVES_LIMIT))
 	_gameplay.width = maxi(1, layout.width)
 	_gameplay.height = maxi(1, layout.height)
+	_reset_heartbeat_hint_for_new_round()
 
 
 func _load_board_layout(board_id: String):

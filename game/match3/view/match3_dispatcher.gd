@@ -15,6 +15,7 @@ const Match3FloorSpritesScript = preload("res://game/match3/view/match3_floor_sp
 const FinalizePlaybackScript = preload("res://game/match3/boons/match3_finalize_playback.gd")
 const Match3CellFloorBoardScript = preload("res://game/match3/core/match3_cell_floor_board.gd")
 const Match3BoonJuiceScript = preload("res://game/match3/boons/match3_boon_juice.gd")
+const Match3BoardGamepadScript = preload("res://game/match3/view/match3_board_gamepad.gd")
 const UltraUiFx = preload("res://game/ui/widgets/ultra_ui_fx.gd")
 const Events = Match3EventsScript
 
@@ -68,6 +69,7 @@ var _active_swap_tween: Tween = null
 var _combo_count: int = 0
 var _sfx_players: Array[AudioStreamPlayer] = []
 var _sfx_available: Array[AudioStreamPlayer] = []
+var _gamepad = Match3BoardGamepadScript.new()
 
 var _dragging: bool = false
 var _drag_committed: bool = false
@@ -86,7 +88,7 @@ func _ready() -> void:
 	_preload_textures()
 	_init_sfx_pool()
 	resized.connect(_update_layout)
-	set_process(false)
+	set_process(true)
 	call_deferred("_resolve_adapter")
 
 
@@ -182,7 +184,7 @@ func play_move_sequence(payload: GnosisNode) -> void:
 	_busy = true
 	_combo_count = 0
 	await _run_move_sequence_body(payload)
-	_end_move_sequence()
+	await _end_move_sequence()
 
 
 func _run_move_sequence_body(payload: GnosisNode) -> void:
@@ -204,10 +206,15 @@ func _run_move_sequence_body(payload: GnosisNode) -> void:
 			await _animate_swap(a, b)
 
 	if not success:
+		if _gamepad:
+			_gamepad.on_swap_invalid()
 		if a.x >= 0 and b.x >= 0:
 			_play_sfx(SFX_SWAP, false, 2.0, 0.3)
 			await _animate_swap(a, b)
 		return
+
+	if _gamepad:
+		_gamepad.on_swap_resolved()
 
 	_begin_move_hud_metrics(payload)
 	var steps := payload.get_node("steps")
@@ -233,6 +240,21 @@ func _end_move_sequence() -> void:
 	refresh_hud()
 	if _adapter and _adapter.has_method("on_move_sequence_finished"):
 		_adapter.on_move_sequence_finished()
+	await _play_heartbeat_hint_when_ready()
+
+
+func _play_heartbeat_hint_when_ready() -> void:
+	if _service == null:
+		return
+	var delay := 0.22
+	if _service.has_method("get_heartbeat_delay_after_move_complete_seconds"):
+		delay = _service.get_heartbeat_delay_after_move_complete_seconds()
+	if delay > 0.0 and is_inside_tree():
+		var tree := get_tree()
+		if tree != null:
+			await tree.create_timer(delay, true, false, true).timeout
+	if _service.has_method("try_play_heartbeat_hint_after_move_if_needed"):
+		_service.try_play_heartbeat_hint_after_move_if_needed()
 
 
 func reset_move_animation_state() -> void:
@@ -1205,6 +1227,10 @@ func _draw() -> void:
 			draw_rect(_cell_rect(_hover_cell.x, _hover_cell.y), Color(1, 1, 0.55, 0.55), false, 3.0)
 	elif _hover_cell.x >= 0:
 		draw_rect(_cell_rect(_hover_cell.x, _hover_cell.y), Color(1, 1, 1, 0.2), false, 3.0)
+	if _gamepad and _gamepad.should_draw_focus(self):
+		var focus: Vector2i = _gamepad.get_focus_coord()
+		var focus_color := Color(1, 1, 0.35, 0.95) if _gamepad.is_tile_selected() else Color(1, 1, 1, 0.85)
+		draw_rect(_cell_rect(focus.x, focus.y), focus_color, false, 3.0)
 
 
 # --- Swipe input -------------------------------------------------------------
@@ -1240,9 +1266,12 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if _dragging:
 		_update_drag_preview(get_local_mouse_position())
+	if _gamepad and not _dragging:
+		_gamepad.process(delta, self)
+		queue_redraw()
 
 
 func _local_from_event(event: InputEvent) -> Vector2:

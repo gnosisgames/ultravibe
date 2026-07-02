@@ -8,6 +8,7 @@ extends BoxContainer
 const TOOLTIP_SCENE := preload("res://game/ui/widgets/tooltip_popup.tscn")
 const ICON_ROOT := "res://assets/icons/"
 const CatalogSpritePathsScript = preload("res://game/ui/catalog_sprite_paths.gd")
+const InventoryTooltipUiScript = preload("res://game/ui/inventory_tooltip_ui.gd")
 
 ## Icons are intentionally taller than the bar (~46px content) so they overflow
 ## upward and read as "hovering" above it.
@@ -274,7 +275,12 @@ func _show_tooltip_for_slot(index: int) -> void:
 	_tooltip.grow_horizontal = Control.GROW_DIRECTION_END
 	_tooltip.grow_vertical = Control.GROW_DIRECTION_END
 	_tooltip.visible = true
-	_tooltip.set_content(details.get("name", ""), details.get("description", ""))
+	_tooltip.set_content(
+		details.get("name", ""),
+		details.get("description", ""),
+		-1,
+		details.get("tags", []),
+	)
 	_tooltip.reset_size()
 	_position_tooltip(index)
 	_tooltip.appear()
@@ -344,12 +350,14 @@ func _describe_entry(entry: GnosisNode) -> Dictionary:
 		sprite_id = _node_str(metadata, "spriteId")
 		name = _localized(name_key, name)
 		desc = _localized_raw(desc_key, desc)
-	return {
+	var base := {
 		"name": name,
 		"description": desc,
 		"icon_path": _icon_path(item_id, sprite_id),
 		"count": maxi(1, _node_int(entry, "currentCount", 1)),
+		"tags": [],
 	}
+	return InventoryTooltipUiScript.enrich_entry_details(_service, entry, _inventory_category(), base)
 
 func _resolve_item_id(entry: GnosisNode) -> String:
 	for key in ["id", "consumableId", "boonId", "abilityId"]:

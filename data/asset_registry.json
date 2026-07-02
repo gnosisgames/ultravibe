@@ -40,6 +40,8 @@
     "scorePopSfx3": "res://assets/audio/ui/unity/pop_2.mp3",
     "scorePopSfx4": "res://assets/audio/ui/unity/pop_3.mp3",
     "scorePopSfx5": "res://assets/audio/ui/unity/pop_2.mp3",
+    "heartbeatSfx1": "res://assets/audio/ui/unity/heartbeat1.mp3",
+    "heartbeatSfx2": "res://assets/audio/ui/unity/heartbeat2.mp3",
     "consumableSfx": "res://assets/audio/ui/unity/ConsumableSfx.mp3",
     "theme1": "res://assets/audio/music/normal/theme_1.ogg",
     "theme2": "res://assets/audio/music/normal/theme_2.ogg",
