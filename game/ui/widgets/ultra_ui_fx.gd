@@ -10,6 +10,10 @@ const DEFAULT_ROUND_REWARD_COIN_CLIP_IDS: Array[String] = [
 	"coin1Sfx", "coin2Sfx", "coin3Sfx", "coin4Sfx", "coin5Sfx", "coin6Sfx", "coin7Sfx",
 ]
 const ROUND_REWARD_COIN_JUICE_POOL := "roundRewardMoneyGlyphs"
+const SCORE_POP_JUICE_POOL := "match3ScorePopJuice"
+const DEFAULT_SCORE_POP_CLIP_IDS: Array[String] = [
+	"scorePopSfx1", "scorePopSfx2", "scorePopSfx3", "scorePopSfx4", "scorePopSfx5",
+]
 
 static func resolve_host(from: Node) -> GnosisGodotEngine:
 	var node: Node = from
@@ -58,6 +62,55 @@ static func play_round_reward_coin_juice(from: Node, glyph_index: int, glyph_cou
 		1.0,
 		GnosisAudioService.SoundTrack.Sfx
 	)
+
+
+## Unity Match3GnosisService.PlayScorePopJuiceTick parity: rising-pitch pop on each
+## hudMetrics step while points/multi accumulate.
+static func play_score_pop_juice_tick(from: Node, progress01: float) -> void:
+	var host := resolve_host(from)
+	if host == null or host.engine == null:
+		return
+	var audio := host.engine.get_service("Audio") as GnosisAudioService
+	if audio == null:
+		return
+	var progress := clampf(progress01, 0.0, 1.0)
+	var clip_ids := _score_pop_clip_ids(host.engine)
+	audio.play_juice_tick(
+		clip_ids,
+		progress,
+		"shuffleBag",
+		SCORE_POP_JUICE_POOL,
+		1.0,
+		1.5,
+		1.0,
+		GnosisAudioService.SoundTrack.Sfx
+	)
+
+
+static func _score_pop_clip_ids(engine: GnosisEngine) -> Array[String]:
+	if engine == null or engine.state == null or not engine.state.root.is_valid():
+		return DEFAULT_SCORE_POP_CLIP_IDS.duplicate()
+	var ephemeral := engine.state.root.get_node("Ephemeral")
+	if not ephemeral.is_valid():
+		return DEFAULT_SCORE_POP_CLIP_IDS.duplicate()
+	var match3 := ephemeral.get_node("match3")
+	if not match3.is_valid():
+		return DEFAULT_SCORE_POP_CLIP_IDS.duplicate()
+	var audio := match3.get_node("audio")
+	if not audio.is_valid() or audio.get_type() != GnosisValueType.OBJECT:
+		return DEFAULT_SCORE_POP_CLIP_IDS.duplicate()
+	var list_node := audio.get_node("scorePopJuiceClipIds")
+	if not list_node.is_valid() or list_node.get_type() != GnosisValueType.LIST or list_node.get_count() == 0:
+		return DEFAULT_SCORE_POP_CLIP_IDS.duplicate()
+	var ids: Array[String] = []
+	for i in range(list_node.get_count()):
+		var entry := list_node.get_node(i)
+		if not entry.is_valid() or entry.value == null:
+			continue
+		var clip_id := str(entry.value).strip_edges()
+		if not clip_id.is_empty():
+			ids.append(clip_id)
+	return ids if not ids.is_empty() else DEFAULT_SCORE_POP_CLIP_IDS.duplicate()
 
 static func _round_reward_coin_clip_ids(engine: GnosisEngine) -> Array[String]:
 	if engine == null or engine.state == null or not engine.state.root.is_valid():

@@ -375,6 +375,8 @@ func _use_slot_at_index(index: int) -> void:
 		_restore_floating_slot(slot)
 		_finish_consumable_use_presentation()
 		return
+	# Money/effects apply immediately; refresh before juice so the HUD updates now.
+	_refresh_parent_hud()
 	_run_consumable_juice(slot)
 
 

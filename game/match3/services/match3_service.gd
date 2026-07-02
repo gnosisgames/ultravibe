@@ -15,6 +15,7 @@ const Match3CellFloorBoardScript = preload("res://game/match3/core/match3_cell_f
 const Match3BoonScalingScript = preload("res://game/match3/boons/match3_boon_scaling.gd")
 const Match3BoonMatchFloorConversionsScript = preload("res://game/match3/boons/match3_boon_match_floor_conversions.gd")
 const Match3BoonJuiceScript = preload("res://game/match3/boons/match3_boon_juice.gd")
+const Match3GameSpeedScript = preload("res://game/match3/core/match3_game_speed.gd")
 const SupportScript = preload("res://game/match3/boons/match3_boon_support.gd")
 
 const Events = Match3EventsScript
@@ -583,7 +584,8 @@ func try_consume_consumable_at_slot_presentation(index: int) -> bool:
 	params.set_key("consumableId", consumable_id)
 	params.set_key("bucketId", "default")
 	var result = call_service("Consumable", "ConsumeConsumable", params)
-	if _coerce_result_node(result) != null:
+	if _coerce_consumable_consume_result(result):
+		_commit_currency_snapshot()
 		_publish_ephemeral_state()
 		return true
 	_end_consumable_use_presentation_session_immediate()
@@ -593,6 +595,7 @@ func try_consume_consumable_at_slot_presentation(index: int) -> bool:
 func complete_consumable_use_presentation_hud_step() -> void:
 	if not _consumable_use_presentation_pending:
 		return
+	_commit_currency_snapshot()
 	_end_consumable_use_presentation_session_immediate()
 
 
@@ -626,6 +629,23 @@ func _coerce_result_node(result) -> GnosisNode:
 	return null
 
 
+func _coerce_consumable_consume_result(result) -> bool:
+	var node := _coerce_result_node(result)
+	if node == null or not node.is_valid():
+		return false
+	if node.get_type() == GnosisValueType.OBJECT and node.get_node("applied").is_valid():
+		return _node_bool(node, "applied", false)
+	return true
+
+
+## Unity NotifyHudSnapshotChanged / FACT_GNOSIS_STATE_COMMITTED parity for money.
+func _commit_currency_snapshot() -> void:
+	if context == null or context.engine == null:
+		return
+	var changed_paths: Array[String] = ["Ephemeral.currencies"]
+	context.engine.commit("match3", changed_paths)
+
+
 func is_run_won() -> bool:
 	var m3 := get_node("match3", false)
 	return m3.is_valid() and _node_bool(m3, "isRunWon", false)
@@ -643,6 +663,35 @@ func get_step_points() -> int:
 
 func get_step_multi() -> int:
 	return _last_step_multi
+
+
+func get_match3_animation_seconds(key: String, fallback: float = 0.0) -> float:
+	return get_match3_scaled_animation_seconds(key, fallback, 0.0)
+
+
+func get_match3_scaled_animation_seconds(
+	key: String,
+	fallback: float = 0.0,
+	min_seconds: float = 0.0,
+) -> float:
+	var m3 := get_node("match3", false)
+	if not m3.is_valid():
+		return Match3GameSpeedScript.scale_duration(_engine_for_speed(), fallback, min_seconds)
+	_ensure_match3_animation_defaults(m3)
+	var animation := m3.get_node("animation")
+	if not animation.is_valid():
+		return Match3GameSpeedScript.scale_duration(_engine_for_speed(), fallback, min_seconds)
+	var node := animation.get_node(key.strip_edges())
+	var base := fallback
+	if node.is_valid() and node.value != null:
+		base = maxf(0.0, float(node.value))
+	return Match3GameSpeedScript.scale_duration(_engine_for_speed(), base, min_seconds)
+
+
+func _engine_for_speed() -> GnosisEngine:
+	if context != null and context.engine != null:
+		return context.engine
+	return null
 
 
 ## Points x multi product for the most recently resolved move.
@@ -1516,6 +1565,8 @@ func _publish_board_changed() -> void:
 func _publish_move_resolved(a, b, success: bool, results: Array) -> void:
 	if context == null or context.store == null:
 		return
+	const PlaybackScript = preload("res://game/match3/boons/match3_finalize_playback.gd")
+	const HudMetricsScript = preload("res://game/match3/view/match3_hud_metrics.gd")
 	var payload := context.store.create_object()
 	payload.set_key("success", success)
 	payload.set_key("stepCount", results.size())
@@ -1570,6 +1621,10 @@ func _publish_move_resolved(a, b, success: bool, results: Array) -> void:
 			spawns.add(s)
 		step.set_node("spawns", spawns)
 		if entry is Models.MatchResult:
+			step.set_key("movePointsSoFar", entry.move_points_so_far)
+			step.set_key("moveMultiSoFar", maxi(1, entry.move_multi_so_far))
+			step.set_key("pointsAdded", entry.points_added)
+			step.set_key("multiAdded", entry.multi_added)
 			var floor_pops := context.store.create_list()
 			for pop in entry.floor_float_pops:
 				if not (pop is Dictionary):
@@ -1621,8 +1676,14 @@ func _publish_move_resolved(a, b, success: bool, results: Array) -> void:
 				finalize_steps.add(fin_node)
 			if finalize_steps.get_count() > 0:
 				step.set_node("cellFloorFinalizeSteps", finalize_steps)
+			var boon_resolve_steps: Array = entry.boon_resolve_steps.duplicate()
+			HudMetricsScript.annotate_boon_score_steps(
+				boon_resolve_steps,
+				entry.move_points_so_far,
+				maxi(1, entry.move_multi_so_far)
+			)
 			var boon_resolve := context.store.create_list()
-			for resolve_step in entry.boon_resolve_steps:
+			for resolve_step in boon_resolve_steps:
 				if not (resolve_step is Dictionary):
 					continue
 				var resolve_node := context.store.create_object()
@@ -1633,6 +1694,8 @@ func _publish_move_resolved(a, b, success: bool, results: Array) -> void:
 				resolve_node.set_key("multiDelta", int(resolve_step.get("multiDelta", 0)))
 				resolve_node.set_key("pointsDisplayText", str(resolve_step.get("pointsDisplayText", "")))
 				resolve_node.set_key("multiDisplayText", str(resolve_step.get("multiDisplayText", "")))
+				resolve_node.set_key("stepPoints", int(resolve_step.get("stepPoints", 0)))
+				resolve_node.set_key("stepMulti", int(resolve_step.get("stepMulti", 1)))
 				boon_resolve.add(resolve_node)
 			if boon_resolve.get_count() > 0:
 				step.set_node("boonResolveSteps", boon_resolve)
@@ -1656,7 +1719,13 @@ func _publish_move_resolved(a, b, success: bool, results: Array) -> void:
 		payload.set_node("cellFloorFinalizeSteps", cell_floor_finalize)
 	var boon_finalize := context.store.create_list()
 	if scoring_entry != null:
-		for fin_step in scoring_entry.boon_finalize_steps:
+		var boon_finalize_steps: Array = scoring_entry.boon_finalize_steps.duplicate()
+		HudMetricsScript.annotate_boon_score_steps(
+			boon_finalize_steps,
+			scoring_entry.move_points_so_far,
+			maxi(1, scoring_entry.move_multi_so_far)
+		)
+		for fin_step in boon_finalize_steps:
 			if not (fin_step is Dictionary):
 				continue
 			var fin_node := context.store.create_object()
@@ -1667,27 +1736,36 @@ func _publish_move_resolved(a, b, success: bool, results: Array) -> void:
 			fin_node.set_key("multiDelta", int(fin_step.get("multiDelta", 0)))
 			fin_node.set_key("pointsDisplayText", str(fin_step.get("pointsDisplayText", "")))
 			fin_node.set_key("multiDisplayText", str(fin_step.get("multiDisplayText", "")))
+			fin_node.set_key("stepPoints", int(fin_step.get("stepPoints", 0)))
+			fin_node.set_key("stepMulti", int(fin_step.get("stepMulti", 1)))
 			boon_finalize.add(fin_node)
 	if boon_finalize.get_count() > 0:
 		payload.set_node("boonFinalizeSteps", boon_finalize)
-	const PlaybackScript = preload("res://game/match3/boons/match3_finalize_playback.gd")
 	var playback_steps := context.store.create_list()
+	var playback_source: Array = []
 	if scoring_entry != null and "finalize_playback_steps" in scoring_entry:
-		for pb_step in scoring_entry.finalize_playback_steps:
-			if not (pb_step is Dictionary):
-				continue
-			var pb_node := context.store.create_object()
-			for key in pb_step.keys():
-				pb_node.set_key(str(key), pb_step[key])
-			playback_steps.add(pb_node)
-	if playback_steps.get_count() == 0 and scoring_entry != null:
+		playback_source = scoring_entry.finalize_playback_steps.duplicate(true)
+	if playback_source.is_empty() and scoring_entry != null:
 		for tagged in PlaybackScript.build_from_match_result(scoring_entry):
-			var pb_node := context.store.create_object()
-			for key in tagged.keys():
-				pb_node.set_key(str(key), tagged[key])
-			playback_steps.add(pb_node)
+			playback_source.append(tagged)
+	if not playback_source.is_empty() and scoring_entry != null:
+		HudMetricsScript.annotate_finalize_playback_steps(
+			playback_source,
+			scoring_entry.move_points_so_far,
+			maxi(1, scoring_entry.move_multi_so_far)
+		)
+	for pb_step in playback_source:
+		if not (pb_step is Dictionary):
+			continue
+		var pb_node := context.store.create_object()
+		for key in pb_step.keys():
+			pb_node.set_key(str(key), pb_step[key])
+		playback_steps.add(pb_node)
 	if playback_steps.get_count() > 0:
 		payload.set_node("finalizePlaybackSteps", playback_steps)
+	payload.set_key("currentScore", _gameplay.current_score)
+	payload.set_key("lastMoveScoreGain", _last_move_score)
+	payload.set_key("targetScore", _gameplay.target_score)
 	payload.set_node("steps", steps)
 	_publish_fact(Events.FACT_MATCH3_MOVE_RESOLVED, payload)
 
@@ -1771,13 +1849,28 @@ func _ensure_match3_animation_defaults(m3: GnosisNode) -> void:
 	if not m3.is_valid() or m3.get_type() != GnosisValueType.OBJECT:
 		return
 	var animation := m3.get_node("animation")
-	if animation.is_valid() and animation.get_type() == GnosisValueType.OBJECT:
+	if not animation.is_valid() or animation.get_type() != GnosisValueType.OBJECT:
+		animation = context.store.create_object()
+		m3.set_node("animation", animation)
+	_set_animation_default(animation, "consumableUsePopDurationSeconds", 0.35)
+	_set_animation_default(animation, "consumableUseRemoveGapSeconds", 0.4)
+	_set_animation_default(animation, "consumableUseRemoveDurationSeconds", 0.25)
+	_set_animation_default(animation, "scoreStepCountDurationSeconds", 0.22)
+	_set_animation_default(animation, "scoreTransferDelaySeconds", 0.35)
+	_set_animation_default(animation, "scoreTransferDurationSeconds", 0.55)
+	_set_animation_default(animation, "scorePostFinalizeHoldSeconds", 0.12)
+	_set_animation_default(animation, "boonFinalizePopDurationSeconds", 0.45)
+	_set_animation_default(animation, "boonFinalizeHoldDurationSeconds", 0.22)
+	_set_animation_default(animation, "boonFinalizeGapSeconds", 0.2)
+
+
+func _set_animation_default(animation: GnosisNode, key: String, value: float) -> void:
+	if not animation.is_valid():
 		return
-	animation = context.store.create_object()
-	animation.set_key("consumableUsePopDurationSeconds", 0.35)
-	animation.set_key("consumableUseRemoveGapSeconds", 0.4)
-	animation.set_key("consumableUseRemoveDurationSeconds", 0.25)
-	m3.set_node("animation", animation)
+	var node := animation.get_node(key)
+	if node.is_valid() and node.value != null:
+		return
+	animation.set_key(key, value)
 
 
 func _increment_statistic(key: String, delta: int = 1) -> void:

@@ -22,9 +22,7 @@ static func apply(view: Control, holder: Control) -> bool:
 	var rect: Rect2 = hud.get_content_frame_rect()
 	if rect.size.x <= 0.0 or rect.size.y <= 0.0:
 		return false
-	holder.set_anchors_preset(Control.PRESET_TOP_LEFT)
-	holder.position = rect.position
-	holder.size = rect.size
+	_align_holder_to_global_rect(holder, rect)
 	return true
 
 
@@ -44,10 +42,14 @@ static func apply_planning(view: Control, holder: Control) -> bool:
 		return false
 	if rect.size.x <= 0.0 or rect.size.y <= 0.0:
 		return false
-	holder.set_anchors_preset(Control.PRESET_TOP_LEFT)
-	holder.position = rect.position
-	holder.size = rect.size
+	_align_holder_to_global_rect(holder, rect)
 	return true
+
+
+static func _align_holder_to_global_rect(holder: Control, rect: Rect2) -> void:
+	holder.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	holder.global_position = rect.position
+	holder.size = rect.size
 
 
 ## Connects `callback` to the HUD's content_frame_changed signal (idempotent).

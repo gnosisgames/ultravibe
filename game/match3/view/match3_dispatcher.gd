@@ -15,6 +15,7 @@ const Match3FloorSpritesScript = preload("res://game/match3/view/match3_floor_sp
 const FinalizePlaybackScript = preload("res://game/match3/boons/match3_finalize_playback.gd")
 const Match3CellFloorBoardScript = preload("res://game/match3/core/match3_cell_floor_board.gd")
 const Match3BoonJuiceScript = preload("res://game/match3/boons/match3_boon_juice.gd")
+const UltraUiFx = preload("res://game/ui/widgets/ultra_ui_fx.gd")
 const Events = Match3EventsScript
 
 const ITEM_COLORS := {
@@ -180,6 +181,11 @@ func _rebuild_from_cells(cells: Array) -> void:
 func play_move_sequence(payload: GnosisNode) -> void:
 	_busy = true
 	_combo_count = 0
+	await _run_move_sequence_body(payload)
+	_end_move_sequence()
+
+
+func _run_move_sequence_body(payload: GnosisNode) -> void:
 	var a := Vector2i(-1, -1)
 	var b := Vector2i(-1, -1)
 	var success := false
@@ -197,32 +203,57 @@ func play_move_sequence(payload: GnosisNode) -> void:
 		else:
 			await _animate_swap(a, b)
 
-	if success:
-		var steps := payload.get_node("steps")
-		if steps.is_valid() and steps.get_type() == GnosisValueType.LIST:
-			for i in steps.get_count():
-				await _animate_step(steps.get_node(i))
-				if INTER_STEP_DELAY > 0.0:
-					await _wait(INTER_STEP_DELAY)
-		var playback_steps := payload.get_node("finalizePlaybackSteps")
-		if playback_steps.is_valid() and playback_steps.get_type() == GnosisValueType.LIST and playback_steps.get_count() > 0:
-			await _animate_finalize_playback_steps(playback_steps)
-		else:
-			var finalize_steps := payload.get_node("cellFloorFinalizeSteps")
-			if finalize_steps.is_valid() and finalize_steps.get_type() == GnosisValueType.LIST:
-				await _animate_cell_floor_finalize_steps(finalize_steps)
-			var boon_finalize_steps := payload.get_node("boonFinalizeSteps")
-			if boon_finalize_steps.is_valid() and boon_finalize_steps.get_type() == GnosisValueType.LIST:
-				await _animate_boon_resolve_steps(boon_finalize_steps)
-	elif a.x >= 0 and b.x >= 0:
-		_play_sfx(SFX_SWAP, false, 2.0, 0.3)
-		await _animate_swap(a, b)
+	if not success:
+		if a.x >= 0 and b.x >= 0:
+			_play_sfx(SFX_SWAP, false, 2.0, 0.3)
+			await _animate_swap(a, b)
+		return
 
+	_begin_move_hud_metrics(payload)
+	var steps := payload.get_node("steps")
+	var step_count := steps.get_count() if steps.is_valid() and steps.get_type() == GnosisValueType.LIST else 0
+	if step_count > 0:
+		for i in step_count:
+			var step = steps.get_node(i)
+			await _animate_step(step)
+			await _play_hud_metrics_for_cascade_step(step, i, step_count, payload)
+			if INTER_STEP_DELAY > 0.0:
+				await _wait(INTER_STEP_DELAY)
+	var playback_steps := payload.get_node("finalizePlaybackSteps")
+	if playback_steps.is_valid() and playback_steps.get_type() == GnosisValueType.LIST and playback_steps.get_count() > 0:
+		await _animate_finalize_playback_steps(playback_steps)
+	else:
+		var finalize_steps := payload.get_node("cellFloorFinalizeSteps")
+		if finalize_steps.is_valid() and finalize_steps.get_type() == GnosisValueType.LIST:
+			await _animate_cell_floor_finalize_steps(finalize_steps)
+		var boon_finalize_steps := payload.get_node("boonFinalizeSteps")
+		if boon_finalize_steps.is_valid() and boon_finalize_steps.get_type() == GnosisValueType.LIST:
+			await _animate_boon_resolve_steps(boon_finalize_steps, true)
+	await _finish_move_hud_metrics(payload)
+
+
+func _end_move_sequence() -> void:
 	_busy = false
+	_optimistic_swap_done = false
 	_sync_cell_floors_from_service()
 	refresh_hud()
 	if _adapter and _adapter.has_method("on_move_sequence_finished"):
 		_adapter.on_move_sequence_finished()
+
+
+func reset_move_animation_state() -> void:
+	_busy = false
+	_optimistic_swap_done = false
+	_kill_swap_tween()
+	_cancel_drag()
+	var hud = _find_hud()
+	if hud != null and hud.has_method("cancel_move_score_display"):
+		var total := 0
+		if _service != null and _service.has_method("get_gameplay"):
+			var gameplay = _service.get_gameplay()
+			if gameplay != null:
+				total = gameplay.current_score
+		hud.cancel_move_score_display(total)
 
 
 func play_shuffle_sequence(payload: GnosisNode) -> void:
@@ -330,20 +361,150 @@ func _animate_finalize_playback_steps(steps: GnosisNode) -> void:
 					BoardFloatJuiceScript.COLOR_MULTI,
 					0.0
 				)
-			await _wait(0.18)
+			await _apply_hud_metrics_from_step_node(step, i, steps.get_count())
+			await _wait(_resolve_boon_finalize_gap_seconds())
 		elif (
 			kind == FinalizePlaybackScript.KIND_BOON_SCORE
 			or kind == FinalizePlaybackScript.KIND_BOON_ECHO
 		):
-			await _animate_boon_resolve_steps(_wrap_single_step(step))
+			await _animate_boon_resolve_steps(_wrap_single_step(step), true)
 
 
 func _wrap_single_step(step: GnosisNode) -> GnosisNode:
 	if step == null or not step.is_valid() or _service == null or _service.context == null:
 		return GnosisNode.new(null)
-	var list := _service.context.store.create_list()
+	var list: GnosisNode = _service.context.store.create_list()
 	list.add(step)
 	return list
+
+
+func _begin_move_hud_metrics(payload: GnosisNode) -> void:
+	var hud = _find_hud()
+	if hud == null or not hud.has_method("begin_move_score_display"):
+		return
+	var current := _node_int(payload, "currentScore", 0)
+	var gain := _node_int(payload, "lastMoveScoreGain", 0)
+	hud.begin_move_score_display(maxi(0, current - gain))
+
+
+func _play_hud_metrics_for_cascade_step(step: GnosisNode, step_index: int, step_count: int, _payload: GnosisNode) -> void:
+	var hud = _find_hud()
+	if hud == null or not hud.has_method("play_step_metrics_display"):
+		return
+	var points := _node_int(step, "movePointsSoFar", 0)
+	var multi := maxi(1, _node_int(step, "moveMultiSoFar", 1))
+	var points_added := _node_int(step, "pointsAdded", 0)
+	var multi_added := _node_int(step, "multiAdded", 0)
+	var is_last := step_index >= step_count - 1
+	if not is_last and points_added <= 0 and multi_added <= 0:
+		return
+	_play_hud_score_pop_juice(step_index, step_count)
+	await hud.play_step_metrics_display(points, multi, _resolve_score_step_count_duration())
+
+
+func _finish_move_hud_metrics(payload: GnosisNode) -> void:
+	var hud = _find_hud()
+	if hud == null:
+		return
+	var current := _node_int(payload, "currentScore", 0)
+	var gain := _node_int(payload, "lastMoveScoreGain", 0)
+	if gain <= 0:
+		if hud.has_method("finish_move_score_display"):
+			hud.finish_move_score_display(current)
+		return
+	var extra_delay := _resolve_score_post_finalize_hold_seconds() if _finalize_step_count(payload) > 0 else 0.0
+	if hud.has_method("play_score_transfer_to_total"):
+		await hud.play_score_transfer_to_total(
+			current,
+			gain,
+			_resolve_score_transfer_delay_seconds() + extra_delay,
+			_resolve_score_transfer_duration_seconds()
+		)
+	elif hud.has_method("finish_move_score_display"):
+		hud.finish_move_score_display(current)
+
+
+func _finalize_step_count(payload: GnosisNode) -> int:
+	if payload == null or not payload.is_valid():
+		return 0
+	var playback := payload.get_node("finalizePlaybackSteps")
+	if playback.is_valid() and playback.get_type() == GnosisValueType.LIST:
+		return playback.get_count()
+	var cell_steps := payload.get_node("cellFloorFinalizeSteps")
+	var boon_steps := payload.get_node("boonFinalizeSteps")
+	var count := 0
+	if cell_steps.is_valid() and cell_steps.get_type() == GnosisValueType.LIST:
+		count += cell_steps.get_count()
+	if boon_steps.is_valid() and boon_steps.get_type() == GnosisValueType.LIST:
+		count += boon_steps.get_count()
+	return count
+
+
+func _apply_hud_metrics_from_step_node(step: GnosisNode, step_index: int = 0, step_count: int = 1) -> void:
+	if step == null or not step.is_valid():
+		return
+	var points_node := step.get_node("stepPoints")
+	var multi_node := step.get_node("stepMulti")
+	if not points_node.is_valid() and not multi_node.is_valid():
+		return
+	var hud = _find_hud()
+	if hud == null or not hud.has_method("play_step_metrics_display"):
+		return
+	var points := _node_int(step, "stepPoints", -1)
+	var multi := _node_int(step, "stepMulti", -1)
+	if points < 0:
+		return
+	_play_hud_score_pop_juice(step_index, step_count)
+	await hud.play_step_metrics_display(points, maxi(1, multi), _resolve_score_step_count_duration())
+
+
+func _play_hud_score_pop_juice(step_index: int, step_count: int) -> void:
+	var count := maxi(1, step_count)
+	var index := clampi(step_index, 0, count - 1)
+	var progress := 1.0 if count <= 1 else float(index) / float(count - 1)
+	UltraUiFx.play_score_pop_juice_tick(self, progress)
+
+
+func _resolve_score_step_count_duration() -> float:
+	if _service != null and _service.has_method("get_match3_scaled_animation_seconds"):
+		return _service.get_match3_scaled_animation_seconds("scoreStepCountDurationSeconds", 0.22, 0.04)
+	return 0.22
+
+
+func _resolve_score_transfer_delay_seconds() -> float:
+	if _service != null and _service.has_method("get_match3_scaled_animation_seconds"):
+		return _service.get_match3_scaled_animation_seconds("scoreTransferDelaySeconds", 0.35, 0.0)
+	return 0.35
+
+
+func _resolve_score_transfer_duration_seconds() -> float:
+	if _service != null and _service.has_method("get_match3_scaled_animation_seconds"):
+		return _service.get_match3_scaled_animation_seconds("scoreTransferDurationSeconds", 0.55, 0.08)
+	return 0.55
+
+
+func _resolve_score_post_finalize_hold_seconds() -> float:
+	if _service != null and _service.has_method("get_match3_scaled_animation_seconds"):
+		return _service.get_match3_scaled_animation_seconds("scorePostFinalizeHoldSeconds", 0.12, 0.0)
+	return 0.12
+
+
+func _resolve_boon_finalize_pop_seconds() -> float:
+	if _service != null and _service.has_method("get_match3_animation_seconds"):
+		return _service.get_match3_animation_seconds("boonFinalizePopDurationSeconds", 0.45)
+	return 0.45
+
+
+func _resolve_boon_finalize_hold_seconds() -> float:
+	if _service != null and _service.has_method("get_match3_animation_seconds"):
+		return _service.get_match3_animation_seconds("boonFinalizeHoldDurationSeconds", 0.22)
+	return 0.22
+
+
+func _resolve_boon_finalize_gap_seconds() -> float:
+	if _service != null and _service.has_method("get_match3_animation_seconds"):
+		return _service.get_match3_animation_seconds("boonFinalizeGapSeconds", 0.2)
+	return 0.2
 
 
 func _animate_cell_floor_finalize_steps(steps: GnosisNode) -> void:
@@ -372,12 +533,15 @@ func _animate_cell_floor_finalize_steps(steps: GnosisNode) -> void:
 		await _wait(0.18)
 
 
-func _animate_boon_resolve_steps(steps: GnosisNode) -> void:
+func _animate_boon_resolve_steps(steps: GnosisNode, use_finalize_timing: bool = false) -> void:
 	if steps == null or not steps.is_valid() or steps.get_type() != GnosisValueType.LIST:
 		return
 	var hud = _find_hud()
 	if hud == null or not is_instance_valid(hud):
 		return
+	var step_pause := 0.12
+	if use_finalize_timing:
+		step_pause = _resolve_boon_finalize_pop_seconds() + _resolve_boon_finalize_hold_seconds()
 	for i in steps.get_count():
 		var resolve_step = steps.get_node(i)
 		if not resolve_step.is_valid():
@@ -397,11 +561,12 @@ func _animate_boon_resolve_steps(steps: GnosisNode) -> void:
 			display = Match3ScoreFloatingDisplayText.build_multi_add(_node_int(resolve_step, "multiDelta", 0))
 		if display.is_empty() and _node_int(resolve_step, "pointsDelta", 0) != 0:
 			display = Match3ScoreFloatingDisplayText.build_points_add(_node_int(resolve_step, "pointsDelta", 0))
-		if display.is_empty():
-			continue
-		if hud.has_method("play_boon_score_juice_on_slot"):
-			hud.call("play_boon_score_juice_on_slot", slot_index, kind, display)
-		await _wait(0.12)
+		if not display.is_empty():
+			if hud.has_method("play_boon_score_juice_on_slot"):
+				hud.call("play_boon_score_juice_on_slot", slot_index, kind, display)
+		await _apply_hud_metrics_from_step_node(resolve_step, i, steps.get_count())
+		if step_pause > 0.0:
+			await _wait(step_pause)
 
 
 func _pulse_floor_cell(x: int, y: int) -> void:

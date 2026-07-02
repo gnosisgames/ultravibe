@@ -257,7 +257,11 @@ func _set_pivot_point() -> void:
 			pivot_offset = Vector2(size.x, size.y / 2.0)
 
 func appear() -> void:
-	if not active or description.text == "":
+	if not active:
+		return
+	var has_body := description != null and not description.text.strip_edges().is_empty()
+	var has_title := title_label != null and title_label.visible and not title_label.text.strip_edges().is_empty()
+	if not has_body and not has_title:
 		return
 	if target and target.disabled and not appear_when_disabled:
 		return
@@ -269,7 +273,9 @@ func appear() -> void:
 	tween_tooltip.parallel().tween_property(self, "scale:y", 1.0, 0.15)
 
 func disappear() -> void:
-	if description.text == "":
+	var has_body := description != null and not description.text.strip_edges().is_empty()
+	var has_title := title_label != null and title_label.visible and not title_label.text.strip_edges().is_empty()
+	if not has_body and not has_title:
 		return
 	_set_pivot_point()
 	if tween_tooltip and tween_tooltip.is_running():

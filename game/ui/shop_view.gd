@@ -5,25 +5,46 @@ extends GnosisUIElementView
 ## this view is kept registered but is no longer pushed by the play adapter.
 
 const SubscreenFrame = preload("res://game/ui/subscreen_frame.gd")
-const ROW_BG := Color(0.356863, 0.368627, 0.560784, 1)
-const MONEY_COLOR := Color(0.937255, 0.74902, 0.0156863, 1)
+const ShopCatalogUi = preload("res://game/ui/shop_catalog_ui.gd")
+const ShopOfferCard = preload("res://game/ui/widgets/shop_offer_card.gd")
+const ShopRerollCard = preload("res://game/ui/widgets/shop_reroll_card.gd")
 
-@onready var _offers: VBoxContainer = %Offers
-@onready var _money_label: Label = %MoneyLabel
-@onready var _reroll_button: Button = %RerollButton
+@onready var _offers: HBoxContainer = %Offers
 @onready var _continue_button: Button = %ContinueButton
 @onready var _center: Control = %Center
 @onready var _card: PanelContainer = $Center/Card
 
 var _row_font: Font = null
 var _host: GnosisGodotEngine = null
+var _shop_reroll_card: ShopRerollCard = null
 
 func _ready() -> void:
 	add_to_group("gnosis_ui_view")
 	_row_font = load("res://assets/fonts/Comic Lemon.otf")
-	_reroll_button.pressed.connect(_on_reroll_pressed)
+	_ensure_shop_reroll_card()
 	_continue_button.pressed.connect(_on_continue_pressed)
 	call_deferred("_resolve_host")
+
+
+func _ensure_shop_reroll_card() -> void:
+	if _shop_reroll_card != null:
+		return
+	_shop_reroll_card = ShopRerollCard.new()
+	_shop_reroll_card.reroll_pressed.connect(_on_reroll_pressed)
+
+
+func _shop_reroll_title() -> String:
+	var key := "core__verb__reroll"
+	var translated := tr(key)
+	return translated if translated != key else "Reroll"
+
+
+func _attach_shop_reroll_card() -> void:
+	if _shop_reroll_card == null or _offers == null:
+		return
+	if _shop_reroll_card.get_parent() != _offers:
+		_offers.add_child(_shop_reroll_card)
+	_offers.move_child(_shop_reroll_card, 0)
 
 func get_subscreen_slide_holder() -> Control:
 	return _center
@@ -63,18 +84,27 @@ func _shop_service():
 	return eng.get_service("Match3Shop") if eng else null
 
 func _refresh() -> void:
-	var m3 = _match3_service()
-	if m3 and m3.has_method("get_money") and _money_label:
-		_money_label.text = "$%d" % m3.get_money()
+	_ensure_shop_reroll_card()
 	_clear_offers()
 	var shop = _shop_service()
 	var eng := _engine()
 	if shop == null or eng == null:
+		if _shop_reroll_card:
+			_shop_reroll_card.configure(_row_font, _shop_reroll_title(), "", false)
 		return
 	var result = shop.invoke_function("GetCoreShop", eng.store.create_object())
 	if not (result is GnosisFunctionResult) or not result.is_ok:
+		if _shop_reroll_card:
+			_shop_reroll_card.configure(_row_font, _shop_reroll_title(), "", false)
 		return
-	var offers: GnosisNode = result.payload.get_node("core.offers")
+	var core: GnosisNode = result.payload.get_node("core")
+	var price := _node_int(core, "currentRerollPrice", -1)
+	if price < 0:
+		var rerolls := _node_int(core, "rerollCount", 0)
+		price = 5 + rerolls * 2
+	if _shop_reroll_card:
+		_shop_reroll_card.configure(_row_font, _shop_reroll_title(), "$%d" % price, true)
+	var offers: GnosisNode = core.get_node("offers")
 	if not offers.is_valid() or offers.get_type() != GnosisValueType.LIST:
 		return
 	for i in range(offers.get_count()):
@@ -83,46 +113,29 @@ func _refresh() -> void:
 			continue
 		if _node_bool(offer, "purchased", false):
 			continue
-		_add_offer_row(
+		_add_offer_tile(
 			str(_node_str(offer, "sourceConfigId")),
 			str(_node_str(offer, "itemId")),
 			_node_int(offer, "price", 0),
 			i,
 		)
+	_attach_shop_reroll_card()
+
 
 func _clear_offers() -> void:
 	if _offers == null:
 		return
 	for child in _offers.get_children():
-		child.queue_free()
+		if child is ShopOfferCard:
+			child.queue_free()
 
-func _add_offer_row(source: String, item_id: String, price: int, index: int) -> void:
-	var panel := PanelContainer.new()
-	var box := StyleBoxFlat.new()
-	box.bg_color = ROW_BG
-	box.set_corner_radius_all(12)
-	box.content_margin_left = 18
-	box.content_margin_right = 18
-	box.content_margin_top = 10
-	box.content_margin_bottom = 10
-	panel.add_theme_stylebox_override("panel", box)
-	var hbox := HBoxContainer.new()
-	panel.add_child(hbox)
-	var label := Label.new()
-	label.text = "%s / %s" % [source, item_id]
-	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	if _row_font:
-		label.add_theme_font_override("font", _row_font)
-	label.add_theme_font_size_override("font_size", 22)
-	hbox.add_child(label)
-	var buy := JuicyButton.new()
-	buy.text = "$%d" % price
-	if _row_font:
-		buy.add_theme_font_override("font", _row_font)
-	buy.add_theme_color_override("font_color", MONEY_COLOR)
-	buy.pressed.connect(_on_buy_pressed.bind(index))
-	hbox.add_child(buy)
-	_offers.add_child(panel)
+func _add_offer_tile(source: String, item_id: String, price: int, index: int) -> void:
+	var eng := _engine()
+	var presentation := ShopCatalogUi.build_presentation(eng, source, item_id)
+	var card := ShopOfferCard.new()
+	card.configure(_row_font, presentation, price)
+	card.buy_pressed.connect(_on_buy_pressed.bind(index))
+	_offers.add_child(card)
 
 func _on_buy_pressed(index: int) -> void:
 	var shop = _shop_service()
@@ -144,6 +157,9 @@ func _on_reroll_pressed() -> void:
 		return
 	shop.invoke_function("RerollCoreShop", eng.store.create_object())
 	_refresh()
+	var adapter := _host.get_node_or_null("Adapters/Match3PlayAdapter") if _host else null
+	if adapter and adapter.has_method("refresh_hud_after_reward"):
+		adapter.refresh_hud_after_reward()
 
 func _on_continue_pressed() -> void:
 	# Merged planning panel: no separate shop overlay to dismiss.

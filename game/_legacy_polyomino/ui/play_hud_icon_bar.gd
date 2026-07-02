@@ -250,6 +250,11 @@ func _make_slot(index: int, details: Dictionary) -> Control:
 func _connect_slot_hit(hit: Button, index: int) -> void:
 	hit.pressed.connect(func(): _on_slot_pressed(index))
 
+
+func _on_slot_pressed(_index: int) -> void:
+	pass
+
+
 func _on_slot_hovered(index: int) -> void:
 	UltraUiFx.play_ui_sfx(self, UltraUiFx.CLIP_HOVER, -4.0)
 	_show_tooltip_for_slot(index)

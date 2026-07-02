@@ -7,8 +7,10 @@ extends Control
 ## via refresh_from_service() (driven by the dispatcher on board reset/change).
 
 const Match3ModelsScript = preload("res://game/match3/core/match3_models.gd")
+const Match3DispatcherScript = preload("res://game/match3/view/match3_dispatcher.gd")
 const Match3EventsScript = preload("res://game/match3/match3_events.gd")
 const Match3BoonJuiceScript = preload("res://game/match3/boons/match3_boon_juice.gd")
+const Match3GameSpeedScript = preload("res://game/match3/core/match3_game_speed.gd")
 const SupportScript = preload("res://game/match3/boons/match3_boon_support.gd")
 const UltraGameUiNav = preload("res://game/ui/ultra_game_ui_nav.gd")
 ## Boss letter token font — mirrors the collection view boss tokens.
@@ -43,6 +45,7 @@ signal content_frame_changed
 @onready var _multi_value: Label = %MultiValue
 @onready var _round_value: Label = %RoundValue
 @onready var _moves_value: Label = %MovesValue
+@onready var _gameplay_busy_spinner: GameplayBusySpinner = %GameplayBusySpinner
 @onready var _cycles_value: Label = %CyclesValue
 @onready var _money_value: Label = %MoneyValue
 @onready var _shuffle_count: Label = %ShuffleCount
@@ -70,6 +73,12 @@ var _service = null
 var _last_inventory_count_signature := ""
 var _last_upgrade_rail_signature := ""
 var _boon_juice_subscription: RefCounted = null
+var _move_metrics_active := false
+var _display_step_points := 0
+var _display_step_multi := 0
+var _display_total_score := 0
+var _display_last_match_score := 0
+var _score_display_tween: Tween = null
 
 
 func _ready() -> void:
@@ -103,6 +112,16 @@ func relayout_content_frame() -> void:
 	call_deferred("_on_frame_dirty")
 
 
+## While the planning overlay (shop + level cards) is open, the boons strip sits
+## under the same screen region and must not steal hover / click from it.
+func set_planning_overlay_active(active: bool) -> void:
+	var filter := Control.MOUSE_FILTER_IGNORE if active else Control.MOUSE_FILTER_STOP
+	if _boons_bar:
+		_boons_bar.mouse_filter = filter
+	if _boons_row:
+		_boons_row.mouse_filter = filter
+
+
 func bind_service(service) -> void:
 	_service = service
 	_subscribe_boon_juice(service)
@@ -128,9 +147,13 @@ func refresh_from_service(service = null) -> void:
 		return
 	var gameplay = _service.get_gameplay()
 	if _total_value:
-		_total_value.text = _format_score(gameplay.current_score)
+		var total: int = _display_total_score if _move_metrics_active else gameplay.current_score
+		_total_value.text = _format_score(total)
 	if _last_match_value:
-		_last_match_value.text = _format_score(_service.get_last_move_score())
+		if _move_metrics_active:
+			_update_last_match_label()
+		else:
+			_last_match_value.text = _format_score(0)
 	if _req_score_value:
 		_req_score_value.text = _format_score(gameplay.target_score)
 	if _moves_value:
@@ -138,9 +161,11 @@ func refresh_from_service(service = null) -> void:
 	if _round_value:
 		_round_value.text = str(_service.get_current_round())
 	if _points_value:
-		_points_value.text = str(_service.get_step_points())
+		var points: int = _display_step_points if _move_metrics_active else 0
+		_points_value.text = str(points)
 	if _multi_value:
-		_multi_value.text = str(_service.get_step_multi())
+		var multi: int = _display_step_multi if _move_metrics_active else 0
+		_multi_value.text = str(multi)
 	if _cycles_value:
 		_cycles_value.text = "%d/%d" % [_service.get_round_in_floor(), _service.get_rounds_per_floor()]
 	if _money_value:
@@ -261,9 +286,31 @@ func _on_shuffle_pressed() -> void:
 		_service.invoke_function("TryUseShuffle", null)
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	_refresh_gameplay_busy_spinner()
 	_refresh_upgrade_rail_if_changed()
 	_refresh_inventory_counts_if_changed()
+
+
+func _refresh_gameplay_busy_spinner() -> void:
+	if _gameplay_busy_spinner == null:
+		return
+	_gameplay_busy_spinner.set_spinning(_is_gameplay_input_locked())
+
+
+func _is_gameplay_input_locked() -> bool:
+	if _service == null or not _service.has_method("get_gameplay"):
+		return false
+	var gameplay = _service.get_gameplay()
+	if gameplay == null or gameplay.status != Match3ModelsScript.STATUS_PLAYING:
+		return false
+	if _service.has_method("is_consumable_use_presentation_active") \
+			and _service.is_consumable_use_presentation_active():
+		return true
+	var dispatcher := get_tree().get_first_node_in_group(Match3DispatcherScript.GROUP)
+	if dispatcher != null and dispatcher.has_method("is_busy") and dispatcher.is_busy():
+		return true
+	return false
 
 
 func _refresh_upgrade_rail_if_changed() -> void:
@@ -589,3 +636,287 @@ func play_boon_score_juice_on_slot(slot_index: int, score_kind: String, display_
 	if _boons_row == null:
 		return
 	_boons_row.play_score_juice(slot_index, score_kind, display_text)
+
+
+func begin_move_score_display(pre_move_total: int) -> void:
+	_kill_score_display_tweens()
+	_move_metrics_active = true
+	_display_step_points = 0
+	_display_step_multi = 0
+	_display_last_match_score = 0
+	_display_total_score = pre_move_total
+	_apply_score_display_texts()
+
+
+func apply_step_metrics_display(target_points: int, target_multi: int) -> void:
+	if not _move_metrics_active:
+		return
+	var prev_points := _display_step_points
+	var prev_multi := _display_step_multi
+	_display_step_points = target_points
+	_display_step_multi = maxi(1, target_multi)
+	var product := _display_step_points * _display_step_multi
+	if product != _display_last_match_score:
+		_display_last_match_score = product
+	_apply_score_display_texts()
+	if target_points != prev_points or target_multi != prev_multi:
+		_pulse_score_lane_juice()
+	if product != prev_points * maxi(1, prev_multi):
+		_pulse_last_match_juice()
+
+
+func finish_move_score_display(final_total: int) -> void:
+	_kill_score_display_tweens()
+	_reset_last_match_label_transform()
+	_display_step_points = 0
+	_display_step_multi = 0
+	_display_last_match_score = 0
+	_display_total_score = final_total
+	_move_metrics_active = false
+	_apply_score_display_texts()
+
+
+func cancel_move_score_display(final_total: int = -1) -> void:
+	_kill_score_display_tweens()
+	if final_total >= 0:
+		finish_move_score_display(final_total)
+	else:
+		_move_metrics_active = false
+
+
+func play_step_metrics_display(target_points: int, target_multi: int, duration_sec: float) -> void:
+	if not _move_metrics_active:
+		return
+	var prev_product := _display_step_points * maxi(1, _display_step_multi)
+	var target_product := target_points * maxi(1, target_multi)
+	var prev_points := _display_step_points
+	var prev_multi := _display_step_multi
+	_display_step_points = target_points
+	_display_step_multi = maxi(1, target_multi)
+	if _points_value:
+		_points_value.text = str(_display_step_points)
+	if _multi_value:
+		_multi_value.text = str(_display_step_multi)
+	if target_points != prev_points or target_multi != prev_multi:
+		_pulse_score_lane_juice()
+	var count_duration := minf(duration_sec, 0.2) if target_product != prev_product else 0.0
+	if count_duration > 0.0:
+		await _tween_last_match_score(prev_product, target_product, count_duration)
+	elif target_product != prev_product:
+		_display_last_match_score = target_product
+		_update_last_match_label()
+		_pulse_last_match_juice()
+	var hold := duration_sec - count_duration
+	if hold > 0.0 and is_inside_tree():
+		var tree := get_tree()
+		if tree != null:
+			await tree.create_timer(hold, true, false, true).timeout
+
+
+func play_score_transfer_to_total(
+	target_total: int,
+	move_gain: int,
+	delay_sec: float,
+	duration_sec: float,
+) -> void:
+	if not _move_metrics_active:
+		return
+	if move_gain > 0 and _display_last_match_score != move_gain:
+		await _tween_last_match_score(
+			_display_last_match_score,
+			move_gain,
+			_scale_presentation_seconds(0.14, 0.04),
+		)
+	if delay_sec > 0.0 and is_inside_tree():
+		var tree := get_tree()
+		if tree != null:
+			await tree.create_timer(delay_sec, true, false, true).timeout
+	_display_step_points = 0
+	_display_step_multi = 0
+	if _points_value:
+		_points_value.text = "0"
+	if _multi_value:
+		_multi_value.text = "0"
+	_pulse_score_lane_juice()
+	var start_total := _display_total_score
+	var last_start := _display_last_match_score
+	if move_gain > 0 and duration_sec > 0.0:
+		await _play_score_bank_transfer(start_total, target_total, last_start, duration_sec)
+	else:
+		_display_total_score = target_total
+		if _total_value:
+			_total_value.text = _format_score(_display_total_score)
+		_display_last_match_score = 0
+		_update_last_match_label()
+	finish_move_score_display(target_total)
+
+
+func _scale_presentation_seconds(seconds: float, min_seconds: float = 0.0) -> float:
+	if _service == null or _service.context == null or _service.context.engine == null:
+		return maxf(min_seconds, seconds)
+	return Match3GameSpeedScript.scale_duration(_service.context.engine, seconds, min_seconds)
+
+
+func _play_score_bank_transfer(
+	start_total: int,
+	target_total: int,
+	last_start: int,
+	duration_sec: float,
+) -> void:
+	_kill_score_display_tweens()
+	await _pop_last_match_centered()
+	if not is_inside_tree() or duration_sec <= 0.0:
+		_display_total_score = target_total
+		_display_last_match_score = 0
+		if _total_value:
+			_total_value.text = _format_score(_display_total_score)
+		_update_last_match_label()
+		_reset_last_match_label_transform()
+		return
+	_pulse_total_juice()
+	_score_display_tween = create_tween()
+	_score_display_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	_score_display_tween.set_parallel(true)
+	_score_display_tween.tween_method(
+		func(value: float) -> void:
+			_display_last_match_score = int(round(value))
+			_update_last_match_label(),
+		float(last_start),
+		0.0,
+		duration_sec,
+	).set_trans(Tween.TRANS_LINEAR)
+	_score_display_tween.parallel().tween_method(
+		func(value: float) -> void:
+			_display_total_score = int(round(value))
+			if _total_value:
+				_total_value.text = _format_score(_display_total_score),
+		float(start_total),
+		float(target_total),
+		duration_sec,
+	).set_trans(Tween.TRANS_LINEAR)
+	await _score_display_tween.finished
+	_score_display_tween = null
+	_display_total_score = target_total
+	_display_last_match_score = 0
+	if _total_value:
+		_total_value.text = _format_score(_display_total_score)
+	_update_last_match_label()
+	_reset_last_match_label_transform()
+
+
+func _pop_last_match_centered() -> void:
+	if _last_match_value == null or not is_inside_tree():
+		return
+	var label := _last_match_value
+	_reset_last_match_label_transform()
+	var tree := get_tree()
+	if tree != null:
+		await tree.process_frame
+	label.pivot_offset = label.size * 0.5
+	var pop_duration := _scale_presentation_seconds(0.14, 0.05)
+	var peak_scale := 1.1
+	var pop_tween := label.create_tween()
+	pop_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	pop_tween.tween_property(label, "scale", Vector2(peak_scale, peak_scale), pop_duration * 0.4).set_trans(Tween.TRANS_BACK)
+	pop_tween.tween_property(label, "scale", Vector2.ONE, pop_duration * 0.6)
+	await pop_tween.finished
+
+
+func _reset_last_match_label_transform() -> void:
+	if _last_match_value == null:
+		return
+	_last_match_value.top_level = false
+	_last_match_value.scale = Vector2.ONE
+	_last_match_value.modulate = Color.WHITE
+
+
+func _apply_score_display_texts() -> void:
+	if _points_value:
+		_points_value.text = str(_display_step_points)
+	if _multi_value:
+		_multi_value.text = str(_display_step_multi)
+	if _total_value:
+		_total_value.text = _format_score(_display_total_score)
+	if _last_match_value:
+		_update_last_match_label()
+
+
+func _update_last_match_label() -> void:
+	if _last_match_value:
+		_last_match_value.text = _format_score(_display_last_match_score)
+
+
+func _kill_score_display_tweens() -> void:
+	if _score_display_tween != null and _score_display_tween.is_valid():
+		_score_display_tween.kill()
+	_score_display_tween = null
+
+
+func _tween_last_match_score(from_value: int, to_value: int, duration_sec: float) -> void:
+	_kill_score_display_tweens()
+	if not is_inside_tree() or duration_sec <= 0.0 or from_value == to_value:
+		_display_last_match_score = to_value
+		_update_last_match_label()
+		return
+	_score_display_tween = create_tween()
+	_score_display_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	_score_display_tween.tween_method(
+		func(value: float) -> void:
+			_display_last_match_score = int(round(value))
+			_update_last_match_label(),
+		float(from_value),
+		float(to_value),
+		duration_sec,
+	).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	await _score_display_tween.finished
+	_score_display_tween = null
+
+
+func _tween_total_score(from_value: int, to_value: int, duration_sec: float) -> void:
+	_kill_score_display_tweens()
+	if not is_inside_tree() or duration_sec <= 0.0:
+		_display_total_score = to_value
+		if _total_value:
+			_total_value.text = _format_score(_display_total_score)
+		return
+	_score_display_tween = create_tween()
+	_score_display_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	_score_display_tween.tween_method(
+		func(value: float) -> void:
+			_display_total_score = int(round(value))
+			if _total_value:
+				_total_value.text = _format_score(_display_total_score),
+		float(from_value),
+		float(to_value),
+		duration_sec,
+	).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	await _score_display_tween.finished
+	_score_display_tween = null
+
+
+func _pulse_last_match_juice() -> void:
+	if _last_match_value == null:
+		return
+	var tw: Tween = _last_match_value.create_tween()
+	tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	tw.tween_property(_last_match_value, "scale", Vector2(1.14, 1.14), 0.07).set_trans(Tween.TRANS_BACK)
+	tw.tween_property(_last_match_value, "scale", Vector2.ONE, 0.12)
+
+
+func _pulse_total_juice() -> void:
+	if _total_value == null:
+		return
+	var tw: Tween = _total_value.create_tween()
+	tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	tw.tween_property(_total_value, "scale", Vector2(1.1, 1.1), 0.08).set_trans(Tween.TRANS_BACK)
+	tw.tween_property(_total_value, "scale", Vector2.ONE, 0.14)
+
+
+func _pulse_score_lane_juice() -> void:
+	for box in [_points_value, _multi_value]:
+		if box == null:
+			continue
+		var lane_tween: Tween = box.create_tween()
+		lane_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+		lane_tween.tween_property(box, "scale", Vector2(1.12, 1.12), 0.06).set_trans(Tween.TRANS_BACK)
+		lane_tween.tween_property(box, "scale", Vector2.ONE, 0.1)

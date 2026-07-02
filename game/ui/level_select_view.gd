@@ -8,7 +8,9 @@ const LevelCardBadge = preload("res://game/ui/widgets/level_card_badge.gd")
 const RoundedSquareBtnScene = preload("res://game/ui/widgets/rounded_square_btn.tscn")
 const TooltipPopupScene = preload("res://game/ui/widgets/tooltip_popup.tscn")
 const ConsumableCatalogUi = preload("res://game/ui/consumable_catalog_ui.gd")
-const SHOP_ROW_BG := Color(0.356863, 0.368627, 0.560784, 1)
+const ShopCatalogUi = preload("res://game/ui/shop_catalog_ui.gd")
+const ShopOfferCard = preload("res://game/ui/widgets/shop_offer_card.gd")
+const ShopRerollCard = preload("res://game/ui/widgets/shop_reroll_card.gd")
 
 const PANEL_BG := Color(0.415686, 0.415686, 0.658824, 1)
 const PANEL_SHADOW := Color(0.0784314, 0.137255, 0.227451, 1)
@@ -47,6 +49,9 @@ const REWARD_ICON_SIZE := 56
 const CHALLENGE_MULT_ROTATION := 30.0
 const CHALLENGE_MULT_FONT_SIZE := 20
 const REWARD_TOOLTIP_WIDTH := 300.0
+const TOOLTIP_CANVAS_LAYER := 8
+const TOOLTIP_Z_INDEX := 4096
+const PLANNING_OVERLAY_Z_INDEX := 20
 const ICON_DIR := "res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/"
 const SKULL_ICON := ICON_DIR + "skull-white.png"
 const PLAY_ICON := ICON_DIR + "play.png"
@@ -54,31 +59,33 @@ const SKIP_ICON := ICON_DIR + "skip.png"
 
 @onready var _region: Control = %Region
 @onready var _shop_section: PanelContainer = %ShopSection
-@onready var _shop_offers: VBoxContainer = %ShopOffers
-@onready var _shop_reroll_button: Button = %ShopRerollButton
+@onready var _shop_offers: HBoxContainer = %ShopOffers
 @onready var _cards: HBoxContainer = %Cards
 
 var _font: Font = null
 var _host: GnosisGodotEngine = null
+var _shop_reroll_card: ShopRerollCard = null
+var _tooltip_layer: CanvasLayer = null
 var _tooltip: TooltipPopup = null
 var _tooltip_anchor: Control = null
 
 func _ready() -> void:
 	add_to_group("gnosis_ui_view")
 	_font = load("res://assets/fonts/Comic Lemon.otf")
+	if _region:
+		_region.mouse_filter = Control.MOUSE_FILTER_STOP
 	if _cards:
 		_cards.alignment = BoxContainer.ALIGNMENT_END
-	if _shop_reroll_button:
-		_shop_reroll_button.pressed.connect(_on_shop_reroll_pressed)
-		var reroll_key := "core__verb__reroll"
-		_shop_reroll_button.text = tr(reroll_key) if tr(reroll_key) != reroll_key else "Reroll"
-	if _shop_section:
-		var shop_title := _shop_section.get_node_or_null("ShopVBox/ShopTitle") as Label
-		if shop_title:
-			shop_title.text = tr("core__noun__shop") if tr("core__noun__shop") != "core__noun__shop" else "Shop"
-			_apply_font(shop_title, 40, WHITE)
+	_ensure_shop_reroll_card()
 	_build_tooltip()
 	call_deferred("_resolve_host")
+
+
+func _ensure_shop_reroll_card() -> void:
+	if _shop_reroll_card != null:
+		return
+	_shop_reroll_card = ShopRerollCard.new()
+	_shop_reroll_card.reroll_pressed.connect(_on_shop_reroll_pressed)
 
 func get_subscreen_slide_holder() -> Control:
 	return _region
@@ -86,12 +93,26 @@ func get_subscreen_slide_holder() -> Control:
 
 func set_view_visible(is_visible: bool) -> void:
 	super.set_view_visible(is_visible)
+	z_index = PLANNING_OVERLAY_Z_INDEX if is_visible else 0
 	if is_visible:
+		var parent := get_parent()
+		if parent:
+			parent.move_child(self, -1)
 		SubscreenFrame.connect_changes(self, _apply_frame)
 		_apply_frame()
 		_refresh()
+		_set_planning_overlay_active(true)
 	else:
+		_set_planning_overlay_active(false)
 		_hide_consumable_tooltip()
+
+
+func _set_planning_overlay_active(active: bool) -> void:
+	if not is_inside_tree():
+		return
+	var hud := get_tree().get_first_node_in_group("match3_hud")
+	if hud and hud.has_method("set_planning_overlay_active"):
+		hud.call("set_planning_overlay_active", active)
 
 func _apply_frame() -> void:
 	SubscreenFrame.apply_planning(self, _region)
@@ -162,11 +183,13 @@ func _refresh_shop() -> void:
 		return
 	_shop_section.visible = true
 	var shop_available: bool = m3.has_method("is_shop_available") and m3.is_shop_available()
-	if _shop_reroll_button:
-		_shop_reroll_button.visible = true
-		_shop_reroll_button.disabled = not shop_available
+	_ensure_shop_reroll_card()
+	if _shop_reroll_card:
+		_shop_reroll_card.visible = shop_available
+		_refresh_shop_reroll(shop_available)
 	_clear_shop_offers()
 	if not shop_available:
+		_attach_shop_reroll_card()
 		return
 	var shop = _shop_service()
 	var eng := _engine()
@@ -184,46 +207,88 @@ func _refresh_shop() -> void:
 			continue
 		if _node_bool(offer, "purchased", false):
 			continue
-		_add_shop_offer_row(
+		_add_shop_offer_tile(
 			str(_node_str(offer, "sourceConfigId")),
 			str(_node_str(offer, "itemId")),
 			_node_int(offer, "price", 0),
 			i,
 		)
+	_attach_shop_reroll_card()
+
+
+func _shop_reroll_title() -> String:
+	return _localized("core__verb__reroll", "Reroll")
+
+
+func _attach_shop_reroll_card() -> void:
+	if _shop_reroll_card == null or _shop_offers == null:
+		return
+	if _shop_reroll_card.get_parent() != _shop_offers:
+		_shop_offers.add_child(_shop_reroll_card)
+	_shop_offers.move_child(_shop_reroll_card, 0)
 
 
 func _clear_shop_offers() -> void:
 	if _shop_offers == null:
 		return
 	for child in _shop_offers.get_children():
-		child.queue_free()
+		if child is ShopOfferCard:
+			child.queue_free()
 
 
-func _add_shop_offer_row(source: String, item_id: String, price: int, index: int) -> void:
-	var panel := PanelContainer.new()
-	var box := StyleBoxFlat.new()
-	box.bg_color = SHOP_ROW_BG
-	box.set_corner_radius_all(12)
-	box.content_margin_left = 18
-	box.content_margin_right = 18
-	box.content_margin_top = 10
-	box.content_margin_bottom = 10
-	panel.add_theme_stylebox_override("panel", box)
-	var hbox := HBoxContainer.new()
-	panel.add_child(hbox)
-	var label := Label.new()
-	label.text = "%s / %s" % [source, item_id]
-	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_apply_font(label, 22, WHITE)
-	hbox.add_child(label)
-	var buy := JuicyButton.new()
-	buy.text = "$%d" % price
-	if _font:
-		buy.add_theme_font_override("font", _font)
-	buy.add_theme_color_override("font_color", GOLD)
-	buy.pressed.connect(_on_shop_buy_pressed.bind(index))
-	hbox.add_child(buy)
-	_shop_offers.add_child(panel)
+func _refresh_shop_reroll(shop_available: bool) -> void:
+	if _shop_reroll_card == null:
+		return
+	var shop = _shop_service()
+	var eng := _engine()
+	if not shop_available or shop == null or eng == null:
+		_shop_reroll_card.configure(_font, _shop_reroll_title(), "", false)
+		return
+	var result = shop.invoke_function("GetCoreShop", eng.store.create_object())
+	if not (result is GnosisFunctionResult) or not result.is_ok:
+		_shop_reroll_card.configure(_font, _shop_reroll_title(), "", false)
+		return
+	var payload: GnosisNode = result.payload
+	var core: GnosisNode = payload.get_node("core")
+	var price := _node_int(core, "currentRerollPrice", -1)
+	if price < 0:
+		var rerolls := _node_int(core, "rerollCount", 0)
+		price = 5 + rerolls * 2
+	var free_count := _node_int(core, "freeRerollCount", 0)
+	var next_free := free_count > 0 or _node_bool(core, "nextRerollIsFree", false)
+	var price_label := _format_reroll_price(price, free_count, next_free)
+	var money := 0
+	var m3 = _match3_service()
+	if m3 != null and m3.has_method("get_money"):
+		money = m3.get_money()
+	var can_afford := next_free or price <= 0 or money >= price
+	_shop_reroll_card.configure(_font, _shop_reroll_title(), price_label, can_afford)
+	_attach_shop_reroll_card()
+
+
+func _format_reroll_price(price: int, free_count: int, next_free: bool) -> String:
+	if next_free or price <= 0:
+		if free_count > 1:
+			return "Free (%d)" % free_count
+		return "Free"
+	return "$%d" % price
+
+
+func _add_shop_offer_tile(source: String, item_id: String, price: int, index: int) -> void:
+	var eng := _engine()
+	var presentation := ShopCatalogUi.build_presentation(eng, source, item_id)
+	var card := ShopOfferCard.new()
+	card.configure(_font, presentation, price)
+	card.buy_pressed.connect(_on_shop_buy_pressed.bind(index))
+	var anchor := card.get_tooltip_anchor()
+	anchor.mouse_entered.connect(func() -> void:
+		anchor.grab_focus()
+		_show_consumable_tooltip(anchor, presentation)
+	)
+	anchor.mouse_exited.connect(func() -> void:
+		call_deferred("_hide_consumable_tooltip_if_mouse_left", anchor)
+	)
+	_shop_offers.add_child(card)
 
 
 func _on_shop_buy_pressed(index: int) -> void:
@@ -245,6 +310,7 @@ func _on_shop_reroll_pressed() -> void:
 		return
 	shop.invoke_function("RerollCoreShop", eng.store.create_object())
 	_refresh()
+	_refresh_hud()
 
 
 func _refresh_hud() -> void:
@@ -303,6 +369,7 @@ func _build_card(row: GnosisNode) -> Control:
 
 	var card := PanelContainer.new()
 	card.z_index = 0
+	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	card.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	card.add_theme_stylebox_override("panel", _card_style(is_current))
@@ -399,19 +466,16 @@ func _desc_label(text: String) -> RichTextLabel:
 
 func _action_rewards_row(reward: int, consumable_id: String) -> Control:
 	var panel_h := _reward_panel_height()
-	var root := Control.new()
-	root.custom_minimum_size = Vector2(0, panel_h)
-	root.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	root.clip_contents = false
-
 	var outer := PanelContainer.new()
-	outer.set_anchors_preset(Control.PRESET_FULL_RECT)
+	outer.custom_minimum_size = Vector2(0, panel_h)
+	outer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	outer.clip_contents = false
+	outer.mouse_filter = Control.MOUSE_FILTER_PASS
 	outer.add_theme_stylebox_override("panel", _reward_panel_style())
-	root.add_child(outer)
 
 	var row := HBoxContainer.new()
-	row.set_anchors_preset(Control.PRESET_FULL_RECT)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	row.clip_contents = false
 	row.add_theme_constant_override("separation", 0)
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -424,7 +488,7 @@ func _action_rewards_row(reward: int, consumable_id: String) -> Control:
 		row.add_child(_reward_divider())
 		row.add_child(_reward_consumable_side(preview))
 
-	return root
+	return outer
 
 
 func _reward_money_side(reward: int) -> Control:
@@ -459,10 +523,9 @@ func _reward_consumable_side(preview: Dictionary) -> Control:
 	side.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	side.clip_contents = false
 
-	var center := Control.new()
-	center.set_anchors_preset(Control.PRESET_FULL_RECT)
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	center.clip_contents = false
 	var icon_path := str(preview.get("icon_path", ""))
 	if not icon_path.is_empty():
 		center.add_child(_consumable_reward_button(icon_path, preview))
@@ -476,12 +539,6 @@ func _consumable_reward_button(icon_path: String, preview: Dictionary) -> Button
 	var btn := Button.new()
 	btn.clip_contents = false
 	btn.custom_minimum_size = Vector2(icon_size, icon_size)
-	btn.set_anchors_preset(Control.PRESET_CENTER)
-	var half := icon_size * 0.5
-	btn.offset_left = -half
-	btn.offset_top = -half
-	btn.offset_right = half
-	btn.offset_bottom = half
 	btn.z_index = 2
 	btn.flat = true
 	btn.focus_mode = Control.FOCUS_ALL
@@ -498,11 +555,6 @@ func _consumable_reward_button(icon_path: String, preview: Dictionary) -> Button
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	icon.set_anchors_preset(Control.PRESET_CENTER)
-	icon.offset_left = -half
-	icon.offset_top = -half
-	icon.offset_right = half
-	icon.offset_bottom = half
 	btn.add_child(icon)
 
 	btn.mouse_entered.connect(func() -> void:
@@ -569,37 +621,63 @@ func _reward_dot(color: Color) -> Control:
 	return dot
 
 
+func _ensure_tooltip_layer() -> CanvasLayer:
+	if _tooltip_layer and is_instance_valid(_tooltip_layer):
+		return _tooltip_layer
+	var ui_root := get_parent()
+	if ui_root == null:
+		return null
+	var existing := ui_root.get_node_or_null("PlanningTooltipLayer")
+	if existing is CanvasLayer:
+		_tooltip_layer = existing as CanvasLayer
+		return _tooltip_layer
+	_tooltip_layer = CanvasLayer.new()
+	_tooltip_layer.name = "PlanningTooltipLayer"
+	_tooltip_layer.layer = TOOLTIP_CANVAS_LAYER
+	ui_root.add_child(_tooltip_layer)
+	return _tooltip_layer
+
+
 func _build_tooltip() -> void:
 	if _tooltip != null:
 		return
+	var layer := _ensure_tooltip_layer()
+	if layer == null:
+		return
 	_tooltip = TooltipPopupScene.instantiate() as TooltipPopup
 	_tooltip.name = "ConsumableTooltip"
-	_tooltip.top_level = true
-	_tooltip.z_index = 100
+	_tooltip.z_index = TOOLTIP_Z_INDEX
 	_tooltip.visible = false
 	_tooltip.scale = Vector2.ZERO
-	add_child(_tooltip)
+	layer.add_child(_tooltip)
 
 
 func _show_consumable_tooltip(anchor: Control, preview: Dictionary) -> void:
 	if _tooltip == null or anchor == null or not is_instance_valid(anchor):
 		return
+	var title := str(preview.get("title", "")).strip_edges()
 	var description := str(preview.get("description", "")).strip_edges()
-	if description.is_empty():
+	if description.is_empty() and title.is_empty():
 		return
+	if description.is_empty():
+		var fallback_key := "ultravibe__collection__noDescription"
+		var fallback := tr(fallback_key)
+		description = fallback if fallback != fallback_key else title
 	_tooltip_anchor = anchor
 	_tooltip.set_anchors_preset(Control.PRESET_TOP_LEFT)
 	_tooltip.grow_horizontal = Control.GROW_DIRECTION_END
 	_tooltip.grow_vertical = Control.GROW_DIRECTION_END
 	_tooltip.visible = true
 	_tooltip.set_content(
-		str(preview.get("title", "")),
+		title,
 		description,
 		REWARD_TOOLTIP_WIDTH,
 		preview.get("tags", [])
 	)
 	_tooltip.reset_size()
 	_position_consumable_tooltip(anchor)
+	if _tooltip_layer:
+		_tooltip_layer.move_child(_tooltip, -1)
 	_tooltip.appear()
 
 
@@ -616,7 +694,7 @@ func _position_consumable_tooltip(anchor: Control) -> void:
 	if _tooltip == null or anchor == null or not is_instance_valid(anchor):
 		return
 	var anchor_rect := anchor.get_global_rect()
-	var bounds := _region.get_global_rect() if _region else get_global_rect()
+	var bounds := get_viewport().get_visible_rect().grow(-8.0)
 	var tooltip_size := _tooltip.get_combined_minimum_size()
 	tooltip_size.x = maxf(tooltip_size.x, _tooltip.size.x)
 	tooltip_size.y = maxf(tooltip_size.y, _tooltip.size.y)

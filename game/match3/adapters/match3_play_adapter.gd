@@ -126,13 +126,26 @@ func on_move_sequence_finished() -> void:
 	_route_status_to_ui(status)
 
 
+func _should_defer_status_for_busy_dispatcher(status: int) -> bool:
+	return status in [
+		Match3ModelsScript.STATUS_WIN,
+		Match3ModelsScript.STATUS_LOSS,
+		Match3ModelsScript.STATUS_REWARD_PANEL,
+		Match3ModelsScript.STATUS_LOSE_PANEL,
+	]
+
+
 func _on_status_fact(event: GnosisEvent) -> void:
 	if event == null or not event.data.is_valid():
 		return
 	var status := _node_int(event.data, Events.PAYLOAD_GAME_STATUS, Match3ModelsScript.STATUS_LEVEL_SELECT_PANEL)
+	if status in [Match3ModelsScript.STATUS_PLAYING, Match3ModelsScript.STATUS_LEVEL_SELECT_PANEL]:
+		if _dispatcher and _dispatcher.has_method("reset_move_animation_state"):
+			_dispatcher.reset_move_animation_state()
 	# Hold a post-move result panel until the board view finishes animating, so
 	# the winning/losing match is not cut off by the overlay snapping in.
-	if _dispatcher and _dispatcher.has_method("is_busy") and _dispatcher.is_busy():
+	if _dispatcher and _dispatcher.has_method("is_busy") and _dispatcher.is_busy() \
+			and _should_defer_status_for_busy_dispatcher(status):
 		_pending_status = status
 		return
 	if _dispatcher:

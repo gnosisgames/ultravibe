@@ -1,8 +1,8 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://game/ui/level_select_view.gd" id="1"]
 [ext_resource type="FontFile" path="res://assets/fonts/Comic Lemon.otf" id="2"]
-[ext_resource type="PackedScene" path="res://game/ui/widgets/rounded_square_btn.tscn" id="3"]
+[ext_resource type="Script" path="res://game/ui/components/bbcode_effect_text_combine.gd" id="4"]
 
 [sub_resource type="StyleBoxFlat" id="SB_shop"]
 content_margin_left = 28.0
@@ -34,7 +34,6 @@ unique_name_in_owner = true
 layout_mode = 0
 offset_right = 400.0
 offset_bottom = 400.0
-mouse_filter = 2
 
 [node name="Layout" type="VBoxContainer" parent="Region"]
 unique_name_in_owner = true
@@ -44,7 +43,6 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 2
 theme_override_constants/separation = 16
 
 [node name="ShopSection" type="PanelContainer" parent="Region/Layout"]
@@ -57,25 +55,38 @@ theme_override_styles/panel = SubResource("SB_shop")
 [node name="ShopVBox" type="VBoxContainer" parent="Region/Layout/ShopSection"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 10
+theme_override_constants/separation = 12
 
-[node name="ShopTitle" type="Label" parent="Region/Layout/ShopSection/ShopVBox"]
+[node name="ShopTitle" type="RichTextLabel" parent="Region/Layout/ShopSection/ShopVBox"]
 layout_mode = 2
-text = "Shop"
+custom_minimum_size = Vector2(0, 72)
+focus_mode = 0
+mouse_filter = 2
+theme_override_colors/default_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.176471, 0.184314, 0.305882, 1)
+theme_override_colors/font_shadow_color = Color(0.176471, 0.184314, 0.305882, 0.6)
+theme_override_constants/shadow_outline_size = 24
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 6
+theme_override_constants/outline_size = 24
+theme_override_fonts/normal_font = ExtResource("2")
+theme_override_font_sizes/normal_font_size = 56
+bbcode_enabled = true
+text = "[wave amp=40.0 freq=4.0 connected=1]SHOP[/wave]"
+fit_content = true
+scroll_active = false
 horizontal_alignment = 1
+vertical_alignment = 1
+script = ExtResource("4")
+text_clean = "core__noun__shop"
+bbcode = "[wave amp=40.0 freq=4.0 connected=1]%s[/wave]"
 
-[node name="ShopOffers" type="VBoxContainer" parent="Region/Layout/ShopSection/ShopVBox"]
+[node name="ShopOffers" type="HBoxContainer" parent="Region/Layout/ShopSection/ShopVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 8
-
-[node name="ShopRerollButton" parent="Region/Layout/ShopSection/ShopVBox" instance=ExtResource("3")]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 58)
-layout_mode = 2
-size_flags_horizontal = 4
-text = "core__verb__reroll"
+theme_override_constants/separation = 18
+alignment = 1
 
 [node name="Cards" type="HBoxContainer" parent="Region/Layout"]
 unique_name_in_owner = true

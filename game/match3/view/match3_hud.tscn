@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=3]
+[gd_scene load_steps=21 format=3]
 
 [ext_resource type="Script" path="res://game/match3/view/match3_hud.gd" id="1"]
 [ext_resource type="Script" path="res://game/match3/view/match3_dispatcher.gd" id="2"]
@@ -13,6 +13,7 @@
 [ext_resource type="Script" path="res://game/match3/view/match3_hud_run_upgrades_column.gd" id="11"]
 [ext_resource type="Script" path="res://game/match3/view/match3_hud_enhanced_tiles_column.gd" id="12"]
 [ext_resource type="Script" path="res://game/match3/view/match3_hud_item_upgrades_column.gd" id="13"]
+[ext_resource type="Script" path="res://game/match3/view/gameplay_busy_spinner.gd" id="14"]
 
 [sub_resource type="StyleBoxFlat" id="SB_section"]
 content_margin_left = 24.0
@@ -480,16 +481,44 @@ horizontal_alignment = 1
 
 [node name="MovesBox" type="PanelContainer" parent="Sidebar/Layout/ScoreSection/ScoreLayout/StatsGrid/MovesCol"]
 layout_mode = 2
+clip_contents = true
 theme_override_styles/panel = SubResource("SB_dark")
 
-[node name="MovesValue" type="Label" parent="Sidebar/Layout/ScoreSection/ScoreLayout/StatsGrid/MovesCol/MovesBox"]
-unique_name_in_owner = true
+[node name="MovesBoxLayer" type="Control" parent="Sidebar/Layout/ScoreSection/ScoreLayout/StatsGrid/MovesCol/MovesBox"]
 layout_mode = 2
+custom_minimum_size = Vector2(0, 42)
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="MovesValue" type="Label" parent="Sidebar/Layout/ScoreSection/ScoreLayout/StatsGrid/MovesCol/MovesBox/MovesBoxLayer"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3")
 theme_override_font_sizes/font_size = 36
 text = "0"
 horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="GameplayBusySpinner" type="Control" parent="Sidebar/Layout/ScoreSection/ScoreLayout/StatsGrid/MovesCol/MovesBox/MovesBoxLayer"]
+unique_name_in_owner = true
+z_index = 1
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_top = -14.0
+offset_right = 28.0
+offset_bottom = 14.0
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("14")
 
 [node name="CyclesCol" type="VBoxContainer" parent="Sidebar/Layout/ScoreSection/ScoreLayout/StatsGrid"]
 layout_mode = 2

@@ -225,6 +225,10 @@
           "coin5Sfx",
           "coin6Sfx",
           "coin7Sfx"
+        ],
+        "scorePopJuiceClipIds": [
+          "scorePopSfx1",
+          "scorePopSfx2"
         ]
       }
     }
