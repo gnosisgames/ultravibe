@@ -173,6 +173,7 @@
       "stepCount": 0,
       "movesPerformed": 0,
       "pendingRoundMovesAdd": 0,
+      "echoLastRuneOrItemUpgradeGrantConsumableId": "",
       "currentShuffles": 2,
       "roundStartShuffles": 2,
       "gameStatus": "levelSelectPanel",

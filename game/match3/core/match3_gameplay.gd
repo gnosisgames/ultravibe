@@ -23,6 +23,12 @@ var _move_points_accum: int = 0
 var _move_multi_accum: int = 0
 var _tile_score_resolver: Callable = Callable()
 var _boon_score_finalize_hook: Callable = Callable()
+var score_restrict_exact_three := false
+var score_restrict_exact_four_five := false
+var tile_points_contribution_scale := 1.0
+var tile_multi_contribution_scale := 1.0
+var reduce_first_destroyed_item_level_enabled := false
+var _first_scoring_destroyed_item_id := ""
 var _boon_resolve_begin_hook: Callable = Callable()
 var _boon_resolve_item_destroyed_hook: Callable = Callable()
 var _boon_resolve_step_cascade_hook: Callable = Callable()
@@ -34,6 +40,26 @@ var _match_floor_conversion_hook: Callable = Callable()
 
 func configure_rng(seed_value: int) -> void:
 	_rng.seed = seed_value
+
+
+func configure_scoring_effects(
+	restrict_exact_three: bool,
+	restrict_exact_four_five: bool,
+	points_scale: float,
+	multi_scale: float,
+	track_first_destroyed_item: bool
+) -> void:
+	score_restrict_exact_three = restrict_exact_three
+	score_restrict_exact_four_five = restrict_exact_four_five
+	tile_points_contribution_scale = points_scale if is_finite(points_scale) else 1.0
+	tile_multi_contribution_scale = multi_scale if is_finite(multi_scale) else 1.0
+	reduce_first_destroyed_item_level_enabled = track_first_destroyed_item
+
+
+func consume_first_scoring_destroyed_item_id() -> String:
+	var item_id := _first_scoring_destroyed_item_id.strip_edges()
+	_first_scoring_destroyed_item_id = ""
+	return item_id
 
 
 func set_boon_score_finalize_hook(hook: Callable) -> void:
@@ -116,6 +142,7 @@ func process_move(a: Models.TileCoord, b: Models.TileCoord, item_points: Diction
 
 	_move_points_accum = 0
 	_move_multi_accum = 0
+	_first_scoring_destroyed_item_id = ""
 	_swap(a, b)
 	var first_match := _find_matches()
 	if first_match.matched_tiles.is_empty():
@@ -177,6 +204,20 @@ func _process_step(
 	if _boon_resolve_begin_hook.is_valid():
 		_boon_resolve_begin_hook.call(current_match, results, _move_points_accum, _move_multi_accum, scoring_eligible)
 
+	if reduce_first_destroyed_item_level_enabled and _first_scoring_destroyed_item_id.is_empty():
+		for coord in current_match.matched_tiles:
+			var preview := get_tile(coord.x, coord.y)
+			if preview == null or preview.is_empty():
+				continue
+			if TopologyScript.tile_counts_for_score(
+				coord,
+				current_match,
+				score_restrict_exact_three,
+				score_restrict_exact_four_five
+			) and not preview.item_id.strip_edges().is_empty():
+				_first_scoring_destroyed_item_id = preview.item_id.strip_edges()
+				break
+
 	while not to_clear.is_empty():
 		var key: String = to_clear.keys()[0]
 		var coord: Models.TileCoord = to_clear[key]
@@ -186,8 +227,17 @@ func _process_step(
 		var tile := get_tile(coord.x, coord.y)
 		if tile == null or tile.is_empty():
 			continue
-		var points := tile.point_for_item
-		var multi := tile.multi_for_item
+		var counts_for_score := TopologyScript.tile_counts_for_score(
+			coord,
+			current_match,
+			score_restrict_exact_three,
+			score_restrict_exact_four_five
+		)
+		var points := 0
+		var multi := 0
+		if counts_for_score:
+			points = maxi(0, int(round(float(tile.point_for_item) * tile_points_contribution_scale)))
+			multi = maxi(0, int(round(float(tile.multi_for_item) * tile_multi_contribution_scale)))
 		current_match.contributions.append({
 			"at": coord.to_dict(),
 			"itemId": tile.item_id,
@@ -195,9 +245,10 @@ func _process_step(
 			"pointsAdded": points,
 			"multiAdded": multi,
 		})
-		_move_points_accum += points
-		_move_multi_accum += multi
-		scoring_eligible += 1
+		if counts_for_score:
+			_move_points_accum += points
+			_move_multi_accum += multi
+			scoring_eligible += 1
 		if _cell_floor_scoring_hook.is_valid():
 			var floor_delta: Dictionary = _cell_floor_scoring_hook.call(
 				tile, coord, current_match, multi, _move_multi_accum

@@ -152,6 +152,69 @@ static func classify_five_tile_intersection_shape(tiles: Array) -> String:
 			return ""
 
 
+static func tile_counts_for_score(
+	coord: Models.TileCoord,
+	match_result: Models.MatchResult,
+	restrict_exact_three: bool,
+	restrict_exact_four_or_five: bool
+) -> bool:
+	if not restrict_exact_three and not restrict_exact_four_or_five:
+		return true
+	if match_result == null or match_result.topology_components.is_empty():
+		return true
+	var three_ok := true
+	var four_ok := true
+	if restrict_exact_three:
+		three_ok = tile_contributes_under_exact_three_line_rule(coord, match_result)
+	if restrict_exact_four_or_five:
+		four_ok = tile_contributes_under_exact_four_or_five_line_rule(coord, match_result)
+	return three_ok and four_ok
+
+
+static func tile_contributes_under_exact_three_line_rule(
+	coord: Models.TileCoord,
+	match_result: Models.MatchResult
+) -> bool:
+	if match_result == null or match_result.topology_components.is_empty():
+		return false
+	for topo in match_result.topology_components:
+		if not (topo is Dictionary):
+			continue
+		if not _topology_contributes_exact_three(topo):
+			continue
+		for tile_coord in topo.get("tiles", []):
+			if tile_coord != null and int(tile_coord.x) == coord.x and int(tile_coord.y) == coord.y:
+				return true
+	return false
+
+
+static func tile_contributes_under_exact_four_or_five_line_rule(
+	coord: Models.TileCoord,
+	match_result: Models.MatchResult
+) -> bool:
+	if match_result == null or match_result.topology_components.is_empty():
+		return false
+	for topo in match_result.topology_components:
+		if not (topo is Dictionary):
+			continue
+		if not _topology_contributes_exact_four_or_five(topo):
+			continue
+		for tile_coord in topo.get("tiles", []):
+			if tile_coord != null and int(tile_coord.x) == coord.x and int(tile_coord.y) == coord.y:
+				return true
+	return false
+
+
+static func _topology_contributes_exact_three(topo: Dictionary) -> bool:
+	var kind := str(topo.get("shapeKind", ""))
+	return kind == SHAPE_H3 or kind == SHAPE_V3
+
+
+static func _topology_contributes_exact_four_or_five(topo: Dictionary) -> bool:
+	var kind := str(topo.get("shapeKind", ""))
+	return kind in [SHAPE_H4, SHAPE_V4, SHAPE_H5, SHAPE_V5]
+
+
 static func _connected_components(matched: Dictionary) -> Array:
 	var remaining: Dictionary = matched.duplicate()
 	var components: Array = []

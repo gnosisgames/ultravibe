@@ -76,7 +76,7 @@ func persist_to_store(match3_node: GnosisNode) -> void:
 		var row := _service.context.store.create_object()
 		row.set_key("effectId", str(effect_id))
 		row.set_key("roundsRemaining", int(_active_rounds[effect_id]))
-		list.append(row)
+		list.add(row)
 	match3_node.set_key(ACTIVE_MATCH3_EFFECT_IDS_STORE_KEY, list)
 
 
@@ -157,8 +157,178 @@ func try_juice_boon_on_activate(_boon_catalog_id: String) -> void:
 	pass
 
 
+func invoke_apply_effect(parameters: GnosisNode) -> Dictionary:
+	if _service == null or _service.context == null or _service.context.store == null:
+		return {"ok": false, "error": "Store unavailable."}
+	if parameters == null or not parameters.is_valid():
+		return {"ok": false, "error": "ApplyEffect requires parameters."}
+	var parsed := _parse_apply_effect_parameters(parameters)
+	if not bool(parsed.get("ok", false)):
+		return parsed
+	var effect_id := str(parsed.get("effectId", ""))
+	var lifetime := int(parsed.get("roundsLifetime", MATCH3_EFFECT_INFINITE_ROUNDS))
+	var already := _active_rounds.has(effect_id)
+	if not try_commit_effect(effect_id, lifetime):
+		return {"ok": false, "error": "Unknown or invalid Match3 effect '%s'." % effect_id}
+	_persist_active_effects()
+	return {
+		"ok": true,
+		"effectId": effect_id,
+		"alreadyActive": already,
+		"roundsRemaining": lifetime,
+		"activeCount": _active_rounds.size(),
+	}
+
+
+func invoke_remove_effect(parameters: GnosisNode) -> Dictionary:
+	if _service == null or _service.context == null or _service.context.store == null:
+		return {"ok": false, "error": "Store unavailable."}
+	var effect_id := _read_remove_effect_id(parameters)
+	if effect_id.is_empty():
+		return {"ok": false, "error": "RemoveEffect requires a non-empty effectId."}
+	var removed := _active_rounds.erase(effect_id)
+	if removed:
+		_definition_cache.erase(effect_id)
+		_stack_counts.erase(effect_id)
+	rebuild_derived_state()
+	_persist_active_effects()
+	return {
+		"ok": true,
+		"effectId": effect_id,
+		"removed": removed,
+		"activeCount": _active_rounds.size(),
+	}
+
+
+func tick_round_lifetimes() -> void:
+	var mutated := false
+	var snapshot: Array = []
+	for effect_id in _active_rounds.keys():
+		snapshot.append([str(effect_id), int(_active_rounds[effect_id])])
+	for entry in snapshot:
+		var effect_id: String = entry[0]
+		var remaining: int = entry[1]
+		if remaining < 0:
+			continue
+		var next := remaining - 1
+		if next <= 0:
+			if _active_rounds.erase(effect_id):
+				mutated = true
+				_stack_counts.erase(effect_id)
+				_definition_cache.erase(effect_id)
+		elif int(_active_rounds.get(effect_id, -999)) == remaining:
+			_active_rounds[effect_id] = next
+			mutated = true
+	if mutated:
+		rebuild_derived_state()
+		_persist_active_effects()
+
+
+func apply_boss_round_start_for_profile(profile_id: String, skip_if_backstabber: bool) -> void:
+	if skip_if_backstabber or _service == null:
+		return
+	var trimmed := profile_id.strip_edges()
+	if trimmed.is_empty():
+		return
+	var profile := _get_level_profile(trimmed)
+	if profile == null or not profile.is_valid():
+		return
+	var invocations := profile.get_node("properties").get_node("onRoundStartInvocations")
+	if not invocations.is_valid() or invocations.get_type() != GnosisValueType.LIST:
+		return
+	var any := false
+	for i in range(invocations.get_count()):
+		var inv := invocations.get_node(i)
+		if not inv.is_valid() or inv.get_type() != GnosisValueType.OBJECT:
+			continue
+		if SupportScript._node_str(inv, "service").strip_edges().to_lower() != "match3":
+			continue
+		if SupportScript._node_str(inv, "function").strip_edges().to_lower() != "applyeffect":
+			continue
+		var result := invoke_apply_effect(inv.get_node("parameters"))
+		if bool(result.get("ok", false)):
+			any = true
+	if any:
+		rebuild_derived_state()
+		_persist_active_effects()
+
+
+func apply_boss_round_end_for_profile(profile_id: String) -> void:
+	if _service == null:
+		return
+	var trimmed := profile_id.strip_edges()
+	if trimmed.is_empty():
+		return
+	var profile := _get_level_profile(trimmed)
+	if profile == null or not profile.is_valid():
+		return
+	var invocations := profile.get_node("properties").get_node("onRoundEndInvocations")
+	if not invocations.is_valid() or invocations.get_type() != GnosisValueType.LIST:
+		return
+	for i in range(invocations.get_count()):
+		var inv := invocations.get_node(i)
+		if not inv.is_valid() or inv.get_type() != GnosisValueType.OBJECT:
+			continue
+		if SupportScript._node_str(inv, "service").strip_edges().to_lower() != "match3":
+			continue
+		if SupportScript._node_str(inv, "function").strip_edges().to_lower() != "removeeffect":
+			continue
+		invoke_remove_effect(inv.get_node("parameters"))
+
+
 func active_effect_count() -> int:
 	return _active_rounds.size()
+
+
+func _persist_active_effects() -> void:
+	var m3: GnosisNode = _service.get_node("match3", false)
+	if m3.is_valid():
+		persist_to_store(m3)
+
+
+func _parse_apply_effect_parameters(parameters: GnosisNode) -> Dictionary:
+	if parameters.get_type() == GnosisValueType.STRING:
+		var effect_id := _normalize_effect_id(str(parameters.value))
+		if effect_id.is_empty():
+			return {"ok": false, "error": "ApplyEffect requires a non-empty effectId."}
+		return {"ok": true, "effectId": effect_id, "roundsLifetime": MATCH3_EFFECT_INFINITE_ROUNDS}
+	if parameters.get_type() != GnosisValueType.OBJECT:
+		return {"ok": false, "error": "ApplyEffect parameters must be an object or effect id string."}
+	var effect_id := _normalize_effect_id(
+		SupportScript._node_str(parameters, "effectId", SupportScript._node_str(parameters, "id"))
+	)
+	if effect_id.is_empty():
+		return {"ok": false, "error": "ApplyEffect requires a non-empty effectId."}
+	var lifetime := MATCH3_EFFECT_INFINITE_ROUNDS
+	if parameters.get_node("roundsLifetime").is_valid():
+		lifetime = SupportScript._node_int(parameters, "roundsLifetime", MATCH3_EFFECT_INFINITE_ROUNDS)
+	elif parameters.get_node("roundLifetime").is_valid():
+		lifetime = SupportScript._node_int(parameters, "roundLifetime", MATCH3_EFFECT_INFINITE_ROUNDS)
+	return {"ok": true, "effectId": effect_id, "roundsLifetime": lifetime}
+
+
+func _read_remove_effect_id(parameters: GnosisNode) -> String:
+	if parameters == null or not parameters.is_valid():
+		return ""
+	if parameters.get_type() == GnosisValueType.STRING:
+		return _normalize_effect_id(str(parameters.value))
+	if parameters.get_type() == GnosisValueType.OBJECT:
+		return _normalize_effect_id(
+			SupportScript._node_str(parameters, "effectId", SupportScript._node_str(parameters, "id"))
+		)
+	return ""
+
+
+func _get_level_profile(profile_id: String) -> GnosisNode:
+	if _service == null:
+		return GnosisNode.new(null, null)
+	var config := _service.get_node("configuration", true)
+	if not config.is_valid():
+		return GnosisNode.new(null, null)
+	var levels := config.get_node("levels")
+	if not levels.is_valid() or levels.get_type() != GnosisValueType.OBJECT:
+		return GnosisNode.new(null, null)
+	return levels.get_node(profile_id.strip_edges())
 
 
 func _build_equipped_boon_match3_round_effect_stacks() -> Dictionary:

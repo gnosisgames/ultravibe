@@ -49,6 +49,7 @@ const BOON_CATALOG_ID_DOUBLE_DOWN := "DoubleDown"
 const BOON_CATALOG_ID_SLEEPER := "Sleeper"
 const BOON_CATALOG_ID_SIMP := "Simp"
 const BOON_CATALOG_ID_DARWIN := "Darwin"
+const BOON_CATALOG_ID_BACKSTABBER := "Backstabber"
 const EPHEMERAL_SELECTED_CONSUMABLE_SLOT := "selectedConsumableSlotIndex"
 const CONSUMABLE_JUICE_DISPLAY_USE := "Use"
 const CONSUMABLE_USE_DISPLAY_KEY := "match3__phrase__consumableUse"
@@ -102,6 +103,7 @@ func on_initialize() -> void:
 	var m3 := get_node("match3", false)
 	if m3.is_valid() and _match3_effects != null:
 		_match3_effects.hydrate_from_store(m3)
+	_sync_gameplay_effect_flags()
 	_gameplay.set_boon_score_finalize_hook(Callable(_boon_runtime, "apply_finalize_for_move"))
 	_gameplay.set_boon_resolve_begin_hook(Callable(_boon_runtime, "begin_resolve_step"))
 	_gameplay.set_boon_resolve_item_destroyed_hook(Callable(_boon_runtime, "apply_resolve_item_destroyed"))
@@ -149,6 +151,18 @@ func get_functions() -> Array:
 		"ApplyBoonSlotCapacityDelta",
 		"ApplyConsumableSlotCapacityDelta",
 		"AddItemLevelDelta",
+		"ApplyEffect",
+		"RemoveEffect",
+		"GrantRandomRunUpgrade",
+		"AddRoundMovesBonus",
+		"GrantCurrencyFromStatisticCounter",
+		"AddCoreShopFreeRerollCountDelta",
+		"AddCoreShopRerollFlatDiscountDelta",
+		"AddCoreShopSlotsDelta",
+		"AddShopDiscountPercentDelta",
+		"AddDefaultMovesPerRoundDelta",
+		"AddDefaultShufflesPerRoundDelta",
+		"DuplicateLastRuneOrItemUpgradeGrantConsumable",
 		"JuiceBoonMatch3RoundEffectOnActivate",
 		"SyncEquippedBoonMatch3RoundEffects",
 	]
@@ -180,6 +194,30 @@ func invoke_function(name: String, parameters: GnosisNode) -> Variant:
 			return _add_floor_modifier_pool_delta(parameters)
 		"AddItemLevelDelta":
 			return _add_item_level_delta(parameters)
+		"ApplyEffect":
+			return _apply_match3_effect(parameters)
+		"RemoveEffect":
+			return _remove_match3_effect(parameters)
+		"GrantRandomRunUpgrade":
+			return _grant_random_run_upgrade(parameters)
+		"AddRoundMovesBonus":
+			return _add_round_moves_bonus(parameters)
+		"GrantCurrencyFromStatisticCounter":
+			return _grant_currency_from_statistic_counter(parameters)
+		"AddCoreShopFreeRerollCountDelta":
+			return _add_core_shop_free_reroll_count_delta(parameters)
+		"AddCoreShopRerollFlatDiscountDelta":
+			return _add_core_shop_reroll_flat_discount_delta(parameters)
+		"AddCoreShopSlotsDelta":
+			return _add_core_shop_slots_delta(parameters)
+		"AddShopDiscountPercentDelta":
+			return _add_shop_discount_percent_delta(parameters)
+		"AddDefaultMovesPerRoundDelta":
+			return _add_default_moves_per_round_delta(parameters)
+		"AddDefaultShufflesPerRoundDelta":
+			return _add_default_shuffles_per_round_delta(parameters)
+		"DuplicateLastRuneOrItemUpgradeGrantConsumable":
+			return _duplicate_last_rune_or_item_upgrade_grant_consumable(parameters)
 		"DestroyRandomCellFloorOnBoard":
 			return _destroy_random_cell_floor_on_board(parameters)
 	return GnosisFunctionResult.fail("Unknown Match3 function '%s'." % name)
@@ -866,6 +904,8 @@ func _on_move_requested(event: GnosisEvent) -> void:
 	var a = Models.TileCoord.new(x1, y1)
 	var b = Models.TileCoord.new(x2, y2)
 	var results := _gameplay.process_move(a, b, _item_points)
+	if not results.is_empty():
+		results = _apply_post_move_boss_effects(results)
 	_publish_ephemeral_state()
 	var success := not results.is_empty()
 	if success:
@@ -894,9 +934,16 @@ func _on_move_requested(event: GnosisEvent) -> void:
 func _begin_level(level_number: int) -> void:
 	_finalize_pending_round_rewards_silent()
 	var previous_round := _current_round
-	_apply_round_setup(maxi(1, level_number))
+	var target_round := maxi(1, level_number)
+	if previous_round >= 1 and previous_round != target_round:
+		_apply_boss_round_end_for_completed_round(previous_round)
+	_apply_round_setup(target_round)
 	if _boon_runtime != null:
 		_boon_runtime.on_round_boundary(previous_round, _current_round)
+	if _match3_effects != null:
+		_match3_effects.tick_round_lifetimes()
+		var skip_boss_start := SupportScript.is_boon_catalog_id_equipped(self, BOON_CATALOG_ID_BACKSTABBER)
+		_match3_effects.apply_boss_round_start_for_profile(_active_level_id, skip_boss_start)
 	var setup := _resolve_round_setup(_current_round)
 	var layout = _load_board_layout(_active_board_id)
 	if layout == null:
@@ -914,6 +961,10 @@ func _begin_level(level_number: int) -> void:
 	if SupportScript.is_boon_catalog_id_equipped(self, BOON_CATALOG_ID_SIMP):
 		budget["moves"] = maxi(1, int(budget.get("moves", base_moves)) + 5)
 		budget["shuffles"] = 0
+	var pending_moves := _read_pending_round_moves_add()
+	if pending_moves > 0:
+		budget["moves"] = maxi(1, int(budget.get("moves", base_moves)) + pending_moves)
+		_clear_pending_round_moves_add()
 	_manual_shuffles_remaining = int(budget.get("shuffles", base_shuffles))
 	_gameplay.load_level(
 		layout,
@@ -923,8 +974,396 @@ func _begin_level(level_number: int) -> void:
 		_item_points
 	)
 	_apply_floor_modifier_pool_to_board()
+	_sync_gameplay_effect_flags()
 	_publish_ephemeral_state()
 	_publish_board_reset()
+
+
+func _apply_boss_round_end_for_completed_round(completed_round: int) -> void:
+	if _match3_effects == null or completed_round < 1:
+		return
+	var setup := _resolve_round_setup(completed_round)
+	var profile_id := str(setup.get("level_id", ""))
+	_match3_effects.apply_boss_round_end_for_profile(profile_id)
+
+
+func _sync_gameplay_effect_flags() -> void:
+	if _match3_effects == null:
+		return
+	_match3_effects.rebuild_derived_state()
+	_gameplay.configure_scoring_effects(
+		_match3_effects.restrict_score_to_exact_three_line_matches,
+		_match3_effects.restrict_score_to_exact_four_or_five_line_matches,
+		_match3_effects.tile_points_contribution_scale,
+		_match3_effects.tile_multi_contribution_scale,
+		_match3_effects.reduce_first_destroyed_item_level_each_move
+	)
+
+
+func _apply_post_move_boss_effects(results: Array) -> Array:
+	if results.is_empty() or _match3_effects == null:
+		return results
+	if _match3_effects.reduce_first_destroyed_item_level_each_move:
+		var item_id := _gameplay.consume_first_scoring_destroyed_item_id()
+		if not item_id.is_empty():
+			_decrement_item_level_min_one(item_id)
+	if _match3_effects.shuffle_board_after_each_move:
+		var last: Models.MatchResult = results[results.size() - 1]
+		var shuffle_result := _gameplay.shuffle_board(_item_points)
+		if not shuffle_result.new_spawns.is_empty():
+			shuffle_result.points_added = last.points_added
+			shuffle_result.multi_added = last.multi_added
+			shuffle_result.move_points_so_far = last.move_points_so_far
+			shuffle_result.move_multi_so_far = last.move_multi_so_far
+			shuffle_result.final_score_for_move = last.final_score_for_move
+			results.append(shuffle_result)
+	return results
+
+
+func _apply_match3_effect(parameters: GnosisNode) -> GnosisFunctionResult:
+	if _match3_effects == null or context == null or context.store == null:
+		return GnosisFunctionResult.fail("Store unavailable.")
+	var result: Dictionary = _match3_effects.invoke_apply_effect(parameters)
+	if not bool(result.get("ok", false)):
+		return GnosisFunctionResult.fail(str(result.get("error", "ApplyEffect failed.")))
+	_sync_gameplay_effect_flags()
+	_publish_ephemeral_state()
+	var payload := context.store.create_object()
+	payload.set_key("success", true)
+	payload.set_key("effectId", str(result.get("effectId", "")))
+	payload.set_key("alreadyActive", bool(result.get("alreadyActive", false)))
+	payload.set_key("roundsRemaining", int(result.get("roundsRemaining", -1)))
+	payload.set_key("activeCount", int(result.get("activeCount", 0)))
+	return GnosisFunctionResult.ok(payload)
+
+
+func _remove_match3_effect(parameters: GnosisNode) -> GnosisFunctionResult:
+	if _match3_effects == null or context == null or context.store == null:
+		return GnosisFunctionResult.fail("Store unavailable.")
+	var result: Dictionary = _match3_effects.invoke_remove_effect(parameters)
+	if not bool(result.get("ok", false)):
+		return GnosisFunctionResult.fail(str(result.get("error", "RemoveEffect failed.")))
+	_sync_gameplay_effect_flags()
+	_publish_ephemeral_state()
+	var payload := context.store.create_object()
+	payload.set_key("success", true)
+	payload.set_key("effectId", str(result.get("effectId", "")))
+	payload.set_key("removed", bool(result.get("removed", false)))
+	payload.set_key("activeCount", int(result.get("activeCount", 0)))
+	return GnosisFunctionResult.ok(payload)
+
+
+func _decrement_item_level_min_one(item_id: String) -> void:
+	if context == null or context.store == null:
+		return
+	var trimmed := item_id.strip_edges()
+	if trimmed.is_empty():
+		return
+	var previous := _resolve_item_level(trimmed)
+	var next := maxi(1, previous - 1)
+	if next >= previous:
+		return
+	var m3 := get_node("match3", false)
+	if not m3.is_valid() or m3.get_type() != GnosisValueType.OBJECT:
+		return
+	var item_levels := m3.get_node("itemLevels")
+	if not item_levels.is_valid() or item_levels.get_type() != GnosisValueType.OBJECT:
+		item_levels = context.store.create_object()
+		m3.set_key("itemLevels", item_levels)
+	item_levels.set_key(trimmed, next)
+	_publish_ephemeral_state()
+
+
+func _grant_random_run_upgrade(parameters: GnosisNode) -> GnosisFunctionResult:
+	if context == null or context.store == null:
+		return GnosisFunctionResult.fail("Store unavailable.")
+	var category_id := _node_str(parameters, "categoryId", "run").strip_edges()
+	if category_id.is_empty():
+		category_id = "run"
+	var pool := _build_eligible_run_upgrade_ids(category_id)
+	var payload := context.store.create_object()
+	if pool.is_empty():
+		payload.set_key("success", true)
+		payload.set_key("granted", false)
+		payload.set_key("reason", "no_eligible_run_upgrade")
+		payload.set_key("upgradeId", "")
+		return GnosisFunctionResult.ok(payload)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash("%d:run_upgrade:%s" % [_try_get_run_seed(), category_id])
+	var upgrade_id := pool[rng.randi_range(0, pool.size() - 1)]
+	if upgrade_id.strip_edges().is_empty():
+		payload.set_key("success", true)
+		payload.set_key("granted", false)
+		payload.set_key("reason", "no_eligible_run_upgrade")
+		payload.set_key("upgradeId", "")
+		return GnosisFunctionResult.ok(payload)
+	var add_params := context.store.create_object()
+	add_params.set_key("categoryId", category_id)
+	add_params.set_key("upgradeId", upgrade_id.strip_edges())
+	var add_result = call_service("Upgrade", "AddUpgrade", add_params)
+	if add_result == null or not (add_result is GnosisFunctionResult) or not add_result.is_ok:
+		return GnosisFunctionResult.fail(add_result.error if add_result is GnosisFunctionResult else "add_upgrade_failed")
+	_publish_ephemeral_state()
+	payload.set_key("success", true)
+	payload.set_key("granted", true)
+	payload.set_key("upgradeId", upgrade_id.strip_edges())
+	payload.set_key("categoryId", category_id)
+	return GnosisFunctionResult.ok(payload)
+
+
+func _build_eligible_run_upgrade_ids(category_id: String) -> Array[String]:
+	var out: Array[String] = []
+	var catalog := _build_run_upgrade_catalog_ids()
+	if catalog.is_empty():
+		return out
+	var args := context.store.create_object()
+	args.set_key("categoryId", category_id)
+	var result = call_service("Upgrade", "GetEligibleUpgradeIds", args)
+	if result == null or not (result is GnosisFunctionResult) or not result.is_ok:
+		return catalog
+	var fn_result: GnosisFunctionResult = result
+	var data: GnosisNode = fn_result.data
+	if data == null or not data.is_valid() or data.get_type() != GnosisValueType.OBJECT:
+		return catalog
+	var list_node: GnosisNode = data.get_node("upgradeIds")
+	if not list_node.is_valid() or list_node.get_type() != GnosisValueType.LIST:
+		return catalog
+	var eligible: Dictionary = {}
+	for i in range(list_node.get_count()):
+		var entry: GnosisNode = list_node.get_node(i)
+		var upgrade_id := ""
+		if entry.is_valid() and entry.get_type() == GnosisValueType.STRING:
+			upgrade_id = str(entry.value).strip_edges()
+		else:
+			upgrade_id = _node_str(entry, "upgradeId").strip_edges()
+		if not upgrade_id.is_empty():
+			eligible[upgrade_id.to_lower()] = true
+	for id in catalog:
+		if eligible.has(id.to_lower()):
+			out.append(id)
+	return out
+
+
+func _build_run_upgrade_catalog_ids() -> Array[String]:
+	var out: Array[String] = []
+	var config := get_node("configuration", true)
+	if not config.is_valid():
+		return out
+	var upgrades := config.get_node("runUpgrades")
+	if not upgrades.is_valid() or upgrades.get_type() != GnosisValueType.OBJECT:
+		return out
+	for key in upgrades.get_keys():
+		var id := str(key).strip_edges()
+		if not id.is_empty():
+			out.append(id)
+	out.sort()
+	return out
+
+
+func _add_round_moves_bonus(parameters: GnosisNode) -> GnosisFunctionResult:
+	if context == null or context.store == null:
+		return GnosisFunctionResult.fail("Store unavailable.")
+	var delta := _node_int(parameters, "delta", 3)
+	if delta <= 0:
+		return GnosisFunctionResult.fail("AddRoundMovesBonus requires positive 'delta'.")
+	var m3 := get_node("match3", false)
+	if not m3.is_valid() or m3.get_type() != GnosisValueType.OBJECT:
+		return GnosisFunctionResult.fail("match3_unavailable")
+	var apply_now: bool = _gameplay.status == Models.STATUS_PLAYING
+	var previous_pending := _read_pending_round_moves_add()
+	var previous_current := maxi(0, _gameplay.current_moves)
+	if apply_now:
+		_gameplay.current_moves = maxi(0, _gameplay.current_moves + delta)
+		m3.set_key("currentMoves", _gameplay.current_moves)
+	else:
+		m3.set_key("pendingRoundMovesAdd", previous_pending + delta)
+	_publish_ephemeral_state()
+	var payload := context.store.create_object()
+	payload.set_key("success", true)
+	payload.set_key("delta", delta)
+	payload.set_key("appliedToCurrentRound", apply_now)
+	payload.set_key("currentMoves", _gameplay.current_moves if apply_now else previous_current)
+	payload.set_key(
+		"pendingRoundMovesAdd",
+		previous_pending if apply_now else _read_pending_round_moves_add()
+	)
+	return GnosisFunctionResult.ok(payload)
+
+
+func _grant_currency_from_statistic_counter(parameters: GnosisNode) -> GnosisFunctionResult:
+	if context == null or context.store == null:
+		return GnosisFunctionResult.fail("Store unavailable.")
+	var statistic_path := _node_str(parameters, "statisticPath").strip_edges()
+	if statistic_path.is_empty():
+		return GnosisFunctionResult.fail("statistic_path_required")
+	var currency_id := _node_str(parameters, "currencyId", "money").strip_edges()
+	if currency_id.is_empty():
+		currency_id = "money"
+	var amount_per_unit := maxi(0, _node_int(parameters, "amountPerUnit", 1))
+	var counter := maxi(0, get_statistic_int(statistic_path, 0))
+	var amount := amount_per_unit * counter
+	var payload := context.store.create_object()
+	if amount <= 0:
+		payload.set_key("success", true)
+		payload.set_key("grantedAmount", 0)
+		payload.set_key("statisticPath", statistic_path)
+		payload.set_key("counter", counter)
+		return GnosisFunctionResult.ok(payload)
+	var args := context.store.create_object()
+	args.set_key("currencyId", currency_id)
+	args.set_key("amount", amount)
+	var add_result = call_service("Currency", "AddCurrency", args)
+	if add_result == null or not (add_result is GnosisFunctionResult) or not add_result.is_ok:
+		return GnosisFunctionResult.fail(add_result.error if add_result is GnosisFunctionResult else "add_currency_failed")
+	payload.set_key("success", true)
+	payload.set_key("grantedAmount", amount)
+	payload.set_key("statisticPath", statistic_path)
+	payload.set_key("counter", counter)
+	payload.set_key("amountPerUnit", amount_per_unit)
+	payload.set_key("currencyId", currency_id)
+	return GnosisFunctionResult.ok(payload)
+
+
+func _match3_shop_core() -> GnosisNode:
+	var shop := get_node("match3Shop", false)
+	if not shop.is_valid() or shop.get_type() != GnosisValueType.OBJECT:
+		return GnosisNode.new(null, null)
+	return shop.get_node("core")
+
+
+func _add_core_shop_free_reroll_count_delta(parameters: GnosisNode) -> GnosisFunctionResult:
+	var delta := _node_int(parameters, "delta", 1)
+	if delta == 0:
+		return GnosisFunctionResult.fail("AddCoreShopFreeRerollCountDelta requires non-zero 'delta'.")
+	var core := _match3_shop_core()
+	if not core.is_valid() or core.get_type() != GnosisValueType.OBJECT:
+		return GnosisFunctionResult.fail("AddCoreShopFreeRerollCountDelta requires Ephemeral.match3Shop.core object.")
+	var previous := maxi(0, _node_int(core, "freeRerollCount", 0))
+	var next := maxi(0, previous + delta)
+	core.set_key("freeRerollCount", next)
+	_publish_ephemeral_state()
+	var payload := context.store.create_object()
+	payload.set_key("previousFreeRerollCount", previous)
+	payload.set_key("freeRerollCount", next)
+	payload.set_key("delta", delta)
+	return GnosisFunctionResult.ok(payload)
+
+
+func _add_core_shop_reroll_flat_discount_delta(parameters: GnosisNode) -> GnosisFunctionResult:
+	var delta := _node_int(parameters, "delta", 2)
+	if delta <= 0:
+		return GnosisFunctionResult.fail("AddCoreShopRerollFlatDiscountDelta requires positive 'delta'.")
+	var core := _match3_shop_core()
+	if not core.is_valid() or core.get_type() != GnosisValueType.OBJECT:
+		return GnosisFunctionResult.fail("AddCoreShopRerollFlatDiscountDelta requires Ephemeral.match3Shop.core object.")
+	var previous := maxi(0, _node_int(core, "rerollFlatDiscount", 0))
+	var next := previous + delta
+	core.set_key("rerollFlatDiscount", next)
+	_publish_ephemeral_state()
+	var payload := context.store.create_object()
+	payload.set_key("previousRerollFlatDiscount", previous)
+	payload.set_key("rerollFlatDiscount", next)
+	payload.set_key("delta", delta)
+	return GnosisFunctionResult.ok(payload)
+
+
+func _add_core_shop_slots_delta(parameters: GnosisNode) -> GnosisFunctionResult:
+	var delta := _node_int(parameters, "delta", 2)
+	if delta <= 0:
+		return GnosisFunctionResult.fail("AddCoreShopSlotsDelta requires positive 'delta'.")
+	var core := _match3_shop_core()
+	if not core.is_valid() or core.get_type() != GnosisValueType.OBJECT:
+		return GnosisFunctionResult.fail("AddCoreShopSlotsDelta requires Ephemeral.match3Shop.core object.")
+	const DEFAULT_CORE_SLOTS := 6
+	var previous := maxi(0, _node_int(core, "slots", DEFAULT_CORE_SLOTS))
+	var next := previous + delta
+	core.set_key("slots", next)
+	_publish_ephemeral_state()
+	var payload := context.store.create_object()
+	payload.set_key("previousCoreShopSlots", previous)
+	payload.set_key("coreShopSlots", next)
+	payload.set_key("delta", delta)
+	return GnosisFunctionResult.ok(payload)
+
+
+func _add_shop_discount_percent_delta(parameters: GnosisNode) -> GnosisFunctionResult:
+	var delta := _read_node_float(parameters, "delta", 0.0)
+	if delta <= 0.0:
+		return GnosisFunctionResult.fail("AddShopDiscountPercentDelta requires positive 'delta'.")
+	var shop := get_node("match3Shop", false)
+	if not shop.is_valid() or shop.get_type() != GnosisValueType.OBJECT:
+		return GnosisFunctionResult.fail("match3Shop_missing")
+	var previous := clampf(_read_node_float(shop, "shopDiscountPercent", 0.0), 0.0, 0.5)
+	var next := clampf(previous + delta, 0.0, 0.5)
+	shop.set_key("shopDiscountPercent", next)
+	_publish_ephemeral_state()
+	var payload := context.store.create_object()
+	payload.set_key("previousShopDiscountPercent", previous)
+	payload.set_key("shopDiscountPercent", next)
+	payload.set_key("delta", delta)
+	payload.set_key("maxShopDiscountPercent", 0.5)
+	return GnosisFunctionResult.ok(payload)
+
+
+func _add_default_moves_per_round_delta(parameters: GnosisNode) -> GnosisFunctionResult:
+	var delta := _node_int(parameters, "delta", 0)
+	if delta <= 0:
+		return GnosisFunctionResult.fail("AddDefaultMovesPerRoundDelta requires positive 'delta'.")
+	var m3 := get_node("match3", false)
+	if not m3.is_valid() or m3.get_type() != GnosisValueType.OBJECT:
+		return GnosisFunctionResult.fail("match3_missing")
+	var previous := maxi(1, _node_int(m3, "defaultMovesPerRound", BASE_MOVES_LIMIT))
+	var next := maxi(1, previous + delta)
+	m3.set_key("defaultMovesPerRound", next)
+	_publish_ephemeral_state()
+	var payload := context.store.create_object()
+	payload.set_key("previousDefaultMovesPerRound", previous)
+	payload.set_key("defaultMovesPerRound", next)
+	payload.set_key("delta", delta)
+	return GnosisFunctionResult.ok(payload)
+
+
+func _add_default_shuffles_per_round_delta(parameters: GnosisNode) -> GnosisFunctionResult:
+	var delta := _node_int(parameters, "delta", 0)
+	if delta <= 0:
+		return GnosisFunctionResult.fail("AddDefaultShufflesPerRoundDelta requires positive 'delta'.")
+	var m3 := get_node("match3", false)
+	if not m3.is_valid() or m3.get_type() != GnosisValueType.OBJECT:
+		return GnosisFunctionResult.fail("match3_missing")
+	var previous := maxi(0, _node_int(m3, "defaultShufflesPerRound", DEFAULT_SHUFFLES_PER_ROUND))
+	var next := maxi(0, previous + delta)
+	m3.set_key("defaultShufflesPerRound", next)
+	_publish_ephemeral_state()
+	var payload := context.store.create_object()
+	payload.set_key("previousDefaultShufflesPerRound", previous)
+	payload.set_key("defaultShufflesPerRound", next)
+	payload.set_key("delta", delta)
+	return GnosisFunctionResult.ok(payload)
+
+
+func _duplicate_last_rune_or_item_upgrade_grant_consumable(parameters: GnosisNode) -> GnosisFunctionResult:
+	if context == null or context.store == null:
+		return GnosisFunctionResult.fail("Store unavailable.")
+	var bucket_id := _node_str(parameters, "bucketId", "default").strip_edges()
+	if bucket_id.is_empty():
+		bucket_id = "default"
+	var m3 := get_node("match3", false)
+	if not m3.is_valid():
+		return GnosisFunctionResult.fail("match3_unavailable")
+	var target := _node_str(m3, "echoLastRuneOrItemUpgradeGrantConsumableId").strip_edges()
+	if target.is_empty():
+		return GnosisFunctionResult.fail("no_echo_target")
+	var args := context.store.create_object()
+	args.set_key("bucketId", bucket_id)
+	args.set_key("consumableId", target)
+	var result = call_service("Consumable", "AddConsumable", args)
+	if result == null or not (result is GnosisFunctionResult) or not result.is_ok:
+		return GnosisFunctionResult.fail(result.error if result is GnosisFunctionResult else "add_consumable_failed")
+	if result.data != null and result.data.is_valid():
+		return GnosisFunctionResult.ok(result.data)
+	var payload := context.store.create_object()
+	payload.set_key("consumableId", target)
+	return GnosisFunctionResult.ok(payload)
 
 
 func _apply_floor_modifier_pool_to_board() -> void:
@@ -1070,7 +1509,7 @@ func _build_stage_plan(
 		"level_id": level_id,
 		"target_score": _resolve_target_score_for_round(round_num, _resolve_target_score(round_num, stage_type)),
 		"moves": _resolve_moves_limit(round_num, stage_type),
-		"shuffles": DEFAULT_SHUFFLES_PER_ROUND,
+		"shuffles": _read_default_shuffles_per_round(),
 		"color_limit": _resolve_adaptive_color_limit(layout),
 	}
 
@@ -1406,10 +1845,37 @@ func _resolve_target_score(round_number: int, stage_type: String) -> int:
 
 
 func _resolve_moves_limit(round: int, stage_type: String) -> int:
-	var moves := BASE_MOVES_LIMIT + int((maxi(1, round) - 1) / 3)
+	var moves := _read_default_moves_per_round() + int((maxi(1, round) - 1) / 3)
 	if stage_type == "boss":
 		moves += 2
 	return maxi(1, moves)
+
+
+func _read_default_moves_per_round() -> int:
+	var m3 := get_node("match3", false)
+	if m3.is_valid():
+		return maxi(1, _node_int(m3, "defaultMovesPerRound", BASE_MOVES_LIMIT))
+	return BASE_MOVES_LIMIT
+
+
+func _read_default_shuffles_per_round() -> int:
+	var m3 := get_node("match3", false)
+	if m3.is_valid():
+		return maxi(0, _node_int(m3, "defaultShufflesPerRound", DEFAULT_SHUFFLES_PER_ROUND))
+	return DEFAULT_SHUFFLES_PER_ROUND
+
+
+func _read_pending_round_moves_add() -> int:
+	var m3 := get_node("match3", false)
+	if not m3.is_valid():
+		return 0
+	return maxi(0, _node_int(m3, "pendingRoundMovesAdd", 0))
+
+
+func _clear_pending_round_moves_add() -> void:
+	var m3 := get_node("match3", false)
+	if m3.is_valid():
+		m3.set_key("pendingRoundMovesAdd", 0)
 
 
 func _resolve_adaptive_color_limit(layout) -> int:
