@@ -5,6 +5,7 @@ extends RefCounted
 
 const GrantsScript = preload("res://game/match3/boons/match3_boon_grants.gd")
 const ScoreScript = preload("res://game/match3/boons/match3_boon_score.gd")
+const MoveHooksScript = preload("res://game/match3/boons/match3_boon_move_hooks.gd")
 const SupportScript = preload("res://game/match3/boons/match3_boon_support.gd")
 const ScalingScript = preload("res://game/match3/boons/match3_boon_scaling.gd")
 const CatalogPolicyScript = preload("res://game/match3/catalog/match3_run_catalog_offer_policy.gd")
@@ -15,6 +16,7 @@ const CONSUMABLE_SLOT_CAPACITY_ENGINE_MAX := 32
 var _service: GnosisService
 var _grants: RefCounted
 var _score: RefCounted
+var _move_hooks: RefCounted
 var _previous_round_for_boon_hooks := 0
 
 
@@ -22,6 +24,7 @@ func _init(service: GnosisService) -> void:
 	_service = service
 	_grants = GrantsScript.new(service)
 	_score = ScoreScript.new(service)
+	_move_hooks = MoveHooksScript.new(service)
 
 
 func get_invoke_names() -> Array[String]:
@@ -70,6 +73,7 @@ func invoke(name: String, parameters: GnosisNode) -> Variant:
 
 
 func apply_finalize_for_move(results: Array, points: int, multi: int) -> Dictionary:
+	_score.append_pending_autocorrect_finalize(_move_hooks.take_pending_autocorrect_finalize())
 	return _score.apply_finalize_for_move(results, points, multi)
 
 
@@ -93,9 +97,44 @@ func apply_resolve_step_cascade(
 	results: Array,
 	points: int,
 	multi: int,
-	destroyed_count: int
+	destroyed_count: int,
+	step_index: int = 0,
+	multi_before_step: int = -1
 ) -> Dictionary:
-	return _score.apply_resolve_step_cascade(step, results, points, multi, destroyed_count)
+	return _score.apply_resolve_step_cascade(
+		step, results, points, multi, destroyed_count, step_index, multi_before_step
+	)
+
+
+func try_apply_first_match_gem_level_chance(first_match, _gameplay = null) -> bool:
+	var gameplay = _gameplay
+	if gameplay == null and _service.has_method("get_gameplay"):
+		gameplay = _service.get_gameplay()
+	return _move_hooks.try_apply_first_match_gem_level_chance(first_match, gameplay)
+
+
+func apply_move_end_hooks() -> void:
+	if _move_hooks == null:
+		return
+	if _move_hooks.try_apply_move_end_shuffle_bonuses():
+		SupportScript.publish_ephemeral_state(_service)
+	_move_hooks.try_apply_side_hustle_grants()
+	_move_hooks.try_apply_active_boon_self_destructs("move_end", false)
+
+
+func apply_round_end_self_destructs(is_boss_round: bool) -> void:
+	if _move_hooks != null:
+		_move_hooks.try_apply_active_boon_self_destructs("round_end", is_boss_round)
+
+
+func record_manual_shuffle_usage() -> void:
+	if _move_hooks != null:
+		_move_hooks.try_plot_armor_record_manual_shuffle_usage(1)
+
+
+func begin_move_hooks() -> void:
+	if _move_hooks != null:
+		_move_hooks.begin_move()
 
 
 func apply_cell_floor_finalize_echo(floor_type_id: String, points: int, multi: int) -> Dictionary:
@@ -113,6 +152,8 @@ func apply_resolve_step_scaling_for_step(step) -> void:
 func configure_rng(seed_value: int) -> void:
 	if _score != null and _score.has_method("configure_rng"):
 		_score.configure_rng(seed_value)
+	if _move_hooks != null and _move_hooks.has_method("configure_rng"):
+		_move_hooks.configure_rng(seed_value)
 
 
 func on_round_boundary(previous_round: int, new_round: int) -> void:

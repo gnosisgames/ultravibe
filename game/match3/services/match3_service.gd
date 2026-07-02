@@ -105,6 +105,7 @@ func on_initialize() -> void:
 		_match3_effects.hydrate_from_store(m3)
 	_sync_gameplay_effect_flags()
 	_gameplay.set_boon_score_finalize_hook(Callable(_boon_runtime, "apply_finalize_for_move"))
+	_gameplay.set_boon_first_match_hook(Callable(_boon_runtime, "try_apply_first_match_gem_level_chance"))
 	_gameplay.set_boon_resolve_begin_hook(Callable(_boon_runtime, "begin_resolve_step"))
 	_gameplay.set_boon_resolve_item_destroyed_hook(Callable(_boon_runtime, "apply_resolve_item_destroyed"))
 	_gameplay.set_boon_resolve_step_cascade_hook(Callable(_boon_runtime, "apply_resolve_step_cascade"))
@@ -396,6 +397,8 @@ func _notify_enhanced_floors_on_board(prefer_immediate_juice: bool) -> void:
 func _apply_round_end_floor_boon_hooks() -> void:
 	if _boon_runtime != null and _boon_runtime.has_method("apply_round_end_scaling_increments"):
 		_boon_runtime.apply_round_end_scaling_increments()
+	if _boon_runtime != null and _boon_runtime.has_method("apply_round_end_self_destructs"):
+		_boon_runtime.apply_round_end_self_destructs(_active_stage_type == "boss")
 	Match3CellFloorBoardScript.apply_red_flag_round_end_for_all_equipped(self, _gameplay)
 	Match3CellFloorBoardScript.apply_boomer_round_end_pool_grants(self)
 	_publish_ephemeral_state()
@@ -903,8 +906,11 @@ func _on_move_requested(event: GnosisEvent) -> void:
 		return
 	var a = Models.TileCoord.new(x1, y1)
 	var b = Models.TileCoord.new(x2, y2)
+	if _boon_runtime != null and _boon_runtime.has_method("begin_move_hooks"):
+		_boon_runtime.begin_move_hooks()
 	var results := _gameplay.process_move(a, b, _item_points)
 	if not results.is_empty():
+		_apply_post_move_boon_hooks()
 		results = _apply_post_move_boss_effects(results)
 	_publish_ephemeral_state()
 	var success := not results.is_empty()
@@ -998,6 +1004,11 @@ func _sync_gameplay_effect_flags() -> void:
 		_match3_effects.tile_multi_contribution_scale,
 		_match3_effects.reduce_first_destroyed_item_level_each_move
 	)
+
+
+func _apply_post_move_boon_hooks() -> void:
+	if _boon_runtime != null and _boon_runtime.has_method("apply_move_end_hooks"):
+		_boon_runtime.apply_move_end_hooks()
 
 
 func _apply_post_move_boss_effects(results: Array) -> Array:
@@ -2588,6 +2599,8 @@ func _try_use_shuffle() -> GnosisFunctionResult:
 		return GnosisFunctionResult.ok(payload)
 	_manual_shuffles_remaining -= 1
 	_increment_statistic("match3.shuffles.used", 1)
+	if _boon_runtime != null and _boon_runtime.has_method("record_manual_shuffle_usage"):
+		_boon_runtime.record_manual_shuffle_usage()
 	var shuffle_result := _gameplay.shuffle_board(_item_points)
 	_publish_ephemeral_state()
 	_publish_fact(Events.FACT_MATCH3_SHUFFLE_USED, _build_shuffle_payload(shuffle_result))

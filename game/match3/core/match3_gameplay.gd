@@ -23,6 +23,7 @@ var _move_points_accum: int = 0
 var _move_multi_accum: int = 0
 var _tile_score_resolver: Callable = Callable()
 var _boon_score_finalize_hook: Callable = Callable()
+var _boon_first_match_hook: Callable = Callable()
 var score_restrict_exact_three := false
 var score_restrict_exact_four_five := false
 var tile_points_contribution_scale := 1.0
@@ -64,6 +65,10 @@ func consume_first_scoring_destroyed_item_id() -> String:
 
 func set_boon_score_finalize_hook(hook: Callable) -> void:
 	_boon_score_finalize_hook = hook
+
+
+func set_boon_first_match_hook(hook: Callable) -> void:
+	_boon_first_match_hook = hook
 
 
 func set_boon_resolve_begin_hook(hook: Callable) -> void:
@@ -151,6 +156,8 @@ func process_move(a: Models.TileCoord, b: Models.TileCoord, item_points: Diction
 
 	moves_performed += 1
 	current_moves -= 1
+	if _boon_first_match_hook.is_valid():
+		_boon_first_match_hook.call(first_match)
 	_process_step(first_match, results, item_points)
 	if not results.is_empty():
 		var last: Models.MatchResult = results[results.size() - 1]
@@ -196,6 +203,8 @@ func _process_step(
 	item_points: Dictionary
 ) -> void:
 	results.append(current_match)
+	var multi_before_step := _move_multi_accum
+	var step_index := results.size() - 1
 	var to_clear: Dictionary = {}
 	for coord in current_match.matched_tiles:
 		to_clear[_coord_key(coord)] = coord
@@ -278,7 +287,9 @@ func _process_step(
 			results,
 			_move_points_accum,
 			_move_multi_accum,
-			scoring_eligible
+			scoring_eligible,
+			step_index,
+			multi_before_step
 		)
 		_move_points_accum = int(cascade.get("points", _move_points_accum))
 		_move_multi_accum = maxi(1, int(cascade.get("multi", _move_multi_accum)))

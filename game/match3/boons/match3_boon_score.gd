@@ -5,6 +5,7 @@ extends RefCounted
 
 const SupportScript = preload("res://game/match3/boons/match3_boon_support.gd")
 const ScalingScript = preload("res://game/match3/boons/match3_boon_scaling.gd")
+const MoveHooksScript = preload("res://game/match3/boons/match3_boon_move_hooks.gd")
 const EchoesScript = preload("res://game/match3/boons/match3_boon_contribution_echoes.gd")
 const JuiceScript = preload("res://game/match3/boons/match3_boon_juice.gd")
 const DisplayTextScript = preload("res://game/match3/view/match3_score_floating_display_text.gd")
@@ -21,6 +22,7 @@ var _service: GnosisService
 var _rng := RandomNumberGenerator.new()
 var _resolve_step_payload: GnosisNode = GnosisNode.new(null)
 var _pending_finalize_echo_steps: Array = []
+var _pending_autocorrect_finalize: Dictionary = {}
 
 
 func _init(service: GnosisService) -> void:
@@ -29,6 +31,12 @@ func _init(service: GnosisService) -> void:
 
 func configure_rng(seed_value: int) -> void:
 	_rng.seed = seed_value
+
+
+func append_pending_autocorrect_finalize(pending: Dictionary) -> void:
+	if pending.is_empty():
+		return
+	_pending_autocorrect_finalize = pending.duplicate()
 
 
 func begin_resolve_step(step, results: Array, points: int, multi: int, destroyed_count: int) -> void:
@@ -136,7 +144,9 @@ func apply_resolve_step_cascade(
 	results: Array,
 	points: int,
 	multi: int,
-	destroyed_count: int
+	destroyed_count: int,
+	step_index: int = 0,
+	multi_before_step: int = -1
 ) -> Dictionary:
 	if _resolve_step_payload == null or not _resolve_step_payload.is_valid():
 		begin_resolve_step(step, results, points, multi, destroyed_count)
@@ -148,6 +158,23 @@ func apply_resolve_step_cascade(
 	_refresh_resolve_step_score_payload(points, multi, destroyed_count, [step])
 	ScalingScript.apply_resolve_step_scaling_increments(_service, self, step, points, multi)
 	_run_resolve_step_calcs(_resolve_step_payload, false, -1, -1, step, false)
+	if step_index == 0 and multi_before_step >= 0:
+		var rizz := MoveHooksScript.compute_rizz_bonus(_service, multi_before_step, multi)
+		var rizz_delta := int(rizz.get("multi_delta", 0))
+		if rizz_delta > 0:
+			multi += rizz_delta
+			_refresh_resolve_step_score_payload(points, multi, destroyed_count, [step])
+			_append_contribution_step(
+				_resolve_step_payload,
+				CONTRIBUTION_LIST_RESOLVE,
+				str(rizz.get("boon_id", MoveHooksScript.BOON_CATALOG_ID_RIZZ)),
+				int(rizz.get("slot_index", -1)),
+				str(rizz.get("calculation_id", MoveHooksScript.RIZZ_CALCULATION_ID)),
+				0,
+				rizz_delta,
+				"",
+				str(rizz.get("multi_display", ""))
+			)
 	var resolve_steps := _copy_contribution_steps(_resolve_step_payload, CONTRIBUTION_LIST_RESOLVE)
 	var totals := _totals_from_payload(_resolve_step_payload, points, multi)
 	_resolve_step_payload = GnosisNode.new(null)
@@ -183,6 +210,7 @@ func apply_finalize_for_move(results: Array, points: int, multi: int) -> Diction
 	ScalingScript.apply_move_finalize_scaling_increments(_service, self, results, points, multi)
 	_ensure_contribution_list(payload, CONTRIBUTION_LIST_FINALIZE)
 	_run_finalize_calcs(payload)
+	_append_pending_autocorrect_finalize_step(payload)
 	var finalize_steps := _copy_contribution_steps(payload, CONTRIBUTION_LIST_FINALIZE)
 	finalize_steps.append_array(_pending_finalize_echo_steps)
 	_pending_finalize_echo_steps.clear()
@@ -673,6 +701,27 @@ func _apply_score_calc_outcomes(
 					boon_slot_index,
 					contribution_list_key
 				)
+
+
+func _append_pending_autocorrect_finalize_step(payload: GnosisNode) -> void:
+	if _pending_autocorrect_finalize.is_empty():
+		return
+	var display_text := str(_pending_autocorrect_finalize.get("displayText", "")).strip_edges()
+	if display_text.is_empty():
+		_pending_autocorrect_finalize.clear()
+		return
+	_append_contribution_step(
+		payload,
+		CONTRIBUTION_LIST_FINALIZE,
+		MoveHooksScript.BOON_CATALOG_ID_AUTOCORRECT,
+		int(_pending_autocorrect_finalize.get("slotIndex", -1)),
+		MoveHooksScript.FIRST_MATCH_GEM_LEVEL_CALCULATION_ID,
+		0,
+		0,
+		display_text,
+		""
+	)
+	_pending_autocorrect_finalize.clear()
 
 
 func _append_contribution_step(
