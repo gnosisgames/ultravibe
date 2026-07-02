@@ -215,20 +215,14 @@ func _run_move_sequence_body(payload: GnosisNode) -> void:
 	if step_count > 0:
 		for i in step_count:
 			var step = steps.get_node(i)
-			await _animate_step(step)
+			var is_last := i >= step_count - 1
+			await _animate_board_step(step)
+			await _animate_boon_resolve_steps(step.get_node("boonResolveSteps"))
+			if is_last:
+				await _play_finalize_playback_for_move(payload)
 			await _play_hud_metrics_for_cascade_step(step, i, step_count, payload)
 			if INTER_STEP_DELAY > 0.0:
 				await _wait(INTER_STEP_DELAY)
-	var playback_steps := payload.get_node("finalizePlaybackSteps")
-	if playback_steps.is_valid() and playback_steps.get_type() == GnosisValueType.LIST and playback_steps.get_count() > 0:
-		await _animate_finalize_playback_steps(playback_steps)
-	else:
-		var finalize_steps := payload.get_node("cellFloorFinalizeSteps")
-		if finalize_steps.is_valid() and finalize_steps.get_type() == GnosisValueType.LIST:
-			await _animate_cell_floor_finalize_steps(finalize_steps)
-		var boon_finalize_steps := payload.get_node("boonFinalizeSteps")
-		if boon_finalize_steps.is_valid() and boon_finalize_steps.get_type() == GnosisValueType.LIST:
-			await _animate_boon_resolve_steps(boon_finalize_steps, true)
 	await _finish_move_hud_metrics(payload)
 
 
@@ -272,15 +266,29 @@ func play_shuffle_sequence(payload: GnosisNode) -> void:
 	refresh_hud()
 
 
-func _animate_step(step: GnosisNode) -> void:
+func _animate_board_step(step: GnosisNode) -> void:
 	if step == null or not step.is_valid():
 		return
 	await _animate_destroy(step.get_node("matched"), step.get_node("contributions"), true, true, step)
 	_apply_floor_cells_cleared(step)
 	_apply_floor_cells_placed(step)
-	await _animate_boon_resolve_steps(step.get_node("boonResolveSteps"))
 	await _animate_moves(step.get_node("movements"))
 	await _animate_spawns(step.get_node("spawns"))
+
+
+func _play_finalize_playback_for_move(payload: GnosisNode) -> void:
+	if payload == null or not payload.is_valid():
+		return
+	var playback_steps := payload.get_node("finalizePlaybackSteps")
+	if playback_steps.is_valid() and playback_steps.get_type() == GnosisValueType.LIST and playback_steps.get_count() > 0:
+		await _animate_finalize_playback_steps(playback_steps)
+		return
+	var finalize_steps := payload.get_node("cellFloorFinalizeSteps")
+	if finalize_steps.is_valid() and finalize_steps.get_type() == GnosisValueType.LIST:
+		await _animate_cell_floor_finalize_steps(finalize_steps)
+	var boon_finalize_steps := payload.get_node("boonFinalizeSteps")
+	if boon_finalize_steps.is_valid() and boon_finalize_steps.get_type() == GnosisValueType.LIST:
+		await _animate_boon_resolve_steps(boon_finalize_steps, true)
 
 
 func _apply_floor_cells_cleared(step: GnosisNode) -> void:
@@ -681,17 +689,34 @@ func _animate_destroy(
 	if nodes.is_empty():
 		return
 	var batch := create_tween().set_parallel(true)
+	var score_popup_entries: Array = []
+	var floor_popup_entries: Array = []
 	for entry in nodes:
 		var node: Control = entry["node"]
 		var contrib: GnosisNode = entry["contrib"]
 		var cell_key: String = str(entry.get("cell_key", ""))
-		if floor_pop_map.has(cell_key):
-			var parts := cell_key.split(",")
-			if parts.size() == 2:
-				_pulse_floor_cell(int(parts[0]), int(parts[1]))
+		var anchor := node.position + node.size * 0.5
 		if show_score:
-			_spawn_destroy_score_popups(node, contrib)
-		_spawn_floor_bonus_popups(node, floor_pop_map.get(str(entry.get("cell_key", "")), null))
+			var points := 0
+			var multi := 0
+			var item_type_id := "plain"
+			if contrib != null and contrib.is_valid():
+				points = _node_int(contrib, "pointsAdded", 0)
+				multi = _node_int(contrib, "multiAdded", 0)
+				item_type_id = _node_string(contrib, "itemTypeId", "plain")
+			if points <= 0 and multi <= 0:
+				points = int(node.get_meta("point_for_item", 0))
+				multi = int(node.get_meta("multi_for_item", 0))
+				if item_type_id == "plain":
+					item_type_id = str(node.get_meta("item_type_id", "plain"))
+			score_popup_entries.append({
+				"anchor": anchor,
+				"points": points,
+				"multi": multi,
+				"item_type_id": item_type_id,
+			})
+		if floor_pop_map.has(cell_key):
+			floor_popup_entries.append({"anchor": anchor, "pop": floor_pop_map.get(cell_key), "cell_key": cell_key})
 		_spawn_sparkles(node)
 		_prep_destroy(node)
 		batch.tween_property(node, "scale", Vector2.ZERO, DESTROY_DURATION) \
@@ -702,7 +727,23 @@ func _animate_destroy(
 			if is_instance_valid(node):
 				node.queue_free()
 	)
-	await _wait(STEP_PAUSE)
+	await batch.finished
+	for entry in score_popup_entries:
+		_spawn_destroy_score_popups_at(
+			entry["anchor"],
+			int(entry["points"]),
+			int(entry["multi"]),
+			str(entry["item_type_id"]),
+		)
+	for entry in floor_popup_entries:
+		var cell_key: String = str(entry.get("cell_key", ""))
+		if not cell_key.is_empty():
+			var parts := cell_key.split(",")
+			if parts.size() == 2:
+				_pulse_floor_cell(int(parts[0]), int(parts[1]))
+		_spawn_floor_bonus_popups_at(entry["anchor"], entry["pop"])
+	if STEP_PAUSE > 0.0:
+		await _wait(STEP_PAUSE)
 
 
 func _build_contribution_lookup(contributions: GnosisNode) -> Dictionary:
@@ -735,9 +776,14 @@ func _build_floor_pop_lookup(step: GnosisNode) -> Dictionary:
 
 
 func _spawn_floor_bonus_popups(node: Control, pop: GnosisNode) -> void:
-	if node == null or pop == null or not pop.is_valid():
+	if node == null:
 		return
-	var anchor := node.position + node.size * 0.5
+	_spawn_floor_bonus_popups_at(node.position + node.size * 0.5, pop)
+
+
+func _spawn_floor_bonus_popups_at(anchor: Vector2, pop: GnosisNode) -> void:
+	if pop == null or not pop.is_valid():
+		return
 	var points := _node_int(pop, "pointsDelta", 0)
 	var multi := _node_int(pop, "multiDelta", 0)
 	var money := _node_int(pop, "moneyDelta", 0)
@@ -782,7 +828,20 @@ func _spawn_destroy_score_popups(node: Control, contrib: GnosisNode) -> void:
 		multi = int(node.get_meta("multi_for_item", 0))
 		if item_type_id == "plain":
 			item_type_id = str(node.get_meta("item_type_id", "plain"))
-	var anchor := node.position + node.size * 0.5
+	_spawn_destroy_score_popups_at(
+		node.position + node.size * 0.5,
+		points,
+		multi,
+		item_type_id,
+	)
+
+
+func _spawn_destroy_score_popups_at(
+	anchor: Vector2,
+	points: int,
+	multi: int,
+	item_type_id: String,
+) -> void:
 	BoardFloatJuiceScript.spawn_destroy_gem_popups(self, anchor, points, multi, item_type_id)
 
 

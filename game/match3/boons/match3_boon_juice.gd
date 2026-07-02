@@ -61,6 +61,11 @@ static func publish_score_juice(service: GnosisService, slot_index: int, score_k
 	)
 
 
+const SCALE_BUMP := 0.09
+const MAX_TWIST_DEG := 10.0
+const TRIGGER_JUICE_SEC := 0.15
+
+
 static func play_score_on_slot(host: Node, slot: Control, score_kind: String, display_text: String) -> void:
 	if host == null or slot == null or not is_instance_valid(slot):
 		return
@@ -74,9 +79,7 @@ static func play_score_on_slot(host: Node, slot: Control, score_kind: String, di
 		label,
 		accent
 	)
-	var tw := host.create_tween()
-	tw.tween_property(slot, "scale", Vector2(1.12, 1.12), 0.08).set_trans(Tween.TRANS_BACK)
-	tw.tween_property(slot, "scale", Vector2.ONE, 0.12)
+	_play_trigger_juice(host, slot)
 
 
 static func play_on_slot(host: Node, slot: Control, score_kind: String) -> void:
@@ -89,9 +92,36 @@ static func play_on_slot(host: Node, slot: Control, score_kind: String) -> void:
 		"UP",
 		accent
 	)
+	_play_trigger_juice(host, slot)
+
+
+static func _play_trigger_juice(host: Node, slot: Control) -> void:
+	if host == null or slot == null or not is_instance_valid(slot):
+		return
+	slot.set_meta(&"sway_paused", true)
+	if slot.size.x > 1.0 and slot.size.y > 1.0:
+		slot.pivot_offset = slot.size * 0.5
+	var twist_peak := deg_to_rad(randf_range(-MAX_TWIST_DEG, MAX_TWIST_DEG))
 	var tw := host.create_tween()
-	tw.tween_property(slot, "scale", Vector2(1.12, 1.12), 0.08).set_trans(Tween.TRANS_BACK)
-	tw.tween_property(slot, "scale", Vector2.ONE, 0.12)
+	tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	tw.tween_method(
+		func(t: float) -> void:
+			if not is_instance_valid(slot):
+				return
+			var wave := sin(PI * t)
+			slot.scale = Vector2.ONE * (1.0 + SCALE_BUMP * wave)
+			slot.rotation = twist_peak * wave,
+		0.0,
+		1.0,
+		TRIGGER_JUICE_SEC,
+	).set_trans(Tween.TRANS_LINEAR)
+	tw.finished.connect(
+		func() -> void:
+			if is_instance_valid(slot):
+				slot.scale = Vector2.ONE
+				slot.rotation = 0.0
+				slot.set_meta(&"sway_paused", false)
+	)
 
 
 static func accent_for_kind(kind: String) -> Color:

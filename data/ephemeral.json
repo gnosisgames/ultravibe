@@ -114,7 +114,8 @@
           "destroyed": {
             "total": 0
           }
-        }
+        },
+        "itemLevelUpgradesApplied": 0
       }
     },
     "match3Shop": {

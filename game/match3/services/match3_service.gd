@@ -48,6 +48,7 @@ const BOON_CATALOG_ID_COOKIE_TIME := "CookieTime"
 const BOON_CATALOG_ID_DOUBLE_DOWN := "DoubleDown"
 const BOON_CATALOG_ID_SLEEPER := "Sleeper"
 const BOON_CATALOG_ID_SIMP := "Simp"
+const BOON_CATALOG_ID_DARWIN := "Darwin"
 const EPHEMERAL_SELECTED_CONSUMABLE_SLOT := "selectedConsumableSlotIndex"
 const CONSUMABLE_JUICE_DISPLAY_USE := "Use"
 const CONSUMABLE_USE_DISPLAY_KEY := "match3__phrase__consumableUse"
@@ -147,6 +148,7 @@ func get_functions() -> Array:
 		"PanicSwapAllEquippedBoons",
 		"ApplyBoonSlotCapacityDelta",
 		"ApplyConsumableSlotCapacityDelta",
+		"AddItemLevelDelta",
 		"JuiceBoonMatch3RoundEffectOnActivate",
 		"SyncEquippedBoonMatch3RoundEffects",
 	]
@@ -176,6 +178,8 @@ func invoke_function(name: String, parameters: GnosisNode) -> Variant:
 			return _transition_to_state(raw_status)
 		"AddFloorModifierPoolDelta":
 			return _add_floor_modifier_pool_delta(parameters)
+		"AddItemLevelDelta":
+			return _add_item_level_delta(parameters)
 		"DestroyRandomCellFloorOnBoard":
 			return _destroy_random_cell_floor_on_board(parameters)
 	return GnosisFunctionResult.fail("Unknown Match3 function '%s'." % name)
@@ -410,6 +414,48 @@ func _add_floor_modifier_pool_delta(parameters: GnosisNode) -> GnosisFunctionRes
 	ok.set_key("floorTypeId", floor_type_id)
 	ok.set_key("poolSlotsMoved", int(result.get("applied", 0)))
 	return GnosisFunctionResult.ok(ok)
+
+
+func _add_item_level_delta(parameters: GnosisNode) -> GnosisFunctionResult:
+	if context == null or context.store == null:
+		return GnosisFunctionResult.fail("Store unavailable.")
+	var item_id := _node_str(parameters, "itemId").strip_edges()
+	if item_id.is_empty():
+		return GnosisFunctionResult.fail("AddItemLevelDelta requires non-empty 'itemId'.")
+	var delta := _node_int(parameters, "delta", 1)
+	if delta <= 0:
+		return GnosisFunctionResult.fail("AddItemLevelDelta requires positive 'delta'.")
+
+	var m3 := get_node("match3", false)
+	if not m3.is_valid() or m3.get_type() != GnosisValueType.OBJECT:
+		return GnosisFunctionResult.fail("match3_missing")
+
+	var item_levels := m3.get_node("itemLevels")
+	if not item_levels.is_valid() or item_levels.get_type() != GnosisValueType.OBJECT:
+		item_levels = context.store.create_object()
+		m3.set_key("itemLevels", item_levels)
+
+	var previous := _resolve_item_level(item_id)
+	var next := previous + delta
+	item_levels.set_key(item_id, next)
+	_increment_statistic("match3.itemLevelUpgradesApplied", delta)
+	_try_juice_equipped_boons_after_item_level_upgrade(delta)
+	_publish_ephemeral_state()
+
+	var payload := context.store.create_object()
+	payload.set_key("itemId", item_id)
+	payload.set_key("previousLevel", previous)
+	payload.set_key("level", next)
+	payload.set_key("delta", delta)
+	return GnosisFunctionResult.ok(payload)
+
+
+func _try_juice_equipped_boons_after_item_level_upgrade(delta: int) -> void:
+	if delta <= 0:
+		return
+	var darwin_slot := SupportScript.index_of_active_boon_slot_by_catalog_id(self, BOON_CATALOG_ID_DARWIN)
+	if darwin_slot >= 0:
+		play_boon_scaling_juice_now(darwin_slot)
 
 
 func _cell_floor_catalog_type_ids() -> Array[String]:

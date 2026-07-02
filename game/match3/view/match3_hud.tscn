@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3]
+[gd_scene load_steps=22 format=3]
 
 [ext_resource type="Script" path="res://game/match3/view/match3_hud.gd" id="1"]
 [ext_resource type="Script" path="res://game/match3/view/match3_dispatcher.gd" id="2"]
@@ -34,6 +34,17 @@ content_margin_left = 12.0
 content_margin_top = 21.0
 content_margin_right = 12.0
 content_margin_bottom = 21.0
+bg_color = Color(0, 0, 0, 0.15)
+corner_radius_top_left = 27
+corner_radius_top_right = 27
+corner_radius_bottom_right = 27
+corner_radius_bottom_left = 27
+
+[sub_resource type="StyleBoxFlat" id="SB_boons_strip"]
+content_margin_left = 8.0
+content_margin_top = 0.0
+content_margin_right = 8.0
+content_margin_bottom = 0.0
 bg_color = Color(0, 0, 0, 0.15)
 corner_radius_top_left = 27
 corner_radius_top_right = 27
@@ -711,7 +722,8 @@ offset_top = 32.0
 offset_right = -230.0
 offset_bottom = 212.0
 grow_horizontal = 2
-theme_override_styles/panel = SubResource("SB_boons")
+clip_contents = false
+theme_override_styles/panel = SubResource("SB_boons_strip")
 
 [node name="BoonsChrome" type="Control" parent="BoonsBar"]
 layout_mode = 2
@@ -725,6 +737,8 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_top = -10.0
+offset_bottom = 10.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 0

@@ -31,8 +31,6 @@ const ACTION_BUTTON_GAP := 12
 const ACTION_ICON_MAX := 72
 const SIDEBAR_MARGIN_H := 48.0
 const LEFT_RAIL_WIDTH := 48.0
-## Boons strip target height — match consumables sidebar width so icons read at similar scale.
-const BOONS_BAR_TARGET_HEIGHT := 180.0
 
 ## Emitted whenever the content frame rect changes (sidebar relayout / resize) so
 ## overlays can re-align themselves to it.
@@ -566,8 +564,7 @@ func _on_frame_dirty() -> void:
 			var frame := get_content_frame_rect()
 			_boons_bar.set_anchors_preset(Control.PRESET_TOP_LEFT)
 			var bar_pos := Vector2(boss_rect.end.x + FRAME_GAP, boss_rect.position.y)
-			var bar_h := maxf(boss_rect.size.y, BOONS_BAR_TARGET_HEIGHT)
-			var bar_size := Vector2(_boons_bar.size.x, bar_h)
+			var bar_size := Vector2(_boons_bar.size.x, boss_rect.size.y)
 			if frame.size.x > 0.0:
 				bar_pos.x = frame.position.x
 				bar_size.x = frame.size.x
