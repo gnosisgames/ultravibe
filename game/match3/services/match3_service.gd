@@ -17,6 +17,7 @@ const Match3BoonMatchFloorConversionsScript = preload("res://game/match3/boons/m
 const Match3BoonJuiceScript = preload("res://game/match3/boons/match3_boon_juice.gd")
 const Match3GameSpeedScript = preload("res://game/match3/core/match3_game_speed.gd")
 const SupportScript = preload("res://game/match3/boons/match3_boon_support.gd")
+const ConsumableServiceScript = preload("res://addons/com.gnosisgames.gnosisengine/services/gnosis_consumable_service.gd")
 
 const Events = Match3EventsScript
 const Models = Match3ModelsScript
@@ -32,6 +33,14 @@ const DEFAULT_WINNING_ROUND := DEFAULT_ROUNDS_PER_FLOOR * 3
 const DEFAULT_DOUBLE_DOWN_TARGET_MULTIPLIER := 10
 const PENDING_ROUND_REWARD_KEY := "pendingRoundReward"
 const PAYOUT_CURRENCY_ID := "money"
+
+const ECHO_LAST_RUNE_OR_GRANT_CONSUMABLE_KEY := "echoLastRuneOrItemUpgradeGrantConsumableId"
+const ECHOMANIA_CONSUMABLE_CATALOG_ID := "Echomania"
+const CONSUMABLES_CONFIGURATION_ID := "consumables"
+const MANIA_GAMEPLAY_TAG := "mania"
+const ITEM_UPGRADE_GRANT_GAMEPLAY_TAG := "item_upgrade_grant"
+const CLICKBAIT_BOON_CATALOG_ID := "Clickbait"
+const SHOP_REROLL_LIFETIME_COUNTER_KEY := "shopRerollsLifetime"
 
 const REWARD_REASON_ROUND := "match3__phrase__rewardRoundBoss"
 const REWARD_REASON_UNUSED_MOVES := "match3__phrase__rewardUnusedMoves"
@@ -87,6 +96,7 @@ var _cell_floor_runtime: RefCounted = null
 var _move_subscription: RefCounted = null
 var _reset_subscription: RefCounted = null
 var _begin_level_subscription: RefCounted = null
+var _consumable_used_subscription: RefCounted = null
 
 
 func _init() -> void:
@@ -123,6 +133,8 @@ func on_initialize() -> void:
 			Events.REQUEST_MATCH3_RESET, _on_reset_requested, 0)
 		_begin_level_subscription = context.event_bus.subscribe(
 			Events.REQUEST_MATCH3_BEGIN_LEVEL, _on_begin_level_requested, 0)
+		_consumable_used_subscription = context.event_bus.subscribe(
+			ConsumableServiceScript.FACT_CONSUMABLE_USED, _on_consumable_used_for_echo_tracking, 0)
 	_publish_fact(Events.FACT_MATCH3_EPHEMERAL_SERVICE_STARTED)
 
 
@@ -131,9 +143,11 @@ func on_shutdown() -> void:
 	_dispose_subscription(_move_subscription)
 	_dispose_subscription(_reset_subscription)
 	_dispose_subscription(_begin_level_subscription)
+	_dispose_subscription(_consumable_used_subscription)
 	_move_subscription = null
 	_reset_subscription = null
 	_begin_level_subscription = null
+	_consumable_used_subscription = null
 
 
 func get_functions() -> Array:
@@ -164,6 +178,8 @@ func get_functions() -> Array:
 		"AddDefaultMovesPerRoundDelta",
 		"AddDefaultShufflesPerRoundDelta",
 		"DuplicateLastRuneOrItemUpgradeGrantConsumable",
+		"ApplyShopRerollScalingAfterCoreShopReroll",
+		"RerollUpcomingBossRound",
 		"JuiceBoonMatch3RoundEffectOnActivate",
 		"SyncEquippedBoonMatch3RoundEffects",
 	]
@@ -219,6 +235,10 @@ func invoke_function(name: String, parameters: GnosisNode) -> Variant:
 			return _add_default_shuffles_per_round_delta(parameters)
 		"DuplicateLastRuneOrItemUpgradeGrantConsumable":
 			return _duplicate_last_rune_or_item_upgrade_grant_consumable(parameters)
+		"ApplyShopRerollScalingAfterCoreShopReroll":
+			return _apply_shop_reroll_scaling_after_core_shop_reroll(parameters)
+		"RerollUpcomingBossRound":
+			return _reroll_upcoming_boss_round()
 		"DestroyRandomCellFloorOnBoard":
 			return _destroy_random_cell_floor_on_board(parameters)
 	return GnosisFunctionResult.fail("Unknown Match3 function '%s'." % name)
@@ -1135,7 +1155,7 @@ func _build_eligible_run_upgrade_ids(category_id: String) -> Array[String]:
 	if result == null or not (result is GnosisFunctionResult) or not result.is_ok:
 		return catalog
 	var fn_result: GnosisFunctionResult = result
-	var data: GnosisNode = fn_result.data
+	var data: GnosisNode = fn_result.payload
 	if data == null or not data.is_valid() or data.get_type() != GnosisValueType.OBJECT:
 		return catalog
 	var list_node: GnosisNode = data.get_node("upgradeIds")
@@ -1254,6 +1274,11 @@ func _add_core_shop_free_reroll_count_delta(parameters: GnosisNode) -> GnosisFun
 	var previous := maxi(0, _node_int(core, "freeRerollCount", 0))
 	var next := maxi(0, previous + delta)
 	core.set_key("freeRerollCount", next)
+	core.set_key("nextRerollIsFree", next > 0)
+	if next > 0:
+		core.set_key("currentRerollPrice", 0)
+	elif core.get_node("paidRerollPrice").is_valid():
+		core.set_key("currentRerollPrice", int(core.get_node("paidRerollPrice").value))
 	_publish_ephemeral_state()
 	var payload := context.store.create_object()
 	payload.set_key("previousFreeRerollCount", previous)
@@ -1370,13 +1395,215 @@ func _duplicate_last_rune_or_item_upgrade_grant_consumable(parameters: GnosisNod
 	args.set_key("bucketId", bucket_id)
 	args.set_key("consumableId", target)
 	var result = call_service("Consumable", "AddConsumable", args)
-	if result == null or not (result is GnosisFunctionResult) or not result.is_ok:
-		return GnosisFunctionResult.fail(result.error if result is GnosisFunctionResult else "add_consumable_failed")
-	if result.data != null and result.data.is_valid():
-		return GnosisFunctionResult.ok(result.data)
+	if result == null or not (result is GnosisNode) or not result.is_valid():
+		return GnosisFunctionResult.fail("add_consumable_failed")
+	return GnosisFunctionResult.ok(result)
+
+
+func _apply_shop_reroll_scaling_after_core_shop_reroll(_parameters: GnosisNode) -> GnosisFunctionResult:
+	if context == null or context.store == null:
+		return GnosisFunctionResult.fail("Store unavailable.")
+	var bumped := _increment_clickbait_shop_reroll_counter_if_equipped()
 	var payload := context.store.create_object()
-	payload.set_key("consumableId", target)
+	payload.set_key("delta", bumped)
+	payload.set_key("incremented", bumped > 0)
+	_publish_ephemeral_state()
 	return GnosisFunctionResult.ok(payload)
+
+
+func _increment_clickbait_shop_reroll_counter_if_equipped() -> int:
+	var slot_rows := SupportScript.get_active_boon_inventory_slot_rows(self)
+	var bumped := 0
+	for i in range(slot_rows.size()):
+		var slot_entry: GnosisNode = slot_rows[i]
+		var catalog_id := SupportScript.read_boon_catalog_id_from_inventory_entry(slot_entry).strip_edges()
+		if catalog_id.to_lower() != CLICKBAIT_BOON_CATALOG_ID.to_lower():
+			continue
+		if Match3BoonScalingScript.try_bank_boon_slot_scaling_counter(
+			self, i, slot_entry, SHOP_REROLL_LIFETIME_COUNTER_KEY, 1, true
+		):
+			bumped += 1
+	return bumped
+
+
+func _reroll_upcoming_boss_round() -> GnosisFunctionResult:
+	if context == null or context.store == null:
+		return GnosisFunctionResult.fail("Store unavailable.")
+	var m3 := get_node("match3", false)
+	if not m3.is_valid():
+		return GnosisFunctionResult.fail("match3_unavailable")
+	var anchor_round := maxi(1, _node_int(m3, "nextLevel", 1))
+	var boss_lookup := _try_find_next_unplayed_boss_round(anchor_round)
+	if not bool(boss_lookup.get("found", false)):
+		return GnosisFunctionResult.fail("no_upcoming_boss_round")
+	var boss_round := int(boss_lookup.get("boss_round", 0))
+	var floor_number := int(boss_lookup.get("floor_number", 0))
+	var bundle: Dictionary = boss_lookup.get("bundle", {})
+	var boss_plan: Dictionary = bundle.get("boss", {})
+	if _gameplay.status == Models.STATUS_PLAYING and _current_round == boss_round:
+		if str(boss_plan.get("stage_type", "")) == "boss":
+			return GnosisFunctionResult.fail("boss_round_in_progress")
+	var previous_profile_id := str(boss_plan.get("level_id", ""))
+	var new_profile_id := _try_pick_alternate_boss_profile_id_for_round(boss_round, previous_profile_id)
+	if new_profile_id.is_empty():
+		return GnosisFunctionResult.fail("no_alternate_boss")
+	_load_board_pools()
+	var used_board_ids: Array[String] = []
+	var normal_plan: Dictionary = bundle.get("normal", {})
+	var advanced_plan: Dictionary = bundle.get("advanced", {})
+	var normal_board := str(normal_plan.get("board_id", "")).strip_edges()
+	var advanced_board := str(advanced_plan.get("board_id", "")).strip_edges()
+	if not normal_board.is_empty():
+		used_board_ids.append(normal_board)
+	if not advanced_board.is_empty():
+		used_board_ids.append(advanced_board)
+	var all_board_ids := _get_all_board_ids()
+	var new_board_id := _pick_boss_board_for_profile(new_profile_id, floor_number, used_board_ids, all_board_ids)
+	if new_board_id.is_empty():
+		return GnosisFunctionResult.fail("boss_board_pick_failed")
+	var new_boss := (boss_plan as Dictionary).duplicate(true)
+	new_boss["level_id"] = new_profile_id
+	new_boss["board_id"] = new_board_id
+	bundle["boss"] = new_boss
+	_floor_bundle_plans[floor_number] = bundle
+	refresh_planned_floor_preview()
+	_publish_ephemeral_state()
+	var ok := context.store.create_object()
+	ok.set_key("success", true)
+	ok.set_key("floorNumber", floor_number)
+	ok.set_key("bossRound", boss_round)
+	ok.set_key("previousBossProfileId", previous_profile_id)
+	ok.set_key("bossProfileId", new_profile_id)
+	ok.set_key("boardId", new_board_id)
+	return GnosisFunctionResult.ok(ok)
+
+
+func _try_find_next_unplayed_boss_round(anchor_round: int) -> Dictionary:
+	var anchor := maxi(1, anchor_round)
+	var m3 := get_node("match3", false)
+	var rounds_per_floor := DEFAULT_ROUNDS_PER_FLOOR
+	var start_floor := int((anchor - 1) / rounds_per_floor) + 1
+	var endless_enabled := _node_bool(m3, "endlessModeEnabled", false)
+	var floor_count := maxi(1, _node_int(m3, "floorCount", 8))
+	var end_floor := start_floor + maxi(8, floor_count) if endless_enabled else floor_count
+	end_floor = maxi(end_floor, start_floor)
+	for floor in range(start_floor, end_floor + 1):
+		var bundle := _ensure_floor_bundle(floor)
+		var boss_plan: Dictionary = bundle.get("boss", {})
+		var boss_round := int(boss_plan.get("round", 0))
+		if boss_round < anchor:
+			continue
+		return {
+			"found": true,
+			"boss_round": boss_round,
+			"floor_number": floor,
+			"bundle": bundle,
+		}
+	return {"found": false}
+
+
+func _try_pick_alternate_boss_profile_id_for_round(boss_round_number: int, exclude_profile_id: String) -> String:
+	var tier_pool := _filter_boss_profiles_to_peak_tier(_build_eligible_boss_profile_ids(boss_round_number))
+	var exclude := exclude_profile_id.strip_edges()
+	var pool: Array[String] = []
+	for id in tier_pool:
+		if not id.is_empty() and id.to_lower() != exclude.to_lower():
+			pool.append(id)
+	if pool.is_empty():
+		for id in _build_eligible_boss_profile_ids(boss_round_number):
+			if not id.is_empty() and id.to_lower() != exclude.to_lower():
+				pool.append(id)
+	if pool.is_empty():
+		pool = tier_pool.duplicate()
+	if pool.is_empty():
+		return ""
+	if pool.size() == 1 and pool[0].to_lower() == exclude.to_lower():
+		return ""
+	var index := _seed_range_int(0, pool.size(), 0)
+	return pool[clampi(index, 0, pool.size() - 1)]
+
+
+func _seed_range_int(min_inclusive: int, max_exclusive: int, fallback: int) -> int:
+	if max_exclusive <= min_inclusive or context == null or context.store == null:
+		return fallback
+	var args := context.store.create_object()
+	args.set_key("min", min_inclusive)
+	args.set_key("max", max_exclusive)
+	var result = call_service("Seed", "RangeInt", args)
+	if result is GnosisFunctionResult and result.is_ok and result.payload != null and result.payload.is_valid():
+		return _node_int(result.payload, "value", fallback)
+	if result is GnosisNode and result.is_valid():
+		var value: GnosisNode = result.get_node("value")
+		if value.is_valid():
+			return int(value.value)
+	return fallback
+
+
+func _on_consumable_used_for_echo_tracking(event: GnosisEvent) -> void:
+	if context == null or context.store == null or event == null:
+		return
+	var data := event.data if event.data != null else GnosisNode.new(null)
+	if not data.is_valid() or data.get_type() != GnosisValueType.OBJECT:
+		return
+	var catalog_id := _resolve_consumable_catalog_id_from_used_fact(data).strip_edges()
+	if catalog_id.is_empty():
+		return
+	if catalog_id.to_lower() == ECHOMANIA_CONSUMABLE_CATALOG_ID.to_lower():
+		return
+	if not _is_echo_tracked_consumable_catalog_id(catalog_id):
+		return
+	var m3 := get_node("match3", false)
+	if not m3.is_valid() or m3.get_type() != GnosisValueType.OBJECT:
+		return
+	m3.set_key(ECHO_LAST_RUNE_OR_GRANT_CONSUMABLE_KEY, catalog_id)
+	_publish_ephemeral_state()
+
+
+func _resolve_consumable_catalog_id_from_used_fact(data: GnosisNode) -> String:
+	for key in ["consumableId", "catalogConsumableId", "consumableCatalogId", "itemId"]:
+		var direct := _node_str(data, key).strip_edges()
+		if not direct.is_empty():
+			return direct
+	for nested_key in ["data", "payload"]:
+		var nested := data.get_node(nested_key)
+		if not nested.is_valid() or nested.get_type() != GnosisValueType.OBJECT:
+			continue
+		for key in ["consumableId", "catalogConsumableId"]:
+			var inner := _node_str(nested, key).strip_edges()
+			if not inner.is_empty():
+				return inner
+	return ""
+
+
+func _is_echo_tracked_consumable_catalog_id(catalog_id: String) -> bool:
+	if catalog_id.is_empty():
+		return false
+	var configuration := get_node("configuration", true)
+	if not configuration.is_valid() or configuration.get_type() != GnosisValueType.OBJECT:
+		return false
+	var consumables_root := configuration.get_node(CONSUMABLES_CONFIGURATION_ID)
+	if not consumables_root.is_valid() or consumables_root.get_type() != GnosisValueType.OBJECT:
+		return false
+	var entry := consumables_root.get_node(catalog_id.strip_edges())
+	if not entry.is_valid() or entry.get_type() != GnosisValueType.OBJECT:
+		return false
+	var properties := entry.get_node("properties")
+	if not properties.is_valid() or properties.get_type() != GnosisValueType.OBJECT:
+		return false
+	var tags_node := properties.get_node("gameplayTags")
+	if not tags_node.is_valid() or tags_node.get_type() != GnosisValueType.LIST:
+		tags_node = properties.get_node("gameplyTags")
+	if not tags_node.is_valid() or tags_node.get_type() != GnosisValueType.LIST:
+		return false
+	var has_mania := false
+	var has_grant := false
+	for i in range(tags_node.get_count()):
+		var tag := str(_node_value(tags_node.get_node(i))).strip_edges()
+		if tag.to_lower() == MANIA_GAMEPLAY_TAG:
+			has_mania = true
+		if tag.to_lower() == ITEM_UPGRADE_GRANT_GAMEPLAY_TAG:
+			has_grant = true
+	return has_mania or has_grant
 
 
 func _apply_floor_modifier_pool_to_board() -> void:

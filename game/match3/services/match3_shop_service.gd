@@ -31,6 +31,7 @@ const DEFAULT_MAX_SHOP_DISCOUNT := 0.5
 const DEFAULT_PRICE_INFLATION_PER_FLOOR := 0.0
 const DEFAULT_CORE_BASE_REROLL_PRICE := 5
 const DEFAULT_CORE_REROLL_INCREMENT := 2
+const FREE_REROLL_COUNT_KEY := "freeRerollCount"
 
 var _reroll_count := 0
 
@@ -66,7 +67,7 @@ func invoke_function(name: String, parameters: GnosisNode) -> Variant:
 		"PurchaseCoreItem":
 			return _purchase_core_item(parameters)
 		"RemoveUpgrade":
-			return GnosisFunctionResult.fail("remove_upgrade_not_ported")
+			return _remove_upgrade(parameters)
 		"ResolveCatalogShopBuyPrice":
 			return GnosisFunctionResult.ok(_resolve_price_payload(parameters))
 		"RecordInventorySale":
@@ -105,9 +106,7 @@ func _rebuild_core_shop_offers() -> GnosisNode:
 			offers.add(entry)
 	core.set_key("offers", offers)
 	core.set_key("rerollCount", _reroll_count)
-	core.set_key("freeRerollCount", 0)
-	core.set_key("currentRerollPrice", _current_core_reroll_price())
-	core.set_key("nextRerollIsFree", false)
+	_sync_core_reroll_price_fields(core)
 	shop.set_key("core", core)
 	_commit_shop()
 	return shop
@@ -595,15 +594,122 @@ func _read_full_core_shop_tuning(core: GnosisNode) -> Dictionary:
 	}
 
 
-func _reroll_core_shop(_parameters: GnosisNode) -> GnosisFunctionResult:
-	var shop := _ensure_core_shop()
-	var core := shop.get_node("core")
-	var price := _node_int(core, "currentRerollPrice", _current_core_reroll_price())
-	if price > 0 and not _try_spend_currency(price):
+func _reroll_core_shop(parameters: GnosisNode) -> GnosisFunctionResult:
+	var force_free := _node_bool(parameters, "isFree", false)
+	var used_free_bank := false if force_free else _try_consume_free_reroll_from_bank()
+	var is_free := force_free or used_free_bank
+	var money_before := _get_money_balance()
+	var reroll_price := 0 if is_free else _current_core_reroll_price()
+	if not is_free and reroll_price > 0 and not _try_spend_currency(reroll_price):
 		return GnosisFunctionResult.fail("not_enough_money")
-	_reroll_count += 1
+	var shop := _rebuild_core_shop_offers()
+	if not is_free:
+		_reroll_count += 1
+		var rebuilt_core := shop.get_node("core")
+		rebuilt_core.set_key("rerollCount", _reroll_count)
+		_sync_core_reroll_price_fields(rebuilt_core)
 	_increment_statistic("match3.shop.rerolls.total", 1)
-	return GnosisFunctionResult.ok(_rebuild_core_shop_offers())
+	if context != null and context.store != null:
+		var scaling_params := context.store.create_object()
+		call_service("Match3", "ApplyShopRerollScalingAfterCoreShopReroll", scaling_params)
+	var payload := _build_core_reroll_response_payload(shop, reroll_price, money_before, is_free, used_free_bank)
+	return GnosisFunctionResult.ok(payload)
+
+
+func _remove_upgrade(parameters: GnosisNode) -> GnosisFunctionResult:
+	var upgrade_id := _node_string(parameters, "upgradeId", "").strip_edges()
+	if upgrade_id.is_empty():
+		return GnosisFunctionResult.fail("Missing upgradeId.")
+	var params := context.store.create_object()
+	params.set_key("categoryId", UPGRADE_CATEGORY_RUN)
+	params.set_key("upgradeId", upgrade_id)
+	var result = call_service("Upgrade", "RemoveUpgrade", params)
+	if result == null or not (result is GnosisNode) or not result.is_valid():
+		return GnosisFunctionResult.fail("RemoveUpgrade failed.")
+	return GnosisFunctionResult.ok(result)
+
+
+func _read_free_reroll_count() -> int:
+	var shop := get_node("match3Shop", false)
+	var core := shop.get_node("core") if shop.is_valid() else _invalid_node()
+	return maxi(0, _node_int(core, FREE_REROLL_COUNT_KEY, 0))
+
+
+func _write_free_reroll_count(count: int) -> void:
+	var shop := get_node("match3Shop", false)
+	if not shop.is_valid() or shop.get_type() != GnosisValueType.OBJECT:
+		return
+	var core := shop.get_node("core")
+	if not core.is_valid() or core.get_type() != GnosisValueType.OBJECT:
+		return
+	core.set_key(FREE_REROLL_COUNT_KEY, maxi(0, count))
+
+
+func _try_consume_free_reroll_from_bank() -> bool:
+	var count := _read_free_reroll_count()
+	if count <= 0:
+		return false
+	_write_free_reroll_count(count - 1)
+	return true
+
+
+func _effective_core_reroll_price() -> int:
+	if _read_free_reroll_count() > 0:
+		return 0
+	return _current_core_reroll_price()
+
+
+func _sync_core_reroll_price_fields(core: GnosisNode) -> void:
+	if not core.is_valid() or core.get_type() != GnosisValueType.OBJECT:
+		return
+	var free_count := maxi(0, _node_int(core, FREE_REROLL_COUNT_KEY, _read_free_reroll_count()))
+	core.set_key(FREE_REROLL_COUNT_KEY, free_count)
+	var paid_price := _current_core_reroll_price()
+	core.set_key("paidRerollPrice", paid_price)
+	core.set_key("currentRerollPrice", 0 if free_count > 0 else paid_price)
+	core.set_key("nextRerollIsFree", free_count > 0)
+
+
+func _append_free_reroll_fields_to_payload(payload: GnosisNode) -> void:
+	if not payload.is_valid() or payload.get_type() != GnosisValueType.OBJECT:
+		return
+	var free_count := _read_free_reroll_count()
+	payload.set_key(FREE_REROLL_COUNT_KEY, free_count)
+	payload.set_key("currentRerollPrice", _effective_core_reroll_price())
+	payload.set_key("paidRerollPrice", _current_core_reroll_price())
+	payload.set_key("nextRerollIsFree", free_count > 0)
+
+
+func _get_money_balance() -> int:
+	if context == null or context.store == null:
+		return 0
+	var params := context.store.create_object()
+	params.set_key("currencyId", CURRENCY_ID)
+	var result = call_service("Currency", "GetBalance", params)
+	if result is GnosisFunctionResult and result.is_ok and result.payload != null and result.payload.is_valid():
+		return _node_int(result.payload, "balance", 0)
+	if result is GnosisNode and result.is_valid():
+		return _node_int(result, "balance", 0)
+	return 0
+
+
+func _build_core_reroll_response_payload(
+	shop: GnosisNode,
+	reroll_price_paid: int,
+	money_before: int,
+	is_free: bool,
+	used_free_bank: bool
+) -> GnosisNode:
+	var payload := shop if shop.is_valid() else context.store.create_object()
+	if payload.get_type() != GnosisValueType.OBJECT:
+		payload = context.store.create_object()
+	payload.set_key("rerollPricePaid", reroll_price_paid)
+	payload.set_key("moneyBefore", money_before)
+	payload.set_key("moneyAfter", _get_money_balance())
+	payload.set_key("isFree", is_free)
+	payload.set_key("usedFreeRerollBank", used_free_bank)
+	_append_free_reroll_fields_to_payload(payload)
+	return payload
 
 
 func _purchase_core_item(parameters: GnosisNode) -> GnosisFunctionResult:
@@ -817,7 +923,13 @@ func _shop_discount_percent(max_discount: float) -> float:
 
 func _current_core_reroll_price() -> int:
 	var tuning: Dictionary = _read_core_shop_tuning()
-	return maxi(0, int(tuning["base_reroll_price"]) + (_reroll_count * int(tuning["reroll_price_increment"])))
+	var raw := maxi(0, int(tuning["base_reroll_price"]) + (_reroll_count * int(tuning["reroll_price_increment"])))
+	if raw <= 0:
+		return 0
+	var shop := get_node("match3Shop", false)
+	var core := shop.get_node("core") if shop.is_valid() else _invalid_node()
+	var flat_discount := maxi(0, _node_int(core, "rerollFlatDiscount", 0))
+	return maxi(1, raw - flat_discount)
 
 
 func _increment_statistic(key: String, delta: int = 1) -> void:
