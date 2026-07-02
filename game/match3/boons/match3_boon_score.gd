@@ -6,6 +6,7 @@ extends RefCounted
 const SupportScript = preload("res://game/match3/boons/match3_boon_support.gd")
 const ScalingScript = preload("res://game/match3/boons/match3_boon_scaling.gd")
 const MoveHooksScript = preload("res://game/match3/boons/match3_boon_move_hooks.gd")
+const FlavorsScript = preload("res://game/match3/boons/match3_boon_flavors.gd")
 const EchoesScript = preload("res://game/match3/boons/match3_boon_contribution_echoes.gd")
 const JuiceScript = preload("res://game/match3/boons/match3_boon_juice.gd")
 const DisplayTextScript = preload("res://game/match3/view/match3_score_floating_display_text.gd")
@@ -699,6 +700,15 @@ func _apply_score_calc_outcomes(
 					payload,
 					boon_id,
 					boon_slot_index,
+					contribution_list_key
+				)
+			if pts_delta != 0 or multi_delta != 0:
+				FlavorsScript.try_apply_positive_flavor_after_score_step(
+					_service,
+					self,
+					payload,
+					boon_slot_index,
+					boon_id,
 					contribution_list_key
 				)
 

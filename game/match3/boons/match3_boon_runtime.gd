@@ -6,6 +6,7 @@ extends RefCounted
 const GrantsScript = preload("res://game/match3/boons/match3_boon_grants.gd")
 const ScoreScript = preload("res://game/match3/boons/match3_boon_score.gd")
 const MoveHooksScript = preload("res://game/match3/boons/match3_boon_move_hooks.gd")
+const FlavorsScript = preload("res://game/match3/boons/match3_boon_flavors.gd")
 const SupportScript = preload("res://game/match3/boons/match3_boon_support.gd")
 const ScalingScript = preload("res://game/match3/boons/match3_boon_scaling.gd")
 const CatalogPolicyScript = preload("res://game/match3/catalog/match3_run_catalog_offer_policy.gd")
@@ -157,8 +158,13 @@ func configure_rng(seed_value: int) -> void:
 
 
 func on_round_boundary(previous_round: int, new_round: int) -> void:
+	FlavorsScript.try_apply_negative_flavors_on_round_start(_service, previous_round, new_round)
 	_grants.try_grant_hype_train_round_start_common_boons(previous_round, new_round)
 	_previous_round_for_boon_hooks = new_round
+
+
+func apply_perishable_flavors_on_round_end() -> void:
+	FlavorsScript.try_apply_perishable_flavors_on_round_end(_service)
 
 
 func on_round_skipped() -> void:
@@ -241,17 +247,16 @@ func apply_consumable_slot_capacity_delta(parameters: GnosisNode) -> GnosisFunct
 
 
 func _sync_boon_bag_slot_count_metrics(boons_buckets: GnosisNode, boons_bag: GnosisNode) -> void:
-	if boons_bag == null or not boons_bag.is_valid():
+	if _service == null or boons_bag == null or not boons_bag.is_valid():
 		return
-	var list := boons_bag.get_node("list")
-	var list_count := list.get_count() if list.is_valid() and list.get_type() == GnosisValueType.LIST else 0
-	var max_size := SupportScript.read_boon_bag_max_slot_capacity(boons_bag)
-	boons_bag.set_key("listCount", list_count)
-	boons_bag.set_key("filledSlotsCount", list_count)
-	boons_bag.set_key("emptySlotsCount", maxi(0, max_size - list_count))
+	var config := _service.get_node("configuration", true)
+	var EngineFlavorsScript = preload("res://addons/com.gnosisgames.gnosisengine/services/gnosis_boon_flavors.gd")
+	EngineFlavorsScript.apply_bag_capacity_metrics(boons_bag, config)
+	var filled := SupportScript._node_int(boons_bag, "filledSlotsCount", 0)
+	var empty := SupportScript._node_int(boons_bag, "emptySlotsCount", 0)
 	if boons_buckets != null and boons_buckets.is_valid():
-		boons_buckets.set_key("filledSlotsCount", list_count)
-		boons_buckets.set_key("emptySlotsCount", maxi(0, max_size - list_count))
+		boons_buckets.set_key("filledSlotsCount", filled)
+		boons_buckets.set_key("emptySlotsCount", empty)
 
 
 func _sync_consumable_bag_slot_count_metrics(consumables_buckets: GnosisNode, bag: GnosisNode) -> void:

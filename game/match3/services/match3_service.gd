@@ -399,6 +399,8 @@ func _apply_round_end_floor_boon_hooks() -> void:
 		_boon_runtime.apply_round_end_scaling_increments()
 	if _boon_runtime != null and _boon_runtime.has_method("apply_round_end_self_destructs"):
 		_boon_runtime.apply_round_end_self_destructs(_active_stage_type == "boss")
+	if _boon_runtime != null and _boon_runtime.has_method("apply_perishable_flavors_on_round_end"):
+		_boon_runtime.apply_perishable_flavors_on_round_end()
 	Match3CellFloorBoardScript.apply_red_flag_round_end_for_all_equipped(self, _gameplay)
 	Match3CellFloorBoardScript.apply_boomer_round_end_pool_grants(self)
 	_publish_ephemeral_state()
