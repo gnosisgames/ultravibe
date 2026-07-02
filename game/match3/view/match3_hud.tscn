@@ -349,7 +349,7 @@ alignment = 1
 [node name="TotalValue" type="Label" parent="Sidebar/Layout/ScoreSection/ScoreLayout/TotalPanel/ScoreStack"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.65, 0.68, 0.75, 1)
+theme_override_colors/font_color = Color(0.156863, 0.196078, 0.290196, 1)
 theme_override_fonts/font = ExtResource("3")
 theme_override_font_sizes/font_size = 42
 text = "0"
@@ -713,13 +713,33 @@ offset_bottom = 212.0
 grow_horizontal = 2
 theme_override_styles/panel = SubResource("SB_boons")
 
-[node name="BoonsLayout" type="VBoxContainer" parent="BoonsBar"]
+[node name="BoonsChrome" type="Control" parent="BoonsBar"]
 layout_mode = 2
-theme_override_constants/separation = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
 
-[node name="BoonCount" type="Label" parent="BoonsBar/BoonsLayout"]
+[node name="BoonsRow" type="HBoxContainer" parent="BoonsBar/BoonsChrome"]
 unique_name_in_owner = true
-layout_mode = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+theme_override_constants/separation = 14
+alignment = 1
+script = ExtResource("9")
+
+[node name="BoonCount" type="Label" parent="BoonsBar/BoonsChrome"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 0
+offset_left = 4.0
+offset_top = 0.0
+offset_right = 128.0
+offset_bottom = 34.0
 mouse_filter = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0.0784314, 0.137255, 0.227451, 1)
@@ -728,15 +748,6 @@ theme_override_fonts/font = ExtResource("3")
 theme_override_font_sizes/font_size = 30
 text = "0 / 6"
 horizontal_alignment = 0
-
-[node name="BoonsRow" type="HBoxContainer" parent="BoonsBar/BoonsLayout"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-theme_override_constants/separation = 14
-alignment = 1
-script = ExtResource("9")
 
 [node name="ConsumablesBar" type="PanelContainer" parent="."]
 unique_name_in_owner = true

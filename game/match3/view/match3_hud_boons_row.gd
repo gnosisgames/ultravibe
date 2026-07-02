@@ -1,11 +1,15 @@
 class_name Match3HudBoonsRow
 extends PlayHudBoonsBar
 
-## Top-strip boon inventory (centered row, count label handled by Match3Hud).
+## Top-strip boon inventory (centered row). Count label is overlaid on the bar chrome,
+## not in the row layout, so icons can use the full panel height.
 
 const PANEL_HORIZONTAL_INSET := 24.0
-const SHOP_ICON_TARGET := 132.0
-const MIN_SLOT := 64.0
+## SB_boons content_margin_top + content_margin_bottom (21 + 21).
+const PANEL_VERTICAL_INSET := 42.0
+const MIN_SLOT := 96.0
+## Slight overscale so icons feel as large as the consumables sidebar tiles.
+const SLOT_OVERFLOW := 1.08
 
 var _bar_panel: PanelContainer = null
 var _last_layout_slot_size := -1.0
@@ -22,35 +26,31 @@ func _ready() -> void:
 
 
 func _resolve_bar_panel() -> void:
-	var layout := get_parent()
-	if layout and layout.get_parent() is PanelContainer:
-		_bar_panel = layout.get_parent() as PanelContainer
-		if not _bar_panel.resized.is_connected(_on_slot_layout_dirty):
-			_bar_panel.resized.connect(_on_slot_layout_dirty)
+	var node: Node = get_parent()
+	while node:
+		if node is PanelContainer:
+			_bar_panel = node as PanelContainer
+			if not _bar_panel.resized.is_connected(_on_slot_layout_dirty):
+				_bar_panel.resized.connect(_on_slot_layout_dirty)
+			return
+		node = node.get_parent()
 
 
 func _compute_slot_size() -> float:
 	var row_h := size.y
 	var row_w := size.x
-	if row_h < 8.0 and _bar_panel:
-		var layout := get_parent() as Control
-		if layout and layout.size.y > 8.0:
-			row_h = layout.size.y
-	if row_w < 8.0 and _bar_panel:
-		var layout := get_parent() as Control
-		if layout and layout.size.x > 8.0:
-			row_w = layout.size.x
+	if _bar_panel:
+		if row_h < 8.0:
+			row_h = maxf(0.0, _bar_panel.size.y - PANEL_VERTICAL_INSET)
+		if row_w < 8.0:
+			row_w = maxf(0.0, _bar_panel.size.x - PANEL_HORIZONTAL_INSET)
 	if row_h < 8.0 or row_w < 8.0:
 		return -1.0
 	var count := maxi(_entries().size(), 1)
 	var gap := float(slot_gap)
-	var by_height := row_h
+	var by_height := row_h * SLOT_OVERFLOW
 	var by_width := (row_w - gap * float(count - 1)) / float(count)
-	var target := minf(by_height, by_width)
-	if _bar_panel and _bar_panel.size.x > PANEL_HORIZONTAL_INSET:
-		var bar_w := _bar_panel.size.x - PANEL_HORIZONTAL_INSET
-		target = minf(target, bar_w)
-	return clampf(target, MIN_SLOT, SHOP_ICON_TARGET)
+	return maxf(MIN_SLOT, minf(by_height, by_width))
 
 
 func _on_slot_layout_dirty() -> void:

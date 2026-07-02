@@ -16,6 +16,9 @@ const UltraGameUiNav = preload("res://game/ui/ultra_game_ui_nav.gd")
 ## Boss letter token font — mirrors the collection view boss tokens.
 const TOKEN_FONT_PATH := "res://assets/fonts/PolygonParty-3KXM.ttf"
 const TOKEN_DEFAULT_BG := Color(0.0980392, 0.156863, 0.227451)
+## Total score label tints — idle zero blends into the dark score panel.
+const SCORE_PANEL_BG_COLOR := Color(0.156863, 0.196078, 0.290196, 1)
+const SCORE_TOTAL_VISIBLE_COLOR := Color(1, 1, 1, 1)
 
 ## Group used by subscreen overlays (shop / level select / reward) to find this
 ## HUD and query the shared content frame.
@@ -28,8 +31,8 @@ const ACTION_BUTTON_GAP := 12
 const ACTION_ICON_MAX := 72
 const SIDEBAR_MARGIN_H := 48.0
 const LEFT_RAIL_WIDTH := 48.0
-const BOONS_BAR_ICON_TARGET := 132.0
-const BOONS_BAR_CHROME := 84.0
+## Boons strip target height — match consumables sidebar width so icons read at similar scale.
+const BOONS_BAR_TARGET_HEIGHT := 180.0
 
 ## Emitted whenever the content frame rect changes (sidebar relayout / resize) so
 ## overlays can re-align themselves to it.
@@ -159,7 +162,7 @@ func refresh_from_service(service = null) -> void:
 	var gameplay = _service.get_gameplay()
 	if _total_value:
 		var total: int = _display_total_score if _move_metrics_active else gameplay.current_score
-		_total_value.text = _format_score(total)
+		_set_total_value_display(total)
 	if _last_match_value:
 		if _move_metrics_active:
 			_update_last_match_label()
@@ -563,11 +566,11 @@ func _on_frame_dirty() -> void:
 			var frame := get_content_frame_rect()
 			_boons_bar.set_anchors_preset(Control.PRESET_TOP_LEFT)
 			var bar_pos := Vector2(boss_rect.end.x + FRAME_GAP, boss_rect.position.y)
-			var bar_size := Vector2(_boons_bar.size.x, boss_rect.size.y)
+			var bar_h := maxf(boss_rect.size.y, BOONS_BAR_TARGET_HEIGHT)
+			var bar_size := Vector2(_boons_bar.size.x, bar_h)
 			if frame.size.x > 0.0:
 				bar_pos.x = frame.position.x
 				bar_size.x = frame.size.x
-			bar_size.y = maxf(boss_rect.size.y, BOONS_BAR_ICON_TARGET + BOONS_BAR_CHROME)
 			_boons_bar.position = bar_pos
 			_boons_bar.size = bar_size
 			if _boons_row and _boons_row.has_method("force_refresh"):
@@ -797,8 +800,7 @@ func play_score_transfer_to_total(
 		await _play_score_bank_transfer(start_total, target_total, last_start, duration_sec)
 	else:
 		_display_total_score = target_total
-		if _total_value:
-			_total_value.text = _format_score(_display_total_score)
+		_set_total_value_display(_display_total_score)
 		_display_last_match_score = 0
 		_update_last_match_label()
 	finish_move_score_display(target_total)
@@ -821,8 +823,7 @@ func _play_score_bank_transfer(
 	if not is_inside_tree() or duration_sec <= 0.0:
 		_display_total_score = target_total
 		_display_last_match_score = 0
-		if _total_value:
-			_total_value.text = _format_score(_display_total_score)
+		_set_total_value_display(_display_total_score)
 		_update_last_match_label()
 		_reset_last_match_label_transform()
 		return
@@ -841,8 +842,7 @@ func _play_score_bank_transfer(
 	_score_display_tween.parallel().tween_method(
 		func(value: float) -> void:
 			_display_total_score = int(round(value))
-			if _total_value:
-				_total_value.text = _format_score(_display_total_score),
+			_set_total_value_display(_display_total_score),
 		float(start_total),
 		float(target_total),
 		duration_sec,
@@ -851,8 +851,7 @@ func _play_score_bank_transfer(
 	_score_display_tween = null
 	_display_total_score = target_total
 	_display_last_match_score = 0
-	if _total_value:
-		_total_value.text = _format_score(_display_total_score)
+	_set_total_value_display(_display_total_score)
 	_update_last_match_label()
 	_reset_last_match_label_transform()
 
@@ -889,9 +888,17 @@ func _apply_score_display_texts() -> void:
 	if _multi_value:
 		_multi_value.text = str(_display_step_multi)
 	if _total_value:
-		_total_value.text = _format_score(_display_total_score)
+		_set_total_value_display(_display_total_score)
 	if _last_match_value:
 		_update_last_match_label()
+
+
+func _set_total_value_display(score: int) -> void:
+	if _total_value == null:
+		return
+	_total_value.text = _format_score(score)
+	var color := SCORE_TOTAL_VISIBLE_COLOR if score > 0 else SCORE_PANEL_BG_COLOR
+	_total_value.add_theme_color_override("font_color", color)
 
 
 func _update_last_match_label() -> void:
@@ -929,16 +936,14 @@ func _tween_total_score(from_value: int, to_value: int, duration_sec: float) -> 
 	_kill_score_display_tweens()
 	if not is_inside_tree() or duration_sec <= 0.0:
 		_display_total_score = to_value
-		if _total_value:
-			_total_value.text = _format_score(_display_total_score)
+		_set_total_value_display(_display_total_score)
 		return
 	_score_display_tween = create_tween()
 	_score_display_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	_score_display_tween.tween_method(
 		func(value: float) -> void:
 			_display_total_score = int(round(value))
-			if _total_value:
-				_total_value.text = _format_score(_display_total_score),
+			_set_total_value_display(_display_total_score),
 		float(from_value),
 		float(to_value),
 		duration_sec,

@@ -76,7 +76,7 @@ func _ready() -> void:
 	if _region:
 		_region.mouse_filter = Control.MOUSE_FILTER_STOP
 	if _cards:
-		_cards.alignment = BoxContainer.ALIGNMENT_END
+		_cards.alignment = BoxContainer.ALIGNMENT_CENTER
 	_ensure_shop_reroll_card()
 	_build_tooltip()
 	call_deferred("_resolve_host")
