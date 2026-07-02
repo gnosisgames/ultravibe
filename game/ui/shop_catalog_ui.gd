@@ -4,6 +4,8 @@ extends RefCounted
 ## Resolves shop offer presentation (title, description, icon) from catalog entries.
 
 const ICON_ROOT := "res://assets/icons/"
+const CatalogLocalizationUiScript = preload("res://game/ui/catalog_localization_ui.gd")
+const CatalogSpritePathsScript = preload("res://game/ui/catalog_sprite_paths.gd")
 const ConsumableCatalogUiScript = preload("res://game/ui/consumable_catalog_ui.gd")
 
 const FOLDER_BY_CONFIG := {
@@ -40,8 +42,12 @@ static func build_presentation(
 	var sprite_id := _meta_str(meta, "spriteId")
 	var folder: String = FOLDER_BY_CONFIG.get(config_key, config_key)
 	return {
-		"title": _localized(engine, _meta_str(meta, "nameKey"), trimmed_id.capitalize()),
-		"description": _localized(engine, _meta_str(meta, "descriptionKey"), ""),
+		"title": CatalogLocalizationUiScript.resolve_text(
+			engine, _meta_str(meta, "nameKey"), trimmed_id.capitalize(), config_key, trimmed_id, entry
+		),
+		"description": CatalogLocalizationUiScript.resolve_text(
+			engine, _meta_str(meta, "descriptionKey"), "", config_key, trimmed_id, entry
+		),
 		"icon_path": _resolve_icon_path(folder, trimmed_id, sprite_id),
 		"tags": ConsumableCatalogUiScript.parse_tags(engine, meta),
 	}
@@ -82,18 +88,11 @@ static func _resolve_icon_path(folder: String, item_id: String, sprite_id: Strin
 		var path := "%s%s.png" % [dir, candidate]
 		if ResourceLoader.exists(path):
 			return path
-	return ""
+	return CatalogSpritePathsScript.resolve_item_upgrade_icon(sprite_id, item_id)
 
 
 static func _localized(engine: GnosisEngine, key: String, fallback: String) -> String:
-	if key.strip_edges().is_empty():
-		return fallback
-	if engine == null:
-		return fallback
-	var localization := engine.get_service("Localization") as GnosisLocalizationService
-	if localization == null:
-		return fallback
-	return localization.get_string_value(key, fallback)
+	return CatalogLocalizationUiScript.resolve_text(engine, key, fallback)
 
 
 static func _meta_str(node: GnosisNode, key: String) -> String:

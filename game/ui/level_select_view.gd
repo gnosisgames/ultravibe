@@ -68,6 +68,7 @@ var _shop_reroll_card: ShopRerollCard = null
 var _tooltip_layer: CanvasLayer = null
 var _tooltip: TooltipPopup = null
 var _tooltip_anchor: Control = null
+var _tooltip_build_pending := false
 
 func _ready() -> void:
 	add_to_group("gnosis_ui_view")
@@ -101,6 +102,7 @@ func set_view_visible(is_visible: bool) -> void:
 		SubscreenFrame.connect_changes(self, _apply_frame)
 		_apply_frame()
 		_refresh()
+		_ensure_tooltip_ready("view_visible")
 		_set_planning_overlay_active(true)
 	else:
 		_set_planning_overlay_active(false)
@@ -283,7 +285,7 @@ func _add_shop_offer_tile(source: String, item_id: String, price: int, index: in
 	var anchor := card.get_tooltip_anchor()
 	anchor.mouse_entered.connect(func() -> void:
 		anchor.grab_focus()
-		_show_consumable_tooltip(anchor, presentation)
+		_show_consumable_tooltip(anchor, presentation, "shop")
 	)
 	anchor.mouse_exited.connect(func() -> void:
 		call_deferred("_hide_consumable_tooltip_if_mouse_left", anchor)
@@ -559,7 +561,7 @@ func _consumable_reward_button(icon_path: String, preview: Dictionary) -> Button
 
 	btn.mouse_entered.connect(func() -> void:
 		btn.grab_focus()
-		_show_consumable_tooltip(btn, preview)
+		_show_consumable_tooltip(btn, preview, "reward")
 	)
 	btn.mouse_exited.connect(func() -> void:
 		call_deferred("_hide_consumable_tooltip_if_mouse_left", btn)
@@ -621,11 +623,16 @@ func _reward_dot(color: Color) -> Control:
 	return dot
 
 
+func _warn_tooltip(details: String) -> void:
+	push_warning("[PlanningTooltip] %s" % details)
+
+
 func _ensure_tooltip_layer() -> CanvasLayer:
 	if _tooltip_layer and is_instance_valid(_tooltip_layer):
 		return _tooltip_layer
 	var ui_root := get_parent()
 	if ui_root == null:
+		_warn_tooltip("tooltip layer failed: no parent ui_root")
 		return null
 	var existing := ui_root.get_node_or_null("PlanningTooltipLayer")
 	if existing is CanvasLayer:
@@ -639,12 +646,28 @@ func _ensure_tooltip_layer() -> CanvasLayer:
 
 
 func _build_tooltip() -> void:
-	if _tooltip != null:
+	if _tooltip != null and is_instance_valid(_tooltip):
+		return
+	if _tooltip_build_pending:
+		return
+	_tooltip_build_pending = true
+	call_deferred("_build_tooltip_impl")
+
+
+func _build_tooltip_impl() -> void:
+	_tooltip_build_pending = false
+	if _tooltip != null and is_instance_valid(_tooltip):
+		return
+	if not is_inside_tree():
 		return
 	var layer := _ensure_tooltip_layer()
 	if layer == null:
+		_warn_tooltip("tooltip build failed: layer is null")
 		return
 	_tooltip = TooltipPopupScene.instantiate() as TooltipPopup
+	if _tooltip == null:
+		_warn_tooltip("tooltip build failed: TooltipPopupScene.instantiate returned null")
+		return
 	_tooltip.name = "ConsumableTooltip"
 	_tooltip.z_index = TOOLTIP_Z_INDEX
 	_tooltip.visible = false
@@ -652,12 +675,24 @@ func _build_tooltip() -> void:
 	layer.add_child(_tooltip)
 
 
-func _show_consumable_tooltip(anchor: Control, preview: Dictionary) -> void:
-	if _tooltip == null or anchor == null or not is_instance_valid(anchor):
+func _ensure_tooltip_ready(_reason: String = "") -> void:
+	if _tooltip != null and is_instance_valid(_tooltip):
+		return
+	_build_tooltip()
+
+
+func _show_consumable_tooltip(anchor: Control, preview: Dictionary, source: String = "") -> void:
+	_ensure_tooltip_ready("show:%s" % source)
+	if _tooltip == null or not is_instance_valid(_tooltip):
+		_warn_tooltip("show skipped (%s): tooltip missing" % source)
+		return
+	if anchor == null or not is_instance_valid(anchor):
+		_warn_tooltip("show skipped (%s): anchor invalid" % source)
 		return
 	var title := str(preview.get("title", "")).strip_edges()
 	var description := str(preview.get("description", "")).strip_edges()
 	if description.is_empty() and title.is_empty():
+		_warn_tooltip("show skipped (%s): empty content keys=%s" % [source, preview.keys()])
 		return
 	if description.is_empty():
 		var fallback_key := "ultravibe__collection__noDescription"

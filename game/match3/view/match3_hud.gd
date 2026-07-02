@@ -28,6 +28,8 @@ const ACTION_BUTTON_GAP := 12
 const ACTION_ICON_MAX := 72
 const SIDEBAR_MARGIN_H := 48.0
 const LEFT_RAIL_WIDTH := 48.0
+const BOONS_BAR_ICON_TARGET := 132.0
+const BOONS_BAR_CHROME := 84.0
 
 ## Emitted whenever the content frame rect changes (sidebar relayout / resize) so
 ## overlays can re-align themselves to it.
@@ -125,6 +127,10 @@ func set_planning_overlay_active(active: bool) -> void:
 		_boons_bar.mouse_filter = filter
 	if _boons_row:
 		_boons_row.mouse_filter = filter
+	if _consumables_bar:
+		_consumables_bar.mouse_filter = filter
+	if _consumables_column:
+		_consumables_column.mouse_filter = filter
 
 
 func bind_service(service) -> void:
@@ -561,8 +567,11 @@ func _on_frame_dirty() -> void:
 			if frame.size.x > 0.0:
 				bar_pos.x = frame.position.x
 				bar_size.x = frame.size.x
+			bar_size.y = maxf(boss_rect.size.y, BOONS_BAR_ICON_TARGET + BOONS_BAR_CHROME)
 			_boons_bar.position = bar_pos
 			_boons_bar.size = bar_size
+			if _boons_row and _boons_row.has_method("force_refresh"):
+				_boons_row.force_refresh()
 	if _consumables_bar and _score_section:
 		var panel := _get_sidebar_metrics_rect()
 		# Skip while the sidebar panel has not been laid out yet, otherwise we

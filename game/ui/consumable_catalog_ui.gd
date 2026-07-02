@@ -4,7 +4,10 @@ extends RefCounted
 ## Resolves consumable catalog presentation for level-select round-action previews.
 ## Mirrors Unity MainHud.TryBuildConsumableCatalogLevelPreviewPresentation.
 
+const CatalogLocalizationUiScript = preload("res://game/ui/catalog_localization_ui.gd")
+const CatalogSpritePathsScript = preload("res://game/ui/catalog_sprite_paths.gd")
 const CONSUMABLES_CONFIG_KEY := "consumables"
+const ITEM_UPGRADE_GRANT_PREFIX := "ItemUpgradeGrant"
 const ICON_DIRS := [
 	"res://assets/icons/consumables/",
 	"res://assets/unity/Sprites/Consumables/",
@@ -38,8 +41,12 @@ static func build_level_preview(engine: GnosisEngine, consumable_id: String) -> 
 	var sprite_id := _meta_str(meta, "spriteId")
 	return {
 		"consumable_id": trimmed,
-		"title": _localized(engine, _meta_str(meta, "nameKey"), trimmed),
-		"description": _localized(engine, _meta_str(meta, "descriptionKey"), ""),
+		"title": CatalogLocalizationUiScript.resolve_text(
+			engine, _meta_str(meta, "nameKey"), trimmed, CONSUMABLES_CONFIG_KEY, trimmed, entry
+		),
+		"description": CatalogLocalizationUiScript.resolve_text(
+			engine, _meta_str(meta, "descriptionKey"), "", CONSUMABLES_CONFIG_KEY, trimmed, entry
+		),
 		"icon_path": resolve_icon_path(trimmed, sprite_id),
 		"tags": parse_tags(engine, meta),
 	}
@@ -60,7 +67,13 @@ static func resolve_icon_path(consumable_id: String, sprite_id: String = "") -> 
 			var path := "%s%s.png" % [dir, candidate]
 			if ResourceLoader.exists(path):
 				return path
-	return ""
+	return CatalogSpritePathsScript.resolve_item_upgrade_icon(sprite_id, _item_upgrade_grant_id(consumable_id))
+
+
+static func _item_upgrade_grant_id(consumable_id: String) -> String:
+	if consumable_id.begins_with(ITEM_UPGRADE_GRANT_PREFIX):
+		return consumable_id.substr(ITEM_UPGRADE_GRANT_PREFIX.length())
+	return consumable_id
 
 
 static func parse_tags(engine: GnosisEngine, meta: GnosisNode) -> Array:
@@ -82,7 +95,7 @@ static func parse_tags(engine: GnosisEngine, meta: GnosisNode) -> Array:
 			loc_key = _meta_str(item, "locKey")
 		if loc_key.is_empty():
 			continue
-		var label := _localized(engine, loc_key, type_id.capitalize())
+		var label := CatalogLocalizationUiScript.resolve_text(engine, loc_key, type_id.capitalize())
 		if label.strip_edges().is_empty():
 			continue
 		result.append({"type": type_id, "label": label})
@@ -96,14 +109,7 @@ static func format_level_money_reward(amount: int) -> String:
 
 
 static func _localized(engine: GnosisEngine, key: String, fallback: String) -> String:
-	if key.strip_edges().is_empty():
-		return fallback
-	if engine == null:
-		return fallback
-	var localization := engine.get_service("Localization") as GnosisLocalizationService
-	if localization == null:
-		return fallback
-	return localization.get_string_value(key, fallback)
+	return CatalogLocalizationUiScript.resolve_text(engine, key, fallback)
 
 
 static func _meta_str(node: GnosisNode, key: String) -> String:

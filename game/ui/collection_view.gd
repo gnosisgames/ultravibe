@@ -20,6 +20,7 @@ const BOSS_TOKEN_DEFAULT_FG := Color.WHITE
 
 ## The itemUpgrade level-up grants reuse the colored gem block sprites rather than
 ## a dedicated consumable icon (see Unity sprite registry in game.unity).
+const CatalogLocalizationUiScript = preload("res://game/ui/catalog_localization_ui.gd")
 const CatalogSpritePathsScript = preload("res://game/ui/catalog_sprite_paths.gd")
 
 const TOOLTIP_WIDTH := 300.0
@@ -151,8 +152,13 @@ func _add_tile(item_id: String, entry: GnosisNode, spec: Dictionary) -> void:
 	var sprite_id := _meta_str(meta, "spriteId")
 	var name_key := _meta_str(meta, "nameKey")
 	var desc_key := _meta_str(meta, "descriptionKey")
-	var display_name := _localized(name_key, item_id.capitalize())
-	var description := _localized(desc_key, "")
+	var catalog_key := str(spec.catalog)
+	var display_name := CatalogLocalizationUiScript.resolve_text(
+		_engine(), name_key, item_id.capitalize(), catalog_key, item_id, entry
+	)
+	var description := CatalogLocalizationUiScript.resolve_text(
+		_engine(), desc_key, "", catalog_key, item_id, entry
+	)
 	var tags := _tags_for(meta)
 
 	var tile := Button.new()
@@ -393,15 +399,7 @@ func _block_icon_path(item_id: String, sprite_id: String) -> String:
 	return ""
 
 func _localized(key: String, fallback: String) -> String:
-	if key.strip_edges().is_empty():
-		return fallback
-	var eng := _engine()
-	if eng == null:
-		return fallback
-	var localization := eng.get_service("Localization") as GnosisLocalizationService
-	if localization == null:
-		return fallback
-	return localization.get_string_value(key, fallback)
+	return CatalogLocalizationUiScript.resolve_text(_engine(), key, fallback)
 
 func _on_back_pressed() -> void:
 	var ui := _game_ui()
