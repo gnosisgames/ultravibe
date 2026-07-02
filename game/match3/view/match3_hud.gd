@@ -3,7 +3,7 @@ extends Control
 
 ## Match-3 gameplay HUD. The left sidebar mirrors the Unity MainHud: boss/level
 ## card, stacked round total + last-match score, points x multi, round/moves/cycles/money,
-## home/settings/wiki on the left; shuffle sits below the consumables column on the right.
+## home/settings/wiki/shuffle in a 2x2 grid at the bottom of the main sidebar.
 ## via refresh_from_service() (driven by the dispatcher on board reset/change).
 
 const Match3ModelsScript = preload("res://game/match3/core/match3_models.gd")
@@ -22,13 +22,12 @@ const TOKEN_DEFAULT_BG := Color(0.0980392, 0.156863, 0.227451)
 const HUD_GROUP := "match3_hud"
 ## Uniform gap between the content frame and the sidebars (and between cards).
 const FRAME_GAP := 32.0
-## Main sidebar action chrome (home / settings / wiki); shuffle lives on the right dock.
+## Main sidebar action chrome (home / settings / wiki / shuffle).
 const ACTION_BUTTON_SIZE := 120
 const ACTION_BUTTON_GAP := 12
 const ACTION_ICON_MAX := 72
 const SIDEBAR_MARGIN_H := 48.0
 const LEFT_RAIL_WIDTH := 48.0
-const SHUFFLE_DOCK_GAP := 16.0
 
 ## Emitted whenever the content frame rect changes (sidebar relayout / resize) so
 ## overlays can re-align themselves to it.
@@ -61,12 +60,14 @@ signal content_frame_changed
 @onready var _consumables_bar: PanelContainer = %ConsumablesBar
 @onready var _consumables_column: Match3HudConsumablesColumn = %ConsumablesColumn
 @onready var _consumable_count: Label = %ConsumableCount
-@onready var _shuffle_dock: VBoxContainer = %ShuffleDock
 @onready var _left_rail: VBoxContainer = %LeftRail
 @onready var _run_upgrades_column = %RunUpgradesColumn
 @onready var _enhanced_tiles_column = %EnhancedTilesColumn
 @onready var _item_upgrades_column = %ItemUpgradesColumn
 @onready var _score_section: PanelContainer = %ScoreSection
+@onready var _stats_section: PanelContainer = %StatsSection
+@onready var _buttons_section: VBoxContainer = %ButtonsSection
+@onready var _buttons_grid: GridContainer = %ButtonsGrid
 @onready var _board_host: Control = %BoardHost
 
 var _service = null
@@ -98,6 +99,10 @@ func _ready() -> void:
 		_boss_section.resized.connect(_on_frame_dirty)
 	if _score_section:
 		_score_section.resized.connect(_on_frame_dirty)
+	if _stats_section:
+		_stats_section.resized.connect(_on_frame_dirty)
+	if _buttons_section:
+		_buttons_section.resized.connect(_on_frame_dirty)
 	if _boons_bar:
 		_boons_bar.resized.connect(_on_frame_dirty)
 	if _consumables_bar:
@@ -485,16 +490,34 @@ func get_sidebar_offset_right() -> float:
 	return get_sidebar_offset_left() + get_sidebar_width()
 
 
+## Combined global rect of the score + stats sidebar panels (excludes boss card).
+func _get_sidebar_metrics_rect() -> Rect2:
+	if _score_section == null:
+		return Rect2()
+	var top_rect := _score_section.get_global_rect()
+	if _stats_section == null:
+		return top_rect
+	var bottom_rect := _stats_section.get_global_rect()
+	if bottom_rect.size.y <= 0.0:
+		return top_rect
+	return Rect2(
+		top_rect.position.x,
+		top_rect.position.y,
+		top_rect.size.x,
+		bottom_rect.end.y - top_rect.position.y,
+	)
+
+
 ## Global rect of the shared subscreen content frame: spans the gap between the
 ## main sidebar panel and the consumable sidebar, with the height of the main
 ## sidebar panel. All subscreens (level select / reward) fill this.
 func get_content_frame_rect() -> Rect2:
-	if _score_section == null:
+	var panel := _get_sidebar_metrics_rect()
+	if panel.size == Vector2.ZERO:
 		return Rect2()
-	var panel := _score_section.get_global_rect()
 	var left := panel.position.x + panel.size.x + FRAME_GAP
 	var top := panel.position.y
-	var bottom := panel.position.y + panel.size.y
+	var bottom := panel.end.y
 	var right := size.x - FRAME_GAP
 	if _consumables_bar:
 		right = _consumables_bar.get_global_rect().position.x - FRAME_GAP
@@ -527,6 +550,7 @@ func get_board_frame_rect() -> Rect2:
 func _on_frame_dirty() -> void:
 	_layout_left_rail()
 	_layout_sidebar_width()
+	_layout_action_buttons()
 	if _boss_section and _boons_bar:
 		var boss_rect := _boss_section.get_global_rect()
 		if boss_rect.size.y > 0.0:
@@ -540,14 +564,13 @@ func _on_frame_dirty() -> void:
 			_boons_bar.position = bar_pos
 			_boons_bar.size = bar_size
 	if _consumables_bar and _score_section:
-		var panel := _score_section.get_global_rect()
+		var panel := _get_sidebar_metrics_rect()
 		# Skip while the sidebar panel has not been laid out yet, otherwise we
 		# would collapse the consumable sidebar to zero height (it never recovers
 		# during PLAYING because nothing re-triggers a resize).
 		if panel.size.y > 0.0:
 			_consumables_bar.offset_top = panel.position.y
-			_consumables_bar.offset_bottom = panel.position.y + panel.size.y - size.y
-	_layout_shuffle_dock()
+			_consumables_bar.offset_bottom = -FRAME_GAP
 	# Keep the board area on the exact same rect the subscreen overlays use, so
 	# the board fills the level-select / reward region.
 	if _board_host:
@@ -566,27 +589,63 @@ func _layout_sidebar_width() -> void:
 		sidebar.offset_right = get_sidebar_offset_right()
 
 
+func _layout_action_buttons() -> void:
+	if _buttons_grid == null:
+		return
+	var grid_height := _buttons_grid.size.y
+	if _buttons_section != null and _buttons_section.size.y > 0.0:
+		grid_height = _buttons_section.size.y
+	if grid_height <= 8.0:
+		grid_height = _estimate_buttons_area_height()
+	if grid_height <= 8.0:
+		return
+	var cols := maxi(_buttons_grid.columns, 1)
+	var rows := ceili(float(_buttons_grid.get_child_count()) / float(cols))
+	var v_sep := _buttons_grid.get_theme_constant("v_separation")
+	var row_height := floorf((grid_height - v_sep * float(rows - 1)) / float(rows))
+	row_height = maxf(row_height, 48.0)
+	_buttons_grid.custom_minimum_size = Vector2.ZERO
+	for child in _buttons_grid.get_children():
+		if child is Control:
+			var ctrl := child as Control
+			ctrl.custom_minimum_size = Vector2(0, row_height)
+			ctrl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			ctrl.size_flags_vertical = Control.SIZE_EXPAND_FILL
+
+
+func _estimate_buttons_area_height() -> float:
+	var layout := get_node_or_null("Sidebar/Layout") as Control
+	var sidebar := get_node_or_null("Sidebar") as Control
+	if layout == null or sidebar == null:
+		return 0.0
+	var available := layout.size.y
+	if available <= 0.0:
+		available = sidebar.size.y
+		available -= sidebar.get_theme_constant("margin_top")
+		available -= sidebar.get_theme_constant("margin_bottom")
+	if available <= 0.0:
+		return 0.0
+	for section_name in ["BossSection", "ScoreSection", "StatsSection"]:
+		var section := layout.get_node_or_null(section_name) as Control
+		if section == null:
+			continue
+		var section_h := section.size.y
+		if section_h <= 0.0:
+			section_h = section.get_combined_minimum_size().y
+		available -= section_h
+	if layout is VBoxContainer:
+		var child_count := layout.get_child_count() - 1
+		if child_count > 0:
+			available -= float(child_count) * float((layout as VBoxContainer).get_theme_constant("separation"))
+	return maxf(0.0, available)
+
+
 func _layout_left_rail() -> void:
 	if _left_rail == null:
 		return
 	_left_rail.set_anchors_preset(Control.PRESET_TOP_LEFT)
 	_left_rail.position = Vector2(FRAME_GAP, FRAME_GAP)
 	_left_rail.size = Vector2(LEFT_RAIL_WIDTH, maxf(0.0, size.y - FRAME_GAP * 2.0))
-
-
-func _layout_shuffle_dock() -> void:
-	if _shuffle_dock == null or _consumables_bar == null or _score_section == null:
-		return
-	var consumables_rect := _consumables_bar.get_global_rect()
-	var score_rect := _score_section.get_global_rect()
-	if score_rect.size.y <= 0.0 or consumables_rect.size.x <= 0.0:
-		return
-	var top_y := score_rect.end.y + SHUFFLE_DOCK_GAP
-	var bottom_y := size.y - FRAME_GAP
-	var dock_h := maxf(0.0, bottom_y - top_y)
-	_shuffle_dock.set_anchors_preset(Control.PRESET_TOP_LEFT)
-	_shuffle_dock.position = Vector2(consumables_rect.position.x, top_y)
-	_shuffle_dock.size = Vector2(consumables_rect.size.x, dock_h)
 
 
 func _subscribe_boon_juice(service) -> void:
@@ -655,14 +714,9 @@ func apply_step_metrics_display(target_points: int, target_multi: int) -> void:
 	var prev_multi := _display_step_multi
 	_display_step_points = target_points
 	_display_step_multi = maxi(1, target_multi)
-	var product := _display_step_points * _display_step_multi
-	if product != _display_last_match_score:
-		_display_last_match_score = product
 	_apply_score_display_texts()
 	if target_points != prev_points or target_multi != prev_multi:
 		_pulse_score_lane_juice()
-	if product != prev_points * maxi(1, prev_multi):
-		_pulse_last_match_juice()
 
 
 func finish_move_score_display(final_total: int) -> void:
@@ -687,8 +741,6 @@ func cancel_move_score_display(final_total: int = -1) -> void:
 func play_step_metrics_display(target_points: int, target_multi: int, duration_sec: float) -> void:
 	if not _move_metrics_active:
 		return
-	var prev_product := _display_step_points * maxi(1, _display_step_multi)
-	var target_product := target_points * maxi(1, target_multi)
 	var prev_points := _display_step_points
 	var prev_multi := _display_step_multi
 	_display_step_points = target_points
@@ -699,18 +751,10 @@ func play_step_metrics_display(target_points: int, target_multi: int, duration_s
 		_multi_value.text = str(_display_step_multi)
 	if target_points != prev_points or target_multi != prev_multi:
 		_pulse_score_lane_juice()
-	var count_duration := minf(duration_sec, 0.2) if target_product != prev_product else 0.0
-	if count_duration > 0.0:
-		await _tween_last_match_score(prev_product, target_product, count_duration)
-	elif target_product != prev_product:
-		_display_last_match_score = target_product
-		_update_last_match_label()
-		_pulse_last_match_juice()
-	var hold := duration_sec - count_duration
-	if hold > 0.0 and is_inside_tree():
+	if duration_sec > 0.0 and is_inside_tree():
 		var tree := get_tree()
 		if tree != null:
-			await tree.create_timer(hold, true, false, true).timeout
+			await tree.create_timer(duration_sec, true, false, true).timeout
 
 
 func play_score_transfer_to_total(

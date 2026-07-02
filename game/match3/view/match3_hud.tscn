@@ -16,9 +16,9 @@
 [ext_resource type="Script" path="res://game/match3/view/gameplay_busy_spinner.gd" id="14"]
 
 [sub_resource type="StyleBoxFlat" id="SB_section"]
-content_margin_left = 24.0
+content_margin_left = 12.0
 content_margin_top = 21.0
-content_margin_right = 24.0
+content_margin_right = 12.0
 content_margin_bottom = 21.0
 bg_color = Color(0.415686, 0.415686, 0.658824, 1)
 corner_radius_top_left = 27
@@ -30,9 +30,9 @@ shadow_size = 1
 shadow_offset = Vector2(5, 7)
 
 [sub_resource type="StyleBoxFlat" id="SB_boons"]
-content_margin_left = 24.0
+content_margin_left = 12.0
 content_margin_top = 21.0
-content_margin_right = 24.0
+content_margin_right = 12.0
 content_margin_bottom = 21.0
 bg_color = Color(0, 0, 0, 0.15)
 corner_radius_top_left = 27
@@ -52,9 +52,9 @@ corner_radius_bottom_right = 12
 corner_radius_bottom_left = 12
 
 [sub_resource type="StyleBoxFlat" id="SB_dark"]
-content_margin_left = 21.0
+content_margin_left = 10.0
 content_margin_top = 15.0
-content_margin_right = 21.0
+content_margin_right = 10.0
 content_margin_bottom = 15.0
 bg_color = Color(0.156863, 0.196078, 0.290196, 1)
 corner_radius_top_left = 21
@@ -70,9 +70,9 @@ corner_radius_bottom_right = 21
 corner_radius_bottom_left = 21
 
 [sub_resource type="StyleBoxFlat" id="SB_points"]
-content_margin_left = 15.0
+content_margin_left = 8.0
 content_margin_top = 12.0
-content_margin_right = 15.0
+content_margin_right = 8.0
 content_margin_bottom = 12.0
 bg_color = Color(0.196078, 0.45098, 0.85098, 1)
 corner_radius_top_left = 21
@@ -81,9 +81,9 @@ corner_radius_bottom_right = 21
 corner_radius_bottom_left = 21
 
 [sub_resource type="StyleBoxFlat" id="SB_multi"]
-content_margin_left = 15.0
+content_margin_left = 8.0
 content_margin_top = 12.0
-content_margin_right = 15.0
+content_margin_right = 8.0
 content_margin_bottom = 12.0
 bg_color = Color(0.831373, 0.180392, 0.317647, 1)
 corner_radius_top_left = 21
@@ -236,11 +236,11 @@ theme_override_constants/margin_bottom = 32
 
 [node name="Layout" type="VBoxContainer" parent="Sidebar"]
 layout_mode = 2
-theme_override_constants/separation = 32
+theme_override_constants/separation = 12
 
 [node name="BossSection" type="PanelContainer" parent="Sidebar/Layout"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 180)
+custom_minimum_size = Vector2(0, 164)
 layout_mode = 2
 size_flags_vertical = 0
 theme_override_styles/panel = SubResource("SB_section")
@@ -252,7 +252,7 @@ alignment = 1
 
 [node name="LevelTokenPanel" type="PanelContainer" parent="Sidebar/Layout/BossSection/CardLayout"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(132, 132)
+custom_minimum_size = Vector2(120, 120)
 layout_mode = 2
 size_flags_vertical = 4
 theme_override_styles/panel = SubResource("SB_token")
@@ -262,14 +262,14 @@ unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3")
-theme_override_font_sizes/font_size = 68
+theme_override_font_sizes/font_size = 60
 text = "W"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="Info" type="VBoxContainer" parent="Sidebar/Layout/BossSection/CardLayout"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 132)
+custom_minimum_size = Vector2(0, 120)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 4
@@ -321,7 +321,7 @@ horizontal_alignment = 2
 [node name="ScoreSection" type="PanelContainer" parent="Sidebar/Layout"]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_vertical = 3
+size_flags_vertical = 0
 theme_override_styles/panel = SubResource("SB_section")
 
 [node name="ScoreLayout" type="VBoxContainer" parent="Sidebar/Layout/ScoreSection"]
@@ -429,23 +429,29 @@ theme_override_font_sizes/font_size = 21
 text = "match3__hud__label__multi"
 horizontal_alignment = 1
 
-[node name="MidGap" type="Control" parent="Sidebar/Layout/ScoreSection/ScoreLayout"]
+[node name="StatsSection" type="PanelContainer" parent="Sidebar/Layout"]
+unique_name_in_owner = true
 layout_mode = 2
-custom_minimum_size = Vector2(0, 10)
-mouse_filter = 2
+size_flags_vertical = 0
+theme_override_styles/panel = SubResource("SB_section")
 
-[node name="StatsGrid" type="GridContainer" parent="Sidebar/Layout/ScoreSection/ScoreLayout"]
+[node name="StatsLayout" type="VBoxContainer" parent="Sidebar/Layout/StatsSection"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="StatsGrid" type="GridContainer" parent="Sidebar/Layout/StatsSection/StatsLayout"]
 layout_mode = 2
 theme_override_constants/h_separation = 12
 theme_override_constants/v_separation = 12
 columns = 2
 
-[node name="RoundCol" type="VBoxContainer" parent="Sidebar/Layout/ScoreSection/ScoreLayout/StatsGrid"]
+[node name="RoundCol" type="VBoxContainer" parent="Sidebar/Layout/StatsSection/StatsLayout/StatsGrid"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 4
 
-[node name="RoundLabel" type="Label" parent="Sidebar/Layout/ScoreSection/ScoreLayout/StatsGrid/RoundCol"]
+[node name="RoundLabel" type="Label" parent="Sidebar/Layout/StatsSection/StatsLayout/StatsGrid/RoundCol"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3")
@@ -453,11 +459,11 @@ theme_override_font_sizes/font_size = 21
 text = "match3__state__label__round"
 horizontal_alignment = 1
 
-[node name="RoundBox" type="PanelContainer" parent="Sidebar/Layout/ScoreSection/ScoreLayout/StatsGrid/RoundCol"]
+[node name="RoundBox" type="PanelContainer" parent="Sidebar/Layout/StatsSection/StatsLayout/StatsGrid/RoundCol"]
 layout_mode = 2
 theme_override_styles/panel = SubResource("SB_dark")
 
-[node name="RoundValue" type="Label" parent="Sidebar/Layout/ScoreSection/ScoreLayout/StatsGrid/RoundCol/RoundBox"]
+[node name="RoundValue" type="Label" parent="Sidebar/Layout/StatsSection/StatsLayout/StatsGrid/RoundCol/RoundBox"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
@@ -466,12 +472,12 @@ theme_override_font_sizes/font_size = 36
 text = "1"
 horizontal_alignment = 1
 
-[node name="MovesCol" type="VBoxContainer" parent="Sidebar/Layout/ScoreSection/ScoreLayout/StatsGrid"]
+[node name="MovesCol" type="VBoxContainer" parent="Sidebar/Layout/StatsSection/StatsLayout/StatsGrid"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 4
 
-[node name="MovesLabel" type="Label" parent="Sidebar/Layout/ScoreSection/ScoreLayout/StatsGrid/MovesCol"]
+[node name="MovesLabel" type="Label" parent="Sidebar/Layout/StatsSection/StatsLayout/StatsGrid/MovesCol"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3")
@@ -479,18 +485,18 @@ theme_override_font_sizes/font_size = 21
 text = "match3__hud__label__moves"
 horizontal_alignment = 1
 
-[node name="MovesBox" type="PanelContainer" parent="Sidebar/Layout/ScoreSection/ScoreLayout/StatsGrid/MovesCol"]
+[node name="MovesBox" type="PanelContainer" parent="Sidebar/Layout/StatsSection/StatsLayout/StatsGrid/MovesCol"]
 layout_mode = 2
 clip_contents = true
 theme_override_styles/panel = SubResource("SB_dark")
 
-[node name="MovesBoxLayer" type="Control" parent="Sidebar/Layout/ScoreSection/ScoreLayout/StatsGrid/MovesCol/MovesBox"]
+[node name="MovesBoxLayer" type="Control" parent="Sidebar/Layout/StatsSection/StatsLayout/StatsGrid/MovesCol/MovesBox"]
 layout_mode = 2
 custom_minimum_size = Vector2(0, 42)
 size_flags_horizontal = 3
 mouse_filter = 2
 
-[node name="MovesValue" type="Label" parent="Sidebar/Layout/ScoreSection/ScoreLayout/StatsGrid/MovesCol/MovesBox/MovesBoxLayer"]
+[node name="MovesValue" type="Label" parent="Sidebar/Layout/StatsSection/StatsLayout/StatsGrid/MovesCol/MovesBox/MovesBoxLayer"]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
@@ -506,7 +512,7 @@ text = "0"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="GameplayBusySpinner" type="Control" parent="Sidebar/Layout/ScoreSection/ScoreLayout/StatsGrid/MovesCol/MovesBox/MovesBoxLayer"]
+[node name="GameplayBusySpinner" type="Control" parent="Sidebar/Layout/StatsSection/StatsLayout/StatsGrid/MovesCol/MovesBox/MovesBoxLayer"]
 unique_name_in_owner = true
 z_index = 1
 layout_mode = 1
@@ -520,12 +526,12 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("14")
 
-[node name="CyclesCol" type="VBoxContainer" parent="Sidebar/Layout/ScoreSection/ScoreLayout/StatsGrid"]
+[node name="CyclesCol" type="VBoxContainer" parent="Sidebar/Layout/StatsSection/StatsLayout/StatsGrid"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 4
 
-[node name="CyclesLabel" type="Label" parent="Sidebar/Layout/ScoreSection/ScoreLayout/StatsGrid/CyclesCol"]
+[node name="CyclesLabel" type="Label" parent="Sidebar/Layout/StatsSection/StatsLayout/StatsGrid/CyclesCol"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3")
@@ -533,11 +539,11 @@ theme_override_font_sizes/font_size = 21
 text = "match3__hud__label__cycles"
 horizontal_alignment = 1
 
-[node name="CyclesBox" type="PanelContainer" parent="Sidebar/Layout/ScoreSection/ScoreLayout/StatsGrid/CyclesCol"]
+[node name="CyclesBox" type="PanelContainer" parent="Sidebar/Layout/StatsSection/StatsLayout/StatsGrid/CyclesCol"]
 layout_mode = 2
 theme_override_styles/panel = SubResource("SB_dark")
 
-[node name="CyclesValue" type="Label" parent="Sidebar/Layout/ScoreSection/ScoreLayout/StatsGrid/CyclesCol/CyclesBox"]
+[node name="CyclesValue" type="Label" parent="Sidebar/Layout/StatsSection/StatsLayout/StatsGrid/CyclesCol/CyclesBox"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
@@ -546,12 +552,12 @@ theme_override_font_sizes/font_size = 36
 text = "1/3"
 horizontal_alignment = 1
 
-[node name="MoneyCol" type="VBoxContainer" parent="Sidebar/Layout/ScoreSection/ScoreLayout/StatsGrid"]
+[node name="MoneyCol" type="VBoxContainer" parent="Sidebar/Layout/StatsSection/StatsLayout/StatsGrid"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 4
 
-[node name="MoneyLabel" type="Label" parent="Sidebar/Layout/ScoreSection/ScoreLayout/StatsGrid/MoneyCol"]
+[node name="MoneyLabel" type="Label" parent="Sidebar/Layout/StatsSection/StatsLayout/StatsGrid/MoneyCol"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3")
@@ -559,11 +565,11 @@ theme_override_font_sizes/font_size = 21
 text = "match3__hud__label__money"
 horizontal_alignment = 1
 
-[node name="MoneyBox" type="PanelContainer" parent="Sidebar/Layout/ScoreSection/ScoreLayout/StatsGrid/MoneyCol"]
+[node name="MoneyBox" type="PanelContainer" parent="Sidebar/Layout/StatsSection/StatsLayout/StatsGrid/MoneyCol"]
 layout_mode = 2
 theme_override_styles/panel = SubResource("SB_dark")
 
-[node name="MoneyValue" type="Label" parent="Sidebar/Layout/ScoreSection/ScoreLayout/StatsGrid/MoneyCol/MoneyBox"]
+[node name="MoneyValue" type="Label" parent="Sidebar/Layout/StatsSection/StatsLayout/StatsGrid/MoneyCol/MoneyBox"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.937255, 0.74902, 0.0156863, 1)
@@ -573,21 +579,80 @@ text = "$0"
 horizontal_alignment = 1
 
 [node name="ButtonsSection" type="VBoxContainer" parent="Sidebar/Layout"]
-layout_mode = 2
-size_flags_vertical = 0
-
-[node name="ButtonsRow" type="HBoxContainer" parent="Sidebar/Layout/ButtonsSection"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/separation = 12
-alignment = 1
+size_flags_horizontal = 3
+size_flags_vertical = 3
 
-[node name="HomeButton" parent="Sidebar/Layout/ButtonsSection/ButtonsRow" instance=ExtResource("4")]
+[node name="ButtonsGrid" type="GridContainer" parent="Sidebar/Layout/ButtonsSection"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(120, 120)
 layout_mode = 2
-size_flags_horizontal = 0
-size_flags_vertical = 4
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 12
+columns = 2
+
+[node name="WikiButton" parent="Sidebar/Layout/ButtonsSection/ButtonsGrid" instance=ExtResource("4")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_colors/icon_normal_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_focus_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_pressed_color = Color(1, 1, 1, 1)
+theme_override_constants/icon_max_width = 72
+tooltip_text = "ultravibe__ui__collection"
+icon_alignment = 1
+vertical_icon_alignment = 1
+text = ""
+icon = ExtResource("8")
+expand_icon = true
+
+[node name="ShuffleButton" parent="Sidebar/Layout/ButtonsSection/ButtonsGrid" instance=ExtResource("4")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_colors/icon_normal_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_focus_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_pressed_color = Color(1, 1, 1, 1)
+theme_override_constants/icon_max_width = 72
+theme_override_styles/normal = SubResource("SB_shuffle_normal")
+theme_override_styles/pressed = SubResource("SB_shuffle_pressed")
+theme_override_styles/hover = SubResource("SB_shuffle_hover")
+theme_override_styles/focus = SubResource("SB_shuffle_focus")
+tooltip_text = "core__noun__shuffle"
+icon_alignment = 1
+vertical_icon_alignment = 1
+text = ""
+icon = ExtResource("7")
+expand_icon = true
+
+[node name="ShuffleCount" type="Label" parent="Sidebar/Layout/ButtonsSection/ButtonsGrid/ShuffleButton"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -39.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3")
+theme_override_font_sizes/font_size = 27
+text = "2"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HomeButton" parent="Sidebar/Layout/ButtonsSection/ButtonsGrid" instance=ExtResource("4")]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
 theme_override_colors/icon_normal_color = Color(1, 1, 1, 1)
 theme_override_colors/icon_focus_color = Color(1, 1, 1, 1)
 theme_override_colors/icon_hover_color = Color(1, 1, 1, 1)
@@ -600,12 +665,11 @@ text = ""
 icon = ExtResource("5")
 expand_icon = true
 
-[node name="SettingsButton" parent="Sidebar/Layout/ButtonsSection/ButtonsRow" instance=ExtResource("4")]
+[node name="SettingsButton" parent="Sidebar/Layout/ButtonsSection/ButtonsGrid" instance=ExtResource("4")]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(120, 120)
 layout_mode = 2
-size_flags_horizontal = 0
-size_flags_vertical = 4
+size_flags_horizontal = 3
+size_flags_vertical = 3
 theme_override_colors/icon_normal_color = Color(1, 1, 1, 1)
 theme_override_colors/icon_focus_color = Color(1, 1, 1, 1)
 theme_override_colors/icon_hover_color = Color(1, 1, 1, 1)
@@ -616,24 +680,6 @@ icon_alignment = 1
 vertical_icon_alignment = 1
 text = ""
 icon = ExtResource("6")
-expand_icon = true
-
-[node name="WikiButton" parent="Sidebar/Layout/ButtonsSection/ButtonsRow" instance=ExtResource("4")]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(120, 120)
-layout_mode = 2
-size_flags_horizontal = 0
-size_flags_vertical = 4
-theme_override_colors/icon_normal_color = Color(1, 1, 1, 1)
-theme_override_colors/icon_focus_color = Color(1, 1, 1, 1)
-theme_override_colors/icon_hover_color = Color(1, 1, 1, 1)
-theme_override_colors/icon_pressed_color = Color(1, 1, 1, 1)
-theme_override_constants/icon_max_width = 72
-tooltip_text = "ultravibe__ui__collection"
-icon_alignment = 1
-vertical_icon_alignment = 1
-text = ""
-icon = ExtResource("8")
 expand_icon = true
 
 [node name="StatusLabel" type="Label" parent="."]
@@ -733,59 +779,6 @@ clip_contents = false
 theme_override_constants/separation = 14
 alignment = 1
 script = ExtResource("10")
-
-[node name="ShuffleDock" type="VBoxContainer" parent="."]
-unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 0
-offset_left = 756.0
-offset_top = 800.0
-offset_right = 948.0
-offset_bottom = 1048.0
-grow_horizontal = 0
-grow_vertical = 0
-mouse_filter = 2
-theme_override_constants/separation = 0
-alignment = 1
-
-[node name="ShuffleButton" parent="ShuffleDock" instance=ExtResource("4")]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(120, 120)
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
-theme_override_colors/icon_normal_color = Color(1, 1, 1, 1)
-theme_override_colors/icon_focus_color = Color(1, 1, 1, 1)
-theme_override_colors/icon_hover_color = Color(1, 1, 1, 1)
-theme_override_colors/icon_pressed_color = Color(1, 1, 1, 1)
-theme_override_constants/icon_max_width = 72
-theme_override_styles/normal = SubResource("SB_shuffle_normal")
-theme_override_styles/pressed = SubResource("SB_shuffle_pressed")
-theme_override_styles/hover = SubResource("SB_shuffle_hover")
-theme_override_styles/focus = SubResource("SB_shuffle_focus")
-tooltip_text = "core__noun__shuffle"
-icon_alignment = 1
-vertical_icon_alignment = 1
-text = ""
-icon = ExtResource("7")
-expand_icon = true
-
-[node name="ShuffleCount" type="Label" parent="ShuffleDock/ShuffleButton"]
-unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 12
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_top = -39.0
-grow_horizontal = 2
-grow_vertical = 0
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_fonts/font = ExtResource("3")
-theme_override_font_sizes/font_size = 27
-text = "2"
-horizontal_alignment = 1
-vertical_alignment = 1
 
 [node name="BoardHost" type="Control" parent="."]
 unique_name_in_owner = true
