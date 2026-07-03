@@ -11,7 +11,7 @@ const Match3DispatcherScript = preload("res://game/match3/view/match3_dispatcher
 const Match3EventsScript = preload("res://game/match3/match3_events.gd")
 const Match3BoonJuiceScript = preload("res://game/match3/boons/match3_boon_juice.gd")
 const Match3GameSpeedScript = preload("res://game/match3/core/match3_game_speed.gd")
-const Match3HudScoreFireScript = preload("res://game/match3/view/match3_hud_score_fire.gd")
+const Match3HudScoreEscalationScript = preload("res://game/match3/view/match3_hud_score_escalation.gd")
 const SupportScript = preload("res://game/match3/boons/match3_boon_support.gd")
 const UltraGameUiNav = preload("res://game/ui/ultra_game_ui_nav.gd")
 ## Boss letter token font — mirrors the collection view boss tokens.
@@ -100,7 +100,7 @@ var _display_step_multi := 0
 var _display_total_score := 0
 var _display_last_match_score := 0
 var _score_display_tween: Tween = null
-var _score_fire = null
+var _score_escalation = null
 var _hud_tooltip_layer: CanvasLayer = null
 
 
@@ -121,9 +121,10 @@ func _ready() -> void:
 		_wiki_button.pressed.connect(_on_wiki_pressed)
 	if _shuffle_button:
 		_shuffle_button.pressed.connect(_on_shuffle_pressed)
-	_score_fire = Match3HudScoreFireScript.new()
-	if _score_section:
-		_score_fire.setup(_score_section)
+	_score_escalation = Match3HudScoreEscalationScript.new()
+	_score_escalation.name = "ScoreEscalation"
+	add_child(_score_escalation)
+	call_deferred("_setup_score_escalation")
 	if _boss_section:
 		_boss_section.resized.connect(_schedule_frame_dirty)
 	if _score_section:
@@ -139,6 +140,35 @@ func _ready() -> void:
 	resized.connect(_schedule_frame_dirty)
 	set_process(true)
 	_schedule_frame_dirty()
+
+
+func _setup_score_escalation() -> void:
+	if _score_escalation == null or not is_instance_valid(_score_escalation):
+		return
+	if _points_value == null or _multi_value == null:
+		push_warning("[Match3Hud] score escalation setup skipped: points/multi labels missing")
+		return
+	var points_box := _points_value.get_parent() as Control
+	var multi_box := _multi_value.get_parent() as Control
+	if points_box == null or multi_box == null:
+		push_warning("[Match3Hud] score escalation setup skipped: points/multi box missing")
+		return
+	_score_escalation.setup(points_box, multi_box)
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if _score_escalation == null or not (event is InputEventKey):
+		return
+	var key_event := event as InputEventKey
+	if not key_event.pressed or key_event.echo:
+		return
+	match key_event.keycode:
+		KEY_9, KEY_KP_9:
+			_score_escalation.debug_adjust_intensity(1)
+			get_viewport().set_input_as_handled()
+		KEY_8, KEY_KP_8:
+			_score_escalation.debug_adjust_intensity(-1)
+			get_viewport().set_input_as_handled()
 
 
 ## Re-runs sidebar + content-frame layout (e.g. after a subscreen overlay opens).
@@ -768,10 +798,10 @@ func begin_move_score_display(pre_move_total: int) -> void:
 	_display_step_multi = 0
 	_display_last_match_score = 0
 	_display_total_score = pre_move_total
-	if _score_fire and _service:
+	if _score_escalation and _service:
 		var gameplay = _service.get_gameplay()
 		var target: int = gameplay.target_score if gameplay else 0
-		_score_fire.reset_move_ramp(pre_move_total, target)
+		_score_escalation.reset_move_ramp(pre_move_total, target)
 	_apply_score_display_texts()
 
 
@@ -783,18 +813,18 @@ func apply_step_metrics_display(target_points: int, target_multi: int) -> void:
 	_display_step_points = target_points
 	_display_step_multi = maxi(1, target_multi)
 	_apply_score_display_texts()
-	_update_score_fire_visual()
+	_update_score_escalation_visual()
 	if target_points != prev_points or target_multi != prev_multi:
 		_pulse_score_lane_juice()
 
 
-func _update_score_fire_visual() -> void:
-	if _score_fire == null or _service == null:
+func _update_score_escalation_visual() -> void:
+	if _score_escalation == null or _service == null:
 		return
 	var gameplay = _service.get_gameplay()
 	if gameplay == null:
 		return
-	_score_fire.update_from_step(
+	_score_escalation.update_from_step(
 		_display_total_score,
 		_display_step_points,
 		_display_step_multi,
@@ -810,8 +840,8 @@ func finish_move_score_display(final_total: int) -> void:
 	_display_last_match_score = 0
 	_display_total_score = final_total
 	_move_metrics_active = false
-	if _score_fire:
-		_score_fire.hide_fire()
+	if _score_escalation:
+		_score_escalation.hide_effects()
 	_apply_score_display_texts()
 
 
@@ -824,8 +854,8 @@ func _clear_overlay_score_display() -> void:
 	_display_step_multi = 0
 	_display_last_match_score = 0
 	_display_total_score = 0
-	if _score_fire:
-		_score_fire.hide_fire()
+	if _score_escalation:
+		_score_escalation.hide_effects()
 
 
 func cancel_move_score_display(final_total: int = -1) -> void:
@@ -849,7 +879,7 @@ func play_step_metrics_display(target_points: int, target_multi: int, duration_s
 		_multi_value.text = str(_display_step_multi)
 	if target_points != prev_points or target_multi != prev_multi:
 		_pulse_score_lane_juice()
-	_update_score_fire_visual()
+	_update_score_escalation_visual()
 	if duration_sec > 0.0 and is_inside_tree():
 		var tree := get_tree()
 		if tree != null:
@@ -884,11 +914,11 @@ func play_score_transfer_to_total(
 	var start_total := _display_total_score
 	var last_start := _display_last_match_score
 	if move_gain > 0 and duration_sec > 0.0:
-		if _score_fire:
-			_score_fire.fade_toward_off(0.0)
+		if _score_escalation:
+			_score_escalation.fade_toward_off(0.0)
 		await _play_score_bank_transfer(start_total, target_total, last_start, duration_sec)
-		if _score_fire:
-			_score_fire.fade_toward_off(1.0)
+		if _score_escalation:
+			_score_escalation.fade_toward_off(1.0)
 	else:
 		_display_total_score = target_total
 		_set_total_value_display(_display_total_score)

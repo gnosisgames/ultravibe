@@ -1,9 +1,8 @@
 extends SceneTree
 
-## Sprint 6 UI parity smoke tests: heartbeat, score fire, boon reorder invoke, rich tooltips.
+## Sprint 6 UI parity smoke tests: heartbeat, boon reorder invoke, rich tooltips.
 
 const InventoryTooltipUiScript = preload("res://game/ui/inventory_tooltip_ui.gd")
-const Match3HudScoreFireScript = preload("res://game/match3/view/match3_hud_score_fire.gd")
 const Match3BoardGamepadScript = preload("res://game/match3/view/match3_board_gamepad.gd")
 const Match3ServiceScript = preload("res://game/match3/services/match3_service.gd")
 const SupportScript = preload("res://game/match3/boons/match3_boon_support.gd")
@@ -34,8 +33,6 @@ func _process(_delta: float) -> bool:
 
 func _run() -> bool:
 	if not _check_heartbeat_config():
-		return false
-	if not _check_score_fire_ramp():
 		return false
 	if not _check_boon_reorder_invoke():
 		return false
@@ -71,17 +68,6 @@ func _check_heartbeat_config() -> bool:
 		print("[FAIL] heartbeat clip ids missing in ephemeral")
 		return false
 	print("[OK] heartbeat audio config present (delay=%s)" % delay)
-	return true
-
-
-func _check_score_fire_ramp() -> bool:
-	var fire := Match3HudScoreFireScript.new()
-	fire.reset_move_ramp(1000, 500)
-	fire.update_from_step(1000, 50, 2, 500)
-	fire.update_from_step(1000, 80, 3, 500)
-	fire.fade_toward_off(1.0)
-	fire.hide_fire()
-	print("[OK] score fire ramp helper")
 	return true
 
 
