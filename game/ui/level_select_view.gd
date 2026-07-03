@@ -990,7 +990,6 @@ func _play(double_down: bool) -> void:
 		var payload: GnosisNode = result.payload
 		if payload.is_valid() and not _node_bool(payload, "success", true):
 			return
-	_dismiss_overlays(ui, eng)
 
 func _on_skip_pressed() -> void:
 	var eng := _engine()
@@ -1000,20 +999,6 @@ func _on_skip_pressed() -> void:
 	var result = m3.invoke_function("SkipLevel", eng.store.create_object())
 	if result is GnosisFunctionResult and result.is_ok and _node_bool(result.payload, "success", false):
 		_refresh()
-
-func _dismiss_overlays(ui: GnosisGameUIService, eng: GnosisEngine) -> void:
-	for _i in 4:
-		var has_overlay := false
-		for view_id in ["level_select", "shop", "reward", "game_over"]:
-			if not ui.get_active_overlay_state_for_view(view_id).is_empty():
-				has_overlay = true
-				break
-		if not has_overlay:
-			break
-		ui.invoke_function("PopView", eng.store.create_object())
-	var ui_adapter := get_tree().get_first_node_in_group("godot_game_ui_adapter") if is_inside_tree() else null
-	if ui_adapter and ui_adapter.has_method("finalize_overlay_dismiss"):
-		ui_adapter.finalize_overlay_dismiss()
 
 # ---------------------------------------------------------------------------
 # Node helpers

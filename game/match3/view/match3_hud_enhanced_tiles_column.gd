@@ -7,8 +7,7 @@ const TOOLTIP_SCENE := preload("res://game/ui/widgets/tooltip_popup.tscn")
 const UltraUiFx = preload("res://game/ui/widgets/ultra_ui_fx.gd")
 const Match3FloorSpritesScript = preload("res://game/match3/view/match3_floor_sprites.gd")
 const COUNT_FONT := preload("res://assets/fonts/Comic Lemon.otf")
-const ICON_SIZE := 40.0
-const COUNT_FONT_SIZE := 18
+const COUNT_FONT_SIZE := 22
 const ROW_GAP := 6.0
 
 var _service: GnosisService = null
@@ -21,6 +20,9 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_theme_constant_override("separation", int(ROW_GAP))
 	alignment = BoxContainer.ALIGNMENT_CENTER
+	size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	resized.connect(_on_rail_layout_changed)
 	_build_tooltip()
 	set_process(true)
 
@@ -121,16 +123,18 @@ func _enhanced_floor_type_ids() -> Array[String]:
 
 
 func _make_row(details: Dictionary) -> Control:
+	var icon_size := _rail_icon_size()
 	var row := Control.new()
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.custom_minimum_size = Vector2(ICON_SIZE, ICON_SIZE)
+	row.custom_minimum_size = Vector2(icon_size, icon_size)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
 	var icon := TextureRect.new()
 	icon.set_anchors_preset(Control.PRESET_FULL_RECT)
 	icon.offset_right = 0.0
 	icon.offset_bottom = 0.0
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var tex: Texture2D = details.get("icon", null)
 	if tex:
@@ -147,8 +151,8 @@ func _make_row(details: Dictionary) -> Control:
 	count.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	count.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
 	count.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-	count.offset_left = -34.0
-	count.offset_top = -22.0
+	count.offset_left = -icon_size * 0.72
+	count.offset_top = -icon_size * 0.46
 	count.offset_right = 4.0
 	count.offset_bottom = 0.0
 	count.add_theme_font_override("font", COUNT_FONT)
@@ -174,6 +178,15 @@ func _make_row(details: Dictionary) -> Control:
 	row.add_child(hit)
 	add_child(row)
 	return row
+
+
+func _rail_icon_size() -> float:
+	return Match3Hud.left_rail_slot_extent_for(self)
+
+
+func _on_rail_layout_changed() -> void:
+	_last_signature = "__unset__"
+	_refresh_if_changed()
 
 
 func _build_signature() -> String:

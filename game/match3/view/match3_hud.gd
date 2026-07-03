@@ -32,7 +32,19 @@ const ACTION_BUTTON_SIZE := 120
 const ACTION_BUTTON_GAP := 12
 const ACTION_ICON_MAX := 72
 const SIDEBAR_MARGIN_H := 48.0
-const LEFT_RAIL_WIDTH := 48.0
+const LEFT_RAIL_WIDTH := 64.0
+const LEFT_RAIL_ICON_SIZE := LEFT_RAIL_WIDTH
+
+
+static func left_rail_slot_extent_for(control: Control) -> float:
+	if control == null:
+		return LEFT_RAIL_ICON_SIZE
+	var node: Control = control
+	while node != null:
+		if node.size.x >= 8.0:
+			return node.size.x
+		node = node.get_parent() as Control
+	return LEFT_RAIL_ICON_SIZE
 
 ## Emitted whenever the content frame rect changes (sidebar relayout / resize) so
 ## overlays can re-align themselves to it.
@@ -686,6 +698,12 @@ func _layout_left_rail() -> void:
 	_left_rail.set_anchors_preset(Control.PRESET_TOP_LEFT)
 	_left_rail.position = Vector2(FRAME_GAP, FRAME_GAP)
 	_left_rail.size = Vector2(LEFT_RAIL_WIDTH, maxf(0.0, size.y - FRAME_GAP * 2.0))
+	if _run_upgrades_column and _run_upgrades_column.has_method("force_refresh"):
+		_run_upgrades_column.force_refresh()
+	if _enhanced_tiles_column and _enhanced_tiles_column.has_method("force_refresh"):
+		_enhanced_tiles_column.force_refresh()
+	if _item_upgrades_column and _item_upgrades_column.has_method("force_refresh"):
+		_item_upgrades_column.force_refresh()
 
 
 func _subscribe_boon_juice(service) -> void:

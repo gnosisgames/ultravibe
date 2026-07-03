@@ -265,15 +265,20 @@ func _switch_overlay(game_ui: GnosisGameUIService, view_id: String, pop_view_id:
 
 
 func _dismiss_match3_overlays(game_ui: GnosisGameUIService) -> void:
-	for _i in 6:
-		var has_overlay := false
+	var ui_adapter := get_tree().get_first_node_in_group("godot_game_ui_adapter") if get_tree() else null
+	var from_key := ""
+	if ui_adapter and ui_adapter.has_method("get_rendered_overlay_key"):
+		from_key = str(ui_adapter.get_rendered_overlay_key()).strip_edges().to_lower()
+	if from_key.is_empty():
 		for view_id in ["level_select", "shop", "reward", "game_over", "pause"]:
 			if not game_ui.get_active_overlay_state_for_view(view_id).is_empty():
-				has_overlay = true
+				from_key = view_id
 				break
-		if not has_overlay:
-			return
-		game_ui.invoke_function("PopView", engine.store.create_object())
+	for view_id in ["level_select", "shop", "reward", "game_over", "pause"]:
+		game_ui.clear_overlay_state_for_view(view_id)
+	if ui_adapter and ui_adapter.has_method("dismiss_additive_overlay_with_slide") and not from_key.is_empty():
+		ui_adapter.dismiss_additive_overlay_with_slide(from_key)
+		return
 	_finalize_overlay_dismiss()
 
 

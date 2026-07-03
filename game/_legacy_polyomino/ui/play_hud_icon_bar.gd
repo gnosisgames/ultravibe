@@ -48,6 +48,11 @@ func bind_service(service: GnosisService) -> void:
 	_last_signature = "__unset__"
 	_refresh()
 
+
+func force_refresh() -> void:
+	_last_signature = "__unset__"
+	_refresh()
+
 ## Subclasses return the configuration/icons folder name ("boons", "consumables").
 func _inventory_category() -> String:
 	return ""
@@ -101,6 +106,33 @@ func _slot_size_flags_vertical() -> int:
 
 func _slot_size_flags_horizontal() -> int:
 	return Control.SIZE_SHRINK_CENTER
+
+
+## When true, the icon texture scales to fill the whole slot (left rail).
+func _slot_icon_fills_cell() -> bool:
+	return false
+
+
+func _stack_badge_font() -> Font:
+	return null
+
+
+func _stack_badge_font_size() -> int:
+	return 16
+
+
+func _stack_badge_rect(slot_size: float) -> Rect2:
+	return Rect2(slot_size - 30.0, slot_size - 22.0, slot_size + 4.0, slot_size + 4.0)
+
+
+func _resolve_slot_size() -> float:
+	return slot_size
+
+
+func _slot_icon_stretch_mode() -> TextureRect.StretchMode:
+	if _slot_icon_fills_cell():
+		return TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	return TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 
 func _apply_bar_alignment() -> void:
 	alignment = BoxContainer.ALIGNMENT_BEGIN
@@ -200,18 +232,24 @@ func _dots_center_x(row_width: float) -> float:
 func _make_slot(index: int, details: Dictionary) -> Control:
 	var slot := Control.new()
 	slot.name = "Slot%d" % index
-	slot.custom_minimum_size = Vector2(slot_size, slot_size + float_offset)
+	var cell_size := _resolve_slot_size()
+	slot.custom_minimum_size = Vector2(cell_size, cell_size + float_offset)
 	slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	slot.size_flags_vertical = _slot_size_flags_vertical()
 	slot.size_flags_horizontal = _slot_size_flags_horizontal()
 
 	var alpha := _slot_alpha(index, details)
 	var icon := TextureRect.new()
-	icon.name = "Icon"
-	icon.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	icon.offset_bottom = slot_size
+	icon.name = &"Icon"
+	if _slot_icon_fills_cell():
+		icon.set_anchors_preset(Control.PRESET_FULL_RECT)
+		icon.offset_right = 0.0
+		icon.offset_bottom = 0.0
+	else:
+		icon.set_anchors_preset(Control.PRESET_TOP_WIDE)
+		icon.offset_bottom = cell_size
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.stretch_mode = _slot_icon_stretch_mode()
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	icon.modulate = Color(1, 1, 1, alpha)
 	var icon_path: String = details.get("icon_path", "")
@@ -222,24 +260,35 @@ func _make_slot(index: int, details: Dictionary) -> Control:
 	var count := _slot_stack_count(details)
 	if count > 1:
 		var badge := Label.new()
-		badge.name = "Count"
+		badge.name = &"Count"
 		badge.text = "x%d" % count
 		badge.set_anchors_preset(Control.PRESET_TOP_LEFT)
-		badge.offset_left = slot_size - 28.0
-		badge.offset_top = slot_size - 20.0
-		badge.offset_right = slot_size + 2.0
-		badge.offset_bottom = slot_size + 2.0
+		var badge_rect := _stack_badge_rect(cell_size)
+		badge.offset_left = badge_rect.position.x
+		badge.offset_top = badge_rect.position.y
+		badge.offset_right = badge_rect.end.x
+		badge.offset_bottom = badge_rect.end.y
 		badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		badge.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
-		badge.add_theme_font_size_override("font_size", 16)
-		badge.add_theme_color_override("font_color", Color(1, 1, 1, 0.9))
+		var badge_font := _stack_badge_font()
+		if badge_font:
+			badge.add_theme_font_override(&"font", badge_font)
+		badge.add_theme_font_size_override(&"font_size", _stack_badge_font_size())
+		badge.add_theme_color_override(&"font_color", Color(1, 1, 1, 0.95))
+		badge.add_theme_color_override(&"font_outline_color", Color(0.0784314, 0.137255, 0.227451, 1))
+		badge.add_theme_constant_override(&"outline_size", 4)
 		badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		slot.add_child(badge)
 
 	var hit := Button.new()
-	hit.name = "Hit"
-	hit.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	hit.offset_bottom = slot_size
+	hit.name = &"Hit"
+	if _slot_icon_fills_cell():
+		hit.set_anchors_preset(Control.PRESET_FULL_RECT)
+		hit.offset_right = 0.0
+		hit.offset_bottom = 0.0
+	else:
+		hit.set_anchors_preset(Control.PRESET_TOP_WIDE)
+		hit.offset_bottom = cell_size
 	hit.flat = true
 	hit.focus_mode = Control.FOCUS_NONE
 	hit.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
@@ -307,10 +356,6 @@ func _hide_tooltip() -> void:
 	_tooltip_index = -1
 	if _tooltip:
 		_tooltip.disappear()
-
-func force_refresh() -> void:
-	_last_signature = "__unset__"
-	_refresh()
 
 # --- Data ---
 

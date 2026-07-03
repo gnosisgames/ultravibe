@@ -258,7 +258,6 @@ func _on_continue_pressed() -> void:
 	var params := eng.store.create_object()
 	params.set_key("gameStatus", "shopPanel")
 	m3.invoke_function("TransitionToState", params)
-	ui.invoke_function("PopView", eng.store.create_object())
 	var adapter := _host.get_node_or_null("Adapters/Match3PlayAdapter") if _host else null
 	if adapter and adapter.has_method("refresh_hud_after_reward"):
 		adapter.refresh_hud_after_reward()
