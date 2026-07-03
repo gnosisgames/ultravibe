@@ -156,21 +156,6 @@ func _setup_score_escalation() -> void:
 	_score_escalation.setup(points_box, multi_box)
 
 
-func _unhandled_input(event: InputEvent) -> void:
-	if _score_escalation == null or not (event is InputEventKey):
-		return
-	var key_event := event as InputEventKey
-	if not key_event.pressed or key_event.echo:
-		return
-	match key_event.keycode:
-		KEY_9, KEY_KP_9:
-			_score_escalation.debug_adjust_intensity(1)
-			get_viewport().set_input_as_handled()
-		KEY_8, KEY_KP_8:
-			_score_escalation.debug_adjust_intensity(-1)
-			get_viewport().set_input_as_handled()
-
-
 ## Re-runs sidebar + content-frame layout (e.g. after a subscreen overlay opens).
 func relayout_content_frame() -> void:
 	_schedule_frame_dirty()
