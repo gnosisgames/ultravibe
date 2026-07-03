@@ -17,6 +17,9 @@ const UltraGameUiNav = preload("res://game/ui/ultra_game_ui_nav.gd")
 ## Boss letter token font — mirrors the collection view boss tokens.
 const TOKEN_FONT_PATH := "res://assets/fonts/PolygonParty-3KXM.ttf"
 const TOKEN_DEFAULT_BG := Color(0.0980392, 0.156863, 0.227451)
+const SCORE_LANE_POP_PANEL_PEAK := 1.17
+const SCORE_LANE_POP_LABEL_PEAK := 1.26
+const SCORE_LANE_POP_FLASH := Color(1.28, 1.28, 1.28, 1.0)
 ## Total score label tints — zero blends into the dark inner panel; non-zero uses
 ## the outer score section purple (read from the section style / theme).
 const SCORE_PANEL_BG_COLOR := Color(0.156863, 0.196078, 0.290196, 1)
@@ -1100,10 +1103,49 @@ func _pulse_total_juice() -> void:
 
 
 func _pulse_score_lane_juice() -> void:
-	for box in [_points_value, _multi_value]:
-		if box == null:
-			continue
-		var lane_tween: Tween = box.create_tween()
-		lane_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
-		lane_tween.tween_property(box, "scale", Vector2(1.12, 1.12), 0.06).set_trans(Tween.TRANS_BACK)
-		lane_tween.tween_property(box, "scale", Vector2.ONE, 0.1)
+	var pop_out := _scale_presentation_seconds(0.1, 0.04)
+	var pop_back := _scale_presentation_seconds(0.16, 0.05)
+	_pulse_score_metric_lane(_points_value, SCORE_LANE_POP_PANEL_PEAK, SCORE_LANE_POP_LABEL_PEAK, pop_out, pop_back)
+	_pulse_score_metric_lane(_multi_value, SCORE_LANE_POP_PANEL_PEAK, SCORE_LANE_POP_LABEL_PEAK, pop_out, pop_back)
+
+
+func _pulse_score_metric_lane(
+	value_label: Label,
+	panel_peak: float,
+	label_peak: float,
+	out_sec: float,
+	back_sec: float,
+) -> void:
+	if value_label == null:
+		return
+	var panel := value_label.get_parent() as Control
+	if panel != null:
+		_pulse_score_lane_control(panel, panel_peak, out_sec, back_sec, true)
+	_pulse_score_lane_control(value_label, label_peak, out_sec, back_sec, true)
+
+
+func _pulse_score_lane_control(
+	control: Control,
+	peak_scale: float,
+	out_sec: float,
+	back_sec: float,
+	flash: bool,
+) -> void:
+	if control == null or not is_instance_valid(control):
+		return
+	control.pivot_offset = control.size * 0.5
+	var base_modulate := control.modulate
+	var tw := control.create_tween()
+	tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	tw.set_parallel(true)
+	tw.tween_property(control, "scale", Vector2(peak_scale, peak_scale), out_sec)\
+		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	if flash:
+		tw.tween_property(control, "modulate", SCORE_LANE_POP_FLASH, out_sec * 0.65)\
+			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.chain().set_parallel(true)
+	tw.tween_property(control, "scale", Vector2.ONE, back_sec)\
+		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	if flash:
+		tw.tween_property(control, "modulate", base_modulate, back_sec)\
+			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
