@@ -54,9 +54,11 @@ func set_view_visible(is_visible: bool) -> void:
 		_presenting = false
 		_presentation_gen += 1
 		_cancel_action_cooldown()
+		SubscreenFrame.disconnect_changes(self, _apply_frame)
 
 func _apply_frame() -> void:
-	SubscreenFrame.apply(self, _center)
+	# Extend to HUD bottom (same line as sidebar buttons + consumables bar).
+	SubscreenFrame.apply_planning(self, _center)
 
 func _arm_action_cooldown() -> void:
 	_cancel_action_cooldown()

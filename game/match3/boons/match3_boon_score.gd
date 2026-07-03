@@ -612,6 +612,7 @@ func _apply_score_calc_outcomes(
 	axis5_bind: int = -1,
 	prefer_immediate_juice: bool = false,
 	trigger_contribution_echoes: bool = true,
+	trigger_positive_flavors: bool = true,
 ) -> void:
 	if outcomes == null or not outcomes.is_valid() or outcomes.get_type() != GnosisValueType.LIST:
 		return
@@ -702,7 +703,7 @@ func _apply_score_calc_outcomes(
 					boon_slot_index,
 					contribution_list_key
 				)
-			if pts_delta != 0 or multi_delta != 0:
+			if trigger_positive_flavors and (pts_delta != 0 or multi_delta != 0):
 				FlavorsScript.try_apply_positive_flavor_after_score_step(
 					_service,
 					self,

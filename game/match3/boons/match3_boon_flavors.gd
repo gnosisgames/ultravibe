@@ -63,6 +63,7 @@ static func try_apply_positive_flavor_after_score_step(
 		-1,
 		-1,
 		false,
+		false,
 		false
 	)
 

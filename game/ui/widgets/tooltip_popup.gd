@@ -143,12 +143,13 @@ func apply_standard_skin() -> void:
 func set_content(title: String, description_raw: String, width: float = DEFAULT_CONTENT_WIDTH, tags: Array = []) -> void:
 	if description == null:
 		return
+	var body_width := width if width > 0.0 else DEFAULT_CONTENT_WIDTH
 	description.fit_content = true
 	description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	description.custom_minimum_size = Vector2(width, 0)
+	description.custom_minimum_size = Vector2(body_width, 0)
 	title_text = ""
 	if title_label:
-		title_label.custom_minimum_size = Vector2(width, 0)
+		title_label.custom_minimum_size = Vector2(body_width, 0)
 		title_label.visible = not title.strip_edges().is_empty()
 		title_label.text = "[center][font_size=28]%s[/font_size][/center]" % title
 	text = format_bbcode(description_raw)

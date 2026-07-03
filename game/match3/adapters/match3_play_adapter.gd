@@ -36,6 +36,8 @@ func bind_dispatcher(dispatcher) -> void:
 	_dispatcher = dispatcher
 	if _match3_service:
 		_dispatcher.bind_service(_match3_service)
+	if _match3_service != null:
+		_set_board_visible(_match3_service.get_current_status() == Match3ModelsScript.STATUS_PLAYING)
 
 
 func begin_level(level_number: int = 1) -> void:
@@ -272,6 +274,13 @@ func _dismiss_match3_overlays(game_ui: GnosisGameUIService) -> void:
 		if not has_overlay:
 			return
 		game_ui.invoke_function("PopView", engine.store.create_object())
+	_finalize_overlay_dismiss()
+
+
+func _finalize_overlay_dismiss() -> void:
+	var ui_adapter := get_tree().get_first_node_in_group("godot_game_ui_adapter") if get_tree() else null
+	if ui_adapter and ui_adapter.has_method("finalize_overlay_dismiss"):
+		ui_adapter.finalize_overlay_dismiss()
 
 
 func refresh_hud_after_reward() -> void:

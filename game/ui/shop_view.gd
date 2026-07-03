@@ -59,6 +59,8 @@ func set_view_visible(is_visible: bool) -> void:
 		SubscreenFrame.connect_changes(self, _apply_frame)
 		_apply_frame()
 		_refresh()
+	else:
+		SubscreenFrame.disconnect_changes(self, _apply_frame)
 
 func _apply_frame() -> void:
 	SubscreenFrame.apply(self, _center)

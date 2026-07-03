@@ -278,7 +278,7 @@ func _show_tooltip_for_slot(index: int) -> void:
 	_tooltip.set_content(
 		details.get("name", ""),
 		details.get("description", ""),
-		-1,
+		TooltipPopup.DEFAULT_CONTENT_WIDTH,
 		details.get("tags", []),
 	)
 	_tooltip.reset_size()

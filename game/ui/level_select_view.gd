@@ -107,6 +107,7 @@ func set_view_visible(is_visible: bool) -> void:
 	else:
 		_set_planning_overlay_active(false)
 		_hide_consumable_tooltip()
+		SubscreenFrame.disconnect_changes(self, _apply_frame)
 
 
 func _set_planning_overlay_active(active: bool) -> void:
@@ -1000,7 +1001,13 @@ func _play(double_down: bool) -> void:
 		return
 	var params := eng.store.create_object()
 	params.set_key("doubleDown", double_down)
-	m3.invoke_function("PlayLevel", params)
+	var result = m3.invoke_function("PlayLevel", params)
+	if result is GnosisFunctionResult:
+		if not result.is_ok:
+			return
+		var payload: GnosisNode = result.payload
+		if payload.is_valid() and not _node_bool(payload, "success", true):
+			return
 	_dismiss_overlays(ui, eng)
 
 func _on_skip_pressed() -> void:
@@ -1020,8 +1027,11 @@ func _dismiss_overlays(ui: GnosisGameUIService, eng: GnosisEngine) -> void:
 				has_overlay = true
 				break
 		if not has_overlay:
-			return
+			break
 		ui.invoke_function("PopView", eng.store.create_object())
+	var ui_adapter := get_tree().get_first_node_in_group("godot_game_ui_adapter") if is_inside_tree() else null
+	if ui_adapter and ui_adapter.has_method("finalize_overlay_dismiss"):
+		ui_adapter.finalize_overlay_dismiss()
 
 # ---------------------------------------------------------------------------
 # Node helpers

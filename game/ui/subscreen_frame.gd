@@ -26,7 +26,9 @@ static func apply(view: Control, holder: Control) -> bool:
 	return true
 
 
-## Aligns `holder` to the extended planning frame (shop + level cards).
+## Aligns `holder` to the extended planning frame (level select, shop, reward).
+## Same top/width as the content frame but extends to the HUD bottom so the
+## bottom edge lines up with the sidebar button row and consumables bar.
 static func apply_planning(view: Control, holder: Control) -> bool:
 	if view == null or holder == null or not view.is_inside_tree():
 		return false
@@ -47,9 +49,22 @@ static func apply_planning(view: Control, holder: Control) -> bool:
 
 
 static func _align_holder_to_global_rect(holder: Control, rect: Rect2) -> void:
+	if holder.global_position.is_equal_approx(rect.position) and holder.size.is_equal_approx(rect.size):
+		return
 	holder.set_anchors_preset(Control.PRESET_TOP_LEFT)
 	holder.global_position = rect.position
 	holder.size = rect.size
+
+
+## Disconnects `callback` from the HUD content_frame_changed signal.
+static func disconnect_changes(view: Control, callback: Callable) -> void:
+	if view == null or not view.is_inside_tree():
+		return
+	var hud := view.get_tree().get_first_node_in_group(HUD_GROUP)
+	if hud == null or not hud.has_signal("content_frame_changed"):
+		return
+	if hud.is_connected("content_frame_changed", callback):
+		hud.disconnect("content_frame_changed", callback)
 
 
 ## Connects `callback` to the HUD's content_frame_changed signal (idempotent).

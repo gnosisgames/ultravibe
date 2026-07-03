@@ -269,9 +269,7 @@ static func _read_double(node: GnosisNode, fallback: float) -> float:
 		GnosisValueType.FLOAT:
 			return float(node.value)
 		GnosisValueType.OBJECT:
-			var coeff := node.get_node("coefficient")
-			if coeff.is_valid():
-				return _read_double(coeff, fallback)
+			return SupportScript.read_scalable_node(node).to_float()
 		_:
 			pass
 	return fallback

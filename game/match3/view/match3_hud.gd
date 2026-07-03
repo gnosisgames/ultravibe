@@ -72,6 +72,8 @@ signal content_frame_changed
 @onready var _stats_section: PanelContainer = %StatsSection
 @onready var _buttons_section: VBoxContainer = %ButtonsSection
 @onready var _buttons_grid: GridContainer = %ButtonsGrid
+
+var _frame_dirty_pending := false
 @onready var _board_host: Control = %BoardHost
 
 var _service = null
@@ -104,25 +106,37 @@ func _ready() -> void:
 	if _score_section:
 		_score_fire.setup(_score_section)
 	if _boss_section:
-		_boss_section.resized.connect(_on_frame_dirty)
+		_boss_section.resized.connect(_schedule_frame_dirty)
 	if _score_section:
-		_score_section.resized.connect(_on_frame_dirty)
+		_score_section.resized.connect(_schedule_frame_dirty)
 	if _stats_section:
-		_stats_section.resized.connect(_on_frame_dirty)
+		_stats_section.resized.connect(_schedule_frame_dirty)
 	if _buttons_section:
-		_buttons_section.resized.connect(_on_frame_dirty)
+		_buttons_section.resized.connect(_schedule_frame_dirty)
 	if _boons_bar:
-		_boons_bar.resized.connect(_on_frame_dirty)
+		_boons_bar.resized.connect(_schedule_frame_dirty)
 	if _consumables_bar:
-		_consumables_bar.resized.connect(_on_frame_dirty)
-	resized.connect(_on_frame_dirty)
+		_consumables_bar.resized.connect(_schedule_frame_dirty)
+	resized.connect(_schedule_frame_dirty)
 	set_process(true)
-	_on_frame_dirty.call_deferred()
+	_schedule_frame_dirty()
 
 
 ## Re-runs sidebar + content-frame layout (e.g. after a subscreen overlay opens).
 func relayout_content_frame() -> void:
-	call_deferred("_on_frame_dirty")
+	_schedule_frame_dirty()
+
+
+func _schedule_frame_dirty() -> void:
+	if _frame_dirty_pending:
+		return
+	_frame_dirty_pending = true
+	call_deferred("_flush_frame_dirty")
+
+
+func _flush_frame_dirty() -> void:
+	_frame_dirty_pending = false
+	_on_frame_dirty()
 
 
 ## While the planning overlay (shop + level cards) is open, the boons strip sits
@@ -622,7 +636,9 @@ func _layout_action_buttons() -> void:
 	for child in _buttons_grid.get_children():
 		if child is Control:
 			var ctrl := child as Control
-			ctrl.custom_minimum_size = Vector2(0, row_height)
+			var target_min := Vector2(0, row_height)
+			if not ctrl.custom_minimum_size.is_equal_approx(target_min):
+				ctrl.custom_minimum_size = target_min
 			ctrl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			ctrl.size_flags_vertical = Control.SIZE_EXPAND_FILL
 
