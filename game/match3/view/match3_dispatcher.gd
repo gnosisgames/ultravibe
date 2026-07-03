@@ -17,6 +17,8 @@ const Match3CellFloorBoardScript = preload("res://game/match3/core/match3_cell_f
 const Match3BoonJuiceScript = preload("res://game/match3/boons/match3_boon_juice.gd")
 const Match3BoardGamepadScript = preload("res://game/match3/view/match3_board_gamepad.gd")
 const Match3ItemTypeVisualScript = preload("res://game/match3/view/match3_item_type_visual.gd")
+const Match3GameSpeedScript = preload("res://game/match3/core/match3_game_speed.gd")
+const Match3AnimationTuningScript = preload("res://game/match3/view/match3_animation_tuning.gd")
 const UltraUiFx = preload("res://game/ui/widgets/ultra_ui_fx.gd")
 const Events = Match3EventsScript
 
@@ -43,6 +45,8 @@ const MOVE_DURATION := 0.3
 const DESTROY_DURATION := 0.2
 const STEP_PAUSE := 0.3
 const INTER_STEP_DELAY := 0.0
+const POST_MOVE_INPUT_BUFFER_SEC := 0.15
+const FLOOR_FINALIZE_STEP_PAUSE_SEC := 0.18
 const CELL_GAP_RATIO := 0.06
 const ITEM_INSET_RATIO := 0.0
 const MIN_DRAG_PX := 24.0
@@ -238,6 +242,7 @@ func _run_move_sequence_body(payload: GnosisNode) -> void:
 
 
 func _end_move_sequence() -> void:
+	await _wait(POST_MOVE_INPUT_BUFFER_SEC)
 	_busy = false
 	_optimistic_swap_done = false
 	_sync_cell_floors_from_service()
@@ -396,7 +401,7 @@ func _animate_finalize_playback_steps(steps: GnosisNode) -> void:
 					0.0
 				)
 			await _apply_hud_metrics_from_step_node(step, i, steps.get_count())
-			await _wait(_resolve_boon_finalize_gap_seconds())
+			await _wait_unscaled(_resolve_boon_finalize_gap_seconds())
 		elif (
 			kind == FinalizePlaybackScript.KIND_BOON_SCORE
 			or kind == FinalizePlaybackScript.KIND_BOON_ECHO
@@ -541,6 +546,49 @@ func _resolve_boon_finalize_gap_seconds() -> float:
 	return 0.2
 
 
+func _presentation_engine() -> GnosisEngine:
+	if _service != null and _service.context != null:
+		return _service.context.engine
+	return Match3GameSpeedScript.engine_from_node(self)
+
+
+func _scale_pres(seconds: float, min_seconds: float = 0.0) -> float:
+	return Match3GameSpeedScript.scale_duration(_presentation_engine(), seconds, min_seconds)
+
+
+func _resolve_move_duration() -> float:
+	return _scale_pres(MOVE_DURATION, 0.1)
+
+
+func _resolve_destroy_duration() -> float:
+	var base := DESTROY_DURATION
+	if _service != null:
+		base /= maxf(0.01, Match3AnimationTuningScript.destroy_animation_speed(_service))
+	return _scale_pres(base, 0.04)
+
+
+func _resolve_floor_finalize_step_pause_seconds() -> float:
+	if _service != null:
+		return Match3AnimationTuningScript.floor_float_pop_stagger_seconds(_service)
+	return _scale_pres(FLOOR_FINALIZE_STEP_PAUSE_SEC, 0.02)
+
+
+func _resolve_floor_trigger_flash_seconds() -> float:
+	if _service != null:
+		return Match3AnimationTuningScript.floor_modifier_trigger_juice_duration(_service) * 0.55
+	return _scale_pres(0.22, 0.08)
+
+
+func _wait(seconds: float) -> void:
+	await _wait_unscaled(_scale_pres(seconds, 0.0))
+
+
+func _wait_unscaled(seconds: float) -> void:
+	if seconds <= 0.0:
+		return
+	await get_tree().create_timer(seconds).timeout
+
+
 func _animate_cell_floor_finalize_steps(steps: GnosisNode) -> void:
 	for i in steps.get_count():
 		var step = steps.get_node(i)
@@ -564,7 +612,7 @@ func _animate_cell_floor_finalize_steps(steps: GnosisNode) -> void:
 				BoardFloatJuiceScript.COLOR_MULTI,
 				0.0
 			)
-		await _wait(0.18)
+		await _wait_unscaled(_resolve_floor_finalize_step_pause_seconds())
 
 
 func _animate_boon_resolve_steps(steps: GnosisNode, use_finalize_timing: bool = false) -> void:
@@ -600,7 +648,7 @@ func _animate_boon_resolve_steps(steps: GnosisNode, use_finalize_timing: bool = 
 				hud.call("play_boon_score_juice_on_slot", slot_index, kind, display)
 		await _apply_hud_metrics_from_step_node(resolve_step, i, steps.get_count())
 		if step_pause > 0.0:
-			await _wait(step_pause)
+			await _wait_unscaled(step_pause)
 
 
 func _pulse_floor_cell(x: int, y: int) -> void:
@@ -612,7 +660,7 @@ func _pulse_floor_cell(x: int, y: int) -> void:
 	flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(flash)
 	var tw := create_tween()
-	tw.tween_property(flash, "modulate:a", 0.0, 0.22)
+	tw.tween_property(flash, "modulate:a", 0.0, _resolve_floor_trigger_flash_seconds())
 	tw.finished.connect(func() -> void:
 		if is_instance_valid(flash):
 			flash.queue_free()
@@ -745,7 +793,7 @@ func _animate_destroy(
 			floor_popup_entries.append({"anchor": anchor, "pop": floor_pop_map.get(cell_key), "cell_key": cell_key})
 		_spawn_sparkles(node)
 		_prep_destroy(node)
-		batch.tween_property(node, "scale", Vector2.ZERO, DESTROY_DURATION) \
+		batch.tween_property(node, "scale", Vector2.ZERO, _resolve_destroy_duration()) \
 			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
 	batch.finished.connect(func() -> void:
 		for entry in nodes:
@@ -770,7 +818,6 @@ func _animate_destroy(
 		_spawn_floor_bonus_popups_at(entry["anchor"], entry["pop"])
 	if STEP_PAUSE > 0.0:
 		await _wait(STEP_PAUSE)
-
 
 func _build_contribution_lookup(contributions: GnosisNode) -> Dictionary:
 	var map: Dictionary = {}
@@ -930,14 +977,6 @@ func _animate_spawns(spawns: GnosisNode) -> void:
 		await _wait(STEP_PAUSE)
 
 
-func _wait(seconds: float) -> void:
-	if seconds <= 0.0:
-		return
-	await get_tree().create_timer(seconds).timeout
-
-
-# --- Item nodes / layout -----------------------------------------------------
-
 func _make_item_node(item_id: String, item_type_id: String = "plain") -> Control:
 	var wrap := Control.new()
 	wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -1034,11 +1073,11 @@ func _tween_item_move(wrap: Control, dest: Vector2, play_land_sfx: bool, gamepla
 		return
 	var sprite := _item_sprite(wrap)
 	var tw: Tween = wrap.create_tween().set_parallel(true)
-	tw.tween_property(wrap, "position", dest, MOVE_DURATION) \
+	tw.tween_property(wrap, "position", dest, _resolve_move_duration()) \
 		.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	if sprite:
 		sprite.scale = Vector2(1.2, 0.8)
-		tw.tween_property(sprite, "scale", Vector2.ONE, MOVE_DURATION) \
+		tw.tween_property(sprite, "scale", Vector2.ONE, _resolve_move_duration()) \
 			.set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
 	if play_land_sfx:
 		tw.finished.connect(func() -> void: _play_land_sfx(gameplay_y))
@@ -1047,20 +1086,20 @@ func _tween_item_move(wrap: Control, dest: Vector2, play_land_sfx: bool, gamepla
 func _tween_item_move_pair(a: Control, dest_a: Vector2, b: Control, dest_b: Vector2, play_land_sfx: bool) -> Tween:
 	var tw: Tween = create_tween().set_parallel(true)
 	if a:
-		tw.tween_property(a, "position", dest_a, MOVE_DURATION) \
+		tw.tween_property(a, "position", dest_a, _resolve_move_duration()) \
 			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 		var sprite_a := _item_sprite(a)
 		if sprite_a:
 			sprite_a.scale = Vector2(1.2, 0.8)
-			tw.tween_property(sprite_a, "scale", Vector2.ONE, MOVE_DURATION) \
+			tw.tween_property(sprite_a, "scale", Vector2.ONE, _resolve_move_duration()) \
 				.set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
 	if b:
-		tw.tween_property(b, "position", dest_b, MOVE_DURATION) \
+		tw.tween_property(b, "position", dest_b, _resolve_move_duration()) \
 			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 		var sprite_b := _item_sprite(b)
 		if sprite_b:
 			sprite_b.scale = Vector2(1.2, 0.8)
-			tw.tween_property(sprite_b, "scale", Vector2.ONE, MOVE_DURATION) \
+			tw.tween_property(sprite_b, "scale", Vector2.ONE, _resolve_move_duration()) \
 				.set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
 	return tw
 

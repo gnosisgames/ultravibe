@@ -687,6 +687,26 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 4
 
+[node name="GameSpeedRow" type="HBoxContainer" parent="Center/Layout/Card/Content/AccessibilityPanel"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="Label" type="Label" parent="Center/Layout/Card/Content/AccessibilityPanel/GameSpeedRow"]
+custom_minimum_size = Vector2(280, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.992157, 0.894118, 0.72549, 1)
+theme_override_fonts/font = ExtResource("5")
+theme_override_font_sizes/font_size = 26
+text = "ultravibe__settings__animationSpeed"
+vertical_alignment = 1
+
+[node name="GameSpeedOption" type="OptionButton" parent="Center/Layout/Card/Content/AccessibilityPanel/GameSpeedRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(360, 56)
+layout_mode = 2
+script = ExtResource("16")
+
 [node name="AdvancedPanel" type="ScrollContainer" parent="Center/Layout/Card/Content"]
 unique_name_in_owner = true
 visible = false

@@ -4,6 +4,7 @@ extends RefCounted
 ## Board floating text for gem clears (Unity FloatingTextPoint / FloatingTextMulti parity).
 
 const DisplayTextScript = preload("res://game/match3/view/match3_score_floating_display_text.gd")
+const Match3GameSpeedScript = preload("res://game/match3/core/match3_game_speed.gd")
 const FONT_PATH := "res://assets/fonts/Comic Lemon.otf"
 
 const PRIMARY_LIFETIME := 0.6
@@ -62,7 +63,7 @@ static func spawn_destroy_gem_popups(
 			false
 		)
 	if has_multi:
-		var delay := PRIMARY_LIFETIME * SECONDARY_DELAY_FACTOR if has_points else 0.0
+		var delay := _scale_duration(parent, PRIMARY_LIFETIME * SECONDARY_DELAY_FACTOR, 0.0) if has_points else 0.0
 		_spawn_popup(
 			parent,
 			anchor,
@@ -97,7 +98,8 @@ static func spawn_labeled_popup_global(
 	if host == null or not is_instance_valid(host):
 		return
 	if delay > 0.0:
-		host.get_tree().create_timer(delay).timeout.connect(
+		var scaled_delay := _scale_duration(host, delay, 0.0)
+		host.get_tree().create_timer(scaled_delay).timeout.connect(
 			func() -> void:
 				if is_instance_valid(host):
 					_play_popup(host, global_anchor, text, accent, true, motion, size_scale)
@@ -143,7 +145,8 @@ static func _spawn_popup(
 	if text.is_empty():
 		return
 	if delay > 0.0:
-		parent.get_tree().create_timer(delay).timeout.connect(
+		var scaled_delay := _scale_duration(parent, delay, 0.0)
+		parent.get_tree().create_timer(scaled_delay).timeout.connect(
 			func() -> void:
 				if is_instance_valid(parent):
 					_play_popup(parent, anchor, text, accent, global_space, motion)
@@ -226,34 +229,50 @@ static func _play_popup(
 	wrap.scale = Vector2.ZERO
 	wrap.modulate = Color(1, 1, 1, 0)
 
+	var engine := Match3GameSpeedScript.engine_from_node(host)
+	var fade_in := _scale_duration_for_engine(engine, FADE_IN_DURATION, 0.04)
+	var hold_sec := _scale_duration_for_engine(engine, HUD_HOLD_SEC, 0.04)
+	var rise_sec := _scale_duration_for_engine(engine, maxf(0.15, PRIMARY_LIFETIME - FADE_IN_DURATION), 0.08)
+	var fade_out := _scale_duration_for_engine(engine, 0.2, 0.04)
+	var settle_sec := _scale_duration_for_engine(engine, 0.08, 0.02)
+	var rise_px := RISE_PX
+
 	var tw := wrap.create_tween()
 	if motion == PopupMotion.HUD_SCALE_POP:
 		tw.set_parallel(true)
-		tw.tween_property(wrap, "scale", Vector2(POP_SCALE, POP_SCALE), FADE_IN_DURATION) \
+		tw.tween_property(wrap, "scale", Vector2(POP_SCALE, POP_SCALE), fade_in) \
 			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-		tw.tween_property(wrap, "modulate:a", 1.0, FADE_IN_DURATION)
-		tw.chain().tween_property(wrap, "scale", Vector2(SETTLE_SCALE, SETTLE_SCALE), 0.08) \
+		tw.tween_property(wrap, "modulate:a", 1.0, fade_in)
+		tw.chain().tween_property(wrap, "scale", Vector2(SETTLE_SCALE, SETTLE_SCALE), settle_sec) \
 			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-		tw.chain().tween_interval(HUD_HOLD_SEC)
-		tw.chain().tween_property(wrap, "modulate:a", 0.0, 0.2)
-		tw.parallel().tween_property(wrap, "scale", Vector2(POP_SCALE * 1.05, POP_SCALE * 1.05), 0.2) \
+		tw.chain().tween_interval(hold_sec)
+		tw.chain().tween_property(wrap, "modulate:a", 0.0, fade_out)
+		tw.parallel().tween_property(wrap, "scale", Vector2(POP_SCALE * 1.05, POP_SCALE * 1.05), fade_out) \
 			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 		tw.chain().tween_callback(wrap.queue_free)
 	else:
-		var dest_pos := (wrap.global_position if use_global_pos else wrap.position) + Vector2(0, -RISE_PX)
+		var dest_pos := (wrap.global_position if use_global_pos else wrap.position) + Vector2(0, -rise_px)
 		tw.set_parallel(true)
-		tw.tween_property(wrap, "scale", Vector2(POP_SCALE, POP_SCALE), FADE_IN_DURATION) \
+		tw.tween_property(wrap, "scale", Vector2(POP_SCALE, POP_SCALE), fade_in) \
 			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-		tw.tween_property(wrap, "modulate:a", 1.0, FADE_IN_DURATION)
-		tw.chain().tween_property(wrap, "scale", Vector2(SETTLE_SCALE, SETTLE_SCALE), 0.08) \
+		tw.tween_property(wrap, "modulate:a", 1.0, fade_in)
+		tw.chain().tween_property(wrap, "scale", Vector2(SETTLE_SCALE, SETTLE_SCALE), settle_sec) \
 			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 		var pos_prop := "global_position" if use_global_pos else "position"
-		tw.chain().tween_property(wrap, pos_prop, dest_pos, maxf(0.15, PRIMARY_LIFETIME - FADE_IN_DURATION)) \
+		tw.chain().tween_property(wrap, pos_prop, dest_pos, rise_sec) \
 			.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-		tw.chain().tween_property(wrap, "modulate:a", 0.0, 0.2)
-		tw.parallel().tween_property(wrap, "scale", Vector2(POP_SCALE * 1.05, POP_SCALE * 1.05), 0.2) \
+		tw.chain().tween_property(wrap, "modulate:a", 0.0, fade_out)
+		tw.parallel().tween_property(wrap, "scale", Vector2(POP_SCALE * 1.05, POP_SCALE * 1.05), fade_out) \
 			.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 		tw.chain().tween_callback(wrap.queue_free)
+
+
+static func _scale_duration(node: Node, seconds: float, min_seconds: float) -> float:
+	return _scale_duration_for_engine(Match3GameSpeedScript.engine_from_node(node), seconds, min_seconds)
+
+
+static func _scale_duration_for_engine(engine: GnosisEngine, seconds: float, min_seconds: float) -> float:
+	return Match3GameSpeedScript.scale_duration(engine, seconds, min_seconds)
 
 
 static func _resolve_popup_parent(host: Node, global_space: bool, motion: PopupMotion) -> Node:

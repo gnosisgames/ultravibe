@@ -17,9 +17,10 @@ const UltraGameUiNav = preload("res://game/ui/ultra_game_ui_nav.gd")
 ## Boss letter token font — mirrors the collection view boss tokens.
 const TOKEN_FONT_PATH := "res://assets/fonts/PolygonParty-3KXM.ttf"
 const TOKEN_DEFAULT_BG := Color(0.0980392, 0.156863, 0.227451)
-## Total score label tints — idle zero blends into the dark score panel.
+## Total score label tints — zero blends into the dark inner panel; non-zero uses
+## the outer score section purple (read from the section style / theme).
 const SCORE_PANEL_BG_COLOR := Color(0.156863, 0.196078, 0.290196, 1)
-const SCORE_TOTAL_VISIBLE_COLOR := Color(1, 1, 1, 1)
+const SCORE_SECTION_COLOR_FALLBACK := Color(0.415686, 0.415686, 0.658824, 1)
 
 ## Group used by subscreen overlays (shop / level select / reward) to find this
 ## HUD and query the shared content frame.
@@ -199,11 +200,16 @@ func refresh_from_service(service = null) -> void:
 	if _service == null:
 		return
 	var gameplay = _service.get_gameplay()
+	var playing: bool = gameplay.status == Match3ModelsScript.STATUS_PLAYING
+	if not playing:
+		_clear_overlay_score_display()
 	if _total_value:
-		var total: int = _display_total_score if _move_metrics_active else gameplay.current_score
+		var total: int = 0
+		if playing:
+			total = _display_total_score if _move_metrics_active else gameplay.current_score
 		_set_total_value_display(total)
 	if _last_match_value:
-		if _move_metrics_active:
+		if _move_metrics_active and playing:
 			_update_last_match_label()
 		else:
 			_last_match_value.text = _format_score(0)
@@ -809,6 +815,19 @@ func finish_move_score_display(final_total: int) -> void:
 	_apply_score_display_texts()
 
 
+## Clears banked-score presentation when leaving gameplay (reward / shop / level select).
+func _clear_overlay_score_display() -> void:
+	_kill_score_display_tweens()
+	_reset_last_match_label_transform()
+	_move_metrics_active = false
+	_display_step_points = 0
+	_display_step_multi = 0
+	_display_last_match_score = 0
+	_display_total_score = 0
+	if _score_fire:
+		_score_fire.hide_fire()
+
+
 func cancel_move_score_display(final_total: int = -1) -> void:
 	_kill_score_display_tweens()
 	if final_total >= 0:
@@ -969,8 +988,31 @@ func _set_total_value_display(score: int) -> void:
 	if _total_value == null:
 		return
 	_total_value.text = _format_score(score)
-	var color := SCORE_TOTAL_VISIBLE_COLOR if score > 0 else SCORE_PANEL_BG_COLOR
+	var color := _score_total_visible_color() if score > 0 else SCORE_PANEL_BG_COLOR
 	_total_value.add_theme_color_override("font_color", color)
+
+
+func _score_total_visible_color() -> Color:
+	if _score_section != null:
+		var style := _score_section.get_theme_stylebox("panel") as StyleBoxFlat
+		if style != null:
+			return style.bg_color
+	return _theme_primary_shade_color()
+
+
+func _theme_primary_shade_color() -> Color:
+	var theme_svc: GnosisThemeService = _theme_service()
+	if theme_svc != null:
+		var hex := theme_svc.get_theme_property("primary.shade", "")
+		if not hex.is_empty():
+			return Color.from_string(hex, SCORE_SECTION_COLOR_FALLBACK)
+	return SCORE_SECTION_COLOR_FALLBACK
+
+
+func _theme_service() -> GnosisThemeService:
+	if _service != null and _service.context != null and _service.context.engine != null:
+		return _service.context.engine.get_service("Theme") as GnosisThemeService
+	return null
 
 
 func _update_last_match_label() -> void:

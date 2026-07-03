@@ -299,8 +299,9 @@ func play_boon_scaling_juice_now(slot_index: int, counter_key: String = "") -> v
 func get_heartbeat_delay_after_move_complete_seconds() -> float:
 	var delay := _cached_heartbeat_delay_sec
 	if is_nan(delay) or is_inf(delay) or delay < 0.0:
-		return 0.22
-	return clampf(delay, 0.0, 3.0)
+		delay = 0.22
+	delay = clampf(delay, 0.0, 3.0)
+	return Match3GameSpeedScript.scale_duration(_engine_for_speed(), delay, 0.03)
 
 
 func try_play_heartbeat_hint_after_move_if_needed() -> void:

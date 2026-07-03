@@ -6,8 +6,8 @@ extends GnosisUIElementView
 ## Match3.GrantNextRoundRewardStep after each line, then Continue transitions to shop.
 
 const SubscreenFrame = preload("res://game/ui/subscreen_frame.gd")
+const TuningScript = preload("res://game/match3/view/match3_animation_tuning.gd")
 const ACTION_COOLDOWN_SEC := 0.6
-const STEP_PAUSE_SEC := 0.45
 
 @onready var _rows: VBoxContainer = %RewardRows
 @onready var _reward_scroll: ScrollContainer = %RewardScroll
@@ -204,7 +204,12 @@ func _present_rewards_stepwise(gen: int) -> void:
 		await _spawn_row(gen, reason, amount, true)
 		if gen != _presentation_gen:
 			return
-		await get_tree().create_timer(STEP_PAUSE_SEC, true, false, true).timeout
+		await get_tree().create_timer(
+			TuningScript.round_reward_step_pause_seconds(_engine()),
+			true,
+			false,
+			true
+		).timeout
 		if gen != _presentation_gen:
 			return
 

@@ -5,9 +5,10 @@ extends PanelContainer
 ## the left, animated <c>$</c> glyphs on the right.
 
 const ROW_FONT := preload("res://assets/fonts/Comic Lemon.otf")
+const TuningScript := preload("res://game/match3/view/match3_animation_tuning.gd")
+const Match3GameSpeedScript := preload("res://game/match3/core/match3_game_speed.gd")
 const ROW_BG := Color(0.345098, 0.345098, 0.572549, 1)
 const MONEY_COLOR := Color(0.937255, 0.74902, 0.0156863, 1)
-const GLYPH_STAGGER_SEC := 0.055
 
 var _reason_label: Label
 var _money_label: Label
@@ -63,8 +64,10 @@ func reveal_line(reason: String, amount: int, animate_money: bool) -> void:
 		_money_label.text = glyphs
 		return
 	var count := glyphs.length()
+	var engine := Match3GameSpeedScript.engine_from_node(self)
+	var stagger_sec := TuningScript.round_reward_money_glyph_stagger_seconds(engine)
 	for i in range(count):
 		_money_label.text = glyphs.substr(0, i + 1)
 		UltraUiFx.play_round_reward_coin_juice(self, i, count)
 		if i < count - 1:
-			await tree.create_timer(GLYPH_STAGGER_SEC, true, false, true).timeout
+			await tree.create_timer(stagger_sec, true, false, true).timeout

@@ -5,6 +5,7 @@ extends RefCounted
 
 const SupportScript = preload("res://game/match3/boons/match3_boon_support.gd")
 const BoardFloatJuiceScript = preload("res://game/match3/view/match3_board_float_juice.gd")
+const Match3GameSpeedScript = preload("res://game/match3/core/match3_game_speed.gd")
 const EventsScript = preload("res://game/match3/match3_events.gd")
 
 const KIND_POINTS := "points"
@@ -110,6 +111,11 @@ static func _play_trigger_juice(host: Node, slot: Control) -> void:
 	var twist_peak := deg_to_rad(randf_range(-MAX_TWIST_DEG, MAX_TWIST_DEG))
 	var tw := host.create_tween()
 	tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	var juice_sec := Match3GameSpeedScript.scale_duration(
+		Match3GameSpeedScript.engine_from_node(host),
+		TRIGGER_JUICE_SEC,
+		0.04
+	)
 	tw.tween_method(
 		func(t: float) -> void:
 			if not is_instance_valid(slot):
@@ -119,7 +125,7 @@ static func _play_trigger_juice(host: Node, slot: Control) -> void:
 			slot.rotation = twist_peak * wave,
 		0.0,
 		1.0,
-		TRIGGER_JUICE_SEC,
+		juice_sec,
 	).set_trans(Tween.TRANS_LINEAR)
 	tw.finished.connect(
 		func() -> void:

@@ -5,6 +5,7 @@ extends RefCounted
 
 const SparklesScene := preload("res://game/match3/view/match3_sparkles.tscn")
 const TuningScript := preload("res://game/match3/view/match3_animation_tuning.gd")
+const Match3GameSpeedScript := preload("res://game/match3/core/match3_game_speed.gd")
 const BoardFloatJuiceScript := preload("res://game/match3/view/match3_board_float_juice.gd")
 
 const DISPLAY_USE := "Use"
@@ -129,7 +130,10 @@ static func pulse_bar(panel: Control) -> Tween:
 	if panel == null or not is_instance_valid(panel):
 		return null
 	panel.pivot_offset = panel.size * 0.5
+	var engine := Match3GameSpeedScript.engine_from_node(panel)
+	var out_sec := Match3GameSpeedScript.scale_duration(engine, 0.12, 0.03)
+	var back_sec := Match3GameSpeedScript.scale_duration(engine, 0.14, 0.03)
 	var tw := panel.create_tween()
-	tw.tween_property(panel, "scale", Vector2(1.03, 1.03), 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tw.tween_property(panel, "scale", Vector2.ONE, 0.14).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(panel, "scale", Vector2(1.03, 1.03), out_sec).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_property(panel, "scale", Vector2.ONE, back_sec).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	return tw
