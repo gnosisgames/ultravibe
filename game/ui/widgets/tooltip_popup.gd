@@ -71,6 +71,8 @@ var _chips_wrap: MarginContainer = null
 func _ready() -> void:
 	if Engine.is_editor_hint():
 		return
+	grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	grow_vertical = Control.GROW_DIRECTION_BEGIN
 	apply_standard_skin()
 	show()
 	scale = Vector2.ZERO
@@ -246,6 +248,102 @@ static func format_bbcode(value: String) -> String:
 		text_value = tag_re.sub(text_value, "[color=#%s]$1[/color]" % color, true)
 	return text_value
 
+## Positions a top-level tooltip beside `anchor`, clamped inside the viewport.
+## Sets `pivot_side` so the appear animation scales from the anchor edge.
+static func position_at_anchor(
+	tooltip: Control,
+	anchor: Control,
+	prefer_side: PIVOT_SIDE = PIVOT_SIDE.TOP,
+	gap: float = 14.0,
+) -> void:
+	if tooltip == null or anchor == null or not is_instance_valid(anchor):
+		return
+	var viewport := anchor.get_viewport()
+	if viewport == null:
+		return
+	var anchor_rect := anchor.get_global_rect()
+	var bounds := viewport.get_visible_rect().grow(-8.0)
+	var tip_size := _measure_tooltip_size(tooltip, bounds)
+	tooltip.size = tip_size
+	var side := prefer_side
+	var x := 0.0
+	var y := 0.0
+
+	if side == PIVOT_SIDE.RIGHT:
+		x = anchor_rect.end.x + gap
+		y = anchor_rect.position.y + (anchor_rect.size.y - tip_size.y) * 0.5
+		if x + tip_size.x > bounds.end.x - 8.0:
+			side = PIVOT_SIDE.LEFT
+	if side == PIVOT_SIDE.LEFT:
+		x = anchor_rect.position.x - tip_size.x - gap
+		y = anchor_rect.position.y + (anchor_rect.size.y - tip_size.y) * 0.5
+		if x < bounds.position.x + 8.0 and prefer_side == PIVOT_SIDE.RIGHT:
+			side = PIVOT_SIDE.RIGHT
+			x = anchor_rect.end.x + gap
+			y = anchor_rect.position.y + (anchor_rect.size.y - tip_size.y) * 0.5
+	elif side == PIVOT_SIDE.TOP:
+		x = anchor_rect.position.x + (anchor_rect.size.x - tip_size.x) * 0.5
+		y = anchor_rect.position.y - tip_size.y - gap
+		if y < bounds.position.y + 8.0:
+			side = PIVOT_SIDE.BOTTOM
+			y = anchor_rect.end.y + gap
+	elif side == PIVOT_SIDE.BOTTOM:
+		x = anchor_rect.position.x + (anchor_rect.size.x - tip_size.x) * 0.5
+		y = anchor_rect.end.y + gap
+
+	var min_x := bounds.position.x + 8.0
+	var max_x := maxf(min_x, bounds.end.x - tip_size.x - 8.0)
+	var min_y := bounds.position.y + 8.0
+	var max_y := maxf(min_y, bounds.end.y - tip_size.y - 8.0)
+	x = clampf(x, min_x, max_x)
+	y = clampf(y, min_y, max_y)
+
+	if tooltip is TooltipPopup:
+		(tooltip as TooltipPopup).pivot_side = _pivot_side_for_placement(side)
+	tooltip.global_position = Vector2(x, y)
+
+
+static func _pivot_side_for_placement(placement: PIVOT_SIDE) -> PIVOT_SIDE:
+	match placement:
+		PIVOT_SIDE.RIGHT:
+			return PIVOT_SIDE.LEFT
+		PIVOT_SIDE.LEFT:
+			return PIVOT_SIDE.RIGHT
+		PIVOT_SIDE.TOP:
+			return PIVOT_SIDE.BOTTOM
+		PIVOT_SIDE.BOTTOM:
+			return PIVOT_SIDE.TOP
+		_:
+			return PIVOT_SIDE.BOTTOM
+
+
+static func _measure_tooltip_size(tooltip: Control, bounds: Rect2) -> Vector2:
+	if tooltip is TooltipPopup:
+		return (tooltip as TooltipPopup).snap_to_content_size(bounds)
+	var tip_size := tooltip.get_combined_minimum_size()
+	tip_size.x = minf(tip_size.x, bounds.size.x - 16.0)
+	tip_size.y = minf(tip_size.y, bounds.size.y - 16.0)
+	return tip_size
+
+
+## Collapse a popup to its natural content height (top-level tooltips must not use grow_end).
+func snap_to_content_size(max_bounds: Rect2 = Rect2()) -> Vector2:
+	set_anchors_preset(Control.PRESET_TOP_LEFT)
+	set_offsets_preset(Control.PRESET_TOP_LEFT)
+	offset_left = 0.0
+	offset_top = 0.0
+	offset_right = 0.0
+	offset_bottom = 0.0
+	grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	grow_vertical = Control.GROW_DIRECTION_BEGIN
+	reset_size()
+	var natural := get_combined_minimum_size()
+	if max_bounds.size != Vector2.ZERO:
+		natural.x = minf(natural.x, max_bounds.size.x - 16.0)
+		natural.y = minf(natural.y, max_bounds.size.y - 16.0)
+	size = natural
+	return natural
+
 func _set_pivot_point() -> void:
 	match pivot_side:
 		PIVOT_SIDE.TOP:
@@ -266,6 +364,7 @@ func appear() -> void:
 		return
 	if target and target.disabled and not appear_when_disabled:
 		return
+	visible = true
 	_set_pivot_point()
 	if tween_tooltip and tween_tooltip.is_running():
 		tween_tooltip.kill()
@@ -284,3 +383,4 @@ func disappear() -> void:
 	tween_tooltip = create_tween().set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
 	tween_tooltip.tween_property(self, "scale:x", 0.0, 0.25)
 	tween_tooltip.parallel().tween_property(self, "scale:y", 0.0, 0.2)
+	tween_tooltip.tween_callback(func() -> void: visible = false)

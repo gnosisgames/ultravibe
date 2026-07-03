@@ -75,9 +75,12 @@ static func play_score_on_slot(host: Node, slot: Control, score_kind: String, di
 		label = "+?"
 	BoardFloatJuiceScript.spawn_labeled_popup_global(
 		host,
-		slot.global_position + Vector2(slot.size.x * 0.5, slot.size.y * 0.15),
+		BoardFloatJuiceScript.hud_slot_bottom_center_global(slot),
 		label,
-		accent
+		accent,
+		0.0,
+		BoardFloatJuiceScript.PopupMotion.HUD_SCALE_POP,
+		BoardFloatJuiceScript.HUD_BOON_FLOAT_SIZE_SCALE
 	)
 	_play_trigger_juice(host, slot)
 
@@ -88,9 +91,12 @@ static func play_on_slot(host: Node, slot: Control, score_kind: String) -> void:
 	var accent := accent_for_kind(score_kind)
 	BoardFloatJuiceScript.spawn_labeled_popup_global(
 		host,
-		slot.global_position + Vector2(slot.size.x * 0.5, slot.size.y * 0.15),
+		BoardFloatJuiceScript.hud_slot_bottom_center_global(slot),
 		"UP",
-		accent
+		accent,
+		0.0,
+		BoardFloatJuiceScript.PopupMotion.HUD_SCALE_POP,
+		BoardFloatJuiceScript.HUD_BOON_FLOAT_SIZE_SCALE
 	)
 	_play_trigger_juice(host, slot)
 

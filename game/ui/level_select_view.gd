@@ -700,9 +700,6 @@ func _show_consumable_tooltip(anchor: Control, preview: Dictionary, source: Stri
 		var fallback := tr(fallback_key)
 		description = fallback if fallback != fallback_key else title
 	_tooltip_anchor = anchor
-	_tooltip.set_anchors_preset(Control.PRESET_TOP_LEFT)
-	_tooltip.grow_horizontal = Control.GROW_DIRECTION_END
-	_tooltip.grow_vertical = Control.GROW_DIRECTION_END
 	_tooltip.visible = true
 	_tooltip.set_content(
 		title,
@@ -722,30 +719,15 @@ func _process(_delta: float) -> void:
 		return
 	if _tooltip == null or not _tooltip.visible:
 		return
-	_tooltip.reset_size()
 	_position_consumable_tooltip(_tooltip_anchor)
 
 
 func _position_consumable_tooltip(anchor: Control) -> void:
 	if _tooltip == null or anchor == null or not is_instance_valid(anchor):
 		return
-	var anchor_rect := anchor.get_global_rect()
 	var bounds := get_viewport().get_visible_rect().grow(-8.0)
-	var tooltip_size := _tooltip.get_combined_minimum_size()
-	tooltip_size.x = maxf(tooltip_size.x, _tooltip.size.x)
-	tooltip_size.y = maxf(tooltip_size.y, _tooltip.size.y)
-	tooltip_size.x = minf(tooltip_size.x, bounds.size.x - 16.0)
-	tooltip_size.y = minf(tooltip_size.y, bounds.size.y - 16.0)
-	var min_y := bounds.position.y + 8.0
-	var max_y := maxf(min_y, bounds.end.y - tooltip_size.y - 8.0)
-	var x := anchor_rect.position.x + (anchor_rect.size.x - tooltip_size.x) * 0.5
-	var y := anchor_rect.position.y - tooltip_size.y - 12.0
-	if y < min_y:
-		y = anchor_rect.end.y + 12.0
-	x = clampf(x, bounds.position.x + 8.0, maxf(bounds.position.x + 8.0, bounds.end.x - tooltip_size.x - 8.0))
-	y = clampf(y, min_y, max_y)
-	_tooltip.global_position = Vector2(x, y)
-	_tooltip.pivot_offset = Vector2(tooltip_size.x * 0.5, tooltip_size.y)
+	_tooltip.snap_to_content_size(bounds)
+	TooltipPopup.position_at_anchor(_tooltip, anchor, TooltipPopup.PIVOT_SIDE.TOP, 12.0)
 
 
 func _hide_consumable_tooltip_if_mouse_left(btn: Control) -> void:

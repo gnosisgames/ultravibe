@@ -6,6 +6,7 @@ extends GnosisService
 
 const CatalogPolicyScript = preload("res://game/match3/catalog/match3_run_catalog_offer_policy.gd")
 const BoonSupportScript = preload("res://game/match3/boons/match3_boon_support.gd")
+const Match3EventsScript = preload("res://game/match3/match3_events.gd")
 
 const SOURCE_BOONS := "boons"
 const SOURCE_CONSUMABLES := "consumables"
@@ -34,14 +35,36 @@ const DEFAULT_CORE_REROLL_INCREMENT := 2
 const FREE_REROLL_COUNT_KEY := "freeRerollCount"
 
 var _reroll_count := 0
+var _last_generated_core_round := 0
+var _round_changed_subscription: RefCounted = null
 
 
 func _init() -> void:
 	super._init("Match3Shop", GnosisLifetime.TRANSIENT)
 
 
+func on_run_started() -> void:
+	super.on_run_started()
+	_last_generated_core_round = 0
+	_reroll_count = 0
+	_generate_core_offer_for_queued_round()
+
+
 func on_initialize() -> void:
+	if context and context.event_bus:
+		_round_changed_subscription = context.event_bus.subscribe(
+			Match3EventsScript.FACT_MATCH3_ROUND_CHANGED,
+			_on_match3_round_changed,
+			0,
+		)
 	_ensure_core_shop()
+
+
+func on_shutdown() -> void:
+	if _round_changed_subscription and _round_changed_subscription.has_method("dispose"):
+		_round_changed_subscription.dispose()
+	_round_changed_subscription = null
+	super.on_shutdown()
 
 
 func get_functions() -> Array:
@@ -85,9 +108,46 @@ func _ensure_core_shop() -> GnosisNode:
 	if not core.is_valid() or core.get_type() != GnosisValueType.OBJECT:
 		core = context.store.create_object()
 		shop.set_key("core", core)
-	if not core.get_node("offers").is_valid():
-		_rebuild_core_shop_offers()
+	_ensure_core_offers_for_queued_round()
 	return shop
+
+
+func _read_queued_round() -> int:
+	var m3 := get_node("match3", false)
+	var current_round := maxi(1, _node_int(m3, "currentRound", 1))
+	return maxi(1, _node_int(m3, "nextLevel", current_round))
+
+
+func _ensure_core_offers_for_queued_round() -> void:
+	var queued_round := _read_queued_round()
+	if queued_round != _last_generated_core_round:
+		_replace_core_offer_for_round(queued_round)
+
+
+func _generate_core_offer_for_queued_round() -> void:
+	_replace_core_offer_for_round(_read_queued_round())
+
+
+func _replace_core_offer_for_round(round: int) -> void:
+	var safe_round := maxi(1, round)
+	if safe_round == _last_generated_core_round:
+		return
+	_last_generated_core_round = safe_round
+	_reroll_count = 0
+	_rebuild_core_shop_offers()
+
+
+func _on_match3_round_changed(event: GnosisEvent) -> void:
+	if event == null:
+		_generate_core_offer_for_queued_round()
+		return
+	var data := event.data
+	if data != null and data.is_valid() and data.get_type() == GnosisValueType.OBJECT:
+		var round_from_event := _node_int(data, "currentRound", -1)
+		if round_from_event > 0:
+			_replace_core_offer_for_round(round_from_event)
+			return
+	_generate_core_offer_for_queued_round()
 
 
 func _rebuild_core_shop_offers() -> GnosisNode:

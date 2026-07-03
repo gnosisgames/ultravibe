@@ -22,6 +22,7 @@ var _rng := RandomNumberGenerator.new()
 var _move_points_accum: int = 0
 var _move_multi_accum: int = 0
 var _tile_score_resolver: Callable = Callable()
+var _spawn_item_type_resolver: Callable = Callable()
 var _boon_score_finalize_hook: Callable = Callable()
 var _boon_first_match_hook: Callable = Callable()
 var score_restrict_exact_three := false
@@ -41,6 +42,10 @@ var _match_floor_conversion_hook: Callable = Callable()
 
 func configure_rng(seed_value: int) -> void:
 	_rng.seed = seed_value
+
+
+func get_spawn_rng() -> RandomNumberGenerator:
+	return _rng
 
 
 func configure_scoring_effects(
@@ -85,6 +90,25 @@ func set_boon_resolve_step_cascade_hook(hook: Callable) -> void:
 
 func set_tile_score_resolver(resolver: Callable) -> void:
 	_tile_score_resolver = resolver
+
+
+func set_spawn_item_type_resolver(resolver: Callable) -> void:
+	_spawn_item_type_resolver = resolver
+
+
+func set_tile_item_type(x: int, y: int, item_type_id: String, item_points: Dictionary) -> void:
+	if not _is_valid(x, y):
+		return
+	var tile := get_tile(x, y)
+	if tile == null or tile.is_empty():
+		return
+	var resolved := item_type_id.strip_edges()
+	if resolved.is_empty():
+		resolved = "plain"
+	tile.item_type_id = resolved
+	var stats := _resolve_tile_stats(tile.item_id, tile.item_type_id, item_points)
+	tile.point_for_item = stats.x
+	tile.multi_for_item = stats.y
 
 
 func set_cell_floor_scoring_hook(hook: Callable) -> void:
@@ -458,9 +482,14 @@ func _refill_empty_slots(item_points: Dictionary) -> Models.MatchResult:
 			spawn.at = Models.TileCoord.new(x, y)
 			spawn.item_id = item_id
 			spawn.item_kind = Models.KIND_NORMAL
-			spawn.item_type_id = "plain"
+			spawn.item_type_id = get_tile(x, y).item_type_id
 			result.new_spawns.append(spawn)
 	return result
+
+
+static func _is_plain_spawn_item_type(item_type_id: String) -> bool:
+	var value := str(item_type_id).strip_edges().to_lower()
+	return value.is_empty() or value == "plain"
 
 
 func _fill_initial_board_items(item_points: Dictionary) -> void:
@@ -530,7 +559,10 @@ func _set_item(
 	var tile := get_tile(x, y)
 	tile.item_id = item_id
 	tile.item_kind = kind
-	tile.item_type_id = item_type_id if not item_type_id.is_empty() else "plain"
+	var resolved_type := item_type_id if not item_type_id.is_empty() else "plain"
+	if _spawn_item_type_resolver.is_valid() and _is_plain_spawn_item_type(resolved_type):
+		resolved_type = str(_spawn_item_type_resolver.call(item_id, resolved_type))
+	tile.item_type_id = resolved_type if not resolved_type.is_empty() else "plain"
 	var stats := _resolve_tile_stats(item_id, tile.item_type_id, item_points)
 	tile.point_for_item = stats.x
 	tile.multi_for_item = stats.y

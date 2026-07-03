@@ -280,6 +280,66 @@ func active_effect_count() -> int:
 	return _active_rounds.size()
 
 
+func resolve_spawn_item_type_id_for_block(
+	item_id: String,
+	fallback_item_type_id: String,
+	rng: RandomNumberGenerator = null
+) -> String:
+	var fallback := fallback_item_type_id.strip_edges()
+	if fallback.is_empty():
+		fallback = "plain"
+	var trimmed_item := item_id.strip_edges()
+	if trimmed_item.is_empty():
+		return fallback
+	if spawn_disabled_block_ids.has(trimmed_item.to_lower()):
+		return "disabled"
+	if (
+		random_spawn_disabled_probability > 0.0
+		and _is_plain_spawn_item_type(fallback)
+		and rng != null
+		and rng.randf() < random_spawn_disabled_probability
+	):
+		return "disabled"
+	return fallback
+
+
+func sync_spawn_disabled_rules_to_board(gameplay, item_points: Dictionary) -> void:
+	if gameplay == null:
+		return
+	rebuild_derived_state()
+	var rng: RandomNumberGenerator = null
+	if gameplay.has_method("get_spawn_rng"):
+		rng = gameplay.call("get_spawn_rng")
+	elif "_rng" in gameplay:
+		rng = gameplay._rng
+	for y in range(gameplay.height):
+		for x in range(gameplay.width):
+			var tile = gameplay.get_tile(x, y)
+			if tile == null or not tile.can_hold_item() or tile.is_empty():
+				continue
+			var item_id := str(tile.item_id).strip_edges()
+			if item_id.is_empty():
+				continue
+			var want_disabled := spawn_disabled_block_ids.has(item_id.to_lower())
+			if want_disabled and _is_plain_spawn_item_type(tile.item_type_id):
+				if gameplay.has_method("set_tile_item_type"):
+					gameplay.call("set_tile_item_type", x, y, "disabled", item_points)
+			elif not want_disabled and _is_disabled_spawn_item_type(tile.item_type_id):
+				if random_spawn_disabled_probability > 0.0:
+					continue
+				if gameplay.has_method("set_tile_item_type"):
+					gameplay.call("set_tile_item_type", x, y, "plain", item_points)
+
+
+static func _is_plain_spawn_item_type(item_type_id: String) -> bool:
+	var value := str(item_type_id).strip_edges().to_lower()
+	return value.is_empty() or value == "plain"
+
+
+static func _is_disabled_spawn_item_type(item_type_id: String) -> bool:
+	return str(item_type_id).strip_edges().to_lower() == "disabled"
+
+
 func _persist_active_effects() -> void:
 	var m3: GnosisNode = _service.get_node("match3", false)
 	if m3.is_valid():

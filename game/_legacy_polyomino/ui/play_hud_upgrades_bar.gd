@@ -37,3 +37,7 @@ func _inventory_list() -> GnosisNode:
 ## Run upgrades stack, so the owned count becomes the x2/x3 badge.
 func _slot_stack_count(details: Dictionary) -> int:
 	return int(details.get("count", 1))
+
+
+func _tooltip_prefer_side() -> TooltipPopup.PIVOT_SIDE:
+	return TooltipPopup.PIVOT_SIDE.RIGHT

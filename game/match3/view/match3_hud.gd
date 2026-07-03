@@ -24,6 +24,7 @@ const SCORE_TOTAL_VISIBLE_COLOR := Color(1, 1, 1, 1)
 ## Group used by subscreen overlays (shop / level select / reward) to find this
 ## HUD and query the shared content frame.
 const HUD_GROUP := "match3_hud"
+const HUD_TOOLTIP_CANVAS_LAYER := 8
 ## Uniform gap between the content frame and the sidebars (and between cards).
 const FRAME_GAP := 32.0
 ## Main sidebar action chrome (home / settings / wiki / shuffle).
@@ -87,10 +88,15 @@ var _display_total_score := 0
 var _display_last_match_score := 0
 var _score_display_tween: Tween = null
 var _score_fire = null
+var _hud_tooltip_layer: CanvasLayer = null
 
 
 func _ready() -> void:
 	add_to_group(HUD_GROUP)
+	_hud_tooltip_layer = CanvasLayer.new()
+	_hud_tooltip_layer.name = "HudTooltipLayer"
+	_hud_tooltip_layer.layer = HUD_TOOLTIP_CANVAS_LAYER
+	add_child(_hud_tooltip_layer)
 	var token_font = load(TOKEN_FONT_PATH)
 	if token_font and _level_token:
 		_level_token.add_theme_font_override("font", token_font)
@@ -137,6 +143,10 @@ func _schedule_frame_dirty() -> void:
 func _flush_frame_dirty() -> void:
 	_frame_dirty_pending = false
 	_on_frame_dirty()
+
+
+func get_hud_tooltip_layer() -> CanvasLayer:
+	return _hud_tooltip_layer
 
 
 ## While the planning overlay (shop + level cards) is open, the boons strip sits

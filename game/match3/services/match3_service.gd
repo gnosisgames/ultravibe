@@ -132,6 +132,7 @@ func on_initialize() -> void:
 	_gameplay.set_cell_floor_griefing_hook(Callable(_cell_floor_runtime, "on_griefing_pre_score"))
 	_gameplay.set_match_floor_conversion_hook(Callable(self, "_apply_match_floor_conversions_after_clear"))
 	_gameplay.set_tile_score_resolver(Callable(self, "_resolve_item_score_profile"))
+	_gameplay.set_spawn_item_type_resolver(Callable(self, "_resolve_spawn_item_type_id_for_block"))
 	_gameplay.status = Models.STATUS_LEVEL_SELECT_PANEL
 	_publish_ephemeral_state()
 	if context and context.event_bus:
@@ -1055,6 +1056,7 @@ func _begin_level(level_number: int) -> void:
 	if previous_round >= 1 and previous_round != target_round:
 		_apply_boss_round_end_for_completed_round(previous_round)
 	_apply_round_setup(target_round)
+	_publish_round_changed_fact_if_needed(previous_round)
 	if _boon_runtime != null:
 		_boon_runtime.on_round_boundary(previous_round, _current_round)
 	if _match3_effects != null:
@@ -1114,6 +1116,23 @@ func _sync_gameplay_effect_flags() -> void:
 		_match3_effects.tile_points_contribution_scale,
 		_match3_effects.tile_multi_contribution_scale,
 		_match3_effects.reduce_first_destroyed_item_level_each_move
+	)
+	_sync_spawn_disabled_rules_to_board()
+
+
+func _sync_spawn_disabled_rules_to_board() -> void:
+	if _match3_effects == null:
+		return
+	_match3_effects.sync_spawn_disabled_rules_to_board(_gameplay, _item_points)
+
+
+func _resolve_spawn_item_type_id_for_block(item_id: String, fallback_item_type_id: String) -> String:
+	if _match3_effects == null:
+		return fallback_item_type_id if not fallback_item_type_id.is_empty() else "plain"
+	return _match3_effects.resolve_spawn_item_type_id_for_block(
+		item_id,
+		fallback_item_type_id,
+		_gameplay.get_spawn_rng() if _gameplay != null else null
 	)
 
 
@@ -1720,6 +1739,19 @@ func _prepare_queued_round_preview(level_number: int) -> void:
 	_last_step_points = 0
 	_last_step_multi = 0
 	_last_move_score = 0
+
+
+func _publish_round_changed_fact_if_needed(previous_round: int) -> void:
+	if previous_round == _current_round:
+		return
+	if context == null or context.store == null:
+		return
+	var payload := context.store.create_object()
+	payload.set_key("previousRound", maxi(0, previous_round))
+	payload.set_key("currentRound", maxi(1, _current_round))
+	payload.set_key("currentFloor", maxi(1, _current_floor))
+	payload.set_key("roundInFloor", maxi(1, _round_in_floor))
+	_publish_fact(Events.FACT_MATCH3_ROUND_CHANGED, payload)
 
 
 func _apply_round_setup(level_number: int) -> void:
@@ -2460,6 +2492,7 @@ func _publish_move_resolved(a, b, success: bool, results: Array) -> void:
 			s.set_key("x", sp.at.x)
 			s.set_key("y", sp.at.y)
 			s.set_key("itemId", sp.item_id)
+			s.set_key("itemTypeId", sp.item_type_id)
 			spawns.add(s)
 		step.set_node("spawns", spawns)
 		if entry is Models.MatchResult:
@@ -2635,6 +2668,7 @@ func _build_board_payload() -> GnosisNode:
 			tile_node.set_key("x", x)
 			tile_node.set_key("y", y)
 			tile_node.set_key("itemId", tile.item_id if tile else "")
+			tile_node.set_key("itemTypeId", tile.item_type_id if tile else "plain")
 			tile_node.set_key("slotType", tile.slot_type if tile else Models.SLOT_NONE)
 			tile_node.set_key("cellFloorTypeId", tile.cell_floor_type_id if tile else "")
 			tiles.add(tile_node)

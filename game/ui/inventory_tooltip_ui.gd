@@ -4,6 +4,7 @@ extends RefCounted
 ## Rich in-play inventory tooltips: localized descriptions with score-preview args and tag chips.
 
 const CatalogLocalizationUiScript = preload("res://game/ui/catalog_localization_ui.gd")
+const ShopCatalogUiScript = preload("res://game/ui/shop_catalog_ui.gd")
 
 
 static func build_tags(engine: GnosisEngine, meta: GnosisNode, entry: GnosisNode = GnosisNode.new(null)) -> Array:
@@ -70,6 +71,24 @@ static func enrich_entry_details(
 	base["tags"] = build_tags(engine, meta, entry)
 	base["entry"] = entry
 	return base
+
+
+## Shop-parity title/description/tags for an equipped inventory row (includes flavor chips).
+static func build_hud_presentation(
+	engine: GnosisEngine,
+	category: String,
+	entry: GnosisNode,
+) -> Dictionary:
+	var item_id := _resolve_item_id(entry)
+	var presentation := ShopCatalogUiScript.build_presentation(engine, category, item_id)
+	if presentation.is_empty():
+		presentation = {
+			"title": item_id.capitalize(),
+			"description": "",
+			"tags": [],
+		}
+	presentation["tags"] = build_tags(engine, entry.get_node("metadata"), entry)
+	return presentation
 
 
 static func _tags_from_metadata(engine: GnosisEngine, meta: GnosisNode) -> Array:

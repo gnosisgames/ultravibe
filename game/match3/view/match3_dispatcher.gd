@@ -16,6 +16,7 @@ const FinalizePlaybackScript = preload("res://game/match3/boons/match3_finalize_
 const Match3CellFloorBoardScript = preload("res://game/match3/core/match3_cell_floor_board.gd")
 const Match3BoonJuiceScript = preload("res://game/match3/boons/match3_boon_juice.gd")
 const Match3BoardGamepadScript = preload("res://game/match3/view/match3_board_gamepad.gd")
+const Match3ItemTypeVisualScript = preload("res://game/match3/view/match3_item_type_visual.gd")
 const UltraUiFx = preload("res://game/ui/widgets/ultra_ui_fx.gd")
 const Events = Match3EventsScript
 
@@ -135,6 +136,7 @@ func apply_board_payload(payload: GnosisNode) -> void:
 				"x": _node_int(tile_node, "x", 0),
 				"y": _node_int(tile_node, "y", 0),
 				"itemId": _node_string(tile_node, "itemId", ""),
+				"itemTypeId": _node_string(tile_node, "itemTypeId", "plain"),
 				"slotType": _node_int(tile_node, "slotType", Match3ModelsScript.SLOT_ACTIVE),
 				"cellFloorTypeId": _node_string(tile_node, "cellFloorTypeId", ""),
 			})
@@ -155,6 +157,7 @@ func _sync_from_service() -> void:
 				"x": x,
 				"y": y,
 				"itemId": tile.item_id if tile else "",
+				"itemTypeId": tile.item_type_id if tile else "plain",
 				"slotType": tile.slot_type if tile else Match3ModelsScript.SLOT_NONE,
 				"cellFloorTypeId": tile.cell_floor_type_id if tile else "",
 			})
@@ -170,8 +173,9 @@ func _rebuild_from_cells(cells: Array) -> void:
 		var item_id := str(cell.get("itemId", ""))
 		if item_id.is_empty():
 			continue
+		var item_type_id := str(cell.get("itemTypeId", "plain"))
 		var coord := Vector2i(int(cell.get("x", 0)), int(cell.get("y", 0)))
-		var node := _make_item_node(item_id)
+		var node := _make_item_node(item_id, item_type_id)
 		_items[_key(coord.x, coord.y)] = node
 		_place_node(node, coord.x, coord.y)
 	queue_redraw()
@@ -911,11 +915,12 @@ func _animate_spawns(spawns: GnosisNode) -> void:
 		var item_id := _node_string(s, "itemId", "")
 		if item_id.is_empty():
 			continue
+		var item_type_id := _node_string(s, "itemTypeId", "plain")
 		var key := _key(coord.x, coord.y)
 		var existing = _items.get(key, null)
 		if existing != null and is_instance_valid(existing):
 			existing.queue_free()
-		var node := _make_item_node(item_id)
+		var node := _make_item_node(item_id, item_type_id)
 		_items[key] = node
 		_place_node(node, coord.x, coord.y)
 		var dest := _item_position(coord.x, coord.y)
@@ -933,7 +938,7 @@ func _wait(seconds: float) -> void:
 
 # --- Item nodes / layout -----------------------------------------------------
 
-func _make_item_node(item_id: String) -> Control:
+func _make_item_node(item_id: String, item_type_id: String = "plain") -> Control:
 	var wrap := Control.new()
 	wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var sprite := TextureRect.new()
@@ -945,8 +950,10 @@ func _make_item_node(item_id: String) -> Control:
 		sprite.texture = _textures[item_id]
 	else:
 		sprite.modulate = ITEM_COLORS.get(item_id, Color.WHITE)
+	Match3ItemTypeVisualScript.apply(sprite, item_type_id)
 	wrap.add_child(sprite)
 	wrap.set_meta("item_id", item_id)
+	wrap.set_meta("item_type_id", item_type_id)
 	add_child(wrap)
 	return wrap
 
@@ -979,6 +986,7 @@ func _reset_item_visual(wrap: Control) -> void:
 		wrap.pivot_offset = Vector2.ZERO
 	else:
 		wrap.pivot_offset = Vector2.ZERO
+	_apply_item_type_visual(wrap, str(wrap.get_meta("item_type_id", "plain")))
 
 
 ## Snap to rest pose and scale from the tile center (not top-left).
@@ -1158,6 +1166,20 @@ func _sync_item_score_meta(wrap: Control, x: int, gameplay_y: int) -> void:
 	wrap.set_meta("point_for_item", data.point_for_item)
 	wrap.set_meta("multi_for_item", data.multi_for_item)
 	wrap.set_meta("item_type_id", data.item_type_id)
+	_apply_item_type_visual(wrap, data.item_type_id)
+
+
+func _apply_item_type_visual(wrap: Control, item_type_id: String) -> void:
+	if wrap == null:
+		return
+	var sprite := _item_sprite(wrap)
+	if sprite == null:
+		return
+	var type_id := item_type_id
+	if type_id.is_empty() or type_id == "plain":
+		type_id = str(wrap.get_meta("item_type_id", "plain"))
+	Match3ItemTypeVisualScript.apply(sprite, type_id)
+	wrap.set_meta("item_type_id", type_id)
 
 
 func _clear_items() -> void:

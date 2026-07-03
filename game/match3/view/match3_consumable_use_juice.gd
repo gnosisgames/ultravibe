@@ -114,12 +114,14 @@ static func _spawn_effect_floating_text(host: Node, slot: Control, effect_text: 
 	var slot_size := slot.size
 	if slot_size.x < 1.0 or slot_size.y < 1.0:
 		slot_size = slot.custom_minimum_size
-	var local_anchor := slot.position + slot_size * 0.5
+	var local_anchor := BoardFloatJuiceScript.hud_slot_bottom_center_local(slot)
 	BoardFloatJuiceScript.spawn_labeled_popup(
 		overlay as Control,
 		local_anchor,
 		text,
-		BoardFloatJuiceScript.COLOR_MONEY
+		BoardFloatJuiceScript.COLOR_MONEY,
+		0.0,
+		BoardFloatJuiceScript.PopupMotion.HUD_SCALE_POP
 	)
 
 

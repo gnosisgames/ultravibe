@@ -32,6 +32,8 @@ func _process(_delta: float) -> bool:
 func _run() -> bool:
 	if not _check_free_reroll_bank():
 		return false
+	if not _check_shop_round_refresh():
+		return false
 	if not _check_clickbait_shop_reroll_scaling():
 		return false
 	if not _check_consumable_echo_tracking():
@@ -78,6 +80,46 @@ func _check_free_reroll_bank() -> bool:
 		print("[FAIL] usedFreeRerollBank not true")
 		return false
 	print("[OK] free reroll bank consumed before paid reroll")
+	return true
+
+
+func _check_shop_round_refresh() -> bool:
+	var engine := _engine()
+	var shop := engine.get_service("Match3Shop")
+	var currency := engine.get_service("Currency")
+	var store := engine.store
+	var m3_eph := engine.state.root.get_node("Ephemeral").get_node("match3")
+
+	var add_money := store.create_object()
+	add_money.set_key("currencyId", "money")
+	add_money.set_key("amount", 100)
+	currency.invoke_function("AddCurrency", add_money)
+
+	var first = shop.invoke_function("GetCoreShop", store.create_object())
+	if not (first is GnosisFunctionResult) or not first.is_ok:
+		print("[FAIL] GetCoreShop initial: %s" % first.error)
+		return false
+	var core: GnosisNode = first.payload.get_node("core")
+	var reroll := store.create_object()
+	var reroll_result = shop.invoke_function("RerollCoreShop", reroll)
+	if not (reroll_result is GnosisFunctionResult) or not reroll_result.is_ok:
+		print("[FAIL] RerollCoreShop before round advance: %s" % reroll_result.error)
+		return false
+	core = engine.state.root.get_node("Ephemeral").get_node("match3Shop").get_node("core")
+	if int(core.get_node("rerollCount").value) < 1:
+		print("[FAIL] rerollCount not incremented after manual reroll")
+		return false
+
+	m3_eph.set_key("nextLevel", 3)
+	var second = shop.invoke_function("GetCoreShop", store.create_object())
+	if not (second is GnosisFunctionResult) or not second.is_ok:
+		print("[FAIL] GetCoreShop after nextLevel bump: %s" % second.error)
+		return false
+	var refreshed_core: GnosisNode = second.payload.get_node("core")
+	if int(refreshed_core.get_node("rerollCount").value) != 0:
+		print("[FAIL] rerollCount not reset after queued round change")
+		return false
+	print("[OK] shop offers refresh when queued round advances")
 	return true
 
 

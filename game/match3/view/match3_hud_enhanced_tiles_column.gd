@@ -248,14 +248,7 @@ func _show_tooltip(title: String, body: String, anchor: Control) -> void:
 	_tooltip.visible = true
 	_tooltip.set_content(title, body)
 	_tooltip.reset_size()
-	var rect := anchor.get_global_rect()
-	var tip_size := _tooltip.size
-	var x := rect.position.x + (rect.size.x - tip_size.x) * 0.5
-	var y := rect.position.y - tip_size.y - 10.0
-	if y < 8.0:
-		y = rect.end.y + 10.0
-	_tooltip.global_position = Vector2(x, y)
-	_tooltip.pivot_offset = Vector2(tip_size.x * 0.5, tip_size.y)
+	TooltipPopup.position_at_anchor(_tooltip, anchor, TooltipPopup.PIVOT_SIDE.RIGHT, 10.0)
 	_tooltip.appear()
 
 

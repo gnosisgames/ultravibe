@@ -4,6 +4,8 @@ extends PlayHudBoonsBar
 ## Top-strip boon inventory (centered row). Count label is overlaid; icons fill bar
 ## height with vertical bleed (negative padding) so squares read large like Unity.
 
+const TOOLTIP_Z_INDEX := 4096
+
 const PANEL_HORIZONTAL_INSET := 16.0
 ## Icons extend past the strip chrome top/bottom (matches BoonsRow anchor offsets in tscn).
 const VERTICAL_BLEED := 10.0
@@ -28,6 +30,66 @@ var _drag_rest_global_pos := Vector2.ZERO
 var _drag_rest_parent: Node = null
 var _drag_rest_index := -1
 var _float_host: Control = null
+
+
+func _tooltip_prefer_side() -> TooltipPopup.PIVOT_SIDE:
+	return TooltipPopup.PIVOT_SIDE.BOTTOM
+
+
+func _build_tooltip() -> void:
+	call_deferred("_finish_build_tooltip")
+
+
+func _finish_build_tooltip() -> void:
+	if _tooltip != null and is_instance_valid(_tooltip):
+		return
+	var hud := _find_match3_hud()
+	if hud == null:
+		return
+	var layer := hud.get_hud_tooltip_layer()
+	if layer == null:
+		return
+	_tooltip = TOOLTIP_SCENE.instantiate() as TooltipPopup
+	if _tooltip == null:
+		return
+	_tooltip.top_level = false
+	_tooltip.z_index = TOOLTIP_Z_INDEX
+	_tooltip.scale = Vector2.ZERO
+	_tooltip.visible = false
+	layer.add_child(_tooltip)
+
+
+func _find_match3_hud() -> Match3Hud:
+	var node: Node = self
+	while node:
+		if node is Match3Hud:
+			return node as Match3Hud
+		node = node.get_parent()
+	return null
+
+
+func _show_tooltip_for_slot(index: int) -> void:
+	if _tooltip == null or not is_instance_valid(_tooltip):
+		_finish_build_tooltip()
+	if _tooltip == null:
+		return
+	super._show_tooltip_for_slot(index)
+
+
+func _on_slot_unhovered() -> void:
+	call_deferred("_hide_tooltip_if_pointer_left")
+
+
+func _hide_tooltip_if_pointer_left() -> void:
+	if _tooltip_index < 0 or _tooltip_index >= _slot_nodes.size():
+		_hide_tooltip()
+		return
+	var slot := _slot_nodes[_tooltip_index]
+	if slot != null and is_instance_valid(slot):
+		var hit := slot.get_node_or_null("Hit") as Control
+		if hit and hit.get_global_rect().has_point(hit.get_global_mouse_position()):
+			return
+	_hide_tooltip()
 
 
 func _ready() -> void:

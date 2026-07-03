@@ -116,7 +116,6 @@ func _build_tooltip() -> void:
 func _process(_delta: float) -> void:
 	_refresh_if_changed()
 	if _tooltip_index >= 0 and _tooltip and _tooltip.visible:
-		_tooltip.reset_size()
 		_position_tooltip(_tooltip_index)
 
 func _refresh_if_changed() -> void:
@@ -139,8 +138,16 @@ func _refresh() -> void:
 		add_child(slot)
 		_slot_nodes.append(slot)
 	if _tooltip and is_instance_valid(_tooltip):
-		move_child(_tooltip, get_child_count() - 1)
+		_raise_tooltip()
 	queue_redraw()
+
+
+func _raise_tooltip() -> void:
+	if _tooltip == null or not is_instance_valid(_tooltip):
+		return
+	var parent := _tooltip.get_parent()
+	if parent:
+		parent.move_child(_tooltip, -1)
 
 func _notification(what: int) -> void:
 	# Redraw the capacity dots once the HBox has positioned the slots.
@@ -271,9 +278,6 @@ func _show_tooltip_for_slot(index: int) -> void:
 		return
 	_tooltip_index = index
 	var details: Dictionary = entries[index]
-	_tooltip.set_anchors_preset(Control.PRESET_TOP_LEFT)
-	_tooltip.grow_horizontal = Control.GROW_DIRECTION_END
-	_tooltip.grow_vertical = Control.GROW_DIRECTION_END
 	_tooltip.visible = true
 	_tooltip.set_content(
 		details.get("name", ""),
@@ -283,6 +287,7 @@ func _show_tooltip_for_slot(index: int) -> void:
 	)
 	_tooltip.reset_size()
 	_position_tooltip(index)
+	_raise_tooltip()
 	_tooltip.appear()
 
 func _position_tooltip(index: int) -> void:
@@ -291,14 +296,12 @@ func _position_tooltip(index: int) -> void:
 	var slot := _slot_nodes[index]
 	if slot == null or not is_instance_valid(slot):
 		return
-	var slot_rect := slot.get_global_rect()
-	var size := _tooltip.size
-	var x := slot_rect.position.x + (slot_rect.size.x - size.x) * 0.5
-	var y := slot_rect.position.y - size.y - 14.0
-	if y < 8.0:
-		y = slot_rect.end.y + 14.0
-	_tooltip.global_position = Vector2(x, y)
-	_tooltip.pivot_offset = Vector2(size.x * 0.5, size.y)
+	TooltipPopup.position_at_anchor(_tooltip, slot, _tooltip_prefer_side())
+
+
+## Subclasses override when icons sit on a screen edge (e.g. left-rail upgrades).
+func _tooltip_prefer_side() -> TooltipPopup.PIVOT_SIDE:
+	return TooltipPopup.PIVOT_SIDE.TOP
 
 func _hide_tooltip() -> void:
 	_tooltip_index = -1
