@@ -141,6 +141,11 @@ func _bind_hud() -> void:
 	if hud and svc and hud.has_method("bind_service"):
 		hud.bind_service(svc)
 
+
+func resync_match3_board_view() -> void:
+	if _match3_adapter and _match3_adapter.has_method("resync_board_view"):
+		_match3_adapter.resync_board_view()
+
 @export var disable_crt_overlay: bool = false
 
 func _initialize_presentation() -> void:

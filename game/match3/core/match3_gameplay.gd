@@ -164,6 +164,16 @@ func get_tile(x: int, y: int) -> Models.Match3TileData:
 	return grid[y][x]
 
 
+## True once load_level (or equivalent) has allocated grid rows matching width/height.
+func is_grid_allocated() -> bool:
+	if width <= 0 or height <= 0:
+		return false
+	if grid.size() != height:
+		return false
+	var row: Array = grid[0]
+	return row.size() == width
+
+
 func process_move(a: Models.TileCoord, b: Models.TileCoord, item_points: Dictionary) -> Array:
 	var results: Array = []
 	if status != Models.STATUS_PLAYING or current_moves <= 0 or not _can_swap(a, b):
@@ -606,7 +616,12 @@ func _make_empty_grid() -> void:
 
 
 func _is_valid(x: int, y: int) -> bool:
-	return x >= 0 and x < width and y >= 0 and y < height
+	if x < 0 or y < 0 or x >= width or y >= height:
+		return false
+	if grid.size() <= y:
+		return false
+	var row: Array = grid[y]
+	return row.size() > x
 
 
 func _coord_key(coord: Models.TileCoord) -> String:

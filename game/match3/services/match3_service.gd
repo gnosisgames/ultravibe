@@ -1781,6 +1781,7 @@ func _apply_round_setup(level_number: int) -> void:
 	_gameplay.current_moves = int(setup.get("moves", BASE_MOVES_LIMIT))
 	_gameplay.width = maxi(1, layout.width)
 	_gameplay.height = maxi(1, layout.height)
+	_gameplay.grid.clear()
 	_reset_heartbeat_hint_for_new_round()
 
 
@@ -2656,23 +2657,25 @@ func _publish_status_changed() -> void:
 
 func _build_board_payload() -> GnosisNode:
 	var payload := context.store.create_object()
-	payload.set_key(Events.PAYLOAD_WIDTH, _gameplay.width)
-	payload.set_key(Events.PAYLOAD_HEIGHT, _gameplay.height)
+	var grid_ready := _is_board_grid_ready()
+	payload.set_key(Events.PAYLOAD_WIDTH, _gameplay.width if grid_ready else 0)
+	payload.set_key(Events.PAYLOAD_HEIGHT, _gameplay.height if grid_ready else 0)
 	payload.set_key(Events.PAYLOAD_SCORE, _gameplay.current_score)
 	payload.set_key(Events.PAYLOAD_SCORE_TO_WIN, _gameplay.target_score)
 	payload.set_key(Events.PAYLOAD_CURRENT_MOVES, _gameplay.current_moves)
 	var tiles := context.store.create_list()
-	for y in _gameplay.height:
-		for x in _gameplay.width:
-			var tile = _gameplay.get_tile(x, y)
-			var tile_node = context.store.create_object()
-			tile_node.set_key("x", x)
-			tile_node.set_key("y", y)
-			tile_node.set_key("itemId", tile.item_id if tile else "")
-			tile_node.set_key("itemTypeId", tile.item_type_id if tile else "plain")
-			tile_node.set_key("slotType", tile.slot_type if tile else Models.SLOT_NONE)
-			tile_node.set_key("cellFloorTypeId", tile.cell_floor_type_id if tile else "")
-			tiles.add(tile_node)
+	if grid_ready:
+		for y in _gameplay.height:
+			for x in _gameplay.width:
+				var tile = _gameplay.get_tile(x, y)
+				var tile_node = context.store.create_object()
+				tile_node.set_key("x", x)
+				tile_node.set_key("y", y)
+				tile_node.set_key("itemId", tile.item_id if tile else "")
+				tile_node.set_key("itemTypeId", tile.item_type_id if tile else "plain")
+				tile_node.set_key("slotType", tile.slot_type if tile else Models.SLOT_NONE)
+				tile_node.set_key("cellFloorTypeId", tile.cell_floor_type_id if tile else "")
+				tiles.add(tile_node)
 	payload.set_node(Events.PAYLOAD_TILES, tiles)
 	return payload
 

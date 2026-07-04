@@ -151,6 +151,13 @@ func _sync_from_service() -> void:
 	if _service == null:
 		return
 	var gameplay = _service.get_gameplay()
+	if gameplay == null:
+		return
+	if gameplay.has_method("is_grid_allocated") and not gameplay.is_grid_allocated():
+		_width = 0
+		_height = 0
+		_rebuild_from_cells([])
+		return
 	_width = gameplay.width
 	_height = gameplay.height
 	var cells: Array = []
@@ -1260,6 +1267,8 @@ func _sync_cell_floors_from_service() -> void:
 		return
 	var gameplay = _service.get_gameplay()
 	if gameplay == null:
+		return
+	if gameplay.has_method("is_grid_allocated") and not gameplay.is_grid_allocated():
 		return
 	for cell in _cells:
 		var x := int(cell.get("x", 0))

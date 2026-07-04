@@ -40,6 +40,13 @@ func bind_dispatcher(dispatcher) -> void:
 		_set_board_visible(_match3_service.get_current_status() == Match3ModelsScript.STATUS_PLAYING)
 
 
+## Re-read gameplay into the board view after level-select preview metadata changes.
+func resync_board_view() -> void:
+	_resolve_dispatcher()
+	if _dispatcher and _match3_service:
+		_dispatcher.bind_service(_match3_service)
+
+
 func begin_level(level_number: int = 1) -> void:
 	if engine == null or engine.event_bus == null or engine.store == null:
 		return

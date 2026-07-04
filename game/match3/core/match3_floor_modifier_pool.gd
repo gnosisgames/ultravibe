@@ -196,9 +196,13 @@ static func is_board_grid_ready(gameplay) -> bool:
 static func _is_board_grid_ready(gameplay) -> bool:
 	if gameplay == null:
 		return false
+	if gameplay.has_method("is_grid_allocated"):
+		return gameplay.is_grid_allocated()
 	if gameplay.width <= 0 or gameplay.height <= 0:
 		return false
 	if gameplay.grid.size() != gameplay.height:
+		return false
+	if gameplay.grid.is_empty():
 		return false
 	var row: Array = gameplay.grid[0]
 	return row.size() == gameplay.width
