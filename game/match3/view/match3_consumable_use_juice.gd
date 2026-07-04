@@ -15,7 +15,9 @@ const POOF_AT_SCALE := 0.5
 
 
 static func run_two_phase(host: Node, slot: Control, effect_text: String, service) -> void:
-	if host == null or slot == null or not is_instance_valid(slot):
+	if host == null or not is_instance_valid(host) or host.get_tree() == null:
+		return
+	if slot == null or not is_instance_valid(slot):
 		return
 	_prepare_slot(slot)
 	await host.get_tree().process_frame

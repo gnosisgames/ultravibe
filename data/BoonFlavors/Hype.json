@@ -1,7 +1,7 @@
 {
-  "id": "BonusMulti",
+  "id": "Hype",
   "polarity": "positive",
-  "grantChancePermille": 120,
+  "grantChancePermille": 14,
   "properties": {
     "scoreTriggerOutcomes": [
       {
@@ -12,9 +12,9 @@
     ]
   },
   "metadata": {
-    "nameKey": "flavorBonusMultiName",
-    "tagType": "bonusMulti",
-    "tagLocKey": "core__flavor__bonusMulti",
+    "nameKey": "flavorHypeName",
+    "tagType": "hype",
+    "tagLocKey": "core__flavor__hype",
     "materialId": "verticalStripesBlockType"
   }
 }

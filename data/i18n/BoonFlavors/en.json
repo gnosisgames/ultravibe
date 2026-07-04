@@ -1,0 +1,16 @@
+{
+  "flavorCloutName": "Clout",
+  "flavorHypeName": "Hype",
+  "flavorMagneticName": "Magnetic",
+  "flavorGhostName": "Ghost",
+  "flavorEternalName": "Eternal",
+  "flavorRentalName": "Rental",
+  "flavorPerishableName": "Perishable",
+  "core__flavor__clout": "Clout",
+  "core__flavor__hype": "Hype",
+  "core__flavor__magnetic": "Magnetic",
+  "core__flavor__ghost": "Ghost",
+  "core__flavor__eternal": "Eternal",
+  "core__flavor__rental": "Rental",
+  "core__flavor__perishable": "Perishable"
+}

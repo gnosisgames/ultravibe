@@ -5,6 +5,7 @@ extends PlayHudConsumablesBar
 ## controller cycles a hidden slot index then fires Consumable / right-click.
 
 const JuiceScript := preload("res://game/match3/view/match3_consumable_use_juice.gd")
+const TOOLTIP_Z_INDEX := 4096
 ## ConsumablesBar panel style uses 24px horizontal content margins on each side.
 const PANEL_HORIZONTAL_INSET := 48.0
 const DRAG_THRESHOLD := 18.0
@@ -24,6 +25,50 @@ var _drag_rest_parent: Node = null
 var _drag_rest_index := -1
 var _float_host: Control = null
 var _controller_cycle_armed := true
+
+
+func _tooltip_prefer_side() -> TooltipPopup.PIVOT_SIDE:
+	return TooltipPopup.PIVOT_SIDE.LEFT
+
+
+func _build_tooltip() -> void:
+	call_deferred("_finish_build_tooltip")
+
+
+func _finish_build_tooltip() -> void:
+	if _tooltip != null and is_instance_valid(_tooltip):
+		return
+	var hud := _find_match3_hud()
+	if hud == null:
+		return
+	var layer := hud.get_hud_tooltip_layer()
+	if layer == null:
+		return
+	_tooltip = TOOLTIP_SCENE.instantiate() as TooltipPopup
+	if _tooltip == null:
+		return
+	_tooltip.top_level = false
+	_tooltip.z_index = TOOLTIP_Z_INDEX
+	_tooltip.scale = Vector2.ZERO
+	_tooltip.visible = false
+	layer.add_child(_tooltip)
+
+
+func _find_match3_hud() -> Match3Hud:
+	var node: Node = self
+	while node:
+		if node is Match3Hud:
+			return node as Match3Hud
+		node = node.get_parent()
+	return null
+
+
+func _show_tooltip_for_slot(index: int) -> void:
+	if _tooltip == null or not is_instance_valid(_tooltip):
+		_finish_build_tooltip()
+	if _tooltip == null:
+		return
+	super._show_tooltip_for_slot(index)
 
 
 func _ready() -> void:
@@ -137,8 +182,20 @@ func _cleanup_orphan_slots() -> void:
 			if child == _tooltip or child == _float_host:
 				continue
 			if child is Control and str(child.name).begins_with("Slot"):
+				if _is_protected_floating_slot(child as Control):
+					continue
 				if host != self or child not in _slot_nodes:
 					child.queue_free()
+
+
+func _is_protected_floating_slot(slot: Control) -> bool:
+	if slot == null or not is_instance_valid(slot):
+		return false
+	if slot == _drag_slot:
+		return true
+	if slot.has_meta(&"juice_rest_parent"):
+		return true
+	return slot.z_index >= 200
 
 
 func _clear_float_host() -> void:
@@ -147,6 +204,8 @@ func _clear_float_host() -> void:
 			if not is_instance_valid(child):
 				continue
 			if str(child.name).begins_with("Slot"):
+				if _is_protected_floating_slot(child as Control):
+					continue
 				child.queue_free()
 
 
@@ -375,9 +434,7 @@ func _use_slot_at_index(index: int) -> void:
 		_restore_floating_slot(slot)
 		_finish_consumable_use_presentation()
 		return
-	# Money/effects apply immediately; refresh before juice so the HUD updates now.
-	_refresh_parent_hud()
-	_run_consumable_juice(slot)
+	await _run_consumable_juice(slot)
 
 
 func _run_consumable_juice(slot: Control) -> void:
@@ -478,14 +535,9 @@ func _position_tooltip(index: int) -> void:
 	var slot := _slot_nodes[index]
 	if slot == null or not is_instance_valid(slot):
 		return
-	var slot_rect := slot.get_global_rect()
-	var tip_size := _tooltip.size
-	var x := slot_rect.position.x - tip_size.x - 14.0
-	var y := slot_rect.position.y + (slot_rect.size.y - tip_size.y) * 0.5
-	if x < 8.0:
-		x = slot_rect.end.x + 14.0
-	_tooltip.global_position = Vector2(x, y)
-	_tooltip.pivot_offset = Vector2(tip_size.x, tip_size.y * 0.5)
+	_tooltip.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	_tooltip.reset_size()
+	TooltipPopup.position_at_anchor(_tooltip, slot, TooltipPopup.PIVOT_SIDE.LEFT, 14.0)
 
 
 func _poll_consumable_controller_input() -> void:

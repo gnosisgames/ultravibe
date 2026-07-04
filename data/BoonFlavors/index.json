@@ -1,8 +1,8 @@
 {
   "boonFlavors": [
-    { "id": "BonusPoints", "path": "BonusPoints.json" },
-    { "id": "BonusMulti", "path": "BonusMulti.json" },
-    { "id": "Steel", "path": "Steel.json" },
+    { "id": "Clout", "path": "Clout.json" },
+    { "id": "Hype", "path": "Hype.json" },
+    { "id": "Magnetic", "path": "Magnetic.json" },
     { "id": "Ghost", "path": "Ghost.json" },
     { "id": "Eternal", "path": "Eternal.json" },
     { "id": "Rental", "path": "Rental.json" },

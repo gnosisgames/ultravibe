@@ -1,7 +1,7 @@
 {
   "id": "Rental",
   "polarity": "negative",
-  "grantChancePermille": 40,
+  "grantChancePermille": 30,
   "properties": {
     "roundStartMoneyCost": 3
   },

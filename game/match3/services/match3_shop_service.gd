@@ -7,6 +7,7 @@ extends GnosisService
 const CatalogPolicyScript = preload("res://game/match3/catalog/match3_run_catalog_offer_policy.gd")
 const BoonSupportScript = preload("res://game/match3/boons/match3_boon_support.gd")
 const Match3EventsScript = preload("res://game/match3/match3_events.gd")
+const FlavorsScript = preload("res://addons/com.gnosisgames.gnosisengine/services/gnosis_boon_flavors.gd")
 
 const SOURCE_BOONS := "boons"
 const SOURCE_CONSUMABLES := "consumables"
@@ -286,8 +287,24 @@ func _roll_core_offer_entries(tuning: Dictionary, core: GnosisNode) -> Array[Gno
 		offer.set_key("itemId", str(draft.get("itemId", "")))
 		offer.set_key("price", int(draft.get("price", 0)))
 		offer.set_key("available", true)
+		if str(draft.get("sourceConfigId", "")) == SOURCE_BOONS:
+			_roll_boon_flavors_for_shop_offer(offer, str(draft.get("itemId", "")), i)
 		result.append(offer)
 	return result
+
+
+func _roll_boon_flavors_for_shop_offer(offer: GnosisNode, boon_id: String, offer_index: int) -> void:
+	if offer == null or not offer.is_valid() or context == null or context.store == null:
+		return
+	var catalog_id := boon_id.strip_edges()
+	if catalog_id.is_empty():
+		return
+	var config_root := get_node("configuration", true)
+	if not config_root.is_valid():
+		return
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash("%s:%s:%s" % [_read_run_seed_hint(), catalog_id, offer_index])
+	FlavorsScript.roll_flavors_onto_object(offer, catalog_id, config_root, context.store, rng)
 
 
 func _build_catalog_ids(config_id: String) -> Array[String]:
@@ -788,7 +805,7 @@ func _purchase_core_item(parameters: GnosisNode) -> GnosisFunctionResult:
 		return GnosisFunctionResult.fail("insufficient_funds")
 	var source := _node_string(offer, "sourceConfigId", "")
 	var item_id := _node_string(offer, "itemId", "")
-	if not _try_apply_core_offer_purchase(source, item_id, price):
+	if not _try_apply_core_offer_purchase(source, item_id, price, offer):
 		if price > 0:
 			_refund_currency(price)
 		return GnosisFunctionResult.fail("purchase_core_item_failed")
@@ -802,7 +819,12 @@ func _purchase_core_item(parameters: GnosisNode) -> GnosisFunctionResult:
 	return GnosisFunctionResult.ok(offer)
 
 
-func _try_apply_core_offer_purchase(source_config_id: String, item_id: String, buy_price: int) -> bool:
+func _try_apply_core_offer_purchase(
+	source_config_id: String,
+	item_id: String,
+	buy_price: int,
+	offer: GnosisNode = null,
+) -> bool:
 	if context == null or context.store == null or item_id.strip_edges().is_empty():
 		return false
 	var source := source_config_id.strip_edges().to_lower()
@@ -817,6 +839,8 @@ func _try_apply_core_offer_purchase(source_config_id: String, item_id: String, b
 			params.set_key("boonId", item_id.strip_edges())
 			if buy_price > 0:
 				params.set_key("buyPrice", float(buy_price))
+			if offer != null and offer.is_valid():
+				FlavorsScript.copy_flavor_property_keys(offer, params)
 			return _service_invoke_succeeded(call_service("Boon", "ActivateBoon", params))
 		"consumables":
 			params.set_key("bucketId", "default")
@@ -964,6 +988,15 @@ func _read_shop_tuning() -> Dictionary:
 			DEFAULT_PRICE_INFLATION_PER_FLOOR,
 		),
 	}
+
+
+func _read_run_seed_hint() -> int:
+	if context == null or context.engine == null:
+		return 0
+	var seed_svc = context.engine.get_service("Seed")
+	if seed_svc != null and seed_svc.has_method("get_run_seed"):
+		return int(seed_svc.get_run_seed())
+	return 0
 
 
 func _invalid_node() -> GnosisNode:

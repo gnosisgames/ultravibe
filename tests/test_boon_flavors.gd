@@ -45,7 +45,7 @@ func _check_positive_flavor_score_trigger() -> bool:
 	if rows.is_empty():
 		print("[FAIL] Brainrot not equipped for flavor test")
 		return false
-	rows[0].get_node("properties").set_key("positiveFlavorId", "BonusPoints")
+	rows[0].get_node("properties").set_key("positiveFlavorId", "Clout")
 
 	if match3.has_method("configure_boon_score_rng"):
 		match3.configure_boon_score_rng(42)
@@ -77,10 +77,10 @@ func _check_positive_flavor_score_trigger() -> bool:
 	for entry in results:
 		if entry is Models.MatchResult:
 			for step in entry.boon_finalize_steps:
-				if str(step.get("calculationId", "")).to_lower() == "flavor_bonuspoints_score_trigger":
-					print("[OK] BonusPoints positive flavor triggered on score step")
+				if str(step.get("calculationId", "")).to_lower() == "flavor_clout_score_trigger":
+					print("[OK] Clout positive flavor triggered on score step")
 					return true
-	print("[FAIL] BonusPoints flavor score trigger missing")
+	print("[FAIL] Clout flavor score trigger missing")
 	return false
 
 

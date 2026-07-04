@@ -1,7 +1,7 @@
 {
   "id": "Perishable",
   "polarity": "negative",
-  "grantChancePermille": 50,
+  "grantChancePermille": 30,
   "properties": {
     "roundsLifetime": 5
   },

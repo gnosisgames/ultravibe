@@ -1,7 +1,7 @@
 {
-  "id": "BonusPoints",
+  "id": "Clout",
   "polarity": "positive",
-  "grantChancePermille": 150,
+  "grantChancePermille": 20,
   "properties": {
     "scoreTriggerOutcomes": [
       {
@@ -12,9 +12,9 @@
     ]
   },
   "metadata": {
-    "nameKey": "flavorBonusPointsName",
-    "tagType": "bonusPoints",
-    "tagLocKey": "core__flavor__bonusPoints",
+    "nameKey": "flavorCloutName",
+    "tagType": "clout",
+    "tagLocKey": "core__flavor__clout",
     "materialId": "whiteShader"
   }
 }

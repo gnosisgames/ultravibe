@@ -1,7 +1,7 @@
 {
   "id": "Ghost",
   "polarity": "positive",
-  "grantChancePermille": 50,
+  "grantChancePermille": 3,
   "properties": {
     "exemptFromSlotCapacity": true,
     "scoreTriggerOutcomes": []

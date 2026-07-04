@@ -1,7 +1,7 @@
 {
-  "id": "Steel",
+  "id": "Magnetic",
   "polarity": "positive",
-  "grantChancePermille": 80,
+  "grantChancePermille": 3,
   "properties": {
     "scoreTriggerOutcomes": [
       {
@@ -12,9 +12,9 @@
     ]
   },
   "metadata": {
-    "nameKey": "flavorSteelName",
-    "tagType": "steel",
-    "tagLocKey": "core__flavor__steel",
+    "nameKey": "flavorMagneticName",
+    "tagType": "magnetic",
+    "tagLocKey": "core__flavor__magnetic",
     "materialId": "disabledBlockType"
   }
 }
