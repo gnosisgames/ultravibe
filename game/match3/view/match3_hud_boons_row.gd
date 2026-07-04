@@ -18,6 +18,10 @@ const SWAY_ANGLE_VAR := 1.25
 const SWAY_TIMING_VAR := 0.4
 const DRAG_THRESHOLD := 18.0
 
+const HolographicCardFxScript = preload("res://game/ui/widgets/holographic_card_fx.gd")
+const MetallicToonFxScript = preload("res://game/ui/widgets/metallic_toon_fx.gd")
+const Match3BoonFoilPreviewScript = preload("res://game/match3/boons/match3_boon_foil_preview.gd")
+
 var _bar_panel: PanelContainer = null
 var _last_layout_slot_size := -1.0
 var _pointer_down_index := -1
@@ -30,6 +34,12 @@ var _drag_rest_global_pos := Vector2.ZERO
 var _drag_rest_parent: Node = null
 var _drag_rest_index := -1
 var _float_host: Control = null
+
+
+func bind_service(service: GnosisService) -> void:
+	super.bind_service(service)
+	if Match3BoonFoilPreviewScript.ENABLED:
+		call_deferred("force_refresh")
 
 
 func _tooltip_prefer_side() -> TooltipPopup.PIVOT_SIDE:
@@ -197,11 +207,11 @@ func _sway_hash01(seed: int, salt: int) -> float:
 func _make_slot(index: int, details: Dictionary) -> Control:
 	var slot := super._make_slot(index, details)
 	_configure_slot_sway(slot, index, details)
+	var icon := slot.get_node_or_null("Icon") as TextureRect
 	var w := slot_size
 	if w >= 8.0:
 		slot.custom_minimum_size = Vector2(w, w + float_offset)
 		slot.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		var icon := slot.get_node_or_null("Icon") as TextureRect
 		if icon:
 			icon.set_anchors_preset(Control.PRESET_FULL_RECT)
 			icon.offset_left = 0.0
@@ -223,7 +233,35 @@ func _make_slot(index: int, details: Dictionary) -> Control:
 			badge.offset_top = w - 20.0
 			badge.offset_right = w + 2.0
 			badge.offset_bottom = w + 2.0
+	_apply_shader_preview_to_icon(icon, details, index)
+	var preview_details := details.duplicate(true)
+	var preview_index := index
+	slot.tree_entered.connect(
+		_on_slot_tree_entered_apply_shader.bind(slot, preview_details, preview_index),
+		CONNECT_ONE_SHOT
+	)
 	return slot
+
+
+func _on_slot_tree_entered_apply_shader(slot: Control, details: Dictionary, slot_index: int) -> void:
+	if slot == null or not is_instance_valid(slot):
+		return
+	var icon := slot.get_node_or_null("Icon") as TextureRect
+	_apply_shader_preview_to_icon(icon, details, slot_index)
+
+
+func _apply_shader_preview_to_icon(icon: TextureRect, details: Dictionary, slot_index: int) -> void:
+	if icon == null:
+		return
+	HolographicCardFxScript.remove_from(icon)
+	MetallicToonFxScript.remove_from(icon)
+	var foil := Match3BoonFoilPreviewScript.foil_settings_for_slot(details, slot_index)
+	if not foil.is_empty():
+		HolographicCardFxScript.apply_to(icon, foil)
+		return
+	var metallic := Match3BoonFoilPreviewScript.metallic_settings_for_slot(slot_index)
+	if not metallic.is_empty():
+		MetallicToonFxScript.apply_to_icon(icon, metallic)
 
 
 func _ensure_float_host() -> Control:

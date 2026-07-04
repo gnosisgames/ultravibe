@@ -1,0 +1,4 @@
+Foil card shader adapted from GodotShaderFoilCardExample by Slavrick.
+https://github.com/Slavrick/GodotShaderFoilCardExample
+
+Used files: Shaders/card.gdshader, Sprites/Rainbow-gradient-fully-saturated.svg.png
