@@ -2,7 +2,7 @@ class_name GameInputActions
 extends RefCounted
 
 ## Ultravibe rebindable InputMap actions — mirrors Unity Rewired (see
-## ultravibe_unity/Assets/Game/Prefabs/Rewired/Rewired Input Manager.prefab).
+## old_unity/ultravibe_unity/Assets/Game/Prefabs/Rewired/Rewired Input Manager.prefab).
 ## Engine contract: UI_CANCEL_ACTION must stay in sync with GnosisGodotInputAdapter.
 
 const UI_CANCEL_ACTION := "game_ui_cancel"
@@ -87,6 +87,13 @@ const BINDINGS := {
 		"gamepadButton": JOY_BUTTON_LEFT_STICK,
 		"category": "ui",
 	},
+	"quick_restart": {
+		"label": "core__input__quickRestart",
+		"keycode": KEY_R,
+		"physicalKeycode": KEY_R,
+		"gamepadButton": JOY_BUTTON_RIGHT_STICK,
+		"category": "gameplay",
+	},
 	"UISecondaryHorizontal": {
 		"label": "ultravibe__input__uiSecondaryHorizontal",
 		"category": "ui",
@@ -114,7 +121,7 @@ const BINDINGS := {
 
 const ALL_ACTION_NAMES: Array[String] = [
 	"MoveHorizontal", "MoveVertical", "Consumable", "Shuffle", "MatchSelect", "MatchCancel",
-	"UIHorizontal", "UIVertical", "UISubmit", UI_CANCEL_ACTION, "UISell", "Pause",
+	"UIHorizontal", "UIVertical", "UISubmit", UI_CANCEL_ACTION, "UISell", "Pause", "quick_restart",
 	"UISecondaryHorizontal", "UISecondaryVertical", "UITabSwitch", "UIBuy",
 ]
 

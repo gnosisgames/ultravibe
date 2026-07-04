@@ -11,6 +11,7 @@
 [ext_resource type="PackedScene" path="res://game/ui/pause_view.tscn" id="11"]
 [ext_resource type="Script" uid="uid://bc05u1kvx2obs" path="res://game/adapters/gameplay_pause_bridge.gd" id="12"]
 [ext_resource type="Script" uid="uid://ce16v2mw01rav" path="res://game/adapters/gameplay_input_router.gd" id="13"]
+[ext_resource type="Script" path="res://game/adapters/gameplay_hold_restart_bridge.gd" id="23"]
 [ext_resource type="PackedScene" path="res://game/ui/game_over_view.tscn" id="14"]
 [ext_resource type="PackedScene" path="res://game/ui/play_view.tscn" id="15"]
 [ext_resource type="PackedScene" path="res://game/ui/credits_view.tscn" id="18"]
@@ -70,6 +71,9 @@ script = ExtResource("12")
 
 [node name="GameplayInputRouter" type="Node" parent="Adapters" unique_id=237626129]
 script = ExtResource("13")
+
+[node name="GameplayHoldRestartBridge" type="CanvasLayer" parent="Adapters"]
+script = ExtResource("23")
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=615439916]
 
