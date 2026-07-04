@@ -15,7 +15,6 @@ const Match3CellFloorBoardScript = preload("res://game/match3/core/match3_cell_f
 const Match3BoonScalingScript = preload("res://game/match3/boons/match3_boon_scaling.gd")
 const Match3BoonMatchFloorConversionsScript = preload("res://game/match3/boons/match3_boon_match_floor_conversions.gd")
 const Match3BoonJuiceScript = preload("res://game/match3/boons/match3_boon_juice.gd")
-const Match3BoonFoilPreviewScript = preload("res://game/match3/boons/match3_boon_foil_preview.gd")
 const Match3GameSpeedScript = preload("res://game/match3/core/match3_game_speed.gd")
 const SupportScript = preload("res://game/match3/boons/match3_boon_support.gd")
 const ConsumableServiceScript = preload("res://addons/com.gnosisgames.gnosisengine/services/gnosis_consumable_service.gd")
@@ -984,7 +983,6 @@ func is_board_input_allowed() -> bool:
 func handle_run_started() -> void:
 	_floor_bundle_plans.clear()
 	_ensure_run_ephemeral_defaults()
-	Match3BoonFoilPreviewScript.grant_starter_boons_if_needed(self)
 	var m3 := get_node("match3", false)
 	var next_level := maxi(1, _node_int(m3, "nextLevel", 1))
 	_prepare_queued_round_preview(next_level)

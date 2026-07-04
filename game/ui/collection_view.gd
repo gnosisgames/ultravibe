@@ -22,7 +22,6 @@ const BOSS_TOKEN_DEFAULT_FG := Color.WHITE
 ## a dedicated consumable icon (see Unity sprite registry in game.unity).
 const CatalogLocalizationUiScript = preload("res://game/ui/catalog_localization_ui.gd")
 const CatalogSpritePathsScript = preload("res://game/ui/catalog_sprite_paths.gd")
-const HolographicCardFxScript = preload("res://game/ui/widgets/holographic_card_fx.gd")
 
 const TOOLTIP_WIDTH := 300.0
 const TOOLTIP_MAX_WIDTH := 360.0
@@ -257,16 +256,9 @@ func _show_detail(detail: Dictionary) -> void:
 	var icon_path := str(detail.icon_path)
 	if not icon_path.is_empty():
 		_detail_icon.texture = load(icon_path)
-		HolographicCardFxScript.apply_to(_detail_icon, HolographicCardFxScript.build_holographic_foil_settings({
-			"effect_alpha_mult": 0.42,
-		}))
-	else:
-		HolographicCardFxScript.remove_from(_detail_icon)
 	_detail_icon.modulate = Color.WHITE
 
 func _hide_detail() -> void:
-	if _detail_icon != null:
-		HolographicCardFxScript.remove_from(_detail_icon)
 	if _detail_overlay:
 		_detail_overlay.visible = false
 
