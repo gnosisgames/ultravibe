@@ -246,8 +246,7 @@ func set_actions(actions: Array) -> void:
 		if label_text.is_empty() and input_action.is_empty():
 			continue
 		var type_id := str(entry.get("type", "")).strip_edges().to_lower()
-		var input_glyph := str(entry.get("input_glyph", "")).strip_edges()
-		_actions_row.add_child(_make_action_chip(type_id, label_text, input_action, input_glyph))
+		_actions_row.add_child(_make_action_chip(type_id, label_text, entry))
 		shown += 1
 	if _actions_wrap:
 		_actions_wrap.visible = shown > 0
@@ -272,36 +271,44 @@ func _ensure_actions_row() -> void:
 	_actions_wrap.add_child(_actions_row)
 
 
-func _make_action_chip(type_id: String, label_text: String, input_action: String, input_glyph: String = "") -> Control:
+func _make_action_chip(type_id: String, label_text: String, entry: Dictionary) -> Control:
 	var style: Dictionary = ACTION_CHIP_STYLES.get(type_id, ACTION_CHIP_DEFAULT)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 
-	var glyph_text := input_glyph.strip_edges()
-	if glyph_text.is_empty():
-		glyph_text = InputActionDisplayScript.format_action(input_action)
-	if not glyph_text.is_empty():
+	var glyph_texture := InputActionDisplayScript.resolve_glyph_texture(entry)
+	var glyph_text := InputActionDisplayScript.resolve_glyph_fallback_text(entry)
+	if glyph_texture != null or not glyph_text.is_empty():
 		var glyph := PanelContainer.new()
 		glyph.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		var glyph_box := StyleBoxFlat.new()
 		glyph_box.bg_color = Color(0.12, 0.12, 0.16, 0.9)
 		glyph_box.set_corner_radius_all(8)
-		glyph_box.content_margin_left = 10.0
-		glyph_box.content_margin_right = 10.0
+		glyph_box.content_margin_left = 8.0
+		glyph_box.content_margin_right = 8.0
 		glyph_box.content_margin_top = 4.0
 		glyph_box.content_margin_bottom = 4.0
 		glyph.add_theme_stylebox_override("panel", glyph_box)
-		var glyph_label := Label.new()
-		glyph_label.text = glyph_text.to_upper()
-		glyph_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		glyph_label.add_theme_color_override("font_color", Color.WHITE)
-		glyph_label.add_theme_font_size_override("font_size", 18)
-		var chip_font := description.get_theme_font("normal_font") if description else null
-		if chip_font:
-			glyph_label.add_theme_font_override("font", chip_font)
-		glyph.add_child(glyph_label)
+		if glyph_texture != null:
+			var icon := TextureRect.new()
+			icon.texture = glyph_texture
+			icon.custom_minimum_size = InputActionDisplayScript.GLYPH_CHIP_SIZE
+			icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+			icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			glyph.add_child(icon)
+		else:
+			var glyph_label := Label.new()
+			glyph_label.text = glyph_text.to_upper()
+			glyph_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			glyph_label.add_theme_color_override("font_color", Color.WHITE)
+			glyph_label.add_theme_font_size_override("font_size", 18)
+			var chip_font := description.get_theme_font("normal_font") if description else null
+			if chip_font:
+				glyph_label.add_theme_font_override("font", chip_font)
+			glyph.add_child(glyph_label)
 		row.add_child(glyph)
 
 	var chip := PanelContainer.new()

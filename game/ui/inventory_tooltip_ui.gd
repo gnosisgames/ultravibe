@@ -7,7 +7,6 @@ const CatalogLocalizationUiScript = preload("res://game/ui/catalog_localization_
 const ShopCatalogUiScript = preload("res://game/ui/shop_catalog_ui.gd")
 const FlavorsScript = preload("res://addons/com.gnosisgames.gnosisengine/services/gnosis_boon_flavors.gd")
 const SupportScript = preload("res://game/match3/boons/match3_boon_support.gd")
-const InputActionDisplayScript = preload("res://game/ui/input_action_display.gd")
 
 const SELL_ACTION_TYPE := "failure"
 const SELL_INPUT_ACTION := "UISell"
@@ -121,7 +120,7 @@ static func build_inventory_row_actions(
 			"type": SELL_ACTION_TYPE,
 			"label": label,
 			"input_action": SELL_INPUT_ACTION,
-			"input_glyph": InputActionDisplayScript.format_mouse_button(MOUSE_BUTTON_RIGHT),
+			"input_mouse_button": MOUSE_BUTTON_RIGHT,
 		})
 	return actions
 

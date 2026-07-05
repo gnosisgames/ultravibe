@@ -34,6 +34,7 @@ var _service: GnosisService = null
 var _tooltip: TooltipPopup = null
 var _tooltip_index := -1
 var _tooltip_reroll_elapsed := 0.0
+var _tooltip_input_mode_connected := false
 const TOOLTIP_REROLL_INTERVAL := 0.35
 var _slot_nodes: Array[Control] = []
 var _last_signature := "__unset__"
@@ -146,6 +147,22 @@ func _build_tooltip() -> void:
 	_tooltip.z_index = 60
 	_tooltip.scale = Vector2.ZERO
 	_tooltip.visible = false
+	_connect_tooltip_input_mode_listener()
+
+
+func _connect_tooltip_input_mode_listener() -> void:
+	if _tooltip_input_mode_connected:
+		return
+	var icons := get_node_or_null("/root/ControllerIcons")
+	if icons == null or not icons.has_signal("input_type_changed"):
+		return
+	icons.input_type_changed.connect(_on_tooltip_input_mode_changed)
+	_tooltip_input_mode_connected = true
+
+
+func _on_tooltip_input_mode_changed(_input_type: int, _controller: int) -> void:
+	if _tooltip_index >= 0 and _tooltip != null and _tooltip.visible:
+		_refresh_tooltip_content(_tooltip_index)
 
 func _process(delta: float) -> void:
 	if _should_skip_live_refresh():
