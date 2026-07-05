@@ -20,6 +20,7 @@ const Match3ItemTypeVisualScript = preload("res://game/match3/view/match3_item_t
 const Match3GameSpeedScript = preload("res://game/match3/core/match3_game_speed.gd")
 const Match3AnimationTuningScript = preload("res://game/match3/view/match3_animation_tuning.gd")
 const UltraUiFx = preload("res://game/ui/widgets/ultra_ui_fx.gd")
+const ConsumableDbgScript = preload("res://game/match3/debug/match3_consumable_debug.gd")
 const Events = Match3EventsScript
 
 const ITEM_COLORS := {
@@ -107,6 +108,10 @@ func bind_service(service) -> void:
 
 
 func refresh_hud() -> void:
+	if _service != null and _service.has_method("is_consumable_use_presentation_active"):
+		if _service.is_consumable_use_presentation_active():
+			ConsumableDbgScript.phase("Dispatcher.refresh_hud", "SKIPPED (consumable presentation)", _service, null, self)
+			return
 	var hud = _find_hud()
 	if hud and hud.has_method("refresh_from_service"):
 		hud.refresh_from_service(_service)
@@ -122,13 +127,26 @@ func _find_hud():
 
 
 func apply_board_payload(payload: GnosisNode) -> void:
-	if _busy:
+	var force_empty := false
+	if _service != null and _service.has_method("get_gameplay"):
+		var gameplay = _service.get_gameplay()
+		if gameplay != null and gameplay.has_method("is_grid_allocated") and not gameplay.is_grid_allocated():
+			force_empty = true
+	ConsumableDbgScript.phase(
+		"Dispatcher.apply_board_payload",
+		"busy=%s force_empty=%s payload_valid=%s" % [
+			str(_busy), str(force_empty), str(payload != null and payload.is_valid())
+		],
+		_service,
+		null,
+		self
+	)
+	if _busy and not force_empty:
+		ConsumableDbgScript.warn("Dispatcher.apply_board_payload", "skipped: dispatcher busy")
 		return
 	if payload == null or not payload.is_valid():
 		_sync_from_service()
 		return
-	_width = _node_int(payload, Events.PAYLOAD_WIDTH, _width)
-	_height = _node_int(payload, Events.PAYLOAD_HEIGHT, _height)
 	var cells: Array = []
 	var tiles := payload.get_node(Events.PAYLOAD_TILES)
 	if tiles.is_valid() and tiles.get_type() == GnosisValueType.LIST:
@@ -144,6 +162,20 @@ func apply_board_payload(payload: GnosisNode) -> void:
 				"slotType": _node_int(tile_node, "slotType", Match3ModelsScript.SLOT_ACTIVE),
 				"cellFloorTypeId": _node_string(tile_node, "cellFloorTypeId", ""),
 			})
+	var width := _node_int(payload, Events.PAYLOAD_WIDTH, 0)
+	var height := _node_int(payload, Events.PAYLOAD_HEIGHT, 0)
+	if _service != null and _service.has_method("get_gameplay"):
+		var gameplay = _service.get_gameplay()
+		if gameplay != null and gameplay.has_method("is_grid_allocated") and not gameplay.is_grid_allocated():
+			width = 0
+			height = 0
+			cells.clear()
+	elif cells.is_empty() and (width > 0 or height > 0):
+		width = 0
+		height = 0
+	_width = width
+	_height = height
+	ConsumableDbgScript.phase("Dispatcher.apply_board_payload", "rebuild %dx%d cells=%d" % [_width, _height, cells.size()], _service, null, self)
 	_rebuild_from_cells(cells)
 
 
@@ -176,10 +208,14 @@ func _sync_from_service() -> void:
 
 
 func _rebuild_from_cells(cells: Array) -> void:
+	ConsumableDbgScript.phase("Dispatcher._rebuild_from_cells", "cells=%d -> refresh_hud next" % cells.size(), _service, null, self)
 	_cancel_drag()
 	_cells = cells
 	_clear_items()
 	_update_layout()
+	if _width <= 0 or _height <= 0:
+		if _gamepad:
+			_gamepad.reset()
 	for cell in cells:
 		var item_id := str(cell.get("itemId", ""))
 		if item_id.is_empty():

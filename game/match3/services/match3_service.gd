@@ -18,6 +18,7 @@ const Match3BoonJuiceScript = preload("res://game/match3/boons/match3_boon_juice
 const Match3GameSpeedScript = preload("res://game/match3/core/match3_game_speed.gd")
 const SupportScript = preload("res://game/match3/boons/match3_boon_support.gd")
 const ConsumableServiceScript = preload("res://addons/com.gnosisgames.gnosisengine/services/gnosis_consumable_service.gd")
+const ConsumableDbgScript = preload("res://game/match3/debug/match3_consumable_debug.gd")
 
 const Events = Match3EventsScript
 const Models = Match3ModelsScript
@@ -89,6 +90,7 @@ var _boss_board_pool_ids: Array[String] = []
 var _board_difficulty_by_id: Dictionary = {}
 var _round_action_reward_locks: Dictionary = {}
 var _consumable_use_presentation_pending := false
+var _ephemeral_publish_deferred := false
 var _boon_runtime: RefCounted = null
 var _match3_effects: RefCounted = null
 var _cell_floor_runtime: RefCounted = null
@@ -434,6 +436,7 @@ func try_add_floor_modifier_pool_slots(floor_type_id: String, count: int) -> int
 		sync_floor_modifier_tile_statistics_from_grid()
 		_publish_board_reset()
 	else:
+		sync_floor_modifier_tile_statistics_from_pool()
 		_publish_ephemeral_state()
 	return applied
 
@@ -451,10 +454,8 @@ func sync_floor_modifier_tile_statistics_from_grid() -> void:
 		stats.set_node("match3", match3_stats)
 	var tiles := context.store.create_object()
 	if not _is_board_grid_ready():
-		tiles.set_key("capacity", 0)
-		tiles.set_key("plain", 0)
-		tiles.set_key("total", 0)
-		tiles.set_key("enhanced", 0)
+		sync_floor_modifier_tile_statistics_from_pool()
+		return
 	else:
 		var counts: Dictionary = {}
 		var enhanced_by_type: Dictionary = {}
@@ -486,6 +487,40 @@ func sync_floor_modifier_tile_statistics_from_grid() -> void:
 			tiles.set_key(str(key), int(counts[key]))
 		for key in enhanced_by_type.keys():
 			tiles.set_key("%s_enhanced" % str(key), int(enhanced_by_type[key]))
+	var floor_mods := context.store.create_object()
+	floor_mods.set_node("tiles", tiles)
+	match3_stats.set_node("floorModifiers", floor_mods)
+
+
+## Run pool counts (level select / pre-PlayLevel). Board capacity stays unknown until load_level.
+func sync_floor_modifier_tile_statistics_from_pool() -> void:
+	if context == null or context.store == null:
+		return
+	_ensure_statistics_root()
+	var stats := get_node("statistics", false)
+	if not stats.is_valid():
+		return
+	var match3_stats := stats.get_node("match3")
+	if not match3_stats.is_valid() or match3_stats.get_type() != GnosisValueType.OBJECT:
+		match3_stats = context.store.create_object()
+		stats.set_node("match3", match3_stats)
+	var pool_counts: Dictionary = get_enhanced_floor_tile_counts()
+	var enhanced_count := 0
+	var tiles := context.store.create_object()
+	for type_id in pool_counts.keys():
+		var count := int(pool_counts[type_id])
+		if count <= 0:
+			continue
+		enhanced_count += count
+		var stat_key := str(type_id).strip_edges().to_lower()
+		if stat_key.is_empty():
+			continue
+		tiles.set_key(stat_key, count)
+		tiles.set_key("%s_enhanced" % stat_key, count)
+	tiles.set_key("capacity", 0)
+	tiles.set_key("plain", 0)
+	tiles.set_key("total", enhanced_count)
+	tiles.set_key("enhanced", enhanced_count)
 	var floor_mods := context.store.create_object()
 	floor_mods.set_node("tiles", tiles)
 	match3_stats.set_node("floorModifiers", floor_mods)
@@ -562,6 +597,8 @@ func _add_floor_modifier_pool_delta(parameters: GnosisNode) -> GnosisFunctionRes
 		_notify_enhanced_floors_on_board(true)
 		sync_floor_modifier_tile_statistics_from_grid()
 		_publish_board_reset()
+	else:
+		sync_floor_modifier_tile_statistics_from_pool()
 	_publish_ephemeral_state()
 	var ok := context.store.create_object()
 	ok.set_key("success", true)
@@ -679,12 +716,10 @@ func get_current_round() -> int:
 	return _current_round
 
 
-## True once the run has advanced past the opening level select (i.e. the player
-## has completed at least one round and entered the reward/shop loop). The shop is
-## not part of the very first level select, so the swap button stays hidden there.
+## True once the player has completed at least one round (PlayLevel), not merely
+## advanced the queue via skip. Unity QuickToggle uses the same played-round stat.
 func is_shop_available() -> bool:
-	var m3 := get_node("match3", false)
-	return _node_int(m3, "nextLevel", 1) > 1
+	return get_statistic_int("match3.rounds.played", 0) > 0
 
 
 func get_current_floor() -> int:
@@ -767,40 +802,75 @@ func try_consume_selected_consumable_presentation() -> bool:
 
 ## Unity parity: pointer / controller row uses the consumable at index immediately.
 func try_consume_consumable_at_slot_presentation(index: int) -> bool:
+	ConsumableDbgScript.phase("Match3.try_consume", "enter index=%d pending=%s" % [
+		index, str(_consumable_use_presentation_pending)
+	], self)
 	if _consumable_use_presentation_pending:
+		ConsumableDbgScript.warn("Match3.try_consume", "rejected: presentation already pending")
 		return false
 	if context == null or context.store == null:
+		ConsumableDbgScript.fatal("Match3.try_consume", "context/store null")
 		return false
 	var count := _consumable_list_count()
 	if count <= 0:
+		ConsumableDbgScript.warn("Match3.try_consume", "rejected: empty bag")
 		return false
 	index = clampi(index, 0, count - 1)
 	set_node(EPHEMERAL_SELECTED_CONSUMABLE_SLOT, index, false)
 	var consumable_id := _read_consumable_id_at_index(index)
 	if consumable_id.is_empty():
+		ConsumableDbgScript.warn("Match3.try_consume", "rejected: empty consumable_id at index=%d" % index)
 		return false
+	ConsumableDbgScript.phase("Match3.try_consume", "id=%s grid_ready=%s board=%dx%d status=%d" % [
+		consumable_id,
+		str(_is_board_grid_ready()),
+		_gameplay.width,
+		_gameplay.height,
+		_gameplay.status
+	], self)
 	_begin_consumable_use_presentation_session()
 	var params := context.store.create_object()
 	params.set_key("consumableId", consumable_id)
 	params.set_key("bucketId", "default")
+	ConsumableDbgScript.phase("Match3.try_consume", "calling Consumable.ConsumeConsumable", self)
 	var result = call_service("Consumable", "ConsumeConsumable", params)
+	ConsumableDbgScript.phase("Match3.try_consume", "ConsumeConsumable returned type=%s" % [typeof(result)], self)
 	if _coerce_consumable_consume_result(result):
+		ConsumableDbgScript.phase("Match3.try_consume", "consume OK -> commit + publish_ephemeral", self)
 		_commit_currency_snapshot()
 		_publish_ephemeral_state()
+		ConsumableDbgScript.phase("Match3.try_consume", "success presentation_pending=%s" % str(_consumable_use_presentation_pending), self)
 		return true
+	ConsumableDbgScript.warn("Match3.try_consume", "consume FAILED for id=%s result=%s" % [consumable_id, str(result)])
+	_ephemeral_publish_deferred = false
 	_end_consumable_use_presentation_session_immediate()
 	return false
 
 
 func complete_consumable_use_presentation_hud_step() -> void:
+	ConsumableDbgScript.phase("Match3.complete_presentation", "enter pending=%s deferred=%s" % [
+		str(_consumable_use_presentation_pending), str(_ephemeral_publish_deferred)
+	], self)
 	if not _consumable_use_presentation_pending:
+		ConsumableDbgScript.warn("Match3.complete_presentation", "no pending session")
 		return
-	_commit_currency_snapshot()
 	_end_consumable_use_presentation_session_immediate()
+	_flush_deferred_ephemeral_publish()
+	ConsumableDbgScript.phase("Match3.complete_presentation", "session ended", self)
+
+
+func _flush_deferred_ephemeral_publish() -> void:
+	if not _ephemeral_publish_deferred:
+		return
+	_ephemeral_publish_deferred = false
+	_commit_currency_snapshot()
+	_publish_ephemeral_state()
 
 
 func _begin_consumable_use_presentation_session() -> void:
 	_consumable_use_presentation_pending = true
+	_ephemeral_publish_deferred = false
+	ConsumableDbgScript.phase("Match3.presentation", "BEGIN session", self)
 	_publish_consumable_use_presentation_active(true)
 
 
@@ -808,6 +878,7 @@ func _end_consumable_use_presentation_session_immediate() -> void:
 	if not _consumable_use_presentation_pending:
 		return
 	_consumable_use_presentation_pending = false
+	ConsumableDbgScript.phase("Match3.presentation", "END session", self)
 	_publish_consumable_use_presentation_active(false)
 
 
@@ -841,6 +912,9 @@ func _coerce_consumable_consume_result(result) -> bool:
 ## Unity NotifyHudSnapshotChanged / FACT_GNOSIS_STATE_COMMITTED parity for money.
 func _commit_currency_snapshot() -> void:
 	if context == null or context.engine == null:
+		return
+	if _consumable_use_presentation_pending:
+		_ephemeral_publish_deferred = true
 		return
 	var changed_paths: Array[String] = ["Ephemeral.currencies"]
 	context.engine.commit("match3", changed_paths)
@@ -2393,6 +2467,11 @@ func _hydrate_runtime_from_store() -> void:
 
 
 func _publish_ephemeral_state() -> void:
+	if _consumable_use_presentation_pending:
+		_ephemeral_publish_deferred = true
+		return
+	if ConsumableDbgScript.is_enabled():
+		ConsumableDbgScript.phase("Match3._publish_ephemeral_state", "commit", self)
 	if context == null or context.store == null:
 		return
 	var m3 := get_node("match3", false)
@@ -2427,6 +2506,9 @@ func _publish_ephemeral_state() -> void:
 
 
 func _publish_board_reset() -> void:
+	ConsumableDbgScript.phase("Match3._publish_board_reset", "grid_ready=%s board=%dx%d" % [
+		str(_is_board_grid_ready()), _gameplay.width, _gameplay.height
+	], self)
 	_publish_fact(Events.FACT_MATCH3_BOARD_RESET, _build_board_payload())
 
 

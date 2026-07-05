@@ -7,6 +7,7 @@ const SparklesScene := preload("res://game/match3/view/match3_sparkles.tscn")
 const TuningScript := preload("res://game/match3/view/match3_animation_tuning.gd")
 const Match3GameSpeedScript := preload("res://game/match3/core/match3_game_speed.gd")
 const BoardFloatJuiceScript := preload("res://game/match3/view/match3_board_float_juice.gd")
+const ConsumableDbgScript := preload("res://game/match3/debug/match3_consumable_debug.gd")
 
 const DISPLAY_USE := "Use"
 const SCALE_BUMP := 0.09
@@ -15,18 +16,24 @@ const POOF_AT_SCALE := 0.5
 
 
 static func run_two_phase(host: Node, slot: Control, effect_text: String, service) -> void:
+	ConsumableDbgScript.phase("Juice.run_two_phase", "start %s" % ConsumableDbgScript.slot_snapshot(slot), service)
 	if host == null or not is_instance_valid(host) or host.get_tree() == null:
+		ConsumableDbgScript.fatal("Juice.run_two_phase", "invalid host")
 		return
 	if slot == null or not is_instance_valid(slot):
+		ConsumableDbgScript.fatal("Juice.run_two_phase", "invalid slot at start")
 		return
 	_prepare_slot(slot)
 	await host.get_tree().process_frame
+	ConsumableDbgScript.phase("Juice.run_two_phase", "after process_frame %s" % ConsumableDbgScript.slot_snapshot(slot), service)
 	_spawn_effect_floating_text(host, slot, effect_text)
 	await _pop_phase(host, slot, service)
+	ConsumableDbgScript.phase("Juice.run_two_phase", "after pop_phase %s" % ConsumableDbgScript.slot_snapshot(slot), service)
 	var gap := TuningScript.consumable_use_remove_gap(service)
 	if gap > 0.0:
 		await host.get_tree().create_timer(gap).timeout
 	await _remove_phase(host, slot, service)
+	ConsumableDbgScript.phase("Juice.run_two_phase", "after remove_phase valid=%s" % str(is_instance_valid(slot)), service)
 	if is_instance_valid(slot):
 		slot.queue_free()
 

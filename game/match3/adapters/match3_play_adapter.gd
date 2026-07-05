@@ -4,6 +4,7 @@ extends GnosisAdapter
 ## Thin bridge between engine events and the Match3 board view.
 
 const Match3EventsScript = preload("res://game/match3/match3_events.gd")
+const ConsumableDbgScript = preload("res://game/match3/debug/match3_consumable_debug.gd")
 const Match3ModelsScript = preload("res://game/match3/core/match3_models.gd")
 const Events = Match3EventsScript
 
@@ -90,8 +91,13 @@ func _subscribe_facts() -> void:
 func _on_board_fact(event: GnosisEvent) -> void:
 	if _dispatcher == null or event == null:
 		return
+	ConsumableDbgScript.log_external("PlayAdapter._on_board_fact", "event=%s busy=%s" % [
+		str(event.id),
+		str(_dispatcher.is_busy() if _dispatcher.has_method("is_busy") else "?")
+	])
 	# Mid-move snapshots would stomp animated item nodes.
 	if event.id == Events.FACT_MATCH3_BOARD_CHANGED and _dispatcher.is_busy():
+		ConsumableDbgScript.log_external("PlayAdapter._on_board_fact", "skipped BOARD_CHANGED (dispatcher busy)")
 		return
 	_dispatcher.apply_board_payload(event.data)
 

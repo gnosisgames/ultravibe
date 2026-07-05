@@ -186,6 +186,8 @@ func _on_restart_pressed() -> void:
 	var m3 = _match3_service()
 	if m3:
 		m3.handle_run_started()
+	if _host and _host.has_method("resync_match3_board_view"):
+		_host.resync_match3_board_view()
 
 func _on_title_pressed() -> void:
 	if _actions_blocked():

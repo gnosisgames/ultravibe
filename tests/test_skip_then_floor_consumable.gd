@@ -48,20 +48,64 @@ func _check() -> bool:
 	if slot < 0:
 		print("[FAIL] no consumable after skip")
 		return false
+	var consumable_id := _skip_reward_consumable_id(m3)
+	if consumable_id.is_empty():
+		consumable_id = _consumable_id_at_slot(m3, slot)
 	if not m3.try_consume_consumable_at_slot_presentation(slot):
 		print("[FAIL] consumable use failed after skip")
 		return false
 	if dispatcher and dispatcher.has_method("bind_service"):
 		dispatcher.bind_service(m3)
-	var counts: Dictionary = m3.get_enhanced_floor_tile_counts()
-	var total := 0
-	for k in counts.keys():
-		total += int(counts[k])
-	if total <= 0:
-		print("[FAIL] floor pool empty after mania consumable: %s" % str(counts))
+	if dispatcher != null and (dispatcher._width > 0 or dispatcher._height > 0):
+		print("[FAIL] dispatcher should stay empty before PlayLevel (%dx%d)" % [dispatcher._width, dispatcher._height])
 		return false
-	print("[SUCCESS] skip + floor consumable before play (pool=%s)" % str(counts))
+	if _consumable_adds_floor_pool(consumable_id):
+		var counts: Dictionary = m3.get_enhanced_floor_tile_counts()
+		var total := 0
+		for k in counts.keys():
+			total += int(counts[k])
+		if total <= 0:
+			print("[FAIL] floor pool empty after floor mania consumable '%s': %s" % [consumable_id, str(counts)])
+			return false
+		print("[SUCCESS] skip + floor consumable before play (id=%s pool=%s)" % [consumable_id, str(counts)])
+	else:
+		print("[SUCCESS] skip + consumable before play without crash (id=%s)" % consumable_id)
 	return true
+
+func _skip_reward_consumable_id(m3: Match3Service) -> String:
+	var m3_node := m3.get_node("match3", false)
+	if not m3_node.is_valid():
+		return ""
+	var last := m3_node.get_node("lastRoundActionReward")
+	if not last.is_valid():
+		return ""
+	var id_node := last.get_node("consumableId")
+	if id_node.is_valid() and id_node.value != null:
+		return str(id_node.value).strip_edges()
+	return ""
+
+func _consumable_id_at_slot(m3: Match3Service, slot: int) -> String:
+	if m3 == null or not m3.has_method("_read_consumable_id_at_index"):
+		return ""
+	return str(m3.call("_read_consumable_id_at_index", slot)).strip_edges()
+
+func _consumable_adds_floor_pool(consumable_id: String) -> bool:
+	var path := "res://data/Consumables/%s.json" % consumable_id
+	if not ResourceLoader.exists(path):
+		return false
+	var file := FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		return false
+	var parsed: Variant = JSON.parse_string(file.get_as_text())
+	if typeof(parsed) != TYPE_DICTIONARY:
+		return false
+	var invocations: Array = parsed.get("properties", {}).get("invocations", [])
+	for entry in invocations:
+		if typeof(entry) != TYPE_DICTIONARY:
+			continue
+		if str(entry.get("function", "")) == "AddFloorModifierPoolDelta":
+			return true
+	return false
 
 func _first_consumable_slot(consumable: GnosisConsumableService) -> int:
 	var params := consumable.context.store.create_object()

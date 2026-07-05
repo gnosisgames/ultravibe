@@ -13,6 +13,7 @@ const Match3BoonJuiceScript = preload("res://game/match3/boons/match3_boon_juice
 const Match3GameSpeedScript = preload("res://game/match3/core/match3_game_speed.gd")
 const Match3HudScoreEscalationScript = preload("res://game/match3/view/match3_hud_score_escalation.gd")
 const SupportScript = preload("res://game/match3/boons/match3_boon_support.gd")
+const ConsumableDbgScript = preload("res://game/match3/debug/match3_consumable_debug.gd")
 const UltraGameUiNav = preload("res://game/ui/ultra_game_ui_nav.gd")
 ## Boss letter token font — mirrors the collection view boss tokens.
 const TOKEN_FONT_PATH := "res://assets/fonts/PolygonParty-3KXM.ttf"
@@ -215,6 +216,12 @@ func bind_service(service) -> void:
 func refresh_from_service(service = null) -> void:
 	if service:
 		_service = service
+	if _service != null and _service.has_method("is_consumable_use_presentation_active"):
+		if _service.is_consumable_use_presentation_active():
+			ConsumableDbgScript.phase("Hud.refresh_from_service", "SKIPPED (presentation active)", _service)
+			return
+	if ConsumableDbgScript.is_enabled():
+		ConsumableDbgScript.phase("Hud.refresh_from_service", "presentation=false", _service)
 	if _service == null:
 		return
 	var gameplay = _service.get_gameplay()
@@ -392,6 +399,9 @@ func _is_gameplay_input_locked() -> bool:
 
 func _refresh_upgrade_rail_if_changed() -> void:
 	if _service == null:
+		return
+	if _service.has_method("is_consumable_use_presentation_active") \
+			and _service.is_consumable_use_presentation_active():
 		return
 	var eph := _ephemeral()
 	if not eph.is_valid():

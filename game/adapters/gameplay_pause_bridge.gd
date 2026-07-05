@@ -23,10 +23,19 @@ func _resolve_host() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not _host or not _host.engine:
 		return
-	if not Input.is_action_just_pressed("pause"):
+	if not InputMap.has_action("Pause"):
+		return
+	if not Input.is_action_just_pressed("Pause"):
 		return
 	var ui := _host.engine.get_service("GameUI") as GnosisGameUIService
 	if ui == null or ui.get_base_view_id().to_lower() != "gameplay":
+		return
+	# Planning overlays (level select / shop / reward) keep gameplay as the base view.
+	if not ui.get_active_overlay_state_for_view("level_select").is_empty():
+		return
+	if not ui.get_active_overlay_state_for_view("shop").is_empty():
+		return
+	if not ui.get_active_overlay_state_for_view("reward").is_empty():
 		return
 	# Don't layer pause over the game-over overlay (the run is already finished).
 	if not ui.get_active_overlay_state_for_view("game_over").is_empty():

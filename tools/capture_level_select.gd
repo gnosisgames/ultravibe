@@ -57,6 +57,8 @@ func _start_run() -> void:
 	var match3 = eng.get_service("Match3")
 	if match3:
 		match3.handle_run_started()
+	if _host and _host.has_method("resync_match3_board_view"):
+		_host.resync_match3_board_view()
 	var ui = _ui()
 	if ui and eng:
 		UltraGameUiNav.transition_to_gameplay(ui, eng.store, "play", "slide_up")

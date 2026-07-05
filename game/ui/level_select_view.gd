@@ -56,6 +56,14 @@ const ICON_DIR := "res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icon
 const SKULL_ICON := ICON_DIR + "skull-white.png"
 const PLAY_ICON := ICON_DIR + "play.png"
 const SKIP_ICON := ICON_DIR + "skip.png"
+const SHOP_EMPTY_ICON := "res://assets/icons/empty.png"
+const SHOP_EMPTY_MESSAGE_KEY := "ultravibe__shop__empty"
+const SHOP_EMPTY_MESSAGE_FALLBACK := "Out of vibes!"
+const SHOP_EMPTY_TINT := Color(1, 1, 1, 0.42)
+const SHOP_EMPTY_SCALE_MIN := 0.9
+const SHOP_EMPTY_SCALE_MAX := 1.08
+const SHOP_EMPTY_PULSE_DURATION := 1.15
+const SHOP_EMPTY_SPIN_DURATION := 6.0
 
 @onready var _region: Control = %Region
 @onready var _shop_section: PanelContainer = %ShopSection
@@ -65,6 +73,12 @@ const SKIP_ICON := ICON_DIR + "skip.png"
 var _font: Font = null
 var _host: GnosisGodotEngine = null
 var _shop_reroll_card: ShopRerollCard = null
+var _shop_empty_state: CenterContainer = null
+var _shop_empty_stack: VBoxContainer = null
+var _shop_empty_icon: TextureRect = null
+var _shop_empty_label: Label = null
+var _shop_empty_pulse_tween: Tween = null
+var _shop_empty_spin_tween: Tween = null
 var _tooltip_layer: CanvasLayer = null
 var _tooltip: TooltipPopup = null
 var _tooltip_anchor: Control = null
@@ -88,6 +102,48 @@ func _ensure_shop_reroll_card() -> void:
 	_shop_reroll_card = ShopRerollCard.new()
 	_shop_reroll_card.reroll_pressed.connect(_on_shop_reroll_pressed)
 
+
+func _ensure_shop_empty_state() -> void:
+	if _shop_empty_state != null:
+		return
+	var stack := VBoxContainer.new()
+	stack.alignment = BoxContainer.ALIGNMENT_CENTER
+	stack.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	stack.add_theme_constant_override("separation", 8)
+
+	var icon := TextureRect.new()
+	icon.texture = load(SHOP_EMPTY_ICON) as Texture2D
+	icon.modulate = SHOP_EMPTY_TINT
+	icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.custom_minimum_size = Vector2(148, 148)
+	icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_shop_empty_icon = icon
+
+	var label := Label.new()
+	label.text = _shop_empty_message()
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.custom_minimum_size = Vector2(220, 0)
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if _font:
+		label.add_theme_font_override("font", _font)
+	label.add_theme_font_size_override("font_size", 28)
+	label.add_theme_color_override("font_color", SHOP_EMPTY_TINT)
+
+	stack.add_child(icon)
+	stack.add_child(label)
+	_shop_empty_stack = stack
+
+	_shop_empty_state = CenterContainer.new()
+	_shop_empty_state.name = "ShopEmptyState"
+	_shop_empty_state.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_shop_empty_state.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_shop_empty_state.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_shop_empty_state.add_child(stack)
+	_shop_empty_label = label
+
 func get_subscreen_slide_holder() -> Control:
 	return _region
 
@@ -107,6 +163,7 @@ func set_view_visible(is_visible: bool) -> void:
 	else:
 		_set_planning_overlay_active(false)
 		_hide_consumable_tooltip()
+		_stop_shop_empty_animation()
 		SubscreenFrame.disconnect_changes(self, _apply_frame)
 
 
@@ -193,17 +250,25 @@ func _refresh_shop() -> void:
 	_clear_shop_offers()
 	if not shop_available:
 		_attach_shop_reroll_card()
+		_refresh_shop_empty_state(true)
 		return
 	var shop = _shop_service()
 	var eng := _engine()
 	if shop == null or eng == null:
+		_attach_shop_reroll_card()
+		_refresh_shop_empty_state(true)
 		return
 	var result = shop.invoke_function("GetCoreShop", eng.store.create_object())
 	if not (result is GnosisFunctionResult) or not result.is_ok:
+		_attach_shop_reroll_card()
+		_refresh_shop_empty_state(true)
 		return
 	var offers: GnosisNode = result.payload.get_node("core.offers")
 	if not offers.is_valid() or offers.get_type() != GnosisValueType.LIST:
+		_attach_shop_reroll_card()
+		_refresh_shop_empty_state(true)
 		return
+	var offer_count := 0
 	for i in range(offers.get_count()):
 		var offer: GnosisNode = offers.get_node(i)
 		if not offer.is_valid():
@@ -216,11 +281,96 @@ func _refresh_shop() -> void:
 			_node_int(offer, "price", 0),
 			i,
 		)
+		offer_count += 1
 	_attach_shop_reroll_card()
+	_refresh_shop_empty_state(offer_count == 0)
 
 
 func _shop_reroll_title() -> String:
 	return _localized("core__verb__reroll", "Reroll")
+
+
+func _shop_empty_message() -> String:
+	return _localized(SHOP_EMPTY_MESSAGE_KEY, SHOP_EMPTY_MESSAGE_FALLBACK)
+
+
+func _refresh_shop_empty_state(show: bool) -> void:
+	_ensure_shop_empty_state()
+	if _shop_empty_state == null or _shop_offers == null:
+		return
+	if _shop_empty_label:
+		_shop_empty_label.text = _shop_empty_message()
+	if show:
+		if _shop_empty_state.get_parent() != _shop_offers:
+			_shop_offers.add_child(_shop_empty_state)
+		_shop_empty_state.visible = true
+		_start_shop_empty_animation()
+	else:
+		_shop_empty_state.visible = false
+		_stop_shop_empty_animation()
+
+
+func _start_shop_empty_animation() -> void:
+	if _shop_empty_stack == null:
+		return
+	_stop_shop_empty_animation()
+	call_deferred("_run_shop_empty_animation")
+
+
+func _run_shop_empty_animation() -> void:
+	if _shop_empty_stack == null or not _shop_empty_state.visible:
+		return
+	if _shop_empty_stack.size.x <= 0.0 or _shop_empty_stack.size.y <= 0.0:
+		call_deferred("_run_shop_empty_animation")
+		return
+
+	_shop_empty_stack.pivot_offset = _shop_empty_stack.size * 0.5
+	_shop_empty_stack.scale = Vector2.ONE
+	if _shop_empty_icon != null:
+		var icon_pivot := _shop_empty_icon.size
+		if icon_pivot.x <= 0.0 or icon_pivot.y <= 0.0:
+			icon_pivot = _shop_empty_icon.custom_minimum_size
+		_shop_empty_icon.pivot_offset = icon_pivot * 0.5
+		_shop_empty_icon.rotation = 0.0
+
+	var pulse_half := SHOP_EMPTY_PULSE_DURATION * 0.5
+	_shop_empty_pulse_tween = create_tween().set_loops()
+	_shop_empty_pulse_tween.set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_SINE)
+	_shop_empty_pulse_tween.tween_property(
+		_shop_empty_stack,
+		"scale",
+		Vector2(SHOP_EMPTY_SCALE_MAX, SHOP_EMPTY_SCALE_MAX),
+		pulse_half,
+	)
+	_shop_empty_pulse_tween.tween_property(
+		_shop_empty_stack,
+		"scale",
+		Vector2(SHOP_EMPTY_SCALE_MIN, SHOP_EMPTY_SCALE_MIN),
+		pulse_half,
+	)
+
+	if _shop_empty_icon == null:
+		return
+	_shop_empty_spin_tween = create_tween().set_loops()
+	_shop_empty_spin_tween.tween_property(
+		_shop_empty_icon,
+		"rotation",
+		TAU,
+		SHOP_EMPTY_SPIN_DURATION,
+	).as_relative().set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_LINEAR)
+
+
+func _stop_shop_empty_animation() -> void:
+	if _shop_empty_pulse_tween != null and _shop_empty_pulse_tween.is_valid():
+		_shop_empty_pulse_tween.kill()
+	_shop_empty_pulse_tween = null
+	if _shop_empty_spin_tween != null and _shop_empty_spin_tween.is_valid():
+		_shop_empty_spin_tween.kill()
+	_shop_empty_spin_tween = null
+	if _shop_empty_stack != null and is_instance_valid(_shop_empty_stack):
+		_shop_empty_stack.scale = Vector2.ONE
+	if _shop_empty_icon != null and is_instance_valid(_shop_empty_icon):
+		_shop_empty_icon.rotation = 0.0
 
 
 func _attach_shop_reroll_card() -> void:
@@ -998,7 +1148,10 @@ func _on_skip_pressed() -> void:
 		return
 	var result = m3.invoke_function("SkipLevel", eng.store.create_object())
 	if result is GnosisFunctionResult and result.is_ok and _node_bool(result.payload, "success", false):
+		if _host and _host.has_method("resync_match3_board_view"):
+			_host.resync_match3_board_view()
 		_refresh()
+		_refresh_hud()
 
 # ---------------------------------------------------------------------------
 # Node helpers

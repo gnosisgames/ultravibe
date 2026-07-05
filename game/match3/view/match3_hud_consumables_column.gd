@@ -5,6 +5,7 @@ extends PlayHudConsumablesBar
 ## controller cycles a hidden slot index then fires Consumable / right-click.
 
 const JuiceScript := preload("res://game/match3/view/match3_consumable_use_juice.gd")
+const ConsumableDbgScript := preload("res://game/match3/debug/match3_consumable_debug.gd")
 const TOOLTIP_Z_INDEX := 4096
 ## ConsumablesBar panel style uses 24px horizontal content margins on each side.
 const PANEL_HORIZONTAL_INSET := 48.0
@@ -142,6 +143,15 @@ func _on_slot_layout_dirty() -> void:
 
 
 func _refresh() -> void:
+	if _juice_running or _defer_inventory_refresh or _drag_active:
+		ConsumableDbgScript.fatal(
+			"Column._refresh",
+			"BLOCKED direct slot rebuild during protected state juice=%s defer=%s drag=%s" % [
+				_juice_running, _defer_inventory_refresh, _drag_active
+			]
+		)
+		return
+	ConsumableDbgScript.phase("Column._refresh", "rebuilding %d slots" % _slot_nodes.size(), _service, self)
 	_cleanup_orphan_slots()
 	var computed := _compute_slot_size()
 	if computed >= 8.0:
@@ -395,19 +405,47 @@ func _extra_signature_parts() -> Array[String]:
 
 
 func _refresh_if_changed() -> void:
+	var signature := _build_signature()
+	if signature == _last_signature:
+		return
 	if _drag_active or _juice_running or _defer_inventory_refresh:
 		return
-	super._refresh_if_changed()
+	ConsumableDbgScript.phase(
+		"Column._refresh_if_changed",
+		"REBUILD slots sig=%s -> %s (destroying %d nodes)" % [
+			_last_signature.substr(0, 40),
+			signature.substr(0, 40),
+			_slot_nodes.size()
+		],
+		_service,
+		self
+	)
+	_last_signature = signature
+	_refresh()
 
 
 func _should_defer_inventory_refresh() -> bool:
 	return _defer_inventory_refresh or _juice_running or _drag_active
 
 
+func force_refresh() -> void:
+	if _juice_running or _defer_inventory_refresh or _drag_active:
+		ConsumableDbgScript.fatal(
+			"Column.force_refresh",
+			"BLOCKED during protected state juice=%s defer=%s drag=%s" % [_juice_running, _defer_inventory_refresh, _drag_active]
+		)
+		return
+	ConsumableDbgScript.phase("Column.force_refresh", "destroying %d slots via direct _refresh" % _slot_nodes.size(), _service, self)
+	super.force_refresh()
+
+
 func _on_slot_pressed(index: int) -> void:
+	ConsumableDbgScript.phase("Column._on_slot_pressed", "index=%d" % index, _service, self)
 	if _drag_active:
+		ConsumableDbgScript.warn("Column._on_slot_pressed", "ignored: drag_active")
 		return
 	if _juice_running or _should_defer_inventory_refresh():
+		ConsumableDbgScript.warn("Column._on_slot_pressed", "ignored: juice=%s defer=%s" % [_juice_running, _defer_inventory_refresh])
 		return
 	var entries := _entries()
 	if index < 0 or index >= entries.size():
@@ -416,45 +454,87 @@ func _on_slot_pressed(index: int) -> void:
 
 
 func _use_slot_at_index(index: int) -> void:
+	ConsumableDbgScript.phase("Column._use_slot_at_index", "enter index=%d slots=%d" % [index, _slot_nodes.size()], _service, self)
 	if index < 0 or index >= _slot_nodes.size():
+		ConsumableDbgScript.warn("Column._use_slot_at_index", "bad index=%d slot_count=%d" % [index, _slot_nodes.size()])
 		return
 	if _service == null or not _service.has_method("try_consume_consumable_at_slot_presentation"):
+		ConsumableDbgScript.fatal("Column._use_slot_at_index", "service missing try_consume")
 		return
+	var entries := _entries()
+	var consumable_id := str(entries[index].get("id", "")) if index < entries.size() else "?"
+	var use_id := ConsumableDbgScript.begin_use(consumable_id, index, {
+		"entries": entries.size(),
+		"grid_ready": _service._is_board_grid_ready() if _service.has_method("_is_board_grid_ready") else "?",
+	})
 	_hide_tooltip()
 	_juice_running = true
 	_defer_inventory_refresh = true
+	ConsumableDbgScript.phase("Column._use_slot_at_index", "flags set juice+defer BEFORE consume", _service, self)
 	_set_slots_interactive(false)
 	UltraUiFx.play_ui_sfx(self, UltraUiFx.CLIP_PRESSED, -1.0)
 	if _bar_panel:
 		JuiceScript.pulse_bar(_bar_panel)
 	var slot := _slot_nodes[index]
-	_reparent_slot_for_juice(slot)
+	ConsumableDbgScript.phase("Column._use_slot_at_index", "before try_consume %s" % ConsumableDbgScript.slot_snapshot(slot), _service, self)
 	var consumed: bool = bool(_service.try_consume_consumable_at_slot_presentation(index))
+	ConsumableDbgScript.phase("Column._use_slot_at_index", "after try_consume consumed=%s slot=%s" % [
+		consumed,
+		ConsumableDbgScript.slot_snapshot(slot)
+	], _service, self)
 	if not consumed:
-		_restore_floating_slot(slot)
+		_juice_running = false
+		_defer_inventory_refresh = false
+		ConsumableDbgScript.end_use("consume_failed")
 		_finish_consumable_use_presentation()
 		return
+	if not is_instance_valid(slot):
+		ConsumableDbgScript.fatal("Column._use_slot_at_index", "slot invalid immediately after successful consume")
+		_juice_running = false
+		_defer_inventory_refresh = false
+		ConsumableDbgScript.end_use("slot_freed_after_consume")
+		_finish_consumable_use_presentation()
+		return
+	_reparent_slot_for_juice(slot)
+	ConsumableDbgScript.phase("Column._use_slot_at_index", "reparented for juice %s" % ConsumableDbgScript.slot_snapshot(slot), _service, self)
 	await _run_consumable_juice(slot)
 
 
 func _run_consumable_juice(slot: Control) -> void:
+	ConsumableDbgScript.phase("Column._run_consumable_juice", "start %s" % ConsumableDbgScript.slot_snapshot(slot), _service, self)
 	var use_text := JuiceScript.DISPLAY_USE
 	if _service and _service.has_method("get_consumable_use_display_text"):
 		use_text = str(_service.get_consumable_use_display_text())
-	await JuiceScript.run_two_phase(self, slot, use_text, _service)
+	if slot != null and is_instance_valid(slot):
+		await JuiceScript.run_two_phase(self, slot, use_text, _service)
+	else:
+		ConsumableDbgScript.fatal("Column._run_consumable_juice", "slot invalid before juice phases")
 	_finish_consumable_use_presentation()
 
 
 func _finish_consumable_use_presentation() -> void:
+	ConsumableDbgScript.phase("Column._finish", "enter juice=%s defer=%s" % [_juice_running, _defer_inventory_refresh], _service, self)
 	_juice_running = false
 	_defer_inventory_refresh = false
 	_set_slots_interactive(true)
+	_prune_invalid_slot_nodes()
 	_cleanup_orphan_slots()
 	if _service and _service.has_method("complete_consumable_use_presentation_hud_step"):
+		ConsumableDbgScript.phase("Column._finish", "calling complete_consumable_use_presentation_hud_step", _service, self)
 		_service.complete_consumable_use_presentation_hud_step()
 	_refresh_parent_hud()
 	_last_signature = "__unset__"
+	ConsumableDbgScript.phase("Column._finish", "calling force_refresh", _service, self)
 	force_refresh()
+	ConsumableDbgScript.end_use("finished")
+
+
+func _prune_invalid_slot_nodes() -> void:
+	var kept: Array[Control] = []
+	for slot in _slot_nodes:
+		if slot != null and is_instance_valid(slot):
+			kept.append(slot)
+	_slot_nodes = kept
 
 
 func _service_invoke_ok(result: Variant) -> bool:
@@ -477,6 +557,7 @@ func _refresh_parent_hud() -> void:
 
 func _reparent_slot_for_juice(slot: Control) -> void:
 	if slot == null or not is_instance_valid(slot):
+		ConsumableDbgScript.warn("Column._reparent_slot_for_juice", "slot invalid")
 		return
 	slot.set_meta("juice_rest_parent", slot.get_parent())
 	slot.set_meta("juice_rest_index", slot.get_index())
