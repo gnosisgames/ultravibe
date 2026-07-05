@@ -2168,15 +2168,14 @@ func _load_board_pools() -> void:
 			continue
 		var difficulty := _infer_board_difficulty(entry)
 		_board_difficulty_by_id[board_id] = difficulty
+		# One board difficulty tier per run stage. Extreme (and advanced-tagged
+		# boards) stay out of rotation until custom stakes/difficulties exist.
 		match difficulty:
 			"easy":
 				_add_unique(_normal_board_pool_ids, board_id)
 			"normal":
-				_add_unique(_normal_board_pool_ids, board_id)
 				_add_unique(_advanced_board_pool_ids, board_id)
-			"advanced":
-				_add_unique(_advanced_board_pool_ids, board_id)
-			"hard", "extreme", "boss":
+			"hard":
 				_add_unique(_boss_board_pool_ids, board_id)
 	_normal_board_pool_ids.sort()
 	_advanced_board_pool_ids.sort()
