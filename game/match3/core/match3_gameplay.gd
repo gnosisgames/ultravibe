@@ -5,6 +5,7 @@ extends RefCounted
 
 const Models = preload("res://game/match3/core/match3_models.gd")
 const TopologyScript = preload("res://game/match3/core/match3_match_topology.gd")
+const LuckyFindScript = preload("res://game/match3/core/match3_lucky_find.gd")
 
 var width: int = 0
 var height: int = 0
@@ -38,6 +39,7 @@ var _cell_floor_scoring_hook: Callable = Callable()
 var _cell_floor_finalize_hook: Callable = Callable()
 var _cell_floor_griefing_hook: Callable = Callable()
 var _match_floor_conversion_hook: Callable = Callable()
+var _lucky_find: Match3LuckyFind = null
 
 
 func configure_rng(seed_value: int) -> void:
@@ -125,6 +127,18 @@ func set_cell_floor_griefing_hook(hook: Callable) -> void:
 
 func set_match_floor_conversion_hook(hook: Callable) -> void:
 	_match_floor_conversion_hook = hook
+
+
+func set_lucky_find(lucky_find: Match3LuckyFind) -> void:
+	_lucky_find = lucky_find
+
+
+func get_lucky_find() -> Match3LuckyFind:
+	return _lucky_find
+
+
+func find_matches() -> Models.MatchResult:
+	return _find_matches()
 
 
 func load_level(
@@ -218,8 +232,29 @@ func process_move(a: Models.TileCoord, b: Models.TileCoord, item_points: Diction
 		last.final_score_for_move = score_gain
 		current_score += score_gain
 
+	_notify_lucky_find_after_move(results)
 	_evaluate_game_status()
 	return results
+
+
+func _notify_lucky_find_after_move(results: Array) -> void:
+	if _lucky_find == null or results.is_empty():
+		return
+	var cascade_match_steps := 0
+	var lucky_cascade_achieved := false
+	for i in range(results.size()):
+		var entry = results[i]
+		if not (entry is Models.MatchResult):
+			continue
+		if not entry.matched_tiles.is_empty() and i > 0:
+			cascade_match_steps += 1
+		if entry.lucky_find_refill_applied:
+			for j in range(i + 1, results.size()):
+				var follow = results[j]
+				if follow is Models.MatchResult and not follow.matched_tiles.is_empty():
+					lucky_cascade_achieved = true
+					break
+	_lucky_find.on_move_finished(cascade_match_steps, lucky_cascade_achieved)
 
 
 func _evaluate_game_status() -> void:
@@ -481,19 +516,35 @@ func _refill_empty_slots(item_points: Dictionary) -> Models.MatchResult:
 	var result := Models.MatchResult.new()
 	if palette.is_empty():
 		return result
+	var empty_cells: Array = []
 	for x in width:
 		for y in height:
 			var tile := get_tile(x, y)
 			if tile == null or not tile.can_hold_item() or not tile.is_empty():
 				continue
-			var item_id := _pick_initial_item_id_avoiding_match(x, y)
-			_set_item(x, y, item_id, Models.KIND_NORMAL, "plain", item_points)
-			var spawn := Models.TileSpawn.new()
-			spawn.at = Models.TileCoord.new(x, y)
-			spawn.item_id = item_id
-			spawn.item_kind = Models.KIND_NORMAL
-			spawn.item_type_id = get_tile(x, y).item_type_id
-			result.new_spawns.append(spawn)
+			empty_cells.append({"x": x, "y": y})
+
+	var lucky_plan := {"active": false, "assignments": {}}
+	if _lucky_find != null and not empty_cells.is_empty():
+		lucky_plan = _lucky_find.resolve_refill_plan(self, empty_cells, _rng)
+
+	for cell in empty_cells:
+		var x := int(cell.x)
+		var y := int(cell.y)
+		var key := "%d,%d" % [x, y]
+		var item_id := str(lucky_plan.get("assignments", {}).get(key, ""))
+		if item_id.is_empty():
+			item_id = _pick_initial_item_id_avoiding_match(x, y)
+		_set_item(x, y, item_id, Models.KIND_NORMAL, "plain", item_points)
+		var spawn := Models.TileSpawn.new()
+		spawn.at = Models.TileCoord.new(x, y)
+		spawn.item_id = item_id
+		spawn.item_kind = Models.KIND_NORMAL
+		spawn.item_type_id = get_tile(x, y).item_type_id
+		result.new_spawns.append(spawn)
+
+	if bool(lucky_plan.get("active", false)) and not result.new_spawns.is_empty():
+		result.lucky_find_refill_applied = true
 	return result
 
 

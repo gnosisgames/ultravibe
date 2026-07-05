@@ -112,6 +112,7 @@ class MatchResult:
 	var floor_cells_placed: Array = []
 	var cell_floor_finalize_steps: Array = []
 	var cell_floor_lucky_successful_trigger_count: int = 0
+	var lucky_find_refill_applied: bool = false
 	var boon_resolve_steps: Array = []
 	var boon_finalize_steps: Array = []
 	var finalize_playback_steps: Array = []

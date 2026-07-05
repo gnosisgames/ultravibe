@@ -198,6 +198,18 @@
       "bossRoundsSkippable": false,
       "defaultMovesPerRound": 10,
       "defaultShufflesPerRound": 2,
+      "luckyFindTuning": {
+        "enabled": true,
+        "permanentChancePercent": 8,
+        "pityIncrementPercent": 3
+      },
+      "luckyFind": {
+        "enabled": true,
+        "permanentChancePercent": 8,
+        "temporaryChancePercent": 8,
+        "pityIncrementPercent": 3,
+        "pendingForce": false
+      },
       "doubleDownTargetScoreMultiplier": 10,
       "endlessModeEnabled": false,
       "sandboxEndlessEnabled": false,

@@ -19,6 +19,7 @@ const Match3GameSpeedScript = preload("res://game/match3/core/match3_game_speed.
 const SupportScript = preload("res://game/match3/boons/match3_boon_support.gd")
 const ConsumableServiceScript = preload("res://addons/com.gnosisgames.gnosisengine/services/gnosis_consumable_service.gd")
 const ConsumableDbgScript = preload("res://game/match3/debug/match3_consumable_debug.gd")
+const LuckyFindScript = preload("res://game/match3/core/match3_lucky_find.gd")
 
 const Events = Match3EventsScript
 const Models = Match3ModelsScript
@@ -66,6 +67,9 @@ const CONSUMABLE_USE_DISPLAY_KEY := "match3__phrase__consumableUse"
 const COLOR_LIMIT_PLAYABLE_SMALL := 42
 const COLOR_LIMIT_PLAYABLE_MEDIUM := 63
 
+const DEFAULT_LUCKY_FIND_PERMANENT_PERCENT := 8.0
+const DEFAULT_LUCKY_FIND_PITY_INCREMENT_PERCENT := 3.0
+
 var _gameplay = Match3GameplayScript.new()
 var _item_points: Dictionary = {}
 var _current_round := 1
@@ -94,6 +98,7 @@ var _ephemeral_publish_deferred := false
 var _boon_runtime: RefCounted = null
 var _match3_effects: RefCounted = null
 var _cell_floor_runtime: RefCounted = null
+var _lucky_find: Match3LuckyFind = LuckyFindScript.new()
 
 var _move_subscription: RefCounted = null
 var _reset_subscription: RefCounted = null
@@ -117,6 +122,7 @@ func on_initialize() -> void:
 	_refresh_item_catalog()
 	_load_board_pools()
 	_hydrate_runtime_from_store()
+	_hydrate_lucky_find_from_store()
 	_boon_runtime = Match3BoonRuntimeScript.new(self)
 	_match3_effects = Match3Match3EffectsScript.new(self)
 	_cell_floor_runtime = Match3CellFloorRuntimeScript.new(self)
@@ -135,6 +141,7 @@ func on_initialize() -> void:
 	_gameplay.set_match_floor_conversion_hook(Callable(self, "_apply_match_floor_conversions_after_clear"))
 	_gameplay.set_tile_score_resolver(Callable(self, "_resolve_item_score_profile"))
 	_gameplay.set_spawn_item_type_resolver(Callable(self, "_resolve_spawn_item_type_id_for_block"))
+	_gameplay.set_lucky_find(_lucky_find)
 	_gameplay.status = Models.STATUS_LEVEL_SELECT_PANEL
 	_publish_ephemeral_state()
 	if context and context.event_bus:
@@ -254,6 +261,24 @@ func invoke_function(name: String, parameters: GnosisNode) -> Variant:
 		"DestroyRandomCellFloorOnBoard":
 			return _destroy_random_cell_floor_on_board(parameters)
 	return GnosisFunctionResult.fail("Unknown Match3 function '%s'." % name)
+
+
+func get_lucky_find() -> Match3LuckyFind:
+	return _lucky_find
+
+
+func add_lucky_find_permanent_bonus_percent(delta: float) -> void:
+	if _lucky_find == null:
+		return
+	_lucky_find.add_permanent_bonus_percent(delta)
+	_publish_ephemeral_state()
+
+
+func set_lucky_find_pity_multiplier(multiplier: float) -> void:
+	if _lucky_find == null:
+		return
+	_lucky_find.set_pity_increment_multiplier(multiplier)
+	_publish_ephemeral_state()
 
 
 func get_gameplay():
@@ -1169,6 +1194,9 @@ func _begin_level(level_number: int) -> void:
 	)
 	_apply_floor_modifier_pool_to_board()
 	_sync_gameplay_effect_flags()
+	if _lucky_find != null:
+		_lucky_find.reset_temporary_to_permanent()
+		_lucky_find.pending_force = false
 	_publish_ephemeral_state()
 	_publish_board_reset()
 
@@ -2464,6 +2492,81 @@ func _hydrate_runtime_from_store() -> void:
 	_current_round = _node_int(m3, "currentRound", 1)
 	_gameplay.status = _node_int(m3, "gameStatus", Models.STATUS_LEVEL_SELECT_PANEL)
 	_hydrate_round_action_reward_locks_from_ephemeral()
+	_sync_lucky_find_round_defaults()
+
+
+func _hydrate_lucky_find_from_store() -> void:
+	if _lucky_find == null:
+		return
+	var tuning := _read_lucky_find_tuning()
+	var m3 := get_node("match3", false)
+	if not m3.is_valid():
+		_lucky_find.configure(
+			float(tuning.get("permanentChancePercent", DEFAULT_LUCKY_FIND_PERMANENT_PERCENT)),
+			float(tuning.get("pityIncrementPercent", DEFAULT_LUCKY_FIND_PITY_INCREMENT_PERCENT)),
+			bool(tuning.get("enabled", true))
+		)
+		return
+	var lf := m3.get_node("luckyFind")
+	if lf.is_valid() and lf.get_type() == GnosisValueType.OBJECT:
+		_lucky_find.hydrate(
+			_node_float(lf, "permanentChancePercent", float(tuning.get("permanentChancePercent", DEFAULT_LUCKY_FIND_PERMANENT_PERCENT))),
+			_node_float(lf, "temporaryChancePercent", float(tuning.get("permanentChancePercent", DEFAULT_LUCKY_FIND_PERMANENT_PERCENT))),
+			_node_float(lf, "pityIncrementPercent", float(tuning.get("pityIncrementPercent", DEFAULT_LUCKY_FIND_PITY_INCREMENT_PERCENT))),
+			_node_bool(lf, "pendingForce", false),
+			bool(tuning.get("enabled", true))
+		)
+	else:
+		_lucky_find.configure(
+			float(tuning.get("permanentChancePercent", DEFAULT_LUCKY_FIND_PERMANENT_PERCENT)),
+			float(tuning.get("pityIncrementPercent", DEFAULT_LUCKY_FIND_PITY_INCREMENT_PERCENT)),
+			bool(tuning.get("enabled", true))
+		)
+
+
+func _read_lucky_find_tuning() -> Dictionary:
+	var m3 := get_node("match3", false)
+	if m3.is_valid():
+		var tuning := m3.get_node("luckyFindTuning")
+		if tuning.is_valid() and tuning.get_type() == GnosisValueType.OBJECT:
+			return {
+				"permanentChancePercent": _node_float(tuning, "permanentChancePercent", DEFAULT_LUCKY_FIND_PERMANENT_PERCENT),
+				"pityIncrementPercent": _node_float(tuning, "pityIncrementPercent", DEFAULT_LUCKY_FIND_PITY_INCREMENT_PERCENT),
+				"enabled": _node_bool(tuning, "enabled", true),
+			}
+	return {
+		"permanentChancePercent": DEFAULT_LUCKY_FIND_PERMANENT_PERCENT,
+		"pityIncrementPercent": DEFAULT_LUCKY_FIND_PITY_INCREMENT_PERCENT,
+		"enabled": true,
+	}
+
+
+func _sync_lucky_find_round_defaults() -> void:
+	if _lucky_find == null:
+		return
+	var tuning := _read_lucky_find_tuning()
+	_lucky_find.enabled = bool(tuning.get("enabled", true))
+	_lucky_find.permanent_chance_percent = float(tuning.get("permanentChancePercent", DEFAULT_LUCKY_FIND_PERMANENT_PERCENT))
+	_lucky_find.pity_increment_percent = float(tuning.get("pityIncrementPercent", DEFAULT_LUCKY_FIND_PITY_INCREMENT_PERCENT))
+
+
+func _publish_lucky_find_state(m3: GnosisNode) -> void:
+	if _lucky_find == null or m3 == null or not m3.is_valid():
+		return
+	var lf := context.store.create_object()
+	var snap: Dictionary = _lucky_find.snapshot()
+	lf.set_key("permanentChancePercent", snap.get("permanentChancePercent", DEFAULT_LUCKY_FIND_PERMANENT_PERCENT))
+	lf.set_key("temporaryChancePercent", snap.get("temporaryChancePercent", DEFAULT_LUCKY_FIND_PERMANENT_PERCENT))
+	lf.set_key("pityIncrementPercent", snap.get("pityIncrementPercent", DEFAULT_LUCKY_FIND_PITY_INCREMENT_PERCENT))
+	lf.set_key("pendingForce", snap.get("pendingForce", false))
+	lf.set_key("enabled", snap.get("enabled", true))
+	m3.set_node("luckyFind", lf)
+	var tuning := _read_lucky_find_tuning()
+	var tuning_node := context.store.create_object()
+	tuning_node.set_key("permanentChancePercent", tuning.get("permanentChancePercent", DEFAULT_LUCKY_FIND_PERMANENT_PERCENT))
+	tuning_node.set_key("pityIncrementPercent", tuning.get("pityIncrementPercent", DEFAULT_LUCKY_FIND_PITY_INCREMENT_PERCENT))
+	tuning_node.set_key("enabled", tuning.get("enabled", true))
+	m3.set_node("luckyFindTuning", tuning_node)
 
 
 func _publish_ephemeral_state() -> void:
@@ -2496,6 +2599,7 @@ func _publish_ephemeral_state() -> void:
 	if _match3_effects != null:
 		_match3_effects.persist_to_store(m3)
 	_ensure_floor_modifier_pool_published(m3)
+	_publish_lucky_find_state(m3)
 	if not m3.get_node("nextLevel").is_valid():
 		m3.set_key("nextLevel", _current_round)
 	if not m3.get_node("winningRound").is_valid():
