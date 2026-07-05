@@ -33,6 +33,8 @@ const InventoryTooltipUiScript = preload("res://game/ui/inventory_tooltip_ui.gd"
 var _service: GnosisService = null
 var _tooltip: TooltipPopup = null
 var _tooltip_index := -1
+var _tooltip_reroll_elapsed := 0.0
+const TOOLTIP_REROLL_INTERVAL := 0.35
 var _slot_nodes: Array[Control] = []
 var _last_signature := "__unset__"
 
@@ -145,7 +147,7 @@ func _build_tooltip() -> void:
 	_tooltip.scale = Vector2.ZERO
 	_tooltip.visible = false
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if _should_skip_live_refresh():
 		if _tooltip_index >= 0:
 			_hide_tooltip()
@@ -153,6 +155,10 @@ func _process(_delta: float) -> void:
 	_refresh_if_changed()
 	if _tooltip_index >= 0 and _tooltip and _tooltip.visible:
 		_position_tooltip(_tooltip_index)
+		_tooltip_reroll_elapsed += delta
+		if _tooltip_reroll_elapsed >= TOOLTIP_REROLL_INTERVAL:
+			_tooltip_reroll_elapsed = 0.0
+			_refresh_tooltip_content(_tooltip_index)
 
 
 func _should_skip_live_refresh() -> bool:
@@ -372,22 +378,61 @@ func _on_slot_unhovered() -> void:
 func _show_tooltip_for_slot(index: int) -> void:
 	if _tooltip == null:
 		return
-	var entries := _entries()
-	if index < 0 or index >= entries.size():
+	var list := _inventory_list()
+	if index < 0 or index >= list.get_count():
 		return
 	_tooltip_index = index
-	var details: Dictionary = entries[index]
+	_tooltip_reroll_elapsed = 0.0
+	_refresh_tooltip_content(index)
+	_tooltip.reset_size()
+	_position_tooltip(index)
+	_raise_tooltip()
+	_tooltip.appear()
+
+
+func _refresh_tooltip_content(index: int) -> void:
+	if _tooltip == null:
+		return
+	var list := _inventory_list()
+	if index < 0 or index >= list.get_count():
+		return
+	var entry := list.get_node(index)
+	var details: Dictionary = _describe_entry(entry, true)
+	var actions := _tooltip_actions_for_entry(entry)
 	_tooltip.visible = true
 	_tooltip.set_content(
 		details.get("name", ""),
 		details.get("description", ""),
 		TooltipPopup.DEFAULT_CONTENT_WIDTH,
 		details.get("tags", []),
+		actions,
 	)
-	_tooltip.reset_size()
-	_position_tooltip(index)
-	_raise_tooltip()
-	_tooltip.appear()
+
+
+func _tooltip_actions_for_entry(_entry: GnosisNode) -> Array:
+	return []
+
+
+func _try_handle_tooltip_action(action_id: String, _entry: GnosisNode) -> bool:
+	return false
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if _tooltip_index < 0 or _tooltip == null or not _tooltip.visible:
+		return
+	var sell_requested := false
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
+		sell_requested = true
+	elif event.is_action_pressed("UISell") and (event is InputEventJoypadButton or event is InputEventJoypadMotion):
+		sell_requested = true
+	if not sell_requested:
+		return
+	var list := _inventory_list()
+	if _tooltip_index < 0 or _tooltip_index >= list.get_count():
+		return
+	var entry := list.get_node(_tooltip_index)
+	if _try_handle_tooltip_action("UISell", entry):
+		get_viewport().set_input_as_handled()
 
 func _position_tooltip(index: int) -> void:
 	if _tooltip == null or index < 0 or index >= _slot_nodes.size():
@@ -404,6 +449,7 @@ func _tooltip_prefer_side() -> TooltipPopup.PIVOT_SIDE:
 
 func _hide_tooltip() -> void:
 	_tooltip_index = -1
+	_tooltip_reroll_elapsed = 0.0
 	if _tooltip:
 		_tooltip.disappear()
 
@@ -436,7 +482,7 @@ func _build_signature() -> String:
 			parts.append("%s:%d" % [_resolve_item_id(entry), _node_int(entry, "currentCount", 1)])
 	return "|".join(parts)
 
-func _describe_entry(entry: GnosisNode) -> Dictionary:
+func _describe_entry(entry: GnosisNode, reroll_random_preview: bool = false) -> Dictionary:
 	var item_id := _resolve_item_id(entry)
 	var name := item_id.capitalize()
 	var desc := ""
@@ -455,7 +501,13 @@ func _describe_entry(entry: GnosisNode) -> Dictionary:
 		"count": maxi(1, _node_int(entry, "currentCount", 1)),
 		"tags": [],
 	}
-	return InventoryTooltipUiScript.enrich_entry_details(_service, entry, _inventory_category(), base)
+	return InventoryTooltipUiScript.enrich_entry_details(
+		_service,
+		entry,
+		_inventory_category(),
+		base,
+		reroll_random_preview,
+	)
 
 func _resolve_item_id(entry: GnosisNode) -> String:
 	for key in ["id", "consumableId", "boonId", "abilityId"]:

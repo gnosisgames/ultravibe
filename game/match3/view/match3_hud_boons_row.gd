@@ -243,6 +243,10 @@ func _connect_slot_hit(hit: Button, index: int) -> void:
 
 
 func _on_hit_gui_input(event: InputEvent, index: int) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
+		if _try_sell_at_index(index):
+			get_viewport().set_input_as_handled()
+		return
 	if _is_reorder_blocked():
 		return
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:

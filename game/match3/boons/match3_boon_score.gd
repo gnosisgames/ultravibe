@@ -34,6 +34,59 @@ func configure_rng(seed_value: int) -> void:
 	_rng.seed = seed_value
 
 
+static func _seed_hash_string(seed_text: String) -> int:
+	var hash := 17
+	for i in seed_text.length():
+		hash = (hash * 31) + seed_text.unicode_at(i)
+	return hash
+
+
+func _resolve_boon_score_calculation_random_seed(
+	slot_entry: GnosisNode,
+	calculation_id: String,
+	move_ordinal: int,
+	seed_suffix: String = "",
+) -> String:
+	var instance_id := SupportScript._node_str(slot_entry, "instanceId").strip_edges()
+	var catalog_id := SupportScript.read_boon_catalog_id_from_inventory_entry(slot_entry)
+	var base_seed := instance_id if not instance_id.is_empty() else catalog_id
+	if base_seed.is_empty():
+		base_seed = "boon"
+	var calc := calculation_id.strip_edges()
+	var suffix := seed_suffix.strip_edges()
+	var move := maxi(0, move_ordinal)
+	if not suffix.is_empty():
+		if calc.is_empty():
+			return "%s:%s" % [base_seed, suffix]
+		return "%s:%s:%s" % [base_seed, suffix, calc]
+	if calc.is_empty():
+		return "%s:move:%d" % [base_seed, move]
+	return "%s:move:%d:%s" % [base_seed, move, calc]
+
+
+func _create_seeded_rng(seed_text: String) -> RandomNumberGenerator:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = _seed_hash_string(seed_text)
+	return rng
+
+
+func _resolve_boon_score_calculation_rng(
+	slot_entry: GnosisNode,
+	calculation_id: String,
+	move_ordinal: int = -1,
+	seed_suffix: String = "",
+) -> RandomNumberGenerator:
+	var move := move_ordinal if move_ordinal >= 0 else maxi(0, _service.get_gameplay().moves_performed)
+	var seed_text := _resolve_boon_score_calculation_random_seed(slot_entry, calculation_id, move, seed_suffix)
+	return _create_seeded_rng(seed_text)
+
+
+func _rng_for_score_calc(slot_entry: GnosisNode, calculation_id: String) -> RandomNumberGenerator:
+	if slot_entry != null and slot_entry.is_valid() and slot_entry.get_type() == GnosisValueType.OBJECT:
+		return _resolve_boon_score_calculation_rng(slot_entry, calculation_id)
+	return _rng
+
+
 func append_pending_autocorrect_finalize(pending: Dictionary) -> void:
 	if pending.is_empty():
 		return
@@ -586,14 +639,15 @@ func _apply_scoring_destroy_counts_to_score_node(score: GnosisNode, results: Arr
 	score.set_key("warmDestroyedCount", _sum_palette_destroyed(counters, SupportScript.WARM_PALETTE_ITEM_IDS))
 
 
-func _evaluate_score_calc_when(calc: GnosisNode, payload: GnosisNode, parameters: GnosisNode, slot_entry: GnosisNode, _calculation_id: String) -> bool:
+func _evaluate_score_calc_when(calc: GnosisNode, payload: GnosisNode, parameters: GnosisNode, slot_entry: GnosisNode, calculation_id: String) -> bool:
 	var when_node := calc.get_node("when")
 	if not when_node.is_valid() or when_node.get_type() != GnosisValueType.STRING:
 		return true
 	var when := str(when_node.value).strip_edges()
 	if when.is_empty():
 		return true
-	return GnosisScoreExpr.evaluate_condition(when, func(path: String) -> float: return _resolve_score_expr_binding(path, payload, parameters), _rng)
+	var rng := _rng_for_score_calc(slot_entry, calculation_id)
+	return GnosisScoreExpr.evaluate_condition(when, func(path: String) -> float: return _resolve_score_expr_binding(path, payload, parameters), rng)
 
 
 func _apply_score_calc_outcomes(
@@ -617,6 +671,7 @@ func _apply_score_calc_outcomes(
 	if outcomes == null or not outcomes.is_valid() or outcomes.get_type() != GnosisValueType.LIST:
 		return
 	var bind := _make_binding_func(payload, parameters, cold_bind, warm_bind, axis3_bind, axis4_bind, axis5_bind)
+	var rng := _rng_for_score_calc(slot_entry, calculation_id)
 	for i in range(outcomes.get_count()):
 		var outcome := outcomes.get_node(i)
 		if outcome == null or not outcome.is_valid():
@@ -628,7 +683,7 @@ func _apply_score_calc_outcomes(
 		var expr := _read_expr_string(outcome.get_node("value"))
 		if expr.is_empty():
 			continue
-		var x = GnosisScoreExpr.try_evaluate_double(expr, bind, _rng)
+		var x = GnosisScoreExpr.try_evaluate_double(expr, bind, rng)
 		if x == null:
 			continue
 		var score := payload.get_node("score")

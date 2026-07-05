@@ -31,12 +31,16 @@ func _bag_capacity() -> int:
 	return _node_int(_bag(), "maxSize", 5)
 
 
-func _describe_entry(entry: GnosisNode) -> Dictionary:
+func _describe_entry(entry: GnosisNode, reroll_random_preview: bool = false) -> Dictionary:
 	var item_id := _resolve_item_id(entry)
 	var engine: GnosisEngine = null
 	if _service != null and _service.context != null:
 		engine = _service.context.engine
 	var presentation := InventoryTooltipUiScript.build_hud_presentation(engine, "boons", entry)
+	if reroll_random_preview and engine != null:
+		presentation["description"] = InventoryTooltipUiScript.build_description(
+			engine, entry, "boons", str(presentation.get("description", "")), true
+		)
 	var metadata := entry.get_node("metadata")
 	var sprite_id := _node_str(metadata, "spriteId")
 	var props := entry.get_node("properties")
@@ -49,6 +53,50 @@ func _describe_entry(entry: GnosisNode) -> Dictionary:
 		"positive_flavor_id": _node_str(props, EngineFlavorsScript.POSITIVE_FLAVOR_ID_PROPERTY),
 		"negative_flavor_id": _node_str(props, EngineFlavorsScript.NEGATIVE_FLAVOR_ID_PROPERTY),
 	}
+
+
+func _tooltip_actions_for_entry(entry: GnosisNode) -> Array:
+	if _service == null or _service.context == null or _service.context.engine == null:
+		return []
+	return InventoryTooltipUiScript.build_inventory_row_actions(
+		_service.context.engine,
+		entry,
+		"boons",
+	)
+
+
+func _try_handle_tooltip_action(action_id: String, entry: GnosisNode) -> bool:
+	if action_id != "UISell":
+		return false
+	if InventoryTooltipUiScript.try_sell_boon_entry(_service, entry):
+		UltraUiFx.play_ui_sfx(self, UltraUiFx.CLIP_PRESSED, -1.0)
+		_hide_tooltip()
+		force_refresh()
+		return true
+	return false
+
+
+func _try_sell_at_index(index: int) -> bool:
+	if _service == null or _service.context == null or _service.context.engine == null:
+		return false
+	var list := _inventory_list()
+	if index < 0 or index >= list.get_count():
+		return false
+	var entry := list.get_node(index)
+	if not InventoryTooltipUiScript.can_sell_boon_entry(_service.context.engine, entry):
+		return false
+	return _try_handle_tooltip_action("UISell", entry)
+
+
+func _connect_slot_hit(hit: Button, index: int) -> void:
+	super._connect_slot_hit(hit, index)
+	hit.gui_input.connect(_on_boon_slot_gui_input.bind(index))
+
+
+func _on_boon_slot_gui_input(event: InputEvent, index: int) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
+		if _try_sell_at_index(index):
+			get_viewport().set_input_as_handled()
 
 
 func _make_slot(index: int, details: Dictionary) -> Control:

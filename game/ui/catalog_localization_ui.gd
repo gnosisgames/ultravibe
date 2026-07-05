@@ -14,6 +14,7 @@ static func resolve_text(
 	config_section: String = "",
 	catalog_item_id: String = "",
 	entry: GnosisNode = GnosisNode.new(null),
+	reroll_random_preview: bool = false,
 ) -> String:
 	var trimmed_key := key.strip_edges()
 	if trimmed_key.is_empty():
@@ -28,5 +29,6 @@ static func resolve_text(
 		config_section,
 		catalog_item_id,
 		entry,
+		reroll_random_preview,
 	)
 	return localization.get_string_resolved(trimmed_key, fallback, named_args, [])

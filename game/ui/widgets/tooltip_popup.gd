@@ -39,8 +39,18 @@ const TAG_CHIP_STYLES := {
 }
 const TAG_CHIP_DEFAULT := {"bg": Color(0.5, 0.5, 0.5), "fg": Color.WHITE}
 
+## Action row styles (Unity tooltipActionTypeStyles — separate from tag chips).
+const ACTION_CHIP_STYLES := {
+	"success": {"bg": Color(0.18, 0.52, 0.34, 0.95), "fg": Color.WHITE},
+	"failure": {"bg": Color(0.55, 0.14, 0.14, 0.95), "fg": Color.WHITE},
+	"negative": {"bg": Color(0.55, 0.14, 0.14, 0.95), "fg": Color.WHITE},
+	"info": {"bg": Color(0.2, 0.45, 0.85, 0.95), "fg": Color.WHITE},
+}
+const ACTION_CHIP_DEFAULT := {"bg": Color(0.35, 0.35, 0.4, 0.95), "fg": Color.WHITE}
+
 ## Max chips shown, matching Unity's GnosisTooltipTrigger.MaxTooltipTagChips.
 const MAX_TAG_CHIPS := 5
+const MAX_ACTION_CHIPS := 5
 
 @export var text: String = "":
 	set(new_text):
@@ -65,6 +75,12 @@ var tween_tooltip: Tween
 var title_label: RichTextLabel = null
 var _chips_row: HFlowContainer = null
 var _chips_wrap: MarginContainer = null
+var _actions_wrap: MarginContainer = null
+var _actions_row: VBoxContainer = null
+var _shell_vbox: VBoxContainer = null
+var _main_panel: PanelContainer = null
+
+const InputActionDisplayScript = preload("res://game/ui/input_action_display.gd")
 
 @onready var description: RichTextLabel = $MarginContainer/VBoxContainer/Description
 
@@ -94,6 +110,7 @@ func _ready() -> void:
 func apply_standard_skin() -> void:
 	if description == null:
 		return
+	_ensure_shell()
 
 	var panel := StyleBoxFlat.new()
 	panel.bg_color = Color(0.156863, 0.211765, 0.32549)
@@ -107,7 +124,13 @@ func apply_standard_skin() -> void:
 	panel.shadow_color = Color(0.0784314, 0.137255, 0.227451, 0.6)
 	panel.shadow_size = 4
 	panel.shadow_offset = Vector2(3, 5)
-	add_theme_stylebox_override("panel", panel)
+	if _main_panel:
+		_main_panel.add_theme_stylebox_override("panel", panel)
+	else:
+		add_theme_stylebox_override("panel", panel)
+
+	var root_clear := StyleBoxEmpty.new()
+	add_theme_stylebox_override("panel", root_clear)
 
 	var body := StyleBoxFlat.new()
 	body.bg_color = Color(0.972549, 0.956863, 0.921569)
@@ -134,6 +157,28 @@ func apply_standard_skin() -> void:
 		vbox.add_child(title_label)
 		vbox.move_child(title_label, 0)
 
+
+func _ensure_shell() -> void:
+	if _shell_vbox != null and is_instance_valid(_shell_vbox):
+		return
+	var margin := get_node_or_null("MarginContainer") as MarginContainer
+	if margin == null:
+		return
+	remove_child(margin)
+	_shell_vbox = VBoxContainer.new()
+	_shell_vbox.name = "ShellVBox"
+	_shell_vbox.add_theme_constant_override("separation", 8)
+	_shell_vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_shell_vbox)
+	_main_panel = PanelContainer.new()
+	_main_panel.name = "MainPanel"
+	_main_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_shell_vbox.add_child(_main_panel)
+	_main_panel.add_child(margin)
+	var title_root := get_node_or_null("ContainerFree")
+	if title_root:
+		move_child(title_root, -1)
+
 ## Fills the tooltip with a title and a raw (un-formatted) description string.
 ## Semantic `<money>`/`<move>`/`<shuffle>`/`<multi>`/`<point>`/`<chance>` tags
 ## are converted to the shared accent colors automatically.
@@ -142,7 +187,7 @@ func apply_standard_skin() -> void:
 ## entry is a Dictionary `{ "type": <tagType>, "label": <already-localized text> }`
 ## mirroring the uniform `metadata.tags` catalog format (consumables, boons,
 ## upgrades, bosses). Pass `[]` (default) for no chips.
-func set_content(title: String, description_raw: String, width: float = DEFAULT_CONTENT_WIDTH, tags: Array = []) -> void:
+func set_content(title: String, description_raw: String, width: float = DEFAULT_CONTENT_WIDTH, tags: Array = [], actions: Array = []) -> void:
 	if description == null:
 		return
 	var body_width := width if width > 0.0 else DEFAULT_CONTENT_WIDTH
@@ -156,6 +201,7 @@ func set_content(title: String, description_raw: String, width: float = DEFAULT_
 		title_label.text = "[center][font_size=28]%s[/font_size][/center]" % title
 	text = format_bbcode(description_raw)
 	set_tags(tags)
+	set_actions(actions)
 
 ## Rebuilds the smart-chip row below the body. Each entry is a Dictionary with a
 ## `type` (tagType -> chip color) and a `label` (already-localized text). Hidden
@@ -180,6 +226,107 @@ func set_tags(tags: Array) -> void:
 		shown += 1
 	if _chips_wrap:
 		_chips_wrap.visible = shown > 0
+
+
+## Action rows rendered below the cream body card (Unity GnosisTooltip.SetActionChips).
+func set_actions(actions: Array) -> void:
+	_ensure_actions_row()
+	if _actions_row == null:
+		return
+	for child in _actions_row.get_children():
+		child.free()
+	var shown := 0
+	for entry in actions:
+		if shown >= MAX_ACTION_CHIPS:
+			break
+		if typeof(entry) != TYPE_DICTIONARY:
+			continue
+		var label_text := str(entry.get("label", "")).strip_edges()
+		var input_action := str(entry.get("input_action", "")).strip_edges()
+		if label_text.is_empty() and input_action.is_empty():
+			continue
+		var type_id := str(entry.get("type", "")).strip_edges().to_lower()
+		var input_glyph := str(entry.get("input_glyph", "")).strip_edges()
+		_actions_row.add_child(_make_action_chip(type_id, label_text, input_action, input_glyph))
+		shown += 1
+	if _actions_wrap:
+		_actions_wrap.visible = shown > 0
+
+
+func _ensure_actions_row() -> void:
+	if _actions_row and is_instance_valid(_actions_row):
+		return
+	_ensure_shell()
+	if _shell_vbox == null:
+		return
+	_actions_wrap = MarginContainer.new()
+	_actions_wrap.name = "ActionChipsWrap"
+	_actions_wrap.add_theme_constant_override("margin_top", 2)
+	_actions_wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_actions_wrap.visible = false
+	_shell_vbox.add_child(_actions_wrap)
+	_actions_row = VBoxContainer.new()
+	_actions_row.name = "ActionChips"
+	_actions_row.add_theme_constant_override("separation", 6)
+	_actions_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_actions_wrap.add_child(_actions_row)
+
+
+func _make_action_chip(type_id: String, label_text: String, input_action: String, input_glyph: String = "") -> Control:
+	var style: Dictionary = ACTION_CHIP_STYLES.get(type_id, ACTION_CHIP_DEFAULT)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+
+	var glyph_text := input_glyph.strip_edges()
+	if glyph_text.is_empty():
+		glyph_text = InputActionDisplayScript.format_action(input_action)
+	if not glyph_text.is_empty():
+		var glyph := PanelContainer.new()
+		glyph.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var glyph_box := StyleBoxFlat.new()
+		glyph_box.bg_color = Color(0.12, 0.12, 0.16, 0.9)
+		glyph_box.set_corner_radius_all(8)
+		glyph_box.content_margin_left = 10.0
+		glyph_box.content_margin_right = 10.0
+		glyph_box.content_margin_top = 4.0
+		glyph_box.content_margin_bottom = 4.0
+		glyph.add_theme_stylebox_override("panel", glyph_box)
+		var glyph_label := Label.new()
+		glyph_label.text = glyph_text.to_upper()
+		glyph_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		glyph_label.add_theme_color_override("font_color", Color.WHITE)
+		glyph_label.add_theme_font_size_override("font_size", 18)
+		var chip_font := description.get_theme_font("normal_font") if description else null
+		if chip_font:
+			glyph_label.add_theme_font_override("font", chip_font)
+		glyph.add_child(glyph_label)
+		row.add_child(glyph)
+
+	var chip := PanelContainer.new()
+	chip.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var box := StyleBoxFlat.new()
+	box.bg_color = style.bg
+	box.set_corner_radius_all(10)
+	box.content_margin_left = 14.0
+	box.content_margin_right = 14.0
+	box.content_margin_top = 6.0
+	box.content_margin_bottom = 7.0
+	chip.add_theme_stylebox_override("panel", box)
+	var label := Label.new()
+	label.text = label_text
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	label.add_theme_color_override("font_color", style.fg)
+	label.add_theme_font_size_override("font_size", 20)
+	var action_font := description.get_theme_font("normal_font") if description else null
+	if action_font:
+		label.add_theme_font_override("font", action_font)
+	chip.add_child(label)
+	row.add_child(chip)
+	return row
 
 ## Lazily creates the HFlowContainer that holds the chips, placed directly under
 ## the Description inside the body VBox. A MarginContainer wrapper adds a small

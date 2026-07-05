@@ -5,6 +5,14 @@ extends RefCounted
 
 const CatalogLocalizationUiScript = preload("res://game/ui/catalog_localization_ui.gd")
 const ShopCatalogUiScript = preload("res://game/ui/shop_catalog_ui.gd")
+const FlavorsScript = preload("res://addons/com.gnosisgames.gnosisengine/services/gnosis_boon_flavors.gd")
+const SupportScript = preload("res://game/match3/boons/match3_boon_support.gd")
+const InputActionDisplayScript = preload("res://game/ui/input_action_display.gd")
+
+const SELL_ACTION_TYPE := "failure"
+const SELL_INPUT_ACTION := "UISell"
+const SELL_LOC_KEY := "core__verb__sell"
+const BOON_CATEGORY := "boons"
 
 
 static func build_tags(engine: GnosisEngine, meta: GnosisNode, entry: GnosisNode = GnosisNode.new(null)) -> Array:
@@ -34,6 +42,7 @@ static func build_description(
 	entry: GnosisNode,
 	category: String,
 	fallback: String = "",
+	reroll_random_preview: bool = false,
 ) -> String:
 	var item_id := _resolve_item_id(entry)
 	var meta := entry.get_node("metadata")
@@ -51,6 +60,7 @@ static func build_description(
 		category,
 		item_id,
 		catalog_for_args,
+		reroll_random_preview,
 	)
 
 
@@ -59,6 +69,7 @@ static func enrich_entry_details(
 	entry: GnosisNode,
 	category: String,
 	base: Dictionary,
+	reroll_random_preview: bool = false,
 ) -> Dictionary:
 	if service == null or service.context == null or service.context.engine == null:
 		return base
@@ -67,7 +78,7 @@ static func enrich_entry_details(
 	var name_fallback := item_id.capitalize() if not item_id.is_empty() else ""
 	var meta := entry.get_node("metadata")
 	base["name"] = build_display_name(engine, entry, category, name_fallback)
-	base["description"] = build_description(engine, entry, category, base.get("description", ""))
+	base["description"] = build_description(engine, entry, category, base.get("description", ""), reroll_random_preview)
 	base["tags"] = build_tags(engine, meta, entry)
 	base["entry"] = entry
 	return base
@@ -89,6 +100,77 @@ static func build_hud_presentation(
 		}
 	presentation["tags"] = build_tags(engine, entry.get_node("metadata"), entry)
 	return presentation
+
+
+## Tooltip action rows below the body (Unity MainHud.BuildInventoryRowTooltipParameters).
+static func build_inventory_row_actions(
+	engine: GnosisEngine,
+	entry: GnosisNode,
+	category: String,
+) -> Array:
+	var actions: Array = []
+	if engine == null or not entry.is_valid() or category.is_empty():
+		return actions
+	if category.to_lower() == BOON_CATEGORY and can_sell_boon_entry(engine, entry):
+		var sell_price := read_inventory_sell_price(entry)
+		var label := _localized(engine, SELL_LOC_KEY, "Sell $%d" % sell_price)
+		var localization := engine.get_service("Localization") as GnosisLocalizationService
+		if localization != null:
+			label = localization.get_string_resolved(SELL_LOC_KEY, label, {}, [str(sell_price)])
+		actions.append({
+			"type": SELL_ACTION_TYPE,
+			"label": label,
+			"input_action": SELL_INPUT_ACTION,
+			"input_glyph": InputActionDisplayScript.format_mouse_button(MOUSE_BUTTON_RIGHT),
+		})
+	return actions
+
+
+static func can_sell_boon_entry(engine: GnosisEngine, entry: GnosisNode) -> bool:
+	if engine == null or not entry.is_valid():
+		return false
+	var config := engine.state.root.get_node("Persistent").get_node("configuration")
+	return not FlavorsScript.inventory_entry_blocks_sell(entry, config)
+
+
+static func read_inventory_sell_price(entry: GnosisNode) -> int:
+	if not entry.is_valid():
+		return 0
+	var props := entry.get_node("properties")
+	return maxi(0, _node_int(props, "sellPrice", 0))
+
+
+static func try_sell_boon_entry(service: GnosisService, entry: GnosisNode) -> bool:
+	if service == null or service.context == null or service.context.engine == null:
+		return false
+	if not entry.is_valid():
+		return false
+	var engine := service.context.engine
+	if not can_sell_boon_entry(engine, entry):
+		return false
+	var instance_id := _node_str(entry, "instanceId")
+	var boon_id := SupportScript.read_boon_catalog_id_from_inventory_entry(entry)
+	if instance_id.is_empty() and boon_id.is_empty():
+		return false
+	var params := service.context.store.create_object()
+	if not instance_id.is_empty():
+		params.set_key("instanceId", instance_id)
+	if not boon_id.is_empty():
+		params.set_key("boonId", boon_id)
+	var buy_price := SupportScript.resolve_boon_catalog_shop_buy_price(service, boon_id)
+	if buy_price > 0:
+		params.set_key("buyPrice", buy_price)
+	var result = service.call_service("Boon", "DeactivateBoon", params)
+	if result is GnosisFunctionResult and not (result as GnosisFunctionResult).is_ok:
+		return false
+	var sale := service.context.store.create_object()
+	sale.set_key("sourceConfigId", BOON_CATEGORY)
+	sale.set_key("itemId", boon_id)
+	service.call_service("Match3Shop", "RecordInventorySale", sale)
+	SupportScript.publish_ephemeral_state(service)
+	if service.has_method("sync_equipped_boon_match3_round_effects"):
+		service.call("sync_equipped_boon_match3_round_effects")
+	return true
 
 
 static func _tags_from_metadata(engine: GnosisEngine, meta: GnosisNode) -> Array:
@@ -165,3 +247,12 @@ static func _node_str(node: GnosisNode, key: String) -> String:
 		return ""
 	var child := node.get_node(key)
 	return str(child.value) if child.is_valid() and child.value != null else ""
+
+
+static func _node_int(node: GnosisNode, key: String, fallback: int) -> int:
+	if not node.is_valid():
+		return fallback
+	var child := node.get_node(key)
+	if child.is_valid() and child.value != null and typeof(child.value) in [TYPE_INT, TYPE_FLOAT]:
+		return int(child.value)
+	return fallback

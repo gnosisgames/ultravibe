@@ -70,7 +70,11 @@ static func _append_preview_args(
 			value_index += 1
 			var key := "%s%d" % [SCORE_VALUE_PREFIX, value_index]
 			var expr := _read_expr_string(outcome.get_node("value"))
-			args[key] = _evaluate_outcome_preview(engine, expr, payload, merged, rng)
+			var outcome_rng := rng
+			if reroll_random_preview and _expr_uses_random(expr):
+				outcome_rng = RandomNumberGenerator.new()
+				outcome_rng.randomize()
+			args[key] = _evaluate_outcome_preview(engine, expr, payload, merged, outcome_rng)
 
 
 static func _evaluate_outcome_preview(
@@ -105,6 +109,8 @@ static func _resolve_binding(
 		var match3 := engine.get_service("Match3")
 		if match3 != null and match3.has_method("get_statistic_int"):
 			return float(match3.call("get_statistic_int", stat_path, 0))
+	if path.to_lower() == "ephemeral.match3.boardcellscount":
+		return _resolve_board_cells_count(engine)
 	var node := _resolve_context_path(engine, path, payload, parameters)
 	return _read_double(node, 0.0)
 
@@ -279,6 +285,27 @@ static func _format_preview_number(value: float) -> String:
 	if absf(value - round(value)) < 0.001:
 		return str(int(round(value)))
 	return str(snapped(value, 0.01))
+
+
+static func _resolve_board_cells_count(engine: GnosisEngine) -> float:
+	if engine == null or engine.state == null:
+		return 64.0
+	var m3 := engine.state.root.get_node("Ephemeral").get_node("match3")
+	if not m3.is_valid():
+		return 64.0
+	var count := _read_double(m3.get_node("boardCellsCount"), 0.0)
+	if count > 0.0:
+		return count
+	var width := _read_double(m3.get_node("width"), 0.0)
+	var height := _read_double(m3.get_node("height"), 0.0)
+	if width > 0.0 and height > 0.0:
+		return width * height
+	return 64.0
+
+
+static func _expr_uses_random(expr: String) -> bool:
+	var lowered := expr.to_lower()
+	return lowered.contains("randint(") or lowered.contains("randfloat(")
 
 
 static func _seed_hash(seed_text: String) -> int:

@@ -2650,6 +2650,7 @@ func _publish_ephemeral_state() -> void:
 	m3.set_key("levelId", _active_level_id)
 	m3.set_key("width", _gameplay.width)
 	m3.set_key("height", _gameplay.height)
+	m3.set_key("boardCellsCount", maxi(0, _gameplay.width * _gameplay.height))
 	m3.set_key("colorLimit", _gameplay.palette.size())
 	m3.set_key("currentShuffles", _manual_shuffles_remaining)
 	m3.set_key("roundStartShuffles", _manual_shuffles_remaining)
