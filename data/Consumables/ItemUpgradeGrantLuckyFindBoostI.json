@@ -1,0 +1,36 @@
+{
+  "id": "ItemUpgradeGrantLuckyFindBoostI",
+  "properties": {
+    "basePrice": 10,
+    "offerChancePermille": 100,
+    "invocations": [
+      {
+        "service": "Audio",
+        "function": "PlaySound",
+        "parameters": {
+          "clipId": "consumableSfx",
+          "track": "Sfx"
+        }
+      },
+      {
+        "service": "Upgrade",
+        "function": "AddUpgrade",
+        "parameters": {
+          "categoryId": "itemUpgrades",
+          "upgradeId": "LuckyFindBoostI"
+        }
+      }
+    ],
+    "gameplayTags": [
+      "item_upgrade_grant"
+    ]
+  },
+  "metadata": {
+    "nameKey": "itemUpgradeLuckyFindBoostIName",
+    "descriptionKey": "itemUpgradeLuckyFindBoostIDescription",
+    "spriteId": "upgradeLuckyFindBoostISprite",
+    "backgroundColor": "#3D7A45",
+    "tags": [],
+    "grantItemUpgradeId": "LuckyFindBoostI"
+  }
+}

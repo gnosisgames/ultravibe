@@ -200,14 +200,14 @@
       "defaultShufflesPerRound": 2,
       "luckyFindTuning": {
         "enabled": true,
-        "permanentChancePercent": 8,
-        "pityIncrementPercent": 3
+        "permanentChancePercent": 10,
+        "pityIncrementPercent": 5
       },
       "luckyFind": {
         "enabled": true,
-        "permanentChancePercent": 8,
-        "temporaryChancePercent": 8,
-        "pityIncrementPercent": 3,
+        "permanentChancePercent": 10,
+        "temporaryChancePercent": 10,
+        "pityIncrementPercent": 5,
         "pendingForce": false
       },
       "doubleDownTargetScoreMultiplier": 10,

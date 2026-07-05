@@ -65,6 +65,14 @@
       "path": "ItemUpgradeGrantRedLevelUp.json"
     },
     {
+      "id": "ItemUpgradeGrantLuckyFindBoostI",
+      "path": "ItemUpgradeGrantLuckyFindBoostI.json"
+    },
+    {
+      "id": "ItemUpgradeGrantLuckyFindBoostII",
+      "path": "ItemUpgradeGrantLuckyFindBoostII.json"
+    },
+    {
       "id": "Logomania",
       "path": "Logomania.json"
     },

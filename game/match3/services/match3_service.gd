@@ -67,8 +67,13 @@ const CONSUMABLE_USE_DISPLAY_KEY := "match3__phrase__consumableUse"
 const COLOR_LIMIT_PLAYABLE_SMALL := 42
 const COLOR_LIMIT_PLAYABLE_MEDIUM := 63
 
-const DEFAULT_LUCKY_FIND_PERMANENT_PERCENT := 8.0
-const DEFAULT_LUCKY_FIND_PITY_INCREMENT_PERCENT := 3.0
+const DEFAULT_LUCKY_FIND_PERMANENT_PERCENT := 10.0
+const DEFAULT_LUCKY_FIND_PITY_INCREMENT_PERCENT := 5.0
+const LUCKY_FIND_UPGRADE_BONUS_PERCENT := 10.0
+const LUCKY_FIND_UPGRADE_IDS := {
+	"LuckyFindBoostI": LUCKY_FIND_UPGRADE_BONUS_PERCENT,
+	"LuckyFindBoostII": LUCKY_FIND_UPGRADE_BONUS_PERCENT,
+}
 
 var _gameplay = Match3GameplayScript.new()
 var _item_points: Dictionary = {}
@@ -196,6 +201,7 @@ func get_functions() -> Array:
 		"AddShopDiscountPercentDelta",
 		"AddDefaultMovesPerRoundDelta",
 		"AddDefaultShufflesPerRoundDelta",
+		"AddLuckyFindPermanentBonusPercent",
 		"DuplicateLastRuneOrItemUpgradeGrantConsumable",
 		"ApplyShopRerollScalingAfterCoreShopReroll",
 		"RerollUpcomingBossRound",
@@ -252,6 +258,8 @@ func invoke_function(name: String, parameters: GnosisNode) -> Variant:
 			return _add_default_moves_per_round_delta(parameters)
 		"AddDefaultShufflesPerRoundDelta":
 			return _add_default_shuffles_per_round_delta(parameters)
+		"AddLuckyFindPermanentBonusPercent":
+			return _add_lucky_find_permanent_bonus_percent(parameters)
 		"DuplicateLastRuneOrItemUpgradeGrantConsumable":
 			return _duplicate_last_rune_or_item_upgrade_grant_consumable(parameters)
 		"ApplyShopRerollScalingAfterCoreShopReroll":
@@ -272,6 +280,48 @@ func add_lucky_find_permanent_bonus_percent(delta: float) -> void:
 		return
 	_lucky_find.add_permanent_bonus_percent(delta)
 	_publish_ephemeral_state()
+
+
+func _add_lucky_find_permanent_bonus_percent(parameters: GnosisNode) -> GnosisFunctionResult:
+	if context == null or context.store == null:
+		return GnosisFunctionResult.fail("Store unavailable.")
+	var delta := _node_float(parameters, "delta", 0.0)
+	if is_zero_approx(delta):
+		delta = _node_float(parameters, "percent", 0.0)
+	if is_zero_approx(delta):
+		return GnosisFunctionResult.fail("AddLuckyFindPermanentBonusPercent requires non-zero 'delta' or 'percent'.")
+	add_lucky_find_permanent_bonus_percent(delta)
+	var payload := context.store.create_object()
+	payload.set_key("delta", delta)
+	payload.set_key("permanentChancePercent", _lucky_find.snapshot().get("permanentChancePercent", 0.0))
+	return GnosisFunctionResult.ok(payload)
+
+
+func _reapply_lucky_find_upgrade_bonuses() -> void:
+	if _lucky_find == null or context == null or context.store == null:
+		return
+	_lucky_find.reset_permanent_bonus()
+	var upgrades := get_node("upgrades", false)
+	if not upgrades.is_valid() or upgrades.get_type() != GnosisValueType.OBJECT:
+		return
+	var bag := upgrades.get_node("itemUpgrades")
+	if not bag.is_valid() or bag.get_type() != GnosisValueType.OBJECT:
+		return
+	var list := bag.get_node("list")
+	if not list.is_valid() or list.get_type() != GnosisValueType.LIST:
+		return
+	for i in range(list.get_count()):
+		var entry := list.get_node(i)
+		if not entry.is_valid() or entry.get_type() != GnosisValueType.OBJECT:
+			continue
+		var upgrade_id := _node_str(entry, "upgradeId")
+		if upgrade_id.is_empty():
+			upgrade_id = _node_str(entry, "id")
+		var bonus: Variant = LUCKY_FIND_UPGRADE_IDS.get(upgrade_id, null)
+		if bonus == null:
+			continue
+		var count := maxi(1, _node_int(entry, "currentCount", 1))
+		_lucky_find.add_permanent_bonus_percent(float(bonus) * float(count))
 
 
 func set_lucky_find_pity_multiplier(multiplier: float) -> void:
@@ -1085,6 +1135,7 @@ func handle_run_started() -> void:
 	var m3 := get_node("match3", false)
 	var next_level := maxi(1, _node_int(m3, "nextLevel", 1))
 	_prepare_queued_round_preview(next_level)
+	_reapply_lucky_find_upgrade_bonuses()
 	_gameplay.status = Models.STATUS_LEVEL_SELECT_PANEL
 	refresh_planned_floor_preview()
 	_publish_ephemeral_state()
@@ -2496,6 +2547,7 @@ func _hydrate_runtime_from_store() -> void:
 	_gameplay.status = _node_int(m3, "gameStatus", Models.STATUS_LEVEL_SELECT_PANEL)
 	_hydrate_round_action_reward_locks_from_ephemeral()
 	_sync_lucky_find_round_defaults()
+	_reapply_lucky_find_upgrade_bonuses()
 
 
 func _hydrate_lucky_find_from_store() -> void:
@@ -2509,6 +2561,7 @@ func _hydrate_lucky_find_from_store() -> void:
 			float(tuning.get("pityIncrementPercent", DEFAULT_LUCKY_FIND_PITY_INCREMENT_PERCENT)),
 			bool(tuning.get("enabled", true))
 		)
+		_reapply_lucky_find_upgrade_bonuses()
 		return
 	var lf := m3.get_node("luckyFind")
 	if lf.is_valid() and lf.get_type() == GnosisValueType.OBJECT:
@@ -2525,6 +2578,7 @@ func _hydrate_lucky_find_from_store() -> void:
 			float(tuning.get("pityIncrementPercent", DEFAULT_LUCKY_FIND_PITY_INCREMENT_PERCENT)),
 			bool(tuning.get("enabled", true))
 		)
+	_reapply_lucky_find_upgrade_bonuses()
 
 
 func _read_lucky_find_tuning() -> Dictionary:

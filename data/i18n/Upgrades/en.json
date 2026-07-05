@@ -26,5 +26,9 @@
   "itemUpgradeGreenName": "Disgust Boost",
   "itemUpgradeGreenDescription": "Adds <multi>+0 Multi</multi> and <point>+15 Points</point> on Disgust.",
   "itemUpgradePinkName": "Love Boost",
-  "itemUpgradePinkDescription": "Adds <multi>+3 Multi</multi> and <point>+8 Points</point> on Love."
+  "itemUpgradePinkDescription": "Adds <multi>+3 Multi</multi> and <point>+8 Points</point> on Love.",
+  "itemUpgradeLuckyFindBoostIName": "Lucky Find I",
+  "itemUpgradeLuckyFindBoostIDescription": "Increases base <chance>Lucky Find</chance> chance by <chance>+10%</chance> (up to 2).",
+  "itemUpgradeLuckyFindBoostIIName": "Lucky Find II",
+  "itemUpgradeLuckyFindBoostIIDescription": "Increases base <chance>Lucky Find</chance> chance by <chance>+10%</chance> (up to 2)."
 }

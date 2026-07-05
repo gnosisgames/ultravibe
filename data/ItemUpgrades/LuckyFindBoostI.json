@@ -1,0 +1,26 @@
+{
+  "id": "LuckyFindBoostI",
+  "properties": {
+    "basePrice": 10,
+    "invocations": [
+      {
+        "service": "Match3",
+        "function": "AddLuckyFindPermanentBonusPercent",
+        "parameters": {
+          "delta": 10
+        }
+      }
+    ],
+    "maxCount": 2,
+    "gameplayTags": [
+      "luckyFindUpgrade"
+    ]
+  },
+  "metadata": {
+    "nameKey": "itemUpgradeLuckyFindBoostIName",
+    "descriptionKey": "itemUpgradeLuckyFindBoostIDescription",
+    "spriteId": "upgradeLuckyFindBoostISprite",
+    "backgroundColor": "#3D7A45",
+    "tags": []
+  }
+}

@@ -8,9 +8,9 @@ const GameplayScript = preload("res://game/match3/core/match3_gameplay.gd")
 const Models = preload("res://game/match3/core/match3_models.gd")
 
 var enabled := true
-var permanent_chance_percent := 8.0
-var temporary_chance_percent := 8.0
-var pity_increment_percent := 3.0
+var permanent_chance_percent := 10.0
+var temporary_chance_percent := 10.0
+var pity_increment_percent := 5.0
 var pending_force := false
 
 var _pity_multiplier := 1.0
@@ -52,6 +52,10 @@ func reset_temporary_to_permanent() -> void:
 func add_permanent_bonus_percent(delta: float) -> void:
 	_permanent_bonus_percent += delta
 	temporary_chance_percent = maxf(temporary_chance_percent, _effective_permanent())
+
+
+func reset_permanent_bonus() -> void:
+	_permanent_bonus_percent = 0.0
 
 
 func set_pity_increment_multiplier(multiplier: float) -> void:

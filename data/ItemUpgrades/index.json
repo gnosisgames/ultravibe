@@ -23,6 +23,14 @@
     {
       "id": "PinkLevelUp",
       "path": "PinkLevelUp.json"
+    },
+    {
+      "id": "LuckyFindBoostI",
+      "path": "LuckyFindBoostI.json"
+    },
+    {
+      "id": "LuckyFindBoostII",
+      "path": "LuckyFindBoostII.json"
     }
   ]
 }

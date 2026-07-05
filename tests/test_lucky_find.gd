@@ -56,14 +56,14 @@ func _check_planner() -> bool:
 
 func _check_pity_curve() -> bool:
 	var lucky_find = load("res://game/match3/core/match3_lucky_find.gd").new()
-	lucky_find.configure(8.0, 3.0, true)
+	lucky_find.configure(10.0, 5.0, true)
 	lucky_find.on_move_finished(0, false)
-	if absf(lucky_find.temporary_chance_percent - 11.0) > 0.001:
-		print("[FAIL] pity increment expected 11, got %s" % lucky_find.temporary_chance_percent)
+	if absf(lucky_find.temporary_chance_percent - 15.0) > 0.001:
+		print("[FAIL] pity increment expected 15, got %s" % lucky_find.temporary_chance_percent)
 		return false
 	lucky_find.on_move_finished(0, true)
-	if absf(lucky_find.temporary_chance_percent - 8.0) > 0.001:
-		print("[FAIL] lucky reset expected 8, got %s" % lucky_find.temporary_chance_percent)
+	if absf(lucky_find.temporary_chance_percent - 10.0) > 0.001:
+		print("[FAIL] lucky reset expected 10, got %s" % lucky_find.temporary_chance_percent)
 		return false
 	print("[SUCCESS] pity increments and resets after lucky cascade")
 	return true
