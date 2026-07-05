@@ -124,9 +124,8 @@ func _on_home_pressed() -> void:
 		_host.try_save_in_progress_run()
 	# Leave the paused context entirely before returning to the title so the
 	# pause overlay state doesn't linger (and freeze) into the next run.
-	UltraGameUiNav.reset_theme_to_default(eng)
 	ui.invoke_function("PopView", eng.store.create_object())
-	ui.set_base_view("title")
+	UltraGameUiNav.return_to_title(ui, eng)
 
 func _on_settings_pressed() -> void:
 	_open_view_from_pause("settings", "slide_left")

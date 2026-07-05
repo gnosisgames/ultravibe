@@ -12,6 +12,18 @@ static func reset_theme_to_default(engine: GnosisEngine) -> void:
 	if theme:
 		theme.set_current_theme_id(GnosisThemeService.DEFAULT_THEME_ID)
 
+
+## Clears the navigation stack and shows the title screen. Use whenever leaving
+## gameplay for home (HUD home, pause home, game over) so Back from title menus
+## does not restore the abandoned run.
+static func return_to_title(ui: GnosisGameUIService, engine: GnosisEngine = null) -> void:
+	if ui == null:
+		return
+	if engine != null:
+		reset_theme_to_default(engine)
+	ui.initialize_navigation_state("title")
+	ui.set_base_view("title")
+
 ## Animates to the gameplay view without mutating the navigation stack, then
 ## re-seeds the stack so gameplay is the root (empty history). Use when
 ## entering or re-entering a run from play setup, game over, or rewards.
@@ -92,4 +104,4 @@ static func pop_menu_back(
 		transition_between(ui, store, current, "gameplay", transition_id)
 		ui.initialize_navigation_state("gameplay")
 	else:
-		ui.set_base_view("title")
+		return_to_title(ui)

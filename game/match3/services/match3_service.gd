@@ -1185,9 +1185,11 @@ func _begin_level(level_number: int) -> void:
 		budget["moves"] = maxi(1, int(budget.get("moves", base_moves)) + pending_moves)
 		_clear_pending_round_moves_add()
 	_manual_shuffles_remaining = int(budget.get("shuffles", base_shuffles))
+	var base_target := int(setup.get("target_score", BASE_SCORE_TO_WIN))
+	var target_score := _resolve_target_score_for_round(_current_round, base_target)
 	_gameplay.load_level(
 		layout,
-		int(setup.get("target_score", BASE_SCORE_TO_WIN)),
+		target_score,
 		int(budget.get("moves", base_moves)),
 		int(setup.get("color_limit", BASE_COLOR_LIMIT)),
 		_item_points
@@ -1879,7 +1881,8 @@ func _apply_round_setup(level_number: int) -> void:
 	_round_in_floor = int(setup.get("round_in_floor", 1))
 	_active_stage_type = str(setup.get("stage_type", "normal"))
 	_manual_shuffles_remaining = int(setup.get("shuffles", DEFAULT_SHUFFLES_PER_ROUND))
-	_gameplay.target_score = int(setup.get("target_score", BASE_SCORE_TO_WIN))
+	var base_target := int(setup.get("target_score", BASE_SCORE_TO_WIN))
+	_gameplay.target_score = _resolve_target_score_for_round(_current_round, base_target)
 	_gameplay.current_moves = int(setup.get("moves", BASE_MOVES_LIMIT))
 	_gameplay.width = maxi(1, layout.width)
 	_gameplay.height = maxi(1, layout.height)
@@ -1973,7 +1976,7 @@ func _build_stage_plan(
 		"stage_type": stage_type,
 		"board_id": board_id,
 		"level_id": level_id,
-		"target_score": _resolve_target_score_for_round(round_num, _resolve_target_score(round_num, stage_type)),
+		"target_score": _resolve_target_score(round_num, stage_type),
 		"moves": _resolve_moves_limit(round_num, stage_type),
 		"shuffles": _read_default_shuffles_per_round(),
 		"color_limit": _resolve_adaptive_color_limit(layout),

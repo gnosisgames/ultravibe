@@ -363,8 +363,9 @@ func _game_ui():
 
 func _on_home_pressed() -> void:
 	var ui = _game_ui()
-	if ui and ui.has_method("set_base_view"):
-		ui.set_base_view("title")
+	if ui == null or _service == null or _service.context == null:
+		return
+	UltraGameUiNav.return_to_title(ui, _service.context.engine)
 
 
 func _on_settings_pressed() -> void:

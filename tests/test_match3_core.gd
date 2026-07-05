@@ -19,7 +19,8 @@ func _process(_delta: float) -> bool:
 		return true
 	_done = true
 	var ok := _check_catalogs() and _check_progression_boot() and _check_shop() \
-		and _check_round_action_rewards() and _check_skip_level() and _check_gameplay()
+		and _check_round_action_rewards() and _check_skip_level() \
+		and _check_double_down_target() and _check_gameplay()
 	print("--- Match3 Core Test %s ---" % ("Passed" if ok else "FAILED"))
 	quit(0 if ok else 1)
 	return true
@@ -144,6 +145,47 @@ func _check_skip_level() -> bool:
 		print("[FAIL] SkipLevel should succeed on skippable round 1, reason=%s" % _node_str(skip.payload, "reason"))
 		return false
 	print("[SUCCESS] SkipLevel rejects boss and advances skippable round")
+	return true
+
+
+func _check_double_down_target() -> bool:
+	var engine: GnosisEngine = _bootstrap.engine
+	var m3 = engine.get_service("Match3")
+	if m3 == null:
+		print("[FAIL] Match3 service missing for double down")
+		return false
+	m3.handle_run_started()
+	var state = m3.get_node("match3", false)
+	state.set_key("nextLevel", 1)
+	m3.refresh_planned_floor_preview()
+	var planned := state.get_node("plannedFloor")
+	if not planned.is_valid():
+		print("[FAIL] plannedFloor missing for double down")
+		return false
+	var rounds := planned.get_node("rounds")
+	if not rounds.is_valid() or rounds.get_count() < 1:
+		print("[FAIL] plannedFloor rounds missing for double down")
+		return false
+	var row := rounds.get_node(0)
+	var expected := _node_int(row, "objectiveTargetDoubleDown", 0)
+	if expected <= 0:
+		print("[FAIL] objectiveTargetDoubleDown missing from level preview")
+		return false
+	var play = m3.invoke_function("PlayLevelDoubleDown", GnosisNode.new(null))
+	if not (play is GnosisFunctionResult) or not play.is_ok:
+		print("[FAIL] PlayLevelDoubleDown invoke failed")
+		return false
+	if not _node_bool(play.payload, "success", false):
+		print("[FAIL] PlayLevelDoubleDown should succeed, reason=%s" % _node_str(play.payload, "reason"))
+		return false
+	var target := _node_int(state, "targetScore", 0)
+	if target != expected:
+		print("[FAIL] double down target=%d expected=%d" % [target, expected])
+		return false
+	if not _node_bool(state, "isDoubleDown", false):
+		print("[FAIL] isDoubleDown should be true after PlayLevelDoubleDown")
+		return false
+	print("[SUCCESS] double down target score applied (%d)" % target)
 	return true
 
 

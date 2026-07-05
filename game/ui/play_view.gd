@@ -208,7 +208,7 @@ func _on_back_pressed() -> void:
 			params.set_key("outDuration", 0.35)
 			ui.invoke_function("PopView", params)
 		else:
-			ui.set_base_view("title")
+			UltraGameUiNav.return_to_title(ui)
 
 func _meta_str(node: GnosisNode, key: String) -> String:
 	var n := node.get_node(key)

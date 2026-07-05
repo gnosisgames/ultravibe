@@ -198,6 +198,5 @@ func _on_title_pressed() -> void:
 		return
 	# Leave the game-over context entirely before returning to the title so the
 	# overlay state doesn't linger into the next run.
-	UltraGameUiNav.reset_theme_to_default(eng)
 	ui.invoke_function("PopView", eng.store.create_object())
-	ui.set_base_view("title")
+	UltraGameUiNav.return_to_title(ui, eng)
