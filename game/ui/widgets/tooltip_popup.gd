@@ -42,11 +42,14 @@ const TAG_CHIP_DEFAULT := {"bg": Color(0.5, 0.5, 0.5), "fg": Color.WHITE}
 ## Action row styles (Unity tooltipActionTypeStyles — separate from tag chips).
 const ACTION_CHIP_STYLES := {
 	"success": {"bg": Color(0.18, 0.52, 0.34, 0.95), "fg": Color.WHITE},
-	"failure": {"bg": Color(0.55, 0.14, 0.14, 0.95), "fg": Color.WHITE},
-	"negative": {"bg": Color(0.55, 0.14, 0.14, 0.95), "fg": Color.WHITE},
+	"failure": {"bg": Color(0.95, 0.18, 0.24, 1.0), "fg": Color.WHITE},
+	"negative": {"bg": Color(0.95, 0.18, 0.24, 1.0), "fg": Color.WHITE},
 	"info": {"bg": Color(0.2, 0.45, 0.85, 0.95), "fg": Color.WHITE},
 }
 const ACTION_CHIP_DEFAULT := {"bg": Color(0.35, 0.35, 0.4, 0.95), "fg": Color.WHITE}
+const ACTION_CHIP_GLYPH_SIZE := Vector2(56, 56)
+## Negative vertical margin lets the glyph extend past the red pill height.
+const ACTION_CHIP_GLYPH_OVERFLOW := 14
 
 ## Max chips shown, matching Unity's GnosisTooltipTrigger.MaxTooltipTagChips.
 const MAX_TAG_CHIPS := 5
@@ -168,6 +171,7 @@ func _ensure_shell() -> void:
 	_shell_vbox = VBoxContainer.new()
 	_shell_vbox.name = "ShellVBox"
 	_shell_vbox.add_theme_constant_override("separation", 8)
+	_shell_vbox.clip_contents = false
 	_shell_vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_shell_vbox)
 	_main_panel = PanelContainer.new()
@@ -261,79 +265,78 @@ func _ensure_actions_row() -> void:
 	_actions_wrap = MarginContainer.new()
 	_actions_wrap.name = "ActionChipsWrap"
 	_actions_wrap.add_theme_constant_override("margin_top", 2)
+	_actions_wrap.clip_contents = false
+	_actions_wrap.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	_actions_wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_actions_wrap.visible = false
 	_shell_vbox.add_child(_actions_wrap)
 	_actions_row = VBoxContainer.new()
 	_actions_row.name = "ActionChips"
 	_actions_row.add_theme_constant_override("separation", 6)
+	_actions_row.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	_actions_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_actions_wrap.add_child(_actions_row)
 
 
 func _make_action_chip(type_id: String, label_text: String, entry: Dictionary) -> Control:
 	var style: Dictionary = ACTION_CHIP_STYLES.get(type_id, ACTION_CHIP_DEFAULT)
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 8)
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.alignment = BoxContainer.ALIGNMENT_CENTER
-
-	var glyph_texture := InputActionDisplayScript.resolve_glyph_texture(entry)
-	var glyph_text := InputActionDisplayScript.resolve_glyph_fallback_text(entry)
-	if glyph_texture != null or not glyph_text.is_empty():
-		var glyph := PanelContainer.new()
-		glyph.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		var glyph_box := StyleBoxFlat.new()
-		glyph_box.bg_color = Color(0.12, 0.12, 0.16, 0.9)
-		glyph_box.set_corner_radius_all(8)
-		glyph_box.content_margin_left = 8.0
-		glyph_box.content_margin_right = 8.0
-		glyph_box.content_margin_top = 4.0
-		glyph_box.content_margin_bottom = 4.0
-		glyph.add_theme_stylebox_override("panel", glyph_box)
-		if glyph_texture != null:
-			var icon := TextureRect.new()
-			icon.texture = glyph_texture
-			icon.custom_minimum_size = InputActionDisplayScript.GLYPH_CHIP_SIZE
-			icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
-			icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-			icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			glyph.add_child(icon)
-		else:
-			var glyph_label := Label.new()
-			glyph_label.text = glyph_text.to_upper()
-			glyph_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			glyph_label.add_theme_color_override("font_color", Color.WHITE)
-			glyph_label.add_theme_font_size_override("font_size", 18)
-			var chip_font := description.get_theme_font("normal_font") if description else null
-			if chip_font:
-				glyph_label.add_theme_font_override("font", chip_font)
-			glyph.add_child(glyph_label)
-		row.add_child(glyph)
-
 	var chip := PanelContainer.new()
-	chip.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	chip.clip_contents = false
+	chip.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var box := StyleBoxFlat.new()
 	box.bg_color = style.bg
 	box.set_corner_radius_all(10)
-	box.content_margin_left = 14.0
-	box.content_margin_right = 14.0
+	box.content_margin_left = 8.0
+	box.content_margin_right = 12.0
 	box.content_margin_top = 6.0
-	box.content_margin_bottom = 7.0
+	box.content_margin_bottom = 6.0
 	chip.add_theme_stylebox_override("panel", box)
+
+	var content := HBoxContainer.new()
+	content.add_theme_constant_override("separation", 6)
+	content.alignment = BoxContainer.ALIGNMENT_CENTER
+	content.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	chip.add_child(content)
+
+	var glyph_texture := InputActionDisplayScript.resolve_glyph_texture(entry)
+	var glyph_text := InputActionDisplayScript.resolve_glyph_fallback_text(entry)
+	if glyph_texture != null or not glyph_text.is_empty():
+		var glyph_wrap := MarginContainer.new()
+		glyph_wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		glyph_wrap.add_theme_constant_override("margin_top", -ACTION_CHIP_GLYPH_OVERFLOW)
+		glyph_wrap.add_theme_constant_override("margin_bottom", -ACTION_CHIP_GLYPH_OVERFLOW)
+		if glyph_texture != null:
+			var icon := TextureRect.new()
+			icon.texture = glyph_texture
+			icon.custom_minimum_size = ACTION_CHIP_GLYPH_SIZE
+			icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+			icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			glyph_wrap.add_child(icon)
+		else:
+			var glyph_label := Label.new()
+			glyph_label.text = glyph_text.to_upper()
+			glyph_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			glyph_label.add_theme_color_override("font_color", style.fg)
+			glyph_label.add_theme_font_size_override("font_size", 18)
+			var glyph_font := description.get_theme_font("normal_font") if description else null
+			if glyph_font:
+				glyph_label.add_theme_font_override("font", glyph_font)
+			glyph_wrap.add_child(glyph_label)
+		content.add_child(glyph_wrap)
+
 	var label := Label.new()
 	label.text = label_text
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	label.add_theme_color_override("font_color", style.fg)
 	label.add_theme_font_size_override("font_size", 20)
 	var action_font := description.get_theme_font("normal_font") if description else null
 	if action_font:
 		label.add_theme_font_override("font", action_font)
-	chip.add_child(label)
-	row.add_child(chip)
-	return row
+	content.add_child(label)
+	return chip
 
 ## Lazily creates the HFlowContainer that holds the chips, placed directly under
 ## the Description inside the body VBox. A MarginContainer wrapper adds a small

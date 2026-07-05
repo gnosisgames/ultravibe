@@ -12,6 +12,7 @@ const SELL_ACTION_TYPE := "failure"
 const SELL_INPUT_ACTION := "UISell"
 const SELL_LOC_KEY := "core__verb__sell"
 const BOON_CATEGORY := "boons"
+const CONSUMABLE_CATEGORY := "consumables"
 
 
 static func build_tags(engine: GnosisEngine, meta: GnosisNode, entry: GnosisNode = GnosisNode.new(null)) -> Array:
@@ -110,19 +111,26 @@ static func build_inventory_row_actions(
 	var actions: Array = []
 	if engine == null or not entry.is_valid() or category.is_empty():
 		return actions
-	if category.to_lower() == BOON_CATEGORY and can_sell_boon_entry(engine, entry):
-		var sell_price := read_inventory_sell_price(entry)
-		var label := _localized(engine, SELL_LOC_KEY, "Sell $%d" % sell_price)
-		var localization := engine.get_service("Localization") as GnosisLocalizationService
-		if localization != null:
-			label = localization.get_string_resolved(SELL_LOC_KEY, label, {}, [str(sell_price)])
-		actions.append({
-			"type": SELL_ACTION_TYPE,
-			"label": label,
-			"input_action": SELL_INPUT_ACTION,
-			"input_mouse_button": MOUSE_BUTTON_RIGHT,
-		})
+	var cat := category.to_lower()
+	if cat == BOON_CATEGORY and can_sell_boon_entry(engine, entry):
+		actions.append(_make_sell_action(engine, entry))
+	elif cat == CONSUMABLE_CATEGORY and can_sell_consumable_entry(engine, entry):
+		actions.append(_make_sell_action(engine, entry))
 	return actions
+
+
+static func _make_sell_action(engine: GnosisEngine, entry: GnosisNode) -> Dictionary:
+	var sell_price := read_inventory_sell_price(entry)
+	var label := _localized(engine, SELL_LOC_KEY, "Sell $%d" % sell_price)
+	var localization := engine.get_service("Localization") as GnosisLocalizationService
+	if localization != null:
+		label = localization.get_string_resolved(SELL_LOC_KEY, label, {}, [str(sell_price)])
+	return {
+		"type": SELL_ACTION_TYPE,
+		"label": label,
+		"input_action": SELL_INPUT_ACTION,
+		"input_mouse_button": MOUSE_BUTTON_RIGHT,
+	}
 
 
 static func can_sell_boon_entry(engine: GnosisEngine, entry: GnosisNode) -> bool:
@@ -130,6 +138,21 @@ static func can_sell_boon_entry(engine: GnosisEngine, entry: GnosisNode) -> bool
 		return false
 	var config := engine.state.root.get_node("Persistent").get_node("configuration")
 	return not FlavorsScript.inventory_entry_blocks_sell(entry, config)
+
+
+static func can_sell_consumable_entry(engine: GnosisEngine, entry: GnosisNode) -> bool:
+	if engine == null or not entry.is_valid():
+		return false
+	return not _resolve_item_id(entry).is_empty()
+
+
+static func can_sell_inventory_entry(engine: GnosisEngine, entry: GnosisNode, category: String) -> bool:
+	match category.to_lower():
+		BOON_CATEGORY:
+			return can_sell_boon_entry(engine, entry)
+		CONSUMABLE_CATEGORY:
+			return can_sell_consumable_entry(engine, entry)
+	return false
 
 
 static func read_inventory_sell_price(entry: GnosisNode) -> int:
@@ -170,6 +193,36 @@ static func try_sell_boon_entry(service: GnosisService, entry: GnosisNode) -> bo
 	if service.has_method("sync_equipped_boon_match3_round_effects"):
 		service.call("sync_equipped_boon_match3_round_effects")
 	return true
+
+
+static func try_sell_consumable_entry(service: GnosisService, entry: GnosisNode) -> bool:
+	if service == null or service.context == null or service.context.engine == null:
+		return false
+	if not entry.is_valid() or not can_sell_consumable_entry(service.context.engine, entry):
+		return false
+	var consumable_id := _resolve_item_id(entry)
+	if consumable_id.is_empty():
+		return false
+	var params := service.context.store.create_object()
+	params.set_key("consumableId", consumable_id)
+	var result = service.call_service("Consumable", "RemoveConsumable", params)
+	if result is GnosisFunctionResult and not (result as GnosisFunctionResult).is_ok:
+		return false
+	var sale := service.context.store.create_object()
+	sale.set_key("sourceConfigId", CONSUMABLE_CATEGORY)
+	sale.set_key("itemId", consumable_id)
+	service.call_service("Match3Shop", "RecordInventorySale", sale)
+	SupportScript.publish_ephemeral_state(service)
+	return true
+
+
+static func try_sell_inventory_entry(service: GnosisService, entry: GnosisNode, category: String) -> bool:
+	match category.to_lower():
+		BOON_CATEGORY:
+			return try_sell_boon_entry(service, entry)
+		CONSUMABLE_CATEGORY:
+			return try_sell_consumable_entry(service, entry)
+	return false
 
 
 static func _tags_from_metadata(engine: GnosisEngine, meta: GnosisNode) -> Array:

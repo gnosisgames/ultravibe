@@ -57,3 +57,47 @@ func _on_slot_pressed(index: int) -> void:
 		_service.select_consumable_slot(index)
 		UltraUiFx.play_ui_sfx(self, UltraUiFx.CLIP_PRESSED, -3.0)
 	force_refresh()
+
+
+func _tooltip_actions_for_entry(entry: GnosisNode) -> Array:
+	if _service == null or _service.context == null or _service.context.engine == null:
+		return []
+	return InventoryTooltipUiScript.build_inventory_row_actions(
+		_service.context.engine,
+		entry,
+		"consumables",
+	)
+
+
+func _try_handle_tooltip_action(action_id: String, entry: GnosisNode) -> bool:
+	if action_id != "UISell":
+		return false
+	if InventoryTooltipUiScript.try_sell_consumable_entry(_service, entry):
+		UltraUiFx.play_ui_sfx(self, UltraUiFx.CLIP_PRESSED, -1.0)
+		_hide_tooltip()
+		force_refresh()
+		return true
+	return false
+
+
+func _try_sell_at_index(index: int) -> bool:
+	if _service == null or _service.context == null or _service.context.engine == null:
+		return false
+	var list := _inventory_list()
+	if index < 0 or index >= list.get_count():
+		return false
+	var entry := list.get_node(index)
+	if not InventoryTooltipUiScript.can_sell_consumable_entry(_service.context.engine, entry):
+		return false
+	return _try_handle_tooltip_action("UISell", entry)
+
+
+func _connect_slot_hit(hit: Button, index: int) -> void:
+	super._connect_slot_hit(hit, index)
+	hit.gui_input.connect(_on_consumable_slot_gui_input.bind(index))
+
+
+func _on_consumable_slot_gui_input(event: InputEvent, index: int) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
+		if _try_sell_at_index(index):
+			get_viewport().set_input_as_handled()
