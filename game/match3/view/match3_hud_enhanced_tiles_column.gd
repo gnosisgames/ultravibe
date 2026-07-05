@@ -39,7 +39,32 @@ func force_refresh() -> void:
 
 
 func _process(_delta: float) -> void:
+	if _should_skip_live_refresh():
+		_hide_tooltip()
+		return
 	_refresh_if_changed()
+
+
+func _should_skip_live_refresh() -> bool:
+	if _service == null:
+		return false
+	if _service.has_method("is_consumable_use_presentation_active"):
+		return _service.is_consumable_use_presentation_active()
+	return false
+
+
+func _relayout_row_sizes() -> void:
+	var icon_size := _rail_icon_size()
+	if icon_size < 8.0:
+		return
+	for row in _row_nodes:
+		if not is_instance_valid(row):
+			continue
+		row.custom_minimum_size = Vector2(icon_size, icon_size)
+		for child in row.get_children():
+			if child is Label:
+				child.offset_left = -icon_size * 0.72
+				child.offset_top = -icon_size * 0.46
 
 
 func _refresh_if_changed() -> void:
@@ -185,8 +210,7 @@ func _rail_icon_size() -> float:
 
 
 func _on_rail_layout_changed() -> void:
-	_last_signature = "__unset__"
-	_refresh_if_changed()
+	_relayout_row_sizes()
 
 
 func _build_signature() -> String:

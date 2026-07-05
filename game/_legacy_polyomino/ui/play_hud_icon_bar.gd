@@ -146,9 +146,59 @@ func _build_tooltip() -> void:
 	_tooltip.visible = false
 
 func _process(_delta: float) -> void:
+	if _should_skip_live_refresh():
+		if _tooltip_index >= 0:
+			_hide_tooltip()
+		return
 	_refresh_if_changed()
 	if _tooltip_index >= 0 and _tooltip and _tooltip.visible:
 		_position_tooltip(_tooltip_index)
+
+
+func _should_skip_live_refresh() -> bool:
+	if _service == null:
+		return false
+	if _service.has_method("is_consumable_use_presentation_active"):
+		return _service.is_consumable_use_presentation_active()
+	return false
+
+
+func _relayout_slot_sizes() -> void:
+	var cell_size := _resolve_slot_size()
+	if cell_size < 8.0:
+		return
+	slot_size = cell_size
+	for slot in _slot_nodes:
+		if not is_instance_valid(slot):
+			continue
+		slot.custom_minimum_size = Vector2(cell_size, cell_size + float_offset)
+		var icon := slot.get_node_or_null("Icon") as TextureRect
+		if icon:
+			if _slot_icon_fills_cell():
+				icon.set_anchors_preset(Control.PRESET_FULL_RECT)
+				icon.offset_right = 0.0
+				icon.offset_bottom = 0.0
+			else:
+				icon.set_anchors_preset(Control.PRESET_TOP_WIDE)
+				icon.offset_bottom = cell_size
+		var hit := slot.get_node_or_null("Hit") as Button
+		if hit:
+			if _slot_icon_fills_cell():
+				hit.set_anchors_preset(Control.PRESET_FULL_RECT)
+				hit.offset_right = 0.0
+				hit.offset_bottom = 0.0
+			else:
+				hit.set_anchors_preset(Control.PRESET_TOP_WIDE)
+				hit.offset_bottom = cell_size
+		var badge := slot.get_node_or_null("Count") as Label
+		if badge:
+			var badge_rect := _stack_badge_rect(cell_size)
+			badge.offset_left = badge_rect.position.x
+			badge.offset_top = badge_rect.position.y
+			badge.offset_right = badge_rect.end.x
+			badge.offset_bottom = badge_rect.end.y
+			badge.add_theme_font_size_override(&"font_size", _stack_badge_font_size())
+	queue_redraw()
 
 func _refresh_if_changed() -> void:
 	var signature := _build_signature()

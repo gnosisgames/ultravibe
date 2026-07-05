@@ -61,5 +61,4 @@ func _stack_badge_rect(slot_size: float) -> Rect2:
 
 
 func _on_rail_layout_changed() -> void:
-	_last_signature = "__unset__"
-	_refresh_if_changed()
+	_relayout_slot_sizes()

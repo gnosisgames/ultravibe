@@ -732,12 +732,12 @@ func _layout_left_rail() -> void:
 	_left_rail.set_anchors_preset(Control.PRESET_TOP_LEFT)
 	_left_rail.position = Vector2(FRAME_GAP, FRAME_GAP)
 	_left_rail.size = Vector2(LEFT_RAIL_WIDTH, maxf(0.0, size.y - FRAME_GAP * 2.0))
-	if _run_upgrades_column and _run_upgrades_column.has_method("force_refresh"):
-		_run_upgrades_column.force_refresh()
-	if _enhanced_tiles_column and _enhanced_tiles_column.has_method("force_refresh"):
-		_enhanced_tiles_column.force_refresh()
-	if _item_upgrades_column and _item_upgrades_column.has_method("force_refresh"):
-		_item_upgrades_column.force_refresh()
+	if _run_upgrades_column and _run_upgrades_column.has_method("_relayout_slot_sizes"):
+		_run_upgrades_column._relayout_slot_sizes()
+	if _enhanced_tiles_column and _enhanced_tiles_column.has_method("_relayout_row_sizes"):
+		_enhanced_tiles_column._relayout_row_sizes()
+	if _item_upgrades_column and _item_upgrades_column.has_method("_relayout_slot_sizes"):
+		_item_upgrades_column._relayout_slot_sizes()
 
 
 func _subscribe_boon_juice(service) -> void:
