@@ -3,12 +3,38 @@ extends GnosisGameplayHoldRestartBridge
 
 ## Ultravibe: quick restart is available during planning overlays and mid-move animations.
 
+var _ui_hold_active := false
+
 
 func _ready() -> void:
+	add_to_group("gameplay_hold_restart_bridge")
 	run_service_id = "Match3"
 	post_restart_host_method = "resync_match3_board_view"
 	blocked_overlay_ids = PackedStringArray()
 	super._ready()
+
+
+func begin_ui_hold() -> void:
+	if _restart_pending:
+		return
+	_ui_hold_active = true
+
+
+func end_ui_hold() -> void:
+	_ui_hold_active = false
+	if not _is_restart_hold_active():
+		_reset_hold()
+
+
+func _is_restart_hold_active() -> bool:
+	if _ui_hold_active:
+		return true
+	return super._is_restart_hold_active()
+
+
+func _trigger_restart() -> void:
+	_ui_hold_active = false
+	super._trigger_restart()
 
 
 func _perform_restart() -> void:

@@ -3,7 +3,7 @@ extends Control
 
 ## Match-3 gameplay HUD. The left sidebar mirrors the Unity MainHud: boss/level
 ## card, stacked round total + last-match score, points x multi, round/moves/cycles/money,
-## home/settings/wiki/shuffle in a 2x2 grid at the bottom of the main sidebar.
+## home/settings/wiki/shuffle/restart/placeholder in a 2x3 grid at the bottom of the main sidebar.
 ## via refresh_from_service() (driven by the dispatcher on board reset/change).
 
 const Match3ModelsScript = preload("res://game/match3/core/match3_models.gd")
@@ -69,6 +69,7 @@ signal content_frame_changed
 @onready var _gameplay_busy_spinner: GameplayBusySpinner = %GameplayBusySpinner
 @onready var _cycles_value: Label = %CyclesValue
 @onready var _money_value: Label = %MoneyValue
+@onready var _lucky_find_value: Label = %LuckyFindValue
 @onready var _shuffle_count: Label = %ShuffleCount
 @onready var _status_label: Label = %StatusLabel
 @onready var _home_button: Button = %HomeButton
@@ -254,6 +255,8 @@ func refresh_from_service(service = null) -> void:
 		_cycles_value.text = "%d/%d" % [_service.get_round_in_floor(), _service.get_rounds_per_floor()]
 	if _money_value:
 		_money_value.text = "$%d" % _service.get_money()
+	if _lucky_find_value:
+		_lucky_find_value.text = _format_lucky_find_display()
 	if _shuffle_count:
 		_shuffle_count.text = str(_service.get_shuffles_remaining())
 	_apply_level_meta(_service.get_active_level_meta())
@@ -309,6 +312,19 @@ func _trim_suffix(value: float) -> String:
 	if value >= 100.0 or is_equal_approx(value, roundf(value)):
 		return str(int(roundf(value)))
 	return String.num(value, 1)
+
+
+func _format_lucky_find_display() -> String:
+	if _service == null or not _service.has_method("get_lucky_find"):
+		return "—"
+	var lucky_find = _service.get_lucky_find()
+	if lucky_find == null or not lucky_find.enabled:
+		return "—"
+	var chance: float = lucky_find.temporary_chance_percent
+	var text := "%.0f%%" % chance if is_equal_approx(chance, roundf(chance)) else "%.1f%%" % chance
+	if lucky_find.pending_force:
+		text += "*"
+	return text
 
 
 func _status_text(status: int) -> String:
