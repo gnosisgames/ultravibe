@@ -122,9 +122,9 @@ func _check_max_discount_cap() -> bool:
 		print("[FAIL] ResolveCatalogShopBuyPrice: %s" % price_result.error)
 		return false
 	var price := _node_int(price_result.payload, "price", -1)
-	# base 4 × (1 - 0.5 max discount) = 2
-	if price != 2:
-		print("[FAIL] max 50%% discount expected price 2, got %d" % price)
+	# base 5 × (1 - 0.5 max discount) = 2.5 → 3
+	if price != 3:
+		print("[FAIL] max 50%% discount expected price 3, got %d" % price)
 		return false
 	print("[OK] shop discount clamped at 50%%")
 	return true
@@ -147,9 +147,9 @@ func _check_floor_price_inflation() -> bool:
 		print("[FAIL] floor inflation price resolve failed")
 		return false
 	var price := _node_int(price_result.payload, "price", -1)
-	# base 4 × (1 + 2×0.1) = 4.8 → 5
-	if price != 5:
-		print("[FAIL] floor-3 inflation expected price 5, got %d" % price)
+	# base 5 × (1 + 2×0.1) = 6
+	if price != 6:
+		print("[FAIL] floor-3 inflation expected price 6, got %d" % price)
 		return false
 	print("[OK] per-floor price inflation")
 	return true

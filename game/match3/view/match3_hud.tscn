@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3]
+[gd_scene load_steps=23 format=3]
 
 [ext_resource type="Script" path="res://game/match3/view/match3_hud.gd" id="1"]
 [ext_resource type="Script" path="res://game/match3/view/match3_dispatcher.gd" id="2"]
@@ -16,7 +16,7 @@
 [ext_resource type="Script" path="res://game/match3/view/gameplay_busy_spinner.gd" id="14"]
 [ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/refresh.png" id="15"]
 [ext_resource type="Script" path="res://game/match3/view/match3_hud_hold_restart_button.gd" id="16"]
-[ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/emotion.png" id="17"]
+[ext_resource type="Script" path="res://game/match3/view/match3_luck_meter.gd" id="18"]
 
 [sub_resource type="StyleBoxFlat" id="SB_section"]
 content_margin_left = 12.0
@@ -604,18 +604,12 @@ theme_override_font_sizes/font_size = 21
 text = "match3__hud__label__luckyFind"
 horizontal_alignment = 1
 
-[node name="LuckyFindBox" type="PanelContainer" parent="Sidebar/Layout/StatsSection/StatsLayout/LuckyFindCol"]
-layout_mode = 2
-theme_override_styles/panel = SubResource("SB_dark")
-
-[node name="LuckyFindValue" type="Label" parent="Sidebar/Layout/StatsSection/StatsLayout/LuckyFindCol/LuckyFindBox"]
+[node name="LuckMeter" type="Control" parent="Sidebar/Layout/StatsSection/StatsLayout/LuckyFindCol"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.647059, 0.941176, 0.737255, 1)
-theme_override_fonts/font = ExtResource("3")
-theme_override_font_sizes/font_size = 36
-text = "8%"
-horizontal_alignment = 1
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(0, 58)
+script = ExtResource("18")
 
 [node name="ButtonsSection" type="VBoxContainer" parent="Sidebar/Layout"]
 unique_name_in_owner = true

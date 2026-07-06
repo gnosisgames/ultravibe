@@ -1,7 +1,7 @@
 extends SceneTree
 
-## Prints per-gem scores for isolated match-3/4/5 lines (no boons, cascades, or floors).
-## Mirrors Unity balance spreadsheets: tile profile × N tiles → move score = sum(points) × sum(multi).
+## Prints per-gem scores for isolated match-3/4/5 lines (no boons or floors).
+## Base scores only — cascade + cascade-assist comfort lives in match3_round_balance_report.gd.
 ##
 ## Run from ultravibe/:
 ##   ../scripts/resolve_godot.sh && "$GODOT" --path . --headless --script res://tools/match3_item_score_report.gd
@@ -45,8 +45,9 @@ func _print_report() -> void:
 		return
 
 	print("")
-	print("=== Match3 isolated line scores (no boons / cascades / Lucky Find) ===")
+	print("=== Match3 isolated line scores (no boons / Lucky Find) ===")
 	print("Formula: movePoints = N × tilePoints, moveMulti = N × tileMulti, score = movePoints × max(1, moveMulti)")
+	print("For cascade + assist comfort (match-3/4/5, mega-chain help): tools/match3_round_balance_report.sh")
 	print("Levels 1..%d, item type = plain" % max_level)
 	print("")
 

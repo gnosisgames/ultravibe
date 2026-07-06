@@ -3,8 +3,8 @@
     "properties": {
         "basePoints": 6,
         "baseMulti": 4,
-        "pointsPerLevel": 8,
-        "multiPerLevel": 3,
+        "pointsPerLevel": 7,
+        "multiPerLevel": 2,
         "sortOrder": 5
     },
     "metadata": {

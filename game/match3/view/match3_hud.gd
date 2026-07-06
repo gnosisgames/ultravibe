@@ -12,6 +12,7 @@ const Match3EventsScript = preload("res://game/match3/match3_events.gd")
 const Match3BoonJuiceScript = preload("res://game/match3/boons/match3_boon_juice.gd")
 const Match3GameSpeedScript = preload("res://game/match3/core/match3_game_speed.gd")
 const Match3HudScoreEscalationScript = preload("res://game/match3/view/match3_hud_score_escalation.gd")
+const Match3LuckMeterScript = preload("res://game/match3/view/match3_luck_meter.gd")
 const SupportScript = preload("res://game/match3/boons/match3_boon_support.gd")
 const ConsumableDbgScript = preload("res://game/match3/debug/match3_consumable_debug.gd")
 const UltraGameUiNav = preload("res://game/ui/ultra_game_ui_nav.gd")
@@ -69,7 +70,7 @@ signal content_frame_changed
 @onready var _gameplay_busy_spinner: GameplayBusySpinner = %GameplayBusySpinner
 @onready var _cycles_value: Label = %CyclesValue
 @onready var _money_value: Label = %MoneyValue
-@onready var _lucky_find_value: Label = %LuckyFindValue
+@onready var _luck_meter: Match3LuckMeterScript = %LuckMeter
 @onready var _shuffle_count: Label = %ShuffleCount
 @onready var _status_label: Label = %StatusLabel
 @onready var _home_button: Button = %HomeButton
@@ -255,8 +256,8 @@ func refresh_from_service(service = null) -> void:
 		_cycles_value.text = "%d/%d" % [_service.get_round_in_floor(), _service.get_rounds_per_floor()]
 	if _money_value:
 		_money_value.text = "$%d" % _service.get_money()
-	if _lucky_find_value:
-		_lucky_find_value.text = _format_lucky_find_display()
+	if _luck_meter:
+		_refresh_luck_meter()
 	if _shuffle_count:
 		_shuffle_count.text = str(_service.get_shuffles_remaining())
 	_apply_level_meta(_service.get_active_level_meta())
@@ -314,17 +315,17 @@ func _trim_suffix(value: float) -> String:
 	return String.num(value, 1)
 
 
-func _format_lucky_find_display() -> String:
+func _refresh_luck_meter() -> void:
+	if _luck_meter == null:
+		return
 	if _service == null or not _service.has_method("get_lucky_find"):
-		return "—"
+		_luck_meter.set_meter_active(false)
+		return
 	var lucky_find = _service.get_lucky_find()
-	if lucky_find == null or not lucky_find.enabled:
-		return "—"
-	var chance: float = lucky_find.temporary_chance_percent
-	var text := "%.0f%%" % chance if is_equal_approx(chance, roundf(chance)) else "%.1f%%" % chance
-	if lucky_find.pending_force:
-		text += "*"
-	return text
+	if lucky_find == null:
+		_luck_meter.set_meter_active(false)
+		return
+	_luck_meter.configure_from_lucky_find(lucky_find)
 
 
 func _status_text(status: int) -> String:

@@ -202,8 +202,11 @@ func _check_balance_report_smoke() -> bool:
 	if not text.contains("Match3 round balance"):
 		print("[FAIL] balance report missing expected header")
 		return false
-	if not text.contains("Lucky Find model"):
-		print("[FAIL] balance report missing Lucky Find section")
+	if not text.contains("Cascade assist model"):
+		print("[FAIL] balance report missing cascade assist section")
+		return false
+	if not text.contains("mega-chain"):
+		print("[FAIL] balance report missing mega-chain model line")
 		return false
 	print("[OK] match3 round balance report runs")
 	return true

@@ -4,7 +4,7 @@
         "basePoints": 8,
         "baseMulti": 3,
         "pointsPerLevel": 2,
-        "multiPerLevel": 5,
+        "multiPerLevel": 4,
         "sortOrder": 2
     },
     "metadata": {

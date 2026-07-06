@@ -2,7 +2,7 @@
   "id": "PartyAnimal",
   "properties": {
     "gameplayTags": [
-      "common"
+      "uncommon"
     ],
     "effectApplication": "perInstance",
     "match3RoundEffectId": "party_animal_round_budget_bonus",
@@ -32,8 +32,8 @@
     "spriteId": "boonPartyAnimalSprite",
     "tags": [
       {
-        "tagType": "common",
-        "tagLocKey": "core__adjective__common"
+        "tagType": "uncommon",
+        "tagLocKey": "core__adjective__uncommon"
       }
     ]
   }

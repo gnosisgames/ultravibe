@@ -25,8 +25,12 @@ const RunSnapshotScript = preload("res://game/match3/services/match3_run_snapsho
 const Events = Match3EventsScript
 const Models = Match3ModelsScript
 
-const BASE_MOVES_LIMIT := 10
-const BASE_SCORE_TO_WIN := 1000
+const BASE_MOVES_LIMIT := 8
+const BASE_SCORE_TO_WIN := 1500
+const ROUND_TARGET_STEP := 500
+const TARGET_ADVANCED_MULTIPLIER := 1.25
+const TARGET_BOSS_MULTIPLIER := 1.6
+const BOSS_MOVES_BONUS := 1
 const BASE_COLOR_LIMIT := 6
 const DEFAULT_BOARD_ID := "grid9x9_bm"
 const BOARDS_INDEX_PATH := "res://data/Boards/index.json"
@@ -68,11 +72,12 @@ const CONSUMABLE_USE_DISPLAY_KEY := "match3__phrase__consumableUse"
 const COLOR_LIMIT_PLAYABLE_SMALL := 42
 const COLOR_LIMIT_PLAYABLE_MEDIUM := 63
 
-const DEFAULT_LUCKY_FIND_PERMANENT_PERCENT := 10.0
-const DEFAULT_LUCKY_FIND_PITY_INCREMENT_PERCENT := 5.0
-const LUCKY_FIND_UPGRADE_BONUS_PERCENT := 10.0
+const DEFAULT_LUCKY_FIND_PERMANENT_ASSIST := -50.0
+const DEFAULT_LUCKY_FIND_PITY_INCREMENT_ASSIST := 5.0
+const LUCKY_FIND_UPGRADE_BONUS_ASSIST := 10.0
+const LUCKY_FIND_MAX_UPGRADE_STACKS := 10
 const LUCKY_FIND_UPGRADE_IDS := {
-	"GoldenLuckyFind": LUCKY_FIND_UPGRADE_BONUS_PERCENT,
+	"GoldenLuckyFind": LUCKY_FIND_UPGRADE_BONUS_ASSIST,
 }
 
 var _gameplay = Match3GameplayScript.new()
@@ -281,7 +286,7 @@ func get_lucky_find() -> Match3LuckyFind:
 func add_lucky_find_permanent_bonus_percent(delta: float) -> void:
 	if _lucky_find == null:
 		return
-	_lucky_find.add_permanent_bonus_percent(delta)
+	_lucky_find.add_permanent_bonus_assist(delta)
 	_publish_ephemeral_state()
 
 
@@ -296,7 +301,8 @@ func _add_lucky_find_permanent_bonus_percent(parameters: GnosisNode) -> GnosisFu
 	add_lucky_find_permanent_bonus_percent(delta)
 	var payload := context.store.create_object()
 	payload.set_key("delta", delta)
-	payload.set_key("permanentChancePercent", _lucky_find.snapshot().get("permanentChancePercent", 0.0))
+	payload.set_key("cascadeAssist", _lucky_find.snapshot().get("cascadeAssist", 0.0))
+	payload.set_key("permanentCascadeAssist", _lucky_find.snapshot().get("permanentCascadeAssist", 0.0))
 	return GnosisFunctionResult.ok(payload)
 
 
@@ -324,7 +330,7 @@ func _reapply_lucky_find_upgrade_bonuses() -> void:
 		if bonus == null:
 			continue
 		var count := maxi(1, _node_int(entry, "currentCount", 1))
-		_lucky_find.add_permanent_bonus_percent(float(bonus) * float(count))
+		_lucky_find.add_permanent_bonus_assist(float(bonus) * float(count))
 
 
 func set_lucky_find_pity_multiplier(multiplier: float) -> void:
@@ -2389,18 +2395,65 @@ func _infer_board_difficulty(entry: Dictionary) -> String:
 
 
 func _resolve_target_score(round_number: int, stage_type: String) -> int:
-	var target := BASE_SCORE_TO_WIN + (maxi(1, round_number) - 1) * 350
+	var round_index := maxi(0, round_number - 1)
+	var table_target := _read_round_target_from_table(round_index)
+	if table_target > 0:
+		return table_target
+	var target := BASE_SCORE_TO_WIN + round_index * ROUND_TARGET_STEP
 	if stage_type == "advanced":
-		target = int(roundf(float(target) * 1.2))
+		target = int(roundf(float(target) * TARGET_ADVANCED_MULTIPLIER))
 	elif stage_type == "boss":
-		target = int(roundf(float(target) * 1.5))
+		target = int(roundf(float(target) * TARGET_BOSS_MULTIPLIER))
 	return maxi(1, target)
+
+
+func _read_round_target_from_table(round_index: int) -> int:
+	var cfg := _read_objective_target_config()
+	if not bool(cfg.get("useRoundTargetsTable", false)):
+		return 0
+	var from_round: int = int(cfg.get("useRoundTargetsFromRound", 1))
+	if round_index + 1 < from_round:
+		return 0
+	var table: Array = cfg.get("roundTargets", [])
+	if round_index < 0 or round_index >= table.size():
+		return 0
+	return maxi(0, int(table[round_index]))
+
+
+func _read_objective_target_config() -> Dictionary:
+	var m3 := get_node("match3", false)
+	if not m3.is_valid():
+		return {}
+	var cfg := m3.get_node("objectiveTarget")
+	if not cfg.is_valid() or cfg.get_type() != GnosisValueType.OBJECT:
+		return {}
+	var out := {
+		"useRoundTargetsTable": _node_bool(cfg, "useRoundTargetsTable", false),
+		"useRoundTargetsFromRound": _node_int(cfg, "useRoundTargetsFromRound", 10),
+		"roundTargets": [],
+	}
+	var table_node := cfg.get_node("roundTargets")
+	if table_node.is_valid() and table_node.get_type() == GnosisValueType.LIST:
+		for i in range(table_node.get_count()):
+			out.roundTargets.append(_node_int_at(table_node, i, 0))
+	return out
+
+
+func _node_int_at(node: GnosisNode, index: int, default_value: int = 0) -> int:
+	if not node.is_valid() or node.get_type() != GnosisValueType.LIST:
+		return default_value
+	if index < 0 or index >= node.get_count():
+		return default_value
+	var entry := node.get_node(index)
+	if not entry.is_valid():
+		return default_value
+	return int(_node_value(entry))
 
 
 func _resolve_moves_limit(round: int, stage_type: String) -> int:
 	var moves := _read_default_moves_per_round() + int((maxi(1, round) - 1) / 3)
 	if stage_type == "boss":
-		moves += 2
+		moves += BOSS_MOVES_BONUS
 	return maxi(1, moves)
 
 
@@ -2591,8 +2644,8 @@ func _hydrate_lucky_find_from_store() -> void:
 	var m3 := get_node("match3", false)
 	if not m3.is_valid():
 		_lucky_find.configure(
-			float(tuning.get("permanentChancePercent", DEFAULT_LUCKY_FIND_PERMANENT_PERCENT)),
-			float(tuning.get("pityIncrementPercent", DEFAULT_LUCKY_FIND_PITY_INCREMENT_PERCENT)),
+			_lucky_find_assist_from_tuning(tuning, "permanentAssist"),
+			float(tuning.get("pityIncrementAssist", tuning.get("pityIncrementPercent", DEFAULT_LUCKY_FIND_PITY_INCREMENT_ASSIST))),
 			bool(tuning.get("enabled", true))
 		)
 		_reapply_lucky_find_upgrade_bonuses()
@@ -2600,16 +2653,16 @@ func _hydrate_lucky_find_from_store() -> void:
 	var lf := m3.get_node("luckyFind")
 	if lf.is_valid() and lf.get_type() == GnosisValueType.OBJECT:
 		_lucky_find.hydrate(
-			_node_float(lf, "permanentChancePercent", float(tuning.get("permanentChancePercent", DEFAULT_LUCKY_FIND_PERMANENT_PERCENT))),
-			_node_float(lf, "temporaryChancePercent", float(tuning.get("permanentChancePercent", DEFAULT_LUCKY_FIND_PERMANENT_PERCENT))),
-			_node_float(lf, "pityIncrementPercent", float(tuning.get("pityIncrementPercent", DEFAULT_LUCKY_FIND_PITY_INCREMENT_PERCENT))),
+			_lucky_find_assist_from_node(lf, "permanentCascadeAssist", tuning, "permanentAssist"),
+			_lucky_find_assist_from_node(lf, "cascadeAssist", tuning, "permanentAssist"),
+			_node_float(lf, "pityIncrementAssist", float(tuning.get("pityIncrementAssist", tuning.get("pityIncrementPercent", DEFAULT_LUCKY_FIND_PITY_INCREMENT_ASSIST)))),
 			_node_bool(lf, "pendingForce", false),
 			bool(tuning.get("enabled", true))
 		)
 	else:
 		_lucky_find.configure(
-			float(tuning.get("permanentChancePercent", DEFAULT_LUCKY_FIND_PERMANENT_PERCENT)),
-			float(tuning.get("pityIncrementPercent", DEFAULT_LUCKY_FIND_PITY_INCREMENT_PERCENT)),
+			_lucky_find_assist_from_tuning(tuning, "permanentAssist"),
+			float(tuning.get("pityIncrementAssist", tuning.get("pityIncrementPercent", DEFAULT_LUCKY_FIND_PITY_INCREMENT_ASSIST))),
 			bool(tuning.get("enabled", true))
 		)
 	_reapply_lucky_find_upgrade_bonuses()
@@ -2621,15 +2674,42 @@ func _read_lucky_find_tuning() -> Dictionary:
 		var tuning := m3.get_node("luckyFindTuning")
 		if tuning.is_valid() and tuning.get_type() == GnosisValueType.OBJECT:
 			return {
-				"permanentChancePercent": _node_float(tuning, "permanentChancePercent", DEFAULT_LUCKY_FIND_PERMANENT_PERCENT),
-				"pityIncrementPercent": _node_float(tuning, "pityIncrementPercent", DEFAULT_LUCKY_FIND_PITY_INCREMENT_PERCENT),
+				"permanentAssist": _lucky_find_assist_from_node(tuning, "permanentAssist", {}, "permanentAssist"),
+				"pityIncrementAssist": _node_float(
+					tuning,
+					"pityIncrementAssist",
+					_node_float(tuning, "pityIncrementPercent", DEFAULT_LUCKY_FIND_PITY_INCREMENT_ASSIST)
+				),
 				"enabled": _node_bool(tuning, "enabled", true),
 			}
 	return {
-		"permanentChancePercent": DEFAULT_LUCKY_FIND_PERMANENT_PERCENT,
-		"pityIncrementPercent": DEFAULT_LUCKY_FIND_PITY_INCREMENT_PERCENT,
+		"permanentAssist": DEFAULT_LUCKY_FIND_PERMANENT_ASSIST,
+		"pityIncrementAssist": DEFAULT_LUCKY_FIND_PITY_INCREMENT_ASSIST,
 		"enabled": true,
 	}
+
+
+func _lucky_find_assist_from_tuning(tuning: Dictionary, key: String) -> float:
+	if tuning.has(key):
+		return clampf(float(tuning.get(key, DEFAULT_LUCKY_FIND_PERMANENT_ASSIST)), Match3LuckyFind.MIN_ASSIST, Match3LuckyFind.MAX_ASSIST)
+	if tuning.has("permanentChancePercent"):
+		return clampf(float(tuning.get("permanentChancePercent", 0.0)) - 50.0, Match3LuckyFind.MIN_ASSIST, Match3LuckyFind.MAX_ASSIST)
+	return DEFAULT_LUCKY_FIND_PERMANENT_ASSIST
+
+
+func _lucky_find_assist_from_node(node: GnosisNode, primary_key: String, tuning: Dictionary, tuning_key: String) -> float:
+	if node.is_valid() and node.get_type() == GnosisValueType.OBJECT:
+		var primary := node.get_node(primary_key)
+		if primary.is_valid():
+			return clampf(float(primary.value), Match3LuckyFind.MIN_ASSIST, Match3LuckyFind.MAX_ASSIST)
+		for legacy_key in ["cascadeAssist", "temporaryChancePercent", "permanentChancePercent"]:
+			var legacy := node.get_node(legacy_key)
+			if legacy.is_valid():
+				var raw := float(legacy.value)
+				if legacy_key.ends_with("ChancePercent"):
+					raw -= 50.0
+				return clampf(raw, Match3LuckyFind.MIN_ASSIST, Match3LuckyFind.MAX_ASSIST)
+	return _lucky_find_assist_from_tuning(tuning, tuning_key)
 
 
 func _sync_lucky_find_round_defaults() -> void:
@@ -2637,8 +2717,8 @@ func _sync_lucky_find_round_defaults() -> void:
 		return
 	var tuning := _read_lucky_find_tuning()
 	_lucky_find.enabled = bool(tuning.get("enabled", true))
-	_lucky_find.permanent_chance_percent = float(tuning.get("permanentChancePercent", DEFAULT_LUCKY_FIND_PERMANENT_PERCENT))
-	_lucky_find.pity_increment_percent = float(tuning.get("pityIncrementPercent", DEFAULT_LUCKY_FIND_PITY_INCREMENT_PERCENT))
+	_lucky_find.permanent_assist = _lucky_find_assist_from_tuning(tuning, "permanentAssist")
+	_lucky_find.pity_increment_assist = float(tuning.get("pityIncrementAssist", DEFAULT_LUCKY_FIND_PITY_INCREMENT_ASSIST))
 
 
 func _publish_lucky_find_state(m3: GnosisNode) -> void:
@@ -2646,16 +2726,19 @@ func _publish_lucky_find_state(m3: GnosisNode) -> void:
 		return
 	var lf := context.store.create_object()
 	var snap: Dictionary = _lucky_find.snapshot()
-	lf.set_key("permanentChancePercent", snap.get("permanentChancePercent", DEFAULT_LUCKY_FIND_PERMANENT_PERCENT))
-	lf.set_key("temporaryChancePercent", snap.get("temporaryChancePercent", DEFAULT_LUCKY_FIND_PERMANENT_PERCENT))
-	lf.set_key("pityIncrementPercent", snap.get("pityIncrementPercent", DEFAULT_LUCKY_FIND_PITY_INCREMENT_PERCENT))
+	lf.set_key("cascadeAssist", snap.get("cascadeAssist", DEFAULT_LUCKY_FIND_PERMANENT_ASSIST))
+	lf.set_key("permanentCascadeAssist", snap.get("permanentCascadeAssist", DEFAULT_LUCKY_FIND_PERMANENT_ASSIST))
+	lf.set_key("pityIncrementAssist", snap.get("pityIncrementAssist", DEFAULT_LUCKY_FIND_PITY_INCREMENT_ASSIST))
+	lf.set_key("permanentChancePercent", snap.get("permanentChancePercent", DEFAULT_LUCKY_FIND_PERMANENT_ASSIST))
+	lf.set_key("temporaryChancePercent", snap.get("temporaryChancePercent", DEFAULT_LUCKY_FIND_PERMANENT_ASSIST))
+	lf.set_key("pityIncrementPercent", snap.get("pityIncrementPercent", DEFAULT_LUCKY_FIND_PITY_INCREMENT_ASSIST))
 	lf.set_key("pendingForce", snap.get("pendingForce", false))
 	lf.set_key("enabled", snap.get("enabled", true))
 	m3.set_node("luckyFind", lf)
 	var tuning := _read_lucky_find_tuning()
 	var tuning_node := context.store.create_object()
-	tuning_node.set_key("permanentChancePercent", tuning.get("permanentChancePercent", DEFAULT_LUCKY_FIND_PERMANENT_PERCENT))
-	tuning_node.set_key("pityIncrementPercent", tuning.get("pityIncrementPercent", DEFAULT_LUCKY_FIND_PITY_INCREMENT_PERCENT))
+	tuning_node.set_key("permanentAssist", tuning.get("permanentAssist", DEFAULT_LUCKY_FIND_PERMANENT_ASSIST))
+	tuning_node.set_key("pityIncrementAssist", tuning.get("pityIncrementAssist", DEFAULT_LUCKY_FIND_PITY_INCREMENT_ASSIST))
 	tuning_node.set_key("enabled", tuning.get("enabled", true))
 	m3.set_node("luckyFindTuning", tuning_node)
 
@@ -3447,7 +3530,7 @@ func _prepare_pending_round_reward_after_win() -> void:
 		_append_reward_step(steps, REWARD_REASON_ROUND, round_reward)
 	var unused_moves := maxi(0, _gameplay.current_moves)
 	if unused_moves > 0:
-		var unused_reward := int(ceil(float(unused_moves) / 2.0))
+		var unused_reward := int(ceil(float(unused_moves) / 3.0))
 		if unused_reward > 0:
 			_append_reward_step(steps, REWARD_REASON_UNUSED_MOVES, unused_reward)
 	var interest_preview := _try_get_round_reward_interest_preview()
@@ -3471,11 +3554,11 @@ func _resolve_stage_reward_amount() -> int:
 		return amount
 	match _active_stage_type:
 		"advanced":
-			return 4
-		"boss":
-			return 5
-		_:
 			return 3
+		"boss":
+			return 4
+		_:
+			return 2
 
 
 func _append_reward_step(steps: GnosisNode, reason_key: String, amount: int) -> void:

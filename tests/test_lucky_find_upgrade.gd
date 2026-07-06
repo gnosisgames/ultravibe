@@ -1,6 +1,6 @@
 extends SceneTree
 
-## Lucky Find run upgrade grants +10% permanent chance per stack (max 4).
+## Lucky Find run upgrade grants +10 cascade assist per stack (max 10).
 
 var _bootstrap: Node = null
 var _frames := 0
@@ -39,8 +39,9 @@ func _run() -> bool:
 	if lucky == null:
 		print("[FAIL] lucky find missing")
 		return false
-	if absf(lucky.snapshot().get("permanentChancePercent", 0.0) - 10.0) > 0.001:
-		print("[FAIL] base lucky find should be 10%%, got %s" % lucky.snapshot().get("permanentChancePercent"))
+	var base := float(lucky.snapshot().get("permanentCascadeAssist", 0.0))
+	if absf(base - (-50.0)) > 0.001:
+		print("[FAIL] base cascade assist should be -50, got %s" % base)
 		return false
 
 	for i in range(4):
@@ -52,19 +53,19 @@ func _run() -> bool:
 			print("[FAIL] AddUpgrade GoldenLuckyFind #%d: %s" % [i + 1, str(result)])
 			return false
 
-	var expected := 50.0
-	var actual := float(lucky.snapshot().get("permanentChancePercent", 0.0))
+	var expected := -10.0
+	var actual := float(lucky.snapshot().get("permanentCascadeAssist", 0.0))
 	if absf(actual - expected) > 0.001:
-		print("[FAIL] after 4x GoldenLuckyFind expected %.0f%% got %.1f%%" % [expected, actual])
+		print("[FAIL] after 4x GoldenLuckyFind expected %.0f assist got %.1f" % [expected, actual])
 		return false
 
 	m3.handle_run_started()
-	actual = float(m3.get_lucky_find().snapshot().get("permanentChancePercent", 0.0))
+	actual = float(m3.get_lucky_find().snapshot().get("permanentCascadeAssist", 0.0))
 	if absf(actual - expected) > 0.001:
-		print("[FAIL] after run restart expected %.0f%% got %.1f%%" % [expected, actual])
+		print("[FAIL] after run restart expected %.0f assist got %.1f" % [expected, actual])
 		return false
 
-	print("[SUCCESS] Lucky Find run upgrade stacks to %.0f%% (10 base + 40 bonus)" % actual)
+	print("[SUCCESS] Lucky Find run upgrade stacks to %.0f assist (-50 base + 40 bonus)" % actual)
 	return true
 
 

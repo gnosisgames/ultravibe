@@ -3,7 +3,7 @@
     "properties": {
         "basePoints": 16,
         "baseMulti": 1,
-        "pointsPerLevel": 12,
+        "pointsPerLevel": 10,
         "multiPerLevel": 2,
         "sortOrder": 0
     },

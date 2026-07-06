@@ -16,7 +16,7 @@
   "upgradeGoldenTradeName": "Golden Trade",
   "upgradeGoldenTradeDescription": "Reduces Shop reroll cost by <money>$2</money>.",
   "upgradeGoldenLuckyFindName": "Lucky Find",
-  "upgradeGoldenLuckyFindDescription": "Increases base <chance>Lucky Find</chance> chance by <chance>+10%</chance> (up to 4).",
+  "upgradeGoldenLuckyFindDescription": "Increases <chance>Lucky Find</chance> cascade assist by <chance>+10</chance> (up to 10). Negative assist resists cascades; positive helps them.",
   "itemUpgradeOrangeName": "Joy Boost",
   "itemUpgradeOrangeDescription": "Adds <multi>+2 Multi</multi> and <point>+12 Points</point> on Joy.",
   "itemUpgradeRedName": "Anger Boost",

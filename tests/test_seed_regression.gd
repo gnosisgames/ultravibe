@@ -123,7 +123,7 @@ func _check_lucky_find_plan() -> bool:
 	gameplay.load_level(layout, 500, 5, 3, {"orange": 10, "red": 10, "blue": 10})
 	gameplay.set_lucky_find(lucky_find)
 	lucky_find.configure(100.0, 0.0, true)
-	lucky_find.temporary_chance_percent = 100.0
+	lucky_find.temporary_assist = 100.0
 	for x in 3:
 		gameplay.get_tile(x, 2).item_id = "orange"
 	gameplay.get_tile(3, 2).item_id = ""

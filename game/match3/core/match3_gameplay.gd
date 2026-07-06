@@ -204,6 +204,8 @@ func process_move(a: Models.TileCoord, b: Models.TileCoord, item_points: Diction
 
 	moves_performed += 1
 	current_moves -= 1
+	if _lucky_find != null:
+		_lucky_find.begin_move()
 	if _boon_first_match_hook.is_valid():
 		_boon_first_match_hook.call(first_match)
 	_process_step(first_match, results, item_points)
@@ -534,7 +536,7 @@ func _refill_empty_slots(item_points: Dictionary) -> Models.MatchResult:
 		var key := "%d,%d" % [x, y]
 		var item_id := str(lucky_plan.get("assignments", {}).get(key, ""))
 		if item_id.is_empty():
-			item_id = _pick_initial_item_id_avoiding_match(x, y)
+			item_id = _pick_neutral_item_id(x, y)
 		_set_item(x, y, item_id, Models.KIND_NORMAL, "plain", item_points)
 		var spawn := Models.TileSpawn.new()
 		spawn.at = Models.TileCoord.new(x, y)
@@ -543,7 +545,7 @@ func _refill_empty_slots(item_points: Dictionary) -> Models.MatchResult:
 		spawn.item_type_id = get_tile(x, y).item_type_id
 		result.new_spawns.append(spawn)
 
-	if bool(lucky_plan.get("active", false)) and not result.new_spawns.is_empty():
+	if bool(lucky_plan.get("active", false)) and str(lucky_plan.get("mode", "")) == "help":
 		result.lucky_find_refill_applied = true
 	return result
 
@@ -561,6 +563,12 @@ func _fill_initial_board_items(item_points: Dictionary) -> void:
 				continue
 			var item_id := _pick_initial_item_id_avoiding_match(x, y)
 			_set_item(x, y, item_id, Models.KIND_NORMAL, "plain", item_points)
+
+
+func _pick_neutral_item_id(x: int, y: int) -> String:
+	if palette.is_empty():
+		return ""
+	return palette[_rng.randi_range(0, palette.size() - 1)]
 
 
 func _pick_initial_item_id_avoiding_match(x: int, y: int) -> String:

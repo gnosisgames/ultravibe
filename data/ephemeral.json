@@ -75,7 +75,7 @@
     "currencies": {
       "money": {
         "currencyId": "money",
-        "currentValue": 4,
+        "currentValue": 3,
         "min": 0,
         "max": 9999,
         "interestBaseCap": 25,
@@ -131,7 +131,7 @@
         "boonWeightPercent": 66,
         "consumableWeightPercent": 34,
         "itemUpgradeWeightPercent": 0,
-        "basePrice": 4,
+        "basePrice": 5,
         "baseRerollPrice": 5,
         "freeRerollCount": 0,
         "rerollFlatDiscount": 0,
@@ -163,7 +163,7 @@
       "totalFloors": 8,
       "roundsPerFloor": 3,
       "colorLimit": 5,
-      "currentMoves": 10,
+      "currentMoves": 8,
       "currentScore": 0,
       "targetScore": 2000,
       "roundRequiredScore": 0,
@@ -196,24 +196,30 @@
       "totalRounds": 24,
       "bossRoundIndexInFloor": 3,
       "bossRoundsSkippable": false,
-      "defaultMovesPerRound": 10,
+      "defaultMovesPerRound": 8,
       "defaultShufflesPerRound": 2,
       "luckyFindTuning": {
         "enabled": true,
-        "permanentChancePercent": 10,
-        "pityIncrementPercent": 5
+        "permanentAssist": -50,
+        "pityIncrementAssist": 5
       },
       "luckyFind": {
         "enabled": true,
-        "permanentChancePercent": 10,
-        "temporaryChancePercent": 10,
-        "pityIncrementPercent": 5,
+        "permanentCascadeAssist": -50,
+        "cascadeAssist": -50,
+        "pityIncrementAssist": 5,
         "pendingForce": false
       },
       "doubleDownTargetScoreMultiplier": 10,
       "endlessModeEnabled": false,
       "sandboxEndlessEnabled": false,
       "objectiveTarget": {
+        "baseScoreToWin": 1500,
+        "roundTargetStep": 500,
+        "advancedMultiplier": 1.25,
+        "bossMultiplier": 1.6,
+        "useRoundTargetsTable": true,
+        "useRoundTargetsFromRound": 10,
         "roundTargets": [
           1500, 2250, 3000, 4500, 6500, 9500,
           14000, 20000, 30000, 45000, 70000, 105000,

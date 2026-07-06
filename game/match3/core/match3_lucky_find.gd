@@ -1,61 +1,100 @@
 class_name Match3LuckyFind
 extends RefCounted
 
-## Pity-style cascade assist: rolls on refill to spawn gems that complete a match when possible.
-## permanent_chance = baseline; temporary_chance drifts up on non-cascade moves and resets after a lucky chain.
+## Signed cascade assist (−100…+100). 0 = neutral refills; negative = hinder; positive = help.
+## Pity nudges temporary assist up on opening-only scores; resets after a lucky chain.
 
 const GameplayScript = preload("res://game/match3/core/match3_gameplay.gd")
 const Models = preload("res://game/match3/core/match3_models.gd")
 
+const MIN_ASSIST := -100.0
+const MAX_ASSIST := 100.0
+const MAX_LUCKY_HELPS_PER_MOVE := 3
+const MEGA_CHAIN_CHANCE := 0.55
+
 var enabled := true
-var permanent_chance_percent := 10.0
-var temporary_chance_percent := 10.0
-var pity_increment_percent := 5.0
+var permanent_assist := -50.0
+var temporary_assist := -50.0
+var pity_increment_assist := 5.0
 var pending_force := false
 
 var _pity_multiplier := 1.0
-var _permanent_bonus_percent := 0.0
+var _permanent_bonus_assist := 0.0
+var _move_lucky_help_count := 0
+var _mega_chain_pending := false
 var _last_refill_attempted := false
 var _last_refill_succeeded := false
 var _last_refill_marked_pending := false
+var _last_refill_mode := ""
+var _last_refill_mega_chain := false
 
 
 func configure(permanent: float, pity_increment: float, start_enabled: bool = true) -> void:
-	permanent_chance_percent = maxf(0.0, permanent)
-	pity_increment_percent = maxf(0.0, pity_increment)
+	permanent_assist = permanent
+	pity_increment_assist = pity_increment
 	enabled = start_enabled
 	reset_temporary_to_permanent()
 
 
-func hydrate(permanent: float, temporary: float, pity_increment: float, pending: bool, start_enabled: bool) -> void:
-	permanent_chance_percent = maxf(0.0, permanent)
-	temporary_chance_percent = maxf(0.0, temporary)
-	pity_increment_percent = maxf(0.0, pity_increment)
+func hydrate(
+	permanent: float,
+	temporary: float,
+	pity_increment: float,
+	pending: bool,
+	start_enabled: bool
+) -> void:
+	permanent_assist = permanent
+	temporary_assist = temporary
+	pity_increment_assist = pity_increment
 	pending_force = pending
 	enabled = start_enabled
 
 
 func snapshot() -> Dictionary:
+	var permanent_effective := _effective_permanent()
 	return {
-		"permanentChancePercent": permanent_chance_percent + _permanent_bonus_percent,
-		"temporaryChancePercent": temporary_chance_percent,
-		"pityIncrementPercent": pity_increment_percent,
+		"cascadeAssist": temporary_assist,
+		"permanentCascadeAssist": permanent_effective,
+		"pityIncrementAssist": pity_increment_assist,
 		"pendingForce": pending_force,
 		"enabled": enabled,
+		"moveLuckyHelpCount": _move_lucky_help_count,
+		"megaChainPending": _mega_chain_pending,
+		# Legacy keys for older readers/tests.
+		"permanentChancePercent": temporary_assist,
+		"temporaryChancePercent": temporary_assist,
+		"pityIncrementPercent": pity_increment_assist,
 	}
 
 
 func reset_temporary_to_permanent() -> void:
-	temporary_chance_percent = _effective_permanent()
+	temporary_assist = _effective_permanent()
+
+
+func begin_move() -> void:
+	_move_lucky_help_count = 0
+	_mega_chain_pending = false
+
+
+func move_lucky_help_count() -> int:
+	return _move_lucky_help_count
+
+
+func is_mega_chain_pending() -> bool:
+	return _mega_chain_pending
+
+
+func add_permanent_bonus_assist(delta: float) -> void:
+	_permanent_bonus_assist += delta
+	temporary_assist = maxf(temporary_assist, _effective_permanent())
 
 
 func add_permanent_bonus_percent(delta: float) -> void:
-	_permanent_bonus_percent += delta
-	temporary_chance_percent = maxf(temporary_chance_percent, _effective_permanent())
+	add_permanent_bonus_assist(delta)
 
 
 func reset_permanent_bonus() -> void:
-	_permanent_bonus_percent = 0.0
+	_permanent_bonus_assist = 0.0
 
 
 func set_pity_increment_multiplier(multiplier: float) -> void:
@@ -67,10 +106,14 @@ func consume_last_refill_outcome() -> Dictionary:
 		"attempted": _last_refill_attempted,
 		"succeeded": _last_refill_succeeded,
 		"marked_pending": _last_refill_marked_pending,
+		"mode": _last_refill_mode,
+		"mega_chain": _last_refill_mega_chain,
 	}
 	_last_refill_attempted = false
 	_last_refill_succeeded = false
 	_last_refill_marked_pending = false
+	_last_refill_mode = ""
+	_last_refill_mega_chain = false
 	return out
 
 
@@ -82,8 +125,8 @@ func on_move_finished(cascade_match_steps: int, lucky_cascade_achieved: bool) ->
 		reset_temporary_to_permanent()
 		return
 	if cascade_match_steps <= 0:
-		var increment := pity_increment_percent * _pity_multiplier
-		temporary_chance_percent += increment
+		var increment := pity_increment_assist * _pity_multiplier
+		temporary_assist = clampf(temporary_assist + increment, MIN_ASSIST, MAX_ASSIST)
 
 
 func resolve_refill_plan(
@@ -94,47 +137,81 @@ func resolve_refill_plan(
 	_last_refill_attempted = false
 	_last_refill_succeeded = false
 	_last_refill_marked_pending = false
+	_last_refill_mode = ""
+	_last_refill_mega_chain = false
 	if not enabled or empty_cells.is_empty():
-		return {"active": false, "assignments": {}, "depth_target": 0}
+		return {"active": false, "assignments": {}, "depth_target": 0, "mode": "neutral"}
 
-	var depth_target := _resolve_depth_target(rng)
-	var should_force := pending_force
-	if not should_force:
-		if not _roll_activation(rng):
-			return {"active": false, "assignments": {}, "depth_target": 0}
-		should_force = true
+	var assist := clampf(temporary_assist, MIN_ASSIST, MAX_ASSIST)
+	var help_rate := maxf(0.0, assist) / 100.0
+	var hinder_rate := maxf(0.0, -assist) / 100.0
+
+	if _move_lucky_help_count >= MAX_LUCKY_HELPS_PER_MOVE:
+		_mega_chain_pending = false
+
+	var mode := "neutral"
+	var from_mega_chain := false
+	if pending_force:
+		mode = "help" if assist >= 0.0 else "hinder"
+	elif _mega_chain_pending and _move_lucky_help_count < MAX_LUCKY_HELPS_PER_MOVE and assist > 0.0:
+		mode = "help"
+		from_mega_chain = true
+		_mega_chain_pending = false
+	elif help_rate > 0.0 and rng.randf() < help_rate:
+		mode = "help"
+	elif hinder_rate > 0.0 and rng.randf() < hinder_rate:
+		mode = "hinder"
+	else:
+		return {"active": false, "assignments": {}, "depth_target": 0, "mode": "neutral"}
 
 	_last_refill_attempted = true
-	var assignments := _plan_assignments_for_depth(gameplay, empty_cells, depth_target)
-	if assignments.is_empty():
-		pending_force = true
-		_last_refill_marked_pending = true
-		return {"active": false, "assignments": {}, "depth_target": depth_target}
+	_last_refill_mode = mode
+	_last_refill_mega_chain = from_mega_chain
+	var assignments: Dictionary = {}
+	var depth_target := 1
+	if mode == "help":
+		depth_target = _resolve_depth_target_for_help(assist, rng)
+		assignments = _plan_assignments_for_depth(gameplay, empty_cells, depth_target)
+		if assignments.is_empty():
+			pending_force = true
+			_last_refill_marked_pending = true
+			return {"active": false, "assignments": {}, "depth_target": depth_target, "mode": mode}
+	else:
+		assignments = _plan_hinder_assignments(gameplay, empty_cells)
+		if assignments.is_empty():
+			return {"active": false, "assignments": {}, "depth_target": 0, "mode": "neutral"}
 
 	pending_force = false
 	_last_refill_succeeded = true
-	return {"active": true, "assignments": assignments, "depth_target": depth_target}
+	if mode == "help":
+		_register_successful_help(rng)
+	return {
+		"active": true,
+		"assignments": assignments,
+		"depth_target": depth_target,
+		"mode": mode,
+		"mega_chain": from_mega_chain,
+	}
+
+
+func _register_successful_help(rng: RandomNumberGenerator) -> void:
+	_move_lucky_help_count += 1
+	if _move_lucky_help_count >= MAX_LUCKY_HELPS_PER_MOVE:
+		_mega_chain_pending = false
+		return
+	if rng.randf() < MEGA_CHAIN_CHANCE:
+		_mega_chain_pending = true
 
 
 func _effective_permanent() -> float:
-	return maxf(0.0, permanent_chance_percent + _permanent_bonus_percent)
+	return clampf(permanent_assist + _permanent_bonus_assist, MIN_ASSIST, MAX_ASSIST)
 
 
-func _roll_activation(rng: RandomNumberGenerator) -> bool:
-	var chance := temporary_chance_percent
-	if chance <= 0.0:
-		return false
-	if chance >= 100.0:
-		return true
-	return rng.randf() * 100.0 < chance
-
-
-func _resolve_depth_target(rng: RandomNumberGenerator) -> int:
-	var chance := temporary_chance_percent
-	if chance <= 100.0:
+func _resolve_depth_target_for_help(assist: float, rng: RandomNumberGenerator) -> int:
+	if assist <= 100.0:
 		return 1
-	var guaranteed := int(floor(chance / 100.0))
-	var remainder := chance - float(guaranteed) * 100.0
+	var guaranteed := int(floor((assist - 100.0) / 100.0)) + 1
+	var remainder := assist - 100.0 - float(guaranteed - 1) * 100.0
 	var extra := 1 if remainder > 0.0 and rng.randf() * 100.0 < remainder else 0
 	return maxi(1, guaranteed + extra)
 
@@ -149,7 +226,6 @@ func _plan_assignments_for_depth(
 		return {}
 	if depth_target <= 1:
 		return assignments
-	# Deeper chains: simulate one lucky refill + clear, then plan again on the next empties.
 	var sim := _simulate_assignments(gameplay, empty_cells, assignments)
 	if sim.is_empty():
 		return assignments
@@ -189,6 +265,32 @@ func _plan_single_cascade_assignments(gameplay: Match3Gameplay, empty_cells: Arr
 	return assignments
 
 
+func _plan_hinder_assignments(gameplay: Match3Gameplay, empty_cells: Array) -> Dictionary:
+	if empty_cells.is_empty():
+		return {}
+	var palette := gameplay.palette
+	if palette.is_empty():
+		return {}
+
+	var ordered := empty_cells.duplicate()
+	ordered.sort_custom(func(a, b) -> bool:
+		if a.x != b.x:
+			return a.x < b.x
+		return a.y < b.y
+	)
+
+	var assignments: Dictionary = {}
+	for cell in ordered:
+		var picked := _pick_color_for_cell(gameplay, cell, ordered, assignments, palette, false)
+		if picked.is_empty():
+			picked = palette[0]
+		assignments[_cell_key(cell)] = picked
+
+	if _assignments_create_match(gameplay, ordered, assignments):
+		return {}
+	return assignments
+
+
 func _pick_color_for_cell(
 	gameplay: Match3Gameplay,
 	cell: Dictionary,
@@ -206,9 +308,9 @@ func _pick_color_for_cell(
 			candidates.append(item_id)
 	if prefer_match and not candidates.is_empty():
 		return candidates[0]
+	if not prefer_match and not candidates.is_empty():
+		return candidates[0]
 	if not prefer_match:
-		if not candidates.is_empty():
-			return candidates[0]
 		return palette[0]
 	return ""
 
@@ -300,7 +402,6 @@ func _assignments_create_match(gameplay: Match3Gameplay, ordered: Array, assignm
 
 
 func _simulate_assignments(gameplay: Match3Gameplay, empty_cells: Array, assignments: Dictionary) -> Dictionary:
-	# Lightweight snapshot: only cells touched by this refill batch.
 	var backups: Dictionary = {}
 	for cell in empty_cells:
 		var tile := gameplay.get_tile(int(cell.x), int(cell.y))
@@ -320,7 +421,7 @@ func _simulate_assignments(gameplay: Match3Gameplay, empty_cells: Array, assignm
 
 	var matched := gameplay.find_matches()
 	var next_empty: Array = []
-	if matched is Match3Models.MatchResult and not matched.matched_tiles.is_empty():
+	if matched is Models.MatchResult and not matched.matched_tiles.is_empty():
 		for coord in matched.matched_tiles:
 			var tile := gameplay.get_tile(coord.x, coord.y)
 			if tile != null:
