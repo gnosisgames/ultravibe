@@ -16,21 +16,21 @@
         "service": "Upgrade",
         "function": "AddUpgrade",
         "parameters": {
-          "categoryId": "itemUpgrades",
-          "upgradeId": "LuckyFindBoostII"
+          "categoryId": "run",
+          "upgradeId": "GoldenLuckyFind"
         }
       }
     ],
     "gameplayTags": [
-      "item_upgrade_grant"
+      "run_upgrade_grant"
     ]
   },
   "metadata": {
-    "nameKey": "itemUpgradeLuckyFindBoostIIName",
-    "descriptionKey": "itemUpgradeLuckyFindBoostIIDescription",
-    "spriteId": "upgradeLuckyFindBoostIISprite",
-    "backgroundColor": "#B8860B",
+    "nameKey": "upgradeGoldenLuckyFindName",
+    "descriptionKey": "upgradeGoldenLuckyFindDescription",
+    "spriteId": "upgradeGoldenCloverSprite",
+    "backgroundColor": "#3D7A45",
     "tags": [],
-    "grantItemUpgradeId": "LuckyFindBoostII"
+    "grantRunUpgradeId": "GoldenLuckyFind"
   }
 }

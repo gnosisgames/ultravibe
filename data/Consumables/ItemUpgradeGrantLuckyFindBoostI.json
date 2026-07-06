@@ -2,7 +2,7 @@
   "id": "ItemUpgradeGrantLuckyFindBoostI",
   "properties": {
     "basePrice": 10,
-    "offerChancePermille": 100,
+    "offerChancePermille": 120,
     "invocations": [
       {
         "service": "Audio",
@@ -16,21 +16,21 @@
         "service": "Upgrade",
         "function": "AddUpgrade",
         "parameters": {
-          "categoryId": "itemUpgrades",
-          "upgradeId": "LuckyFindBoostI"
+          "categoryId": "run",
+          "upgradeId": "GoldenLuckyFind"
         }
       }
     ],
     "gameplayTags": [
-      "item_upgrade_grant"
+      "run_upgrade_grant"
     ]
   },
   "metadata": {
-    "nameKey": "itemUpgradeLuckyFindBoostIName",
-    "descriptionKey": "itemUpgradeLuckyFindBoostIDescription",
-    "spriteId": "upgradeLuckyFindBoostISprite",
+    "nameKey": "upgradeGoldenLuckyFindName",
+    "descriptionKey": "upgradeGoldenLuckyFindDescription",
+    "spriteId": "upgradeGoldenCloverSprite",
     "backgroundColor": "#3D7A45",
     "tags": [],
-    "grantItemUpgradeId": "LuckyFindBoostI"
+    "grantRunUpgradeId": "GoldenLuckyFind"
   }
 }

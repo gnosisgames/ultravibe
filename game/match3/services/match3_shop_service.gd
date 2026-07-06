@@ -534,8 +534,10 @@ func _relax_owned_consumables_for_stackable_item_upgrade_grants(owned_consumable
 			continue
 		var grant_id := _node_string(metadata, "grantItemUpgradeId", "")
 		if grant_id.is_empty():
+			grant_id = _node_string(metadata, "grantRunUpgradeId", "")
+		if grant_id.is_empty():
 			continue
-		if _is_item_upgrade_eligible_for_more(grant_id):
+		if _is_item_upgrade_eligible_for_more(grant_id) or _is_run_upgrade_eligible_for_more(grant_id):
 			to_remove.append(str(owned_id))
 	for owned_id in to_remove:
 		owned_consumables.erase(owned_id.to_lower())
@@ -560,7 +562,12 @@ func _remove_grant_consumables_at_max_item_upgrade_count(consumable_pool: Array[
 			filtered.append(sid)
 			continue
 		var grant_id := _node_string(metadata, "grantItemUpgradeId", "")
-		if not grant_id.is_empty() and not _is_item_upgrade_eligible_for_more(grant_id):
+		if grant_id.is_empty():
+			grant_id = _node_string(metadata, "grantRunUpgradeId", "")
+		if not grant_id.is_empty():
+			if _is_item_upgrade_eligible_for_more(grant_id) or _is_run_upgrade_eligible_for_more(grant_id):
+				filtered.append(sid)
+				continue
 			continue
 		filtered.append(sid)
 	return filtered
@@ -590,6 +597,36 @@ func _read_item_upgrade_max_count(upgrade_id: String) -> int:
 	if not config.is_valid():
 		return 1
 	var entry := config.get_node("%s.%s" % ["itemUpgrades", upgrade_id.strip_edges()])
+	if not entry.is_valid() or entry.get_type() != GnosisValueType.OBJECT:
+		return 1
+	var props := entry.get_node("properties")
+	return maxi(1, _node_int(props, "maxCount", 1))
+
+
+func _is_run_upgrade_eligible_for_more(upgrade_id: String) -> bool:
+	var sid := upgrade_id.strip_edges()
+	if sid.is_empty():
+		return false
+	return _get_run_upgrade_quantity(sid) < _read_run_upgrade_max_count(sid)
+
+
+func _get_run_upgrade_quantity(upgrade_id: String) -> int:
+	if context == null or context.store == null:
+		return 0
+	var params := context.store.create_object()
+	params.set_key("categoryId", UPGRADE_CATEGORY_RUN)
+	params.set_key("upgradeId", upgrade_id.strip_edges())
+	var result = call_service("Upgrade", "HasUpgrade", params)
+	if result is GnosisNode and result.is_valid():
+		return maxi(0, _node_int(result, "quantity", 0))
+	return 0
+
+
+func _read_run_upgrade_max_count(upgrade_id: String) -> int:
+	var config := get_node("configuration", true)
+	if not config.is_valid():
+		return 1
+	var entry := config.get_node("%s.%s" % [SOURCE_RUN_UPGRADES, upgrade_id.strip_edges()])
 	if not entry.is_valid() or entry.get_type() != GnosisValueType.OBJECT:
 		return 1
 	var props := entry.get_node("properties")

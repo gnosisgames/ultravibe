@@ -1,7 +1,6 @@
 {
-  "id": "LuckyFindBoostI",
+  "id": "GoldenLuckyFind",
   "properties": {
-    "basePrice": 10,
     "invocations": [
       {
         "service": "Match3",
@@ -11,16 +10,21 @@
         }
       }
     ],
-    "maxCount": 2,
+    "maxCount": 4,
     "gameplayTags": [
       "luckyFindUpgrade"
     ]
   },
   "metadata": {
-    "nameKey": "itemUpgradeLuckyFindBoostIName",
-    "descriptionKey": "itemUpgradeLuckyFindBoostIDescription",
-    "spriteId": "upgradeLuckyFindBoostISprite",
+    "nameKey": "upgradeGoldenLuckyFindName",
+    "descriptionKey": "upgradeGoldenLuckyFindDescription",
+    "spriteId": "upgradeGoldenCloverSprite",
     "backgroundColor": "#3D7A45",
-    "tags": []
+    "tags": [
+      {
+        "tagType": "upgrade",
+        "tagLocKey": "core__verb__upgrade"
+      }
+    ]
   }
 }

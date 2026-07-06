@@ -10,7 +10,8 @@
     "upgradeGreenLevelUpSprite": "res://assets/blocks/disgust.png",
     "upgradeOrangeLevelUpSprite": "res://assets/blocks/joy.png",
     "upgradePinkLevelUpSprite": "res://assets/blocks/love.png",
-    "upgradePurpleLevelUpSprite": "res://assets/blocks/sadness.png"
+    "upgradePurpleLevelUpSprite": "res://assets/blocks/sadness.png",
+    "upgradeGoldenCloverSprite": "res://assets/icons/upgrades/GoldenClover.png"
   },
   "audio": {
     "move": "res://assets/audio/gameplay/move.mp3",

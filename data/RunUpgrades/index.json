@@ -31,6 +31,10 @@
     {
       "id": "GoldenTrade",
       "path": "GoldenTrade.json"
+    },
+    {
+      "id": "GoldenLuckyFind",
+      "path": "GoldenLuckyFind.json"
     }
   ]
 }

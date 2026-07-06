@@ -71,8 +71,7 @@ const DEFAULT_LUCKY_FIND_PERMANENT_PERCENT := 10.0
 const DEFAULT_LUCKY_FIND_PITY_INCREMENT_PERCENT := 5.0
 const LUCKY_FIND_UPGRADE_BONUS_PERCENT := 10.0
 const LUCKY_FIND_UPGRADE_IDS := {
-	"LuckyFindBoostI": LUCKY_FIND_UPGRADE_BONUS_PERCENT,
-	"LuckyFindBoostII": LUCKY_FIND_UPGRADE_BONUS_PERCENT,
+	"GoldenLuckyFind": LUCKY_FIND_UPGRADE_BONUS_PERCENT,
 }
 
 var _gameplay = Match3GameplayScript.new()
@@ -304,7 +303,7 @@ func _reapply_lucky_find_upgrade_bonuses() -> void:
 	var upgrades := get_node("upgrades", false)
 	if not upgrades.is_valid() or upgrades.get_type() != GnosisValueType.OBJECT:
 		return
-	var bag := upgrades.get_node("itemUpgrades")
+	var bag := upgrades.get_node("run")
 	if not bag.is_valid() or bag.get_type() != GnosisValueType.OBJECT:
 		return
 	var list := bag.get_node("list")

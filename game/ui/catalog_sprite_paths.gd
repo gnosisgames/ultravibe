@@ -4,6 +4,8 @@ extends RefCounted
 ## Shared sprite path resolution for catalog entries (Unity asset-registry parity).
 
 const BLOCK_ICON_DIR := "res://assets/blocks/"
+const UPGRADE_ICON_DIR := "res://assets/icons/upgrades/"
+const GOLDEN_CLOVER_ICON := UPGRADE_ICON_DIR + "GoldenClover.png"
 
 ## Item-upgrade level-up grants use colored gem emotion art from assets/blocks/.
 const ITEM_UPGRADE_SPRITE_BLOCKS := {
@@ -23,14 +25,11 @@ const ITEM_UPGRADE_ID_BLOCKS := {
 	"bluelevelup": "fear",
 	"greenlevelup": "disgust",
 	"pinklevelup": "love",
-	"luckyfindboosti": "luckyBlock",
-	"luckyfindboostii": "goldBlock",
 }
 
 
 const ITEM_UPGRADE_DIRECT_SPRITES := {
-	"upgradeluckyfindboostisprite": "res://assets/blocks/luckyBlock.png",
-	"upgradeluckyfindboostiisprite": "res://assets/blocks/goldBlock.png",
+	"upgradegoldencloversprite": GOLDEN_CLOVER_ICON,
 }
 
 

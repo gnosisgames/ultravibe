@@ -1,6 +1,6 @@
 extends SceneTree
 
-## Lucky Find upgrade grants add +10% permanent chance per stack (max 2 each).
+## Lucky Find run upgrade grants +10% permanent chance per stack (max 4).
 
 var _bootstrap: Node = null
 var _frames := 0
@@ -43,19 +43,19 @@ func _run() -> bool:
 		print("[FAIL] base lucky find should be 10%%, got %s" % lucky.snapshot().get("permanentChancePercent"))
 		return false
 
-	for i in range(2):
+	for i in range(4):
 		var params := engine.store.create_object()
-		params.set_key("categoryId", "itemUpgrades")
-		params.set_key("upgradeId", "LuckyFindBoostI")
+		params.set_key("categoryId", "run")
+		params.set_key("upgradeId", "GoldenLuckyFind")
 		var result = upgrade.invoke_function("AddUpgrade", params)
 		if not _upgrade_add_succeeded(result):
-			print("[FAIL] AddUpgrade LuckyFindBoostI #%d: %s" % [i + 1, str(result)])
+			print("[FAIL] AddUpgrade GoldenLuckyFind #%d: %s" % [i + 1, str(result)])
 			return false
 
-	var expected := 30.0
+	var expected := 50.0
 	var actual := float(lucky.snapshot().get("permanentChancePercent", 0.0))
 	if absf(actual - expected) > 0.001:
-		print("[FAIL] after 2x LuckyFindBoostI expected %.0f%% got %.1f%%" % [expected, actual])
+		print("[FAIL] after 4x GoldenLuckyFind expected %.0f%% got %.1f%%" % [expected, actual])
 		return false
 
 	m3.handle_run_started()
@@ -64,7 +64,7 @@ func _run() -> bool:
 		print("[FAIL] after run restart expected %.0f%% got %.1f%%" % [expected, actual])
 		return false
 
-	print("[SUCCESS] Lucky Find upgrades stack to %.0f%% (10 base + 20 bonus)" % actual)
+	print("[SUCCESS] Lucky Find run upgrade stacks to %.0f%% (10 base + 40 bonus)" % actual)
 	return true
 
 
