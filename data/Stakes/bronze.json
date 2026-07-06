@@ -1,0 +1,10 @@
+{
+  "id": "bronze",
+  "order": 3,
+  "spritePath": "res://assets/ui/missions/bronze.png",
+  "metadata": {
+    "nameKey": "stakeBronzeName",
+    "descriptionKey": "stakeBronzeDescription"
+  },
+  "modifiers": {}
+}

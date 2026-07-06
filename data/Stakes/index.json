@@ -1,0 +1,14 @@
+{
+  "stakes": [
+    { "id": "white", "path": "white.json" },
+    { "id": "opal", "path": "opal.json" },
+    { "id": "bronze", "path": "bronze.json" },
+    { "id": "silver", "path": "silver.json" },
+    { "id": "gold", "path": "gold.json" },
+    { "id": "ruby", "path": "ruby.json" },
+    { "id": "emerald", "path": "emerald.json" },
+    { "id": "sapphire", "path": "sapphire.json" },
+    { "id": "amethyst", "path": "amethyst.json" },
+    { "id": "obsidian", "path": "obsidian.json" }
+  ]
+}

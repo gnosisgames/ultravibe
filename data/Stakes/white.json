@@ -1,0 +1,10 @@
+{
+  "id": "white",
+  "order": 1,
+  "spritePath": "res://assets/ui/missions/white.png",
+  "metadata": {
+    "nameKey": "stakeWhiteName",
+    "descriptionKey": "stakeWhiteDescription"
+  },
+  "modifiers": {}
+}

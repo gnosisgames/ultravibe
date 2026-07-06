@@ -1,0 +1,10 @@
+{
+  "id": "sapphire",
+  "order": 8,
+  "spritePath": "res://assets/ui/missions/sapphire.png",
+  "metadata": {
+    "nameKey": "stakeSapphireName",
+    "descriptionKey": "stakeSapphireDescription"
+  },
+  "modifiers": {}
+}

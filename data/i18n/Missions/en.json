@@ -1,0 +1,22 @@
+{
+  "stakeWhiteName": "White Mission",
+  "stakeWhiteDescription": "Entry difficulty.",
+  "stakeOpalName": "Opal Mission",
+  "stakeOpalDescription": "Mission difficulty 2.",
+  "stakeBronzeName": "Bronze Mission",
+  "stakeBronzeDescription": "Mission difficulty 3.",
+  "stakeSilverName": "Silver Mission",
+  "stakeSilverDescription": "Mission difficulty 4.",
+  "stakeGoldName": "Gold Mission",
+  "stakeGoldDescription": "Mission difficulty 5.",
+  "stakeRubyName": "Ruby Mission",
+  "stakeRubyDescription": "Mission difficulty 6.",
+  "stakeEmeraldName": "Emerald Mission",
+  "stakeEmeraldDescription": "Mission difficulty 7.",
+  "stakeSapphireName": "Sapphire Mission",
+  "stakeSapphireDescription": "Mission difficulty 8.",
+  "stakeAmethystName": "Amethyst Mission",
+  "stakeAmethystDescription": "Mission difficulty 9.",
+  "stakeObsidianName": "Obsidian Mission",
+  "stakeObsidianDescription": "Mission difficulty 10."
+}

@@ -1,0 +1,10 @@
+{
+  "id": "emerald",
+  "order": 7,
+  "spritePath": "res://assets/ui/missions/emerald.png",
+  "metadata": {
+    "nameKey": "stakeEmeraldName",
+    "descriptionKey": "stakeEmeraldDescription"
+  },
+  "modifiers": {}
+}

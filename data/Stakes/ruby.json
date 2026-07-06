@@ -1,0 +1,10 @@
+{
+  "id": "ruby",
+  "order": 6,
+  "spritePath": "res://assets/ui/missions/ruby.png",
+  "metadata": {
+    "nameKey": "stakeRubyName",
+    "descriptionKey": "stakeRubyDescription"
+  },
+  "modifiers": {}
+}

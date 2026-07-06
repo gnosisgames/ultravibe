@@ -1,0 +1,10 @@
+{
+  "id": "opal",
+  "order": 2,
+  "spritePath": "res://assets/ui/missions/opal.png",
+  "metadata": {
+    "nameKey": "stakeOpalName",
+    "descriptionKey": "stakeOpalDescription"
+  },
+  "modifiers": {}
+}

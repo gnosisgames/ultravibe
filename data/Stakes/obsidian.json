@@ -1,0 +1,10 @@
+{
+  "id": "obsidian",
+  "order": 10,
+  "spritePath": "res://assets/ui/missions/obsidian.png",
+  "metadata": {
+    "nameKey": "stakeObsidianName",
+    "descriptionKey": "stakeObsidianDescription"
+  },
+  "modifiers": {}
+}

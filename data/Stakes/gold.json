@@ -1,0 +1,10 @@
+{
+  "id": "gold",
+  "order": 5,
+  "spritePath": "res://assets/ui/missions/gold.png",
+  "metadata": {
+    "nameKey": "stakeGoldName",
+    "descriptionKey": "stakeGoldDescription"
+  },
+  "modifiers": {}
+}

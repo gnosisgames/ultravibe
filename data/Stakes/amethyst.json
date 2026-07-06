@@ -1,0 +1,10 @@
+{
+  "id": "amethyst",
+  "order": 9,
+  "spritePath": "res://assets/ui/missions/amethyst.png",
+  "metadata": {
+    "nameKey": "stakeAmethystName",
+    "descriptionKey": "stakeAmethystDescription"
+  },
+  "modifiers": {}
+}

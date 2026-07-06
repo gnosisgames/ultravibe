@@ -1,0 +1,10 @@
+{
+  "id": "silver",
+  "order": 4,
+  "spritePath": "res://assets/ui/missions/silver.png",
+  "metadata": {
+    "nameKey": "stakeSilverName",
+    "descriptionKey": "stakeSilverDescription"
+  },
+  "modifiers": {}
+}
