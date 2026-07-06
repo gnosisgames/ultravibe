@@ -2,6 +2,15 @@
 
 Full workspace context: **[../AGENTS.md](../AGENTS.md)** (read that first in new chats).
 
+## Engine submodule
+
+Path: `addons/com.gnosisgames.gnosisengine` (tracks engine `main`).
+
+- Engine commits: `cd addons/com.gnosisgames.gnosisengine` → commit/push engine repo → bump submodule in ultravibe.
+- Pull latest engine: `git submodule update --remote --merge addons/com.gnosisgames.gnosisengine`
+
+See `addons/com.gnosisgames.gnosisengine/docs/GAME_INTEGRATION.md` and workspace `.cursor/skills/engine-submodule/SKILL.md`.
+
 ## Testing
 
 - **Do NOT** run the full integration suite after every minor code change — it is slow (~22 headless Godot boots).

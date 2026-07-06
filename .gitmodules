@@ -1,0 +1,4 @@
+[submodule "addons/com.gnosisgames.gnosisengine"]
+	path = addons/com.gnosisgames.gnosisengine
+	url = git@gnosis:gnosisgames/com.gnosisgames.gnosisengine.godot.git
+	branch = main

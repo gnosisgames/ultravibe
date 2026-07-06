@@ -6,17 +6,27 @@ Falling-block roguelike built on the shared [Gnosis Engine](../com.gnosisgames.g
 
 ## Setup
 
-This project expects the engine as a **sibling folder**:
+This project uses the engine as a git submodule at:
 
-```text
-02_godot/
-├── com.gnosisgames.gnosisengine/
-└── ultravibe/          ← this project
-    └── addons/
-        └── com.gnosisgames.gnosisengine -> ../../com.gnosisgames.gnosisengine
+- `addons/com.gnosisgames.gnosisengine` (tracks engine `main`)
+
+Clone with submodules:
+
+```bash
+git clone --recurse-submodules <ultravibe-repo-url>
 ```
 
-The addon symlink is already configured. Open `ultravibe/` as the Godot project root (not the engine repo).
+Or if already cloned:
+
+```bash
+git submodule update --init --recursive
+```
+
+To pull latest engine changes (for early development workflow):
+
+```bash
+git submodule update --remote --merge addons/com.gnosisgames.gnosisengine
+```
 
 ## Run
 
@@ -67,4 +77,4 @@ source ../scripts/resolve_godot.sh
 | `tests/` | Integration tests for the Ultravibe port |
 | `main.tscn` | Entry scene (`UltravibeBootstrap`) |
 
-Engine code (`core/`, `services/`, `adapters/`) lives only in `com.gnosisgames.gnosisengine/`.
+Engine code (`core/`, `services/`, `adapters/`) lives in the submodule at `addons/com.gnosisgames.gnosisengine/`.
