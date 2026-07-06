@@ -12,6 +12,7 @@ EXTENDED_TESTS=(
 	# Sprint 2 critical parity
 	test_boon_sell
 	test_consumable_sell
+	test_shop_economy
 	test_lucky_find_upgrade
 	test_shop_polish
 	test_boss_match3_effects

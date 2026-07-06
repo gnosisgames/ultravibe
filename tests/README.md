@@ -49,3 +49,4 @@ Tests redirect persistent saves to `user://Saves/persistent_test.json` and run s
 
 - [docs/parity/ULTRAVIBE_MATCH3_PARITY_SPRINTS.md](../docs/parity/ULTRAVIBE_MATCH3_PARITY_SPRINTS.md) — sprint backlog
 - [docs/parity/mechanics-ledger.md](../docs/parity/mechanics-ledger.md) — system status map
+- [docs/parity/shop-economy-audit.md](../docs/parity/shop-economy-audit.md) — Sprint 3 interest/shop tuning audit

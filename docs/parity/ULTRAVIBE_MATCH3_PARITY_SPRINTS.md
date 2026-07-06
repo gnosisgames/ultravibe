@@ -115,11 +115,11 @@ Godot is **ahead** of Unity in places: **collection compendium**, **GoldenLuckyF
 ### Sprint 3 — Shop & economy audit
 **Goal:** Money loop matches Unity feel.
 
-- [ ] **Audit** interest payout on reward panel vs Unity `RoundReward` (cap, divisor, preview line).
-- [ ] **Audit** shop weights: boon 66% / consumable 34% / item upgrade % / run upgrade pity (`runUpgradePityEveryN`).
-- [ ] **Verify** free reroll bank, floor price inflation, max discount 50%.
-- [ ] **Statistics** — ensure `match3.shop.*`, `match3.rounds.*`, boss defeats increment like Unity.
-- [ ] **Tests** for interest + shop pity + sell-from-inventory refund amounts.
+- [x] **Audit** interest payout on reward panel vs Unity `RoundReward` (cap, divisor, preview line).
+- [x] **Audit** shop weights: boon 66% / consumable 34% / item upgrade % / run upgrade pity (`runUpgradePityEveryN`).
+- [x] **Verify** free reroll bank, floor price inflation, max discount 50%.
+- [x] **Statistics** — ensure `match3.shop.*`, `match3.rounds.*`, boss defeats increment like Unity.
+- [x] **Tests** for interest + shop pity + sell-from-inventory refund amounts.
 
 **Exit criteria:** Side-by-side run: same seed, same shop offers/prices within documented tolerance.
 

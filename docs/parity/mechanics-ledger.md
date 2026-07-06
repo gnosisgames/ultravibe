@@ -32,7 +32,7 @@ Godot target: `ultravibe/game/match3/`
 
 | Mechanic | Status | Tests |
 |---|---|---|
-| Shop buy / reroll / pricing | done | `test_shop_polish` |
+| Shop buy / reroll / pricing | done | `test_shop_polish`, `test_shop_economy` |
 | Boon sell (inventory) | done | `test_boon_sell` |
 | Consumable sell (inventory) | done | `test_consumable_sell` |
 | Run upgrades (9 Golden*) | done | `test_run_upgrade_invokes`, `test_lucky_find_upgrade` |
