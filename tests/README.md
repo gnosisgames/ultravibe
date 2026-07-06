@@ -53,3 +53,6 @@ Tests redirect persistent saves to `user://Saves/persistent_test.json` and run s
 - [docs/parity/presentation-hud-audit.md](../docs/parity/presentation-hud-audit.md) — Sprint 4 HUD/tooltip/sparkle audit
 - [docs/parity/boon-consumable-audit.md](../docs/parity/boon-consumable-audit.md) — Sprint 5 boon/consumable depth audit
 - [docs/parity/bosses-effects-boards-audit.md](../docs/parity/bosses-effects-boards-audit.md) — Sprint 6 effects/boards audit
+- [docs/parity/playtest-checklist.md](../docs/parity/playtest-checklist.md) — Sprint 8 manual playtest scripts
+- [docs/parity/performance-budgets.md](../docs/parity/performance-budgets.md) — Sprint 8 headless perf budgets
+- [docs/parity/sign-off.md](../docs/parity/sign-off.md) — Sprint 8 release sign-off tracker

@@ -49,7 +49,7 @@ Godot is **ahead** of Unity in places: **collection compendium**, **GoldenLuckyF
 | Collection / codex                             | No    | Yes                 | **godot-only** (keep)                              |
 | Steam achievements                             | Stub  | No                  | **n/a** unless shipping Steam                      |
 | Sandbox debug shop overrides                   | Yes   | Engine panel only   | **partial**                                        |
-| CI regression suite                            | N/A   | 12 tests (1 broken) | **gap**                                            |
+| CI regression suite                            | N/A   | 14 smoke + extended | **done** (seed + perf in extended)                 |
 | Docs (`MIGRATION_STATUS`, `tests/README`)      | N/A   | Polyomino-era stale | **gap**                                            |
 
 
@@ -127,7 +127,7 @@ Godot is **ahead** of Unity in places: **collection compendium**, **GoldenLuckyF
 - [x] **Audit** interest payout on reward panel vs Unity `RoundReward` (cap, divisor, preview line).
 - [x] **Audit** shop weights: boon 66% / consumable 34% / item upgrade % / run upgrade pity (`runUpgradePityEveryN`).
 - [x] **Verify** free reroll bank, floor price inflation, max discount 50%.
-- [x] **Statistics** — ensure `match3.shop.`*, `match3.rounds.*`, boss defeats increment like Unity.
+- [x] **Statistics** — ensure `match3.shop.`*, `match3.rounds.`*, boss defeats increment like Unity.
 - [x] **Tests** for interest + shop pity + sell-from-inventory refund amounts.
 
 **Exit criteria:** Side-by-side run: same seed, same shop offers/prices within documented tolerance.
@@ -194,13 +194,13 @@ Godot is **ahead** of Unity in places: **collection compendium**, **GoldenLuckyF
 
 **Goal:** Declare Unity parity for gameplay scope.
 
-- [ ] **Playtest script** — one full 24-round run + endless branch + shop-heavy run on gamepad + KB/M.
-- [ ] **Seed regression** — fixed seeds for round-action rewards, shop offers, lucky find.
-- [ ] **Performance** — headless boot time, cascade frame budget on largest boards.
-- [ ] **Cleanup** — remove dead `shop_view` route or document as dev-only.
-- [ ] **Tag release** in engine + ultravibe repos.
+- [x] **Playtest script** — [playtest-checklist.md](playtest-checklist.md) (24-round + endless + shop-heavy; manual).
+- [x] **Seed regression** — `test_seed_regression.gd` (round rewards, shop offers, lucky find @ seed 424242).
+- [x] **Performance** — `test_match3_boot_perf.gd`, `test_match3_cascade_perf.gd`; [performance-budgets.md](performance-budgets.md).
+- [x] **Cleanup** — `shop_view` documented as dev-only legacy ([README.md](README.md#legacy-ui-routes)).
+- [ ] **Tag release** in engine + ultravibe repos (manual after playtest).
 
-**Exit criteria:** Checklist signed; known deltas documented (collection, GoldenLuckyFind, glyph UI).
+**Exit criteria:** [sign-off.md](sign-off.md) automated gates green; manual checklist complete before tag.
 
 ---
 
@@ -212,7 +212,7 @@ Godot is **ahead** of Unity in places: **collection compendium**, **GoldenLuckyF
 | **Collection screen**          | Godot addition — no Unity equivalent                                   |
 | **GoldenLuckyFind**            | Run upgrade (clover); Unity had no Lucky Find upgrade in `runUpgrades` |
 | **Kenney input glyphs**        | Godot tooltip sell chips                                               |
-| **Post-target score juice**    | Sparkle particle escalation replaces Unity `ScoreFire` shader            |
+| **Post-target score juice**    | Sparkle particle escalation replaces Unity `ScoreFire` shader          |
 | **Polyomino `data/Upgrades/`** | Remove; not part of Ultravibe                                          |
 
 

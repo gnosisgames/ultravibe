@@ -16,6 +16,9 @@ EXTENDED_TESTS=(
 	test_presentation_hud
 	test_boon_consumable_depth
 	test_bosses_effects_boards
+	test_seed_regression
+	test_match3_boot_perf
+	test_match3_cascade_perf
 	test_lucky_find_upgrade
 	test_shop_polish
 	test_boss_match3_effects

@@ -62,4 +62,4 @@ Godot: `game/match3/services/match3_shop_service.gd`, `gnosis_currency_service.g
 ## Known tolerances
 
 - Offer **contents** are seed-driven; parity tests verify tuning constants and pity injection, not exact SKU lists per seed.
-- Side-by-side seed regression (full shop SKU match) remains a manual QA step until golden-seed harness lands (Sprint 8).
+- Golden seed regression for round-action rewards + core shop offers: `test_seed_regression.gd` (seed `424242`). Full Unity side-by-side SKU match remains optional manual QA.

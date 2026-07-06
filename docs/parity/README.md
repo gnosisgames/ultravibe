@@ -23,6 +23,13 @@ This folder tracks mechanics parity between the Unity source of truth
 | **data-only** | JSON/catalog exists but gameplay code does not run it |
 | **n/a** | Intentionally omitted (e.g. vestigial hold piece) |
 
+## Legacy UI routes
+
+| View | Status | Notes |
+|------|--------|-------|
+| `level_select_view` | **active** | Integrated shop (`ShopSection`, `ShopOffers`) |
+| `shop_view` | **dev-only / legacy** | Registered in `main.tscn` but **not pushed** by `match3_play_adapter`; normal play never routes here |
+
 ## Parity tests
 
 | Test | Covers |
