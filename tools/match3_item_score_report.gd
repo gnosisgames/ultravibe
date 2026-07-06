@@ -45,7 +45,7 @@ func _print_report() -> void:
 		return
 
 	print("")
-	print("=== Match3 isolated line scores (no boons / cascades) ===")
+	print("=== Match3 isolated line scores (no boons / cascades / Lucky Find) ===")
 	print("Formula: movePoints = N × tilePoints, moveMulti = N × tileMulti, score = movePoints × max(1, moveMulti)")
 	print("Levels 1..%d, item type = plain" % max_level)
 	print("")
