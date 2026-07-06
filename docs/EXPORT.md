@@ -2,6 +2,9 @@
 
 Godot **4.7 mono** project. Presets live in `export_presets.cfg` at the project root.
 
+**Workspace toolkit** (shared across Gnosis games, CI templates when ready):  
+[`../../templates/godot-export/README.md`](../../templates/godot-export/README.md)
+
 | Preset | Platform | Output |
 |--------|----------|--------|
 | `Windows Desktop` | Windows x86_64 | `builds/windows/Ultravibe.exe` |
@@ -46,10 +49,22 @@ source ../scripts/resolve_godot.sh
 
 ```bash
 cd ultravibe
-chmod +x tools/export_build.sh
+chmod +x tools/export_build.sh tools/export_all_local.sh
+
+# One platform
 ./tools/export_build.sh macOS
 ./tools/export_build.sh "Windows Desktop" release
-./tools/export_build.sh Linux debug
+
+# Batch: everything this machine can export (macOS + Linux + mobile if configured)
+./tools/export_all_local.sh
+```
+
+From workspace root (any game):
+
+```bash
+cd 02_godot
+./scripts/export_godot.sh ultravibe macOS
+./scripts/export_godot_all_local.sh ultravibe
 ```
 
 ### Host requirements

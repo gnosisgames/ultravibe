@@ -50,12 +50,12 @@ See **[../AGENTS.md](../AGENTS.md)** for full agent/workspace docs.
 
 ## Export (Windows, macOS, Linux, Android, iOS)
 
-Presets are in `export_presets.cfg`. Full setup (templates, signing, CI): **[docs/EXPORT.md](docs/EXPORT.md)**.
+Presets: `export_presets.cfg`. Docs: **[docs/EXPORT.md](docs/EXPORT.md)**. Shared templates: **`../templates/godot-export/`**.
 
 ```bash
 source ../scripts/resolve_godot.sh
-chmod +x tools/export_build.sh
-./tools/export_build.sh macOS          # or "Windows Desktop", Linux, Android, iOS
+./tools/export_build.sh macOS              # one platform
+./tools/export_all_local.sh                # all presets this Mac can build
 ```
 
 ## Structure
