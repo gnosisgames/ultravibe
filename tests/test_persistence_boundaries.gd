@@ -14,7 +14,7 @@ func _initialize() -> void:
 
 func _process(_delta: float) -> bool:
 	_frames += 1
-	if _frames < 8:
+	if _frames < 12:
 		return false
 	if _done:
 		return true
@@ -31,12 +31,12 @@ func _run() -> bool:
 		return false
 
 	var input := engine.get_service("Input") as GnosisInputService
-	var fb := engine.get_service("FallingBlock") as FallingBlockService
-	if input == null or fb == null:
-		print("[FAIL] Input/FallingBlock services missing")
+	var m3 = engine.get_service("Match3")
+	if input == null or m3 == null:
+		print("[FAIL] Input/Match3 services missing")
 		return false
 
-	FallingBlockCollection.mark_discovered(fb.context, "ability", "testAbility")
+	FallingBlockCollection.mark_discovered(m3.context, "ability", "testAbility")
 	var assignments := engine.store.create_object()
 	var move_right := engine.store.create_object()
 	move_right.set_key("keycode", KEY_L)
@@ -48,13 +48,17 @@ func _run() -> bool:
 		print("[FAIL] input assignment update failed: %s" % assignment_result.error)
 		return false
 
-	FallingBlockEphemeral.set_fb_scalable(fb.context, "runTotalScore", GnosisScalableValue.from_int(999))
-	FallingBlockEphemeral.set_fb_int(fb.context, "currentRound", 5)
+	m3.handle_run_started()
+	var params := engine.store.create_object()
+	m3.invoke_function("PlayLevel", params)
+	var gameplay = m3.get_gameplay()
+	if gameplay:
+		gameplay.current_score = 999
 
 	_bootstrap.restart_ephemeral_run()
-	var restarted_fb := engine.get_service("FallingBlock") as FallingBlockService
-	if restarted_fb == null:
-		print("[FAIL] FallingBlock missing after restart")
+	var restarted = engine.get_service("Match3")
+	if restarted == null:
+		print("[FAIL] Match3 missing after restart")
 		return false
 
 	var ok := true
@@ -65,10 +69,13 @@ func _run() -> bool:
 		print("[FAIL] input assignment was wiped by run restart")
 		ok = false
 
-	var score := FallingBlockEphemeral.get_fb_scalable(restarted_fb.context, "runTotalScore")
-	var round_number := FallingBlockEphemeral.get_fb_int(restarted_fb.context, "currentRound", 0)
-	if not score.is_zero():
-		print("[FAIL] run score did not reset")
+	var score := 0
+	var restarted_gameplay = restarted.get_gameplay()
+	if restarted_gameplay:
+		score = restarted_gameplay.current_score
+	var round_number: int = restarted.get_current_round()
+	if score != 0:
+		print("[FAIL] run score did not reset, got %d" % score)
 		ok = false
 	if round_number != 1:
 		print("[FAIL] current round did not reset to 1, got %d" % round_number)

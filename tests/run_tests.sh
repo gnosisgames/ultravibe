@@ -19,16 +19,19 @@ TESTS=(
 	test_gamepad_player_assignment
 	test_input_rebinding
 	test_persistence_boundaries
+	test_continue_run
+	test_endless_mode
 )
 
 failed=0
 for t in "${TESTS[@]}"; do
 	echo "==> $t"
 	out=$("$GODOT" --path "$ROOT" --headless --script "res://tests/${t}.gd" 2>&1 | sed -E 's/\x1b\[[0-9;]*m//g')
-	if echo "$out" | grep -qE "Passed|passed|SUCCESS"; then
-		echo "$out" | grep -E "Passed|SUCCESS" | tail -1
+	tail_out=$(printf '%s' "$out" | tail -30)
+	if printf '%s' "$tail_out" | grep -qE "Passed|passed|SUCCESS"; then
+		printf '%s' "$tail_out" | grep -E "Passed|passed|SUCCESS" | tail -1 || true
 	else
-		echo "$out" | grep -E "FAIL|FAILED|SCRIPT ERROR|Parse Error" | head -5
+		printf '%s' "$out" | grep -E "FAIL|FAILED|SCRIPT ERROR|Parse Error" | head -5 || true
 		echo "FAILED: $t"
 		failed=$((failed + 1))
 	fi
