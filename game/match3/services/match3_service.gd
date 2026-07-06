@@ -20,6 +20,7 @@ const SupportScript = preload("res://game/match3/boons/match3_boon_support.gd")
 const ConsumableServiceScript = preload("res://addons/com.gnosisgames.gnosisengine/services/gnosis_consumable_service.gd")
 const ConsumableDbgScript = preload("res://game/match3/debug/match3_consumable_debug.gd")
 const LuckyFindScript = preload("res://game/match3/core/match3_lucky_find.gd")
+const RunSnapshotScript = preload("res://game/match3/services/match3_run_snapshot.gd")
 
 const Events = Match3EventsScript
 const Models = Match3ModelsScript
@@ -206,6 +207,7 @@ func get_functions() -> Array:
 		"RerollUpcomingBossRound",
 		"JuiceBoonMatch3RoundEffectOnActivate",
 		"SyncEquippedBoonMatch3RoundEffects",
+		"EnableEndlessMode",
 	]
 
 
@@ -267,6 +269,8 @@ func invoke_function(name: String, parameters: GnosisNode) -> Variant:
 			return _reroll_upcoming_boss_round()
 		"DestroyRandomCellFloorOnBoard":
 			return _destroy_random_cell_floor_on_board(parameters)
+		"EnableEndlessMode":
+			return _enable_endless_mode(parameters)
 	return GnosisFunctionResult.fail("Unknown Match3 function '%s'." % name)
 
 
@@ -1002,6 +1006,37 @@ func is_run_won() -> bool:
 func is_run_complete() -> bool:
 	var m3 := get_node("match3", false)
 	return m3.is_valid() and _node_bool(m3, "isRunComplete", false)
+
+
+func is_run_game_over() -> bool:
+	if is_run_complete():
+		return true
+	return _gameplay.status == Models.STATUS_LOSE_PANEL and is_run_won()
+
+
+func is_run_saveable() -> bool:
+	if is_run_complete() and (is_run_won() or _gameplay.status == Models.STATUS_LOSE_PANEL):
+		return false
+	if _gameplay.status == Models.STATUS_LOSS:
+		return false
+	return true
+
+
+func capture_runtime_snapshot() -> Dictionary:
+	_publish_ephemeral_state()
+	return RunSnapshotScript.capture(self)
+
+
+func resume_saved_run(snapshot: Dictionary) -> void:
+	if snapshot.is_empty():
+		return
+	RunSnapshotScript.restore(self, snapshot)
+	var m3 := get_node("match3", false)
+	if m3.is_valid() and _match3_effects != null:
+		_match3_effects.hydrate_from_store(m3)
+	_sync_gameplay_effect_flags()
+	_publish_ephemeral_state()
+	_publish_status_changed()
 
 
 ## Last resolved move scoring (points x multi lane on the HUD).
@@ -2661,6 +2696,9 @@ func _publish_ephemeral_state() -> void:
 		m3.set_key("nextLevel", _current_round)
 	if not m3.get_node("winningRound").is_valid():
 		m3.set_key("winningRound", DEFAULT_WINNING_ROUND)
+	if not m3.get_node("floorCount").is_valid():
+		m3.set_key("floorCount", int(DEFAULT_WINNING_ROUND / DEFAULT_ROUNDS_PER_FLOOR))
+	m3.set_key("floorProgressText", _resolve_floor_progress_text(m3))
 	if context.engine:
 		var changed_paths: Array[String] = ["Ephemeral.match3"]
 		context.engine.commit("match3", changed_paths)
@@ -3602,6 +3640,56 @@ func _try_add_ephemeral_currency(currency_id: String, delta: int, outcome: Dicti
 		return true
 	outcome["error"] = "currency_grant_failed"
 	return false
+
+
+func _enable_endless_mode(parameters: GnosisNode) -> GnosisFunctionResult:
+	if context == null or context.store == null:
+		return GnosisFunctionResult.fail("Store unavailable.")
+	var enabled := true
+	if parameters != null and parameters.is_valid():
+		enabled = _node_bool(parameters, "enabled", true)
+	var m3 := get_node("match3", false)
+	if not m3.is_valid() or m3.get_type() != GnosisValueType.OBJECT:
+		return GnosisFunctionResult.fail("match3_missing")
+	if enabled:
+		var can_enter := is_run_won() or (
+			is_run_complete() and _node_str(m3, "runResult", "").to_lower() == "win"
+		)
+		if not can_enter:
+			return GnosisFunctionResult.fail("endless_requires_run_win")
+		m3.set_key("endlessModeEnabled", true)
+		m3.set_key("isRunComplete", false)
+		m3.set_key("isRunWon", false)
+		m3.set_key("runResult", "")
+		_queue_next_level_after_win()
+		refresh_planned_floor_preview()
+		_gameplay.status = Models.STATUS_LEVEL_SELECT_PANEL
+		_publish_ephemeral_state()
+		_publish_status_changed()
+	else:
+		m3.set_key("endlessModeEnabled", false)
+		_publish_ephemeral_state()
+	var floor_progress := _resolve_floor_progress_text(m3)
+	m3.set_key("floorProgressText", floor_progress)
+	if context.engine:
+		var changed_paths: Array[String] = ["Ephemeral.match3"]
+		context.engine.commit("match3", changed_paths)
+	var payload := context.store.create_object()
+	payload.set_key("success", true)
+	payload.set_key("endlessModeEnabled", enabled)
+	payload.set_key("floorProgressText", floor_progress)
+	payload.set_key("currentFloor", _current_floor)
+	payload.set_key("floorCount", maxi(1, _node_int(m3, "floorCount", 8)))
+	return GnosisFunctionResult.ok(payload)
+
+
+func _resolve_floor_progress_text(m3: GnosisNode) -> String:
+	var endless_enabled := m3.is_valid() and _node_bool(m3, "endlessModeEnabled", false)
+	var floor_count := maxi(1, _node_int(m3, "floorCount", 8))
+	var current_floor := maxi(1, _current_floor)
+	if endless_enabled and current_floor > floor_count:
+		return "%d - ∞" % current_floor
+	return "%d - %d" % [current_floor, floor_count]
 
 
 func _transition_to_state(raw_target: String) -> GnosisFunctionResult:
