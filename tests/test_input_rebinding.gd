@@ -34,25 +34,26 @@ func _run() -> bool:
 		print("[FAIL] Input service missing")
 		return false
 
+	const ACTION := "MoveHorizontal"
 	var assignments := engine.store.create_object()
-	var move_left := engine.store.create_object()
-	move_left.set_key("keycode", KEY_J)
-	move_left.set_key("physicalKeycode", KEY_J)
-	move_left.set_key("displayName", "J")
-	assignments.set_key("move_left", move_left)
+	var binding := engine.store.create_object()
+	binding.set_key("keycode", KEY_J)
+	binding.set_key("physicalKeycode", KEY_J)
+	binding.set_key("displayName", "J")
+	assignments.set_key(ACTION, binding)
 
 	var result := input.update_assignments(assignments)
 	if not result.is_ok:
 		print("[FAIL] UpdateAssignments failed: %s" % result.error)
 		return false
 
-	var persisted := engine.state.root.get_node("Persistent.input.assignments.move_left")
+	var persisted := engine.state.root.get_node("Persistent.input.assignments.%s" % ACTION)
 	if not persisted.is_valid():
 		print("[FAIL] assignment not stored under Persistent.input.assignments")
 		return false
 
-	if not _action_has_key("move_left", KEY_J):
-		print("[FAIL] InputMap did not apply move_left -> J")
+	if not _action_has_key(ACTION, KEY_J):
+		print("[FAIL] InputMap did not apply %s -> J" % ACTION)
 		return false
 
 	print("[SUCCESS] assignment persisted and applied to InputMap")

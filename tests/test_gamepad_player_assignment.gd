@@ -3,6 +3,8 @@ extends SceneTree
 ## Verifies gamepad device ids resolve to deterministic player seats before
 ## gameplay input reaches downstream routers/services.
 
+const GAMEPLAY_ACTION := "MoveHorizontal"
+
 var _bootstrap: Node = null
 var _frames := 0
 var _done := false
@@ -45,8 +47,10 @@ func _run() -> bool:
 		0
 	)
 
-	var p1_result := input_adapter._emit_action("move_left", "performed", "gamepad", 0, "move_left")
-	var p2_result := input_adapter._emit_action("move_left", "performed", "gamepad", 1, "move_left")
+	var p1_result := input_adapter._emit_action(
+		GAMEPLAY_ACTION, "performed", "gamepad", 0, GAMEPLAY_ACTION)
+	var p2_result := input_adapter._emit_action(
+		GAMEPLAY_ACTION, "performed", "gamepad", 1, GAMEPLAY_ACTION)
 	var ok := true
 	if not p1_result.is_ok or not p2_result.is_ok:
 		print("[FAIL] gamepad actions were not accepted by Input service")
@@ -55,8 +59,8 @@ func _run() -> bool:
 		print("[FAIL] expected 2 processed gamepad actions, got %d" % _processed_events.size())
 		ok = false
 	else:
-		ok = _assert_player_event(0, "Player1", 0) and ok
-		ok = _assert_player_event(1, "Player2", 1) and ok
+		ok = _assert_player_event(0, "P0", 0) and ok
+		ok = _assert_player_event(1, "P1", 1) and ok
 
 	if sub and sub.has_method("dispose"):
 		sub.dispose()
@@ -67,7 +71,7 @@ func _run() -> bool:
 func _record_gameplay_event(event: GnosisEvent) -> void:
 	if event == null or not event.data.is_valid():
 		return
-	if _read_string(event.data, "actionId") != "move_left":
+	if _read_string(event.data, "actionId") != GAMEPLAY_ACTION:
 		return
 	if _read_string(event.data, "category") != "gameplay":
 		return

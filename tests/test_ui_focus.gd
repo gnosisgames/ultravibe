@@ -9,6 +9,7 @@ var _done := false
 
 func _initialize() -> void:
 	print("--- UI Focus Test ---")
+	GnosisRunSave.clear_run_save()
 	_bootstrap = load("res://main.tscn").instantiate()
 	root.add_child(_bootstrap)
 
