@@ -167,10 +167,25 @@ func _resolve_seed() -> int:
 		return int(seed_service.get_seed())
 	return 0
 
-## Endless: continue the run past its terminal state. Endless mode is not yet
-## ported from Unity, so for now this restarts the run in place as a placeholder.
+## Endless: continue the run past round 24 victory (Unity EnableEndlessMode parity).
 func _on_endless_pressed() -> void:
-	_on_restart_pressed()
+	if _actions_blocked():
+		return
+	GnosisRunSave.clear_run_save()
+	var eng := _engine()
+	var m3 = _match3_service()
+	if eng == null or m3 == null:
+		return
+	var params := eng.store.create_object()
+	params.set_key("enabled", true)
+	var result = m3.invoke_function("EnableEndlessMode", params)
+	if result is GnosisFunctionResult and not result.is_ok:
+		return
+	var ui := _game_ui()
+	if ui:
+		ui.invoke_function("PopView", eng.store.create_object())
+	if _host and _host.has_method("resync_match3_board_view"):
+		_host.resync_match3_board_view()
 
 ## Restart: close the overlay (revealing gameplay) and restart the run in place,
 ## mirroring the pause menu's restart.
