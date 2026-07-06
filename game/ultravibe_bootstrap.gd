@@ -107,9 +107,34 @@ func _rebind_transient_adapters() -> void:
 	_bind_hud()
 
 func continue_saved_run() -> bool:
-	# Match-3 continue flow not ported yet.
-	GnosisRunSave.clear_run_save()
-	return false
+	if not engine:
+		return false
+	var payload := GnosisRunSave.load_run_save()
+	if payload.is_empty():
+		return false
+	var saved_ephemeral: Dictionary = {}
+	var raw_ephemeral: Variant = payload.get("Ephemeral", {})
+	if raw_ephemeral is Dictionary:
+		saved_ephemeral = raw_ephemeral
+	if saved_ephemeral.is_empty():
+		GnosisRunSave.clear_run_save()
+		return false
+	var runtime_snapshot: Dictionary = payload.get("runtime", {})
+	var config := engine.get_service("Configuration") as GnosisConfigurationService
+	if config:
+		config.prepare_continue_from_save(saved_ephemeral)
+	engine.end_run()
+	engine.destroy_non_permanent_services()
+	engine.initialize_non_permanent_services()
+	engine.start_run()
+	if config:
+		config.load_ephemeral_from_dictionary(saved_ephemeral)
+	_rebind_transient_adapters()
+	var m3 = engine.get_service("Match3")
+	if m3 and m3.has_method("resume_saved_run"):
+		m3.resume_saved_run(runtime_snapshot)
+	resync_match3_board_view()
+	return true
 
 func try_save_in_progress_run() -> bool:
 	if not _should_save_run():
@@ -129,7 +154,11 @@ func _should_save_run() -> bool:
 	var m3 = engine.get_service("Match3")
 	if m3 == null:
 		return false
-	return m3.get_current_status() == Match3ModelsScript.STATUS_PLAYING
+	if m3.has_method("is_run_saveable") and not m3.is_run_saveable():
+		return false
+	if m3.has_method("is_run_game_over") and m3.is_run_game_over():
+		return false
+	return true
 
 func _exit_tree() -> void:
 	try_save_in_progress_run()
