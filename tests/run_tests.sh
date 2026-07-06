@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
-# Run all Ultravibe integration tests.
+# Fast smoke CI for Ultravibe (~14 headless boots).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 # shellcheck source=/dev/null
 source "$ROOT/../scripts/resolve_godot.sh"
+# shellcheck source=/dev/null
+source "$(dirname "$0")/_test_runner.sh"
 
-TESTS=(
+SMOKE_TESTS=(
 	test_config_catalogs
 	test_match3_core
 	test_scene_format_guard
@@ -23,22 +25,4 @@ TESTS=(
 	test_endless_mode
 )
 
-failed=0
-for t in "${TESTS[@]}"; do
-	echo "==> $t"
-	out=$("$GODOT" --path "$ROOT" --headless --script "res://tests/${t}.gd" 2>&1 | sed -E 's/\x1b\[[0-9;]*m//g')
-	tail_out=$(printf '%s' "$out" | tail -30)
-	if printf '%s' "$tail_out" | grep -qE "Passed|passed|SUCCESS"; then
-		printf '%s' "$tail_out" | grep -E "Passed|passed|SUCCESS" | tail -1 || true
-	else
-		printf '%s' "$out" | grep -E "FAIL|FAILED|SCRIPT ERROR|Parse Error" | head -5 || true
-		echo "FAILED: $t"
-		failed=$((failed + 1))
-	fi
-done
-
-if [[ $failed -gt 0 ]]; then
-	echo "--- Ultravibe tests: $failed failed ---"
-	exit 1
-fi
-echo "--- Ultravibe tests: all passed ---"
+run_godot_tests "$ROOT" "${SMOKE_TESTS[@]}"
