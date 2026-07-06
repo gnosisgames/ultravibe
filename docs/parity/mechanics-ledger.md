@@ -44,10 +44,13 @@ Godot target: `ultravibe/game/match3/`
 
 | Mechanic | Status | Tests |
 |---|---|---|
-| Boon flavors (7) | partial | `test_boon_flavors` |
-| Boon grants / echoes | partial | `test_boon_grants`, `test_iconic_uncommon_echo` |
+| Boon flavors (7) | done | `test_boon_flavors`, `test_boon_consumable_depth` |
+| Boon grants / echoes | partial | `test_boon_grants`, `test_iconic_uncommon_echo`, `test_salty_steel_finalize`, `test_ephemeral_finalize_boons` |
 | Move hooks / finalize | partial | `test_boon_move_hooks`, `test_ephemeral_finalize_boons` |
 | Scaling counters | partial | `test_brainrot_scaling_increment` |
+| Effect application modes | done | `test_boon_consumable_depth` |
+| Self-destruct boons | done | `test_boon_consumable_depth` |
+| Consumable echo grant | done | `test_boon_consumable_depth`, `test_shop_polish` |
 | Topology / match component | partial | `test_match_component_axis_boons`, `test_topology_intersection_shapes` |
 
 ## Meta & platform

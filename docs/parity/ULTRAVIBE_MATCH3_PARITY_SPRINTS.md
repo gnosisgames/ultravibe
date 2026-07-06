@@ -153,11 +153,11 @@ Godot is **ahead** of Unity in places: **collection compendium**, **GoldenLuckyF
 
 **Goal:** All 80 boons + 33 consumables behave per JSON (not just happy path).
 
-- [ ] **Contribution echoes** — golden tests for top echo pairs (finalize + score-step).
-- [ ] **Boon spot-check matrix** — prioritize high-risk: scaling counters, round effects, self-destruct, floor conversions, `perInstance` vs `catalogOnce`.
-- [ ] **Flavor chips** — Rental round cost, Perishable destroy, Steel/Ghost/Eternal rules.
-- [ ] **Consumable presentation** — juice timing, echo tracking (`echoLastRuneOrItemUpgradeGrantConsumableId`).
-- [ ] **Balance reports** — run `tools/match3_round_balance_report.gd` after boon fixes.
+- [x] **Contribution echoes** — golden tests for top echo pairs (finalize + score-step).
+- [x] **Boon spot-check matrix** — prioritize high-risk: scaling counters, round effects, self-destruct, floor conversions, `perInstance` vs `catalogOnce`.
+- [x] **Flavor chips** — Rental round cost, Perishable destroy, Steel/Ghost/Eternal rules.
+- [x] **Consumable presentation** — juice timing, echo tracking (`echoLastRuneOrItemUpgradeGrantConsumableId`).
+- [x] **Balance reports** — run `tools/match3_round_balance_report.gd` after boon fixes.
 
 **Exit criteria:** Ledger marks each boon tag category tested; zero P0 boon bugs in playtest script.
 
