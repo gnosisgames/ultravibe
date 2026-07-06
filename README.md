@@ -48,6 +48,16 @@ After adding or moving scripts:
 
 See **[../AGENTS.md](../AGENTS.md)** for full agent/workspace docs.
 
+## Export (Windows, macOS, Linux, Android, iOS)
+
+Presets are in `export_presets.cfg`. Full setup (templates, signing, CI): **[docs/EXPORT.md](docs/EXPORT.md)**.
+
+```bash
+source ../scripts/resolve_godot.sh
+chmod +x tools/export_build.sh
+./tools/export_build.sh macOS          # or "Windows Desktop", Linux, Android, iOS
+```
+
 ## Structure
 
 | Path | Purpose |

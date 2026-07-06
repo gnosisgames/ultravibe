@@ -27,6 +27,7 @@ func _run() -> bool:
 	ok = _expect_project_setting("application/config/name", "Ultravibe") and ok
 	ok = _expect_project_setting("application/run/main_scene", "res://main.tscn") and ok
 	ok = _expect_file(ProjectSettings.get_setting("gui/theme/custom", "")) and ok
+	ok = _expect_file("res://export_presets.cfg") and ok
 
 	for path in REQUIRED_FILES:
 		ok = _expect_file(path) and ok

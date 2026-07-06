@@ -3,5 +3,7 @@
 _unity_staging/
 ultravibe_screenshot.png
 screenshots/
+builds/
+*.keystore
 .DS_Store
 **/.DS_Store
