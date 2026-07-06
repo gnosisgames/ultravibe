@@ -88,12 +88,12 @@ Godot is **ahead** of Unity in places: **collection compendium**, **GoldenLuckyF
 ### Sprint 1 — Ship blockers: save, continue, endless, CI health
 **Goal:** Player can leave and resume; endless works; CI reflects Match-3 reality.
 
-- [ ] **Match-3 run snapshot** — implement `Match3.capture_runtime_snapshot` / hydrate (replace FallingBlock in `GnosisRunSave` path).
-- [ ] **Continue from title** — wire `continue_saved_run()` to restore Ephemeral + re-enter level-select or in-round state.
-- [ ] **Save on exit** — `try_save_in_progress_run()` persists Match-3 mid-run (round, inventories, shop state, floor queue).
-- [ ] **Endless mode** — `EnableEndlessMode` sets `endlessModeEnabled`, refills moves instead of loss, floor UI `N–∞`, victory only when non-endless and round ≥ 24.
-- [ ] **Rewrite `test_persistence_boundaries.gd`** for Match-3 (discovery + input assignments + run restart); remove FallingBlock dependency.
-- [ ] **Fix or quarantine** `test_persistence_boundaries` in `run_tests.sh` until rewrite lands.
+- [x] **Match-3 run snapshot** — implement `Match3.capture_runtime_snapshot` / hydrate (replace FallingBlock in `GnosisRunSave` path).
+- [x] **Continue from title** — wire `continue_saved_run()` to restore Ephemeral + re-enter level-select or in-round state.
+- [x] **Save on exit** — `try_save_in_progress_run()` persists Match-3 mid-run (round, inventories, shop state, floor queue).
+- [x] **Endless mode** — `EnableEndlessMode` sets `endlessModeEnabled`, refills moves instead of loss, floor UI `N–∞`, victory only when non-endless and round ≥ 24.
+- [x] **Rewrite `test_persistence_boundaries.gd`** for Match-3 (discovery + input assignments + run restart); remove FallingBlock dependency.
+- [x] **Fix or quarantine** `test_persistence_boundaries` in `run_tests.sh` until rewrite lands.
 
 **Exit criteria:** Headless test proves save → load → same round/money/boons; endless toggles behavior; CI green.
 
@@ -102,11 +102,11 @@ Godot is **ahead** of Unity in places: **collection compendium**, **GoldenLuckyF
 ### Sprint 2 — Test harness & parity ledger
 **Goal:** Confidence to port “the rest” without manual play-only QA.
 
-- [ ] **Tier CI:** keep `run_tests.sh` fast (~12); add `run_tests_extended.sh` for Match-3 mechanics (~35–48 tests).
-- [ ] **Wire critical extended tests:** boon sell, consumable sell, lucky find upgrade, shop polish, boss effects, skip/DD, item upgrade grant.
-- [ ] **Replace `docs/parity/mechanics-ledger.md`** with Match-3 ledger (link this file).
-- [ ] **Update** workspace `MIGRATION_STATUS.md` Ultravibe section + `tests/README.md`.
-- [ ] **Delete or archive** `data/Upgrades/` (Polyomino) and `tests/_legacy_polyomino/` from active docs (keep folder, mark archived).
+- [x] **Tier CI:** keep `run_tests.sh` fast (~14); add `run_tests_extended.sh` for Match-3 mechanics (~38 tests).
+- [x] **Wire critical extended tests:** boon sell, consumable sell, lucky find upgrade, shop polish, boss effects, skip/DD, item upgrade grant.
+- [x] **Replace `docs/parity/mechanics-ledger.md`** with Match-3 ledger (link this file).
+- [x] **Update** workspace `MIGRATION_STATUS.md` Ultravibe section + `tests/README.md`.
+- [x] **Delete or archive** `data/Upgrades/` (Polyomino) and `tests/_legacy_polyomino/` from active docs (keep folder, mark archived).
 
 **Exit criteria:** One command runs smoke + optional extended; parity README points at Match-3.
 
