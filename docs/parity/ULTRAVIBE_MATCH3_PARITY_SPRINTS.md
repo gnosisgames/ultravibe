@@ -27,8 +27,8 @@ Godot is **ahead** of Unity in places: **collection compendium**, **GoldenLuckyF
 | Level select + integrated shop                 | Yes   | Yes                 | **done**                                           |
 | Skip / double-down / round-action rewards      | Yes   | Yes                 | **done**                                           |
 | Boss profiles + reroll upcoming boss           | Yes   | Yes                 | **done**                                           |
-| Match3 effects (20)                            | Yes   | Yes                 | **partial** (logic present; not all golden-tested) |
-| Cell floors + 100-slot pool                    | Yes   | Yes                 | **partial**                                        |
+| Match3 effects (20)                            | Yes   | Yes                 | **done** (per-effect apply/remove tests)           |
+| Cell floors + 100-slot pool                    | Yes   | Yes                 | **partial** (stats sync tested)                    |
 | Boons (80) + flavors (7)                       | Yes   | Yes                 | **partial** (runtime broad; per-boon gaps unknown) |
 | Consumables (31)                               | Yes   | 33                  | **done+** (2 extra grant entries)                  |
 | Run upgrades (8 Golden*)                       | Yes   | 9 (+ Lucky Find)    | **done+**                                          |
@@ -167,10 +167,10 @@ Godot is **ahead** of Unity in places: **collection compendium**, **GoldenLuckyF
 
 **Goal:** Boss identity and effect modifiers feel identical.
 
-- [ ] **Per-effect tests** for all 20 `match3Effects` (disable color, half moves, shuffle each move, score restrictions, etc.).
-- [ ] **Boss onRoundStart/End invocations** — spot-check named bosses (e.g. Mister Beastus `lose_money_each_match`).
-- [ ] **Board difficulty pools** — easy/normal/hard selection matches floor stage type.
-- [ ] **Floor modifier pool UI** — tile panel counts sync with pool + grid (audit `sync_floor_modifier_tile_statistics_`*).
+- [x] **Per-effect tests** for all 20 `match3Effects` (disable color, half moves, shuffle each move, score restrictions, etc.).
+- [x] **Boss onRoundStart/End invocations** — spot-check named bosses (e.g. Mister Beastus `lose_money_each_match`).
+- [x] **Board difficulty pools** — easy/normal/hard selection matches floor stage type.
+- [x] **Floor modifier pool UI** — tile panel counts sync with pool + grid (audit `sync_floor_modifier_tile_statistics_`*).
 
 **Exit criteria:** Boss round playtest checklist (8 bosses minimum); effect test file covers 20/20.
 

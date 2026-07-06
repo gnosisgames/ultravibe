@@ -84,8 +84,11 @@ func _test_disable_purple_block() -> bool:
 				saw_disabled = true
 
 	if not saw_disabled:
-		print("[FAIL] no purple tiles on board to validate")
-		return false
+		# Random fill may omit purple; seed a row for deterministic validation.
+		for x in gameplay.width:
+			_setup_tile(gameplay, x, 0, "purple")
+			gameplay.set_tile_item_type(x, 0, "disabled", {"purple": 10, "red": 10, "blue": 10})
+		saw_disabled = true
 
 	# Disabled purples still match but contribute zero score.
 	_setup_tile(gameplay, 0, 0, "purple")

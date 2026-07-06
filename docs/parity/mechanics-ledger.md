@@ -25,9 +25,9 @@ Godot target: `ultravibe/game/match3/`
 | HUD / presentation | done | `test_presentation_hud`, `test_sprint6_ui` |
 | Skip / double-down | done | `test_match3_core`, `test_skip_then_floor_consumable` |
 | Round-action consumables | done | `test_skip_then_floor_consumable` |
-| Boss rounds + reroll boss | partial | `test_boss_match3_effects` |
-| Match3 effects (20) | partial | `test_disable_color_block`, `test_boss_match3_effects` |
-| Cell floors + modifier pool | partial | `test_cell_floor_effects`, `test_floor_modifier_pool` |
+| Boss rounds + reroll boss | done | `test_bosses_effects_boards`, `test_boss_match3_effects`, `test_shop_polish` |
+| Match3 effects (20) | done | `test_bosses_effects_boards`, `test_disable_color_block` |
+| Cell floors + modifier pool | partial | `test_cell_floor_effects`, `test_floor_modifier_pool`, `test_bosses_effects_boards` |
 
 ## Economy & inventory
 

@@ -15,6 +15,7 @@ EXTENDED_TESTS=(
 	test_shop_economy
 	test_presentation_hud
 	test_boon_consumable_depth
+	test_bosses_effects_boards
 	test_lucky_find_upgrade
 	test_shop_polish
 	test_boss_match3_effects

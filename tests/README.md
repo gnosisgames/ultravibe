@@ -52,3 +52,4 @@ Tests redirect persistent saves to `user://Saves/persistent_test.json` and run s
 - [docs/parity/shop-economy-audit.md](../docs/parity/shop-economy-audit.md) — Sprint 3 interest/shop tuning audit
 - [docs/parity/presentation-hud-audit.md](../docs/parity/presentation-hud-audit.md) — Sprint 4 HUD/tooltip/sparkle audit
 - [docs/parity/boon-consumable-audit.md](../docs/parity/boon-consumable-audit.md) — Sprint 5 boon/consumable depth audit
+- [docs/parity/bosses-effects-boards-audit.md](../docs/parity/bosses-effects-boards-audit.md) — Sprint 6 effects/boards audit
