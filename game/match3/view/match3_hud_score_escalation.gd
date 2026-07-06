@@ -156,6 +156,11 @@ func hide_effects() -> void:
 	_apply_intensity(INTENSITY_OFF)
 
 
+## Read-only intensity for tests and diagnostics (0 = off, 1 = full sparkle ramp).
+func get_effect_intensity() -> float:
+	return _current_intensity
+
+
 func _setup_lane_sparkles(
 	host: Control,
 	tint: Color,

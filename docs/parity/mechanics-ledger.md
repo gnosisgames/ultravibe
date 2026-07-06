@@ -22,6 +22,7 @@ Godot target: `ultravibe/game/match3/`
 | Irregular boards (134) | done | `test_match3_core` |
 | 8 floors × 3 rounds | done | `test_match3_core` |
 | Level select + shop | done | `test_match3_core`, `test_shop_polish` |
+| HUD / presentation | done | `test_presentation_hud`, `test_sprint6_ui` |
 | Skip / double-down | done | `test_match3_core`, `test_skip_then_floor_consumable` |
 | Round-action consumables | done | `test_skip_then_floor_consumable` |
 | Boss rounds + reroll boss | partial | `test_boss_match3_effects` |
