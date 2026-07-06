@@ -25,10 +25,6 @@ config/icon="uid://xvm7mdy3ujcp"
 GnosisCursorManager="*res://addons/com.gnosisgames.gnosisengine/services/gnosis_cursor_manager.gd"
 ControllerIcons="*res://addons/com.gnosisgames.gnosisengine/controller_icons/ControllerIcons.gd"
 
-[gnosis]
-
-input_glyphs/preset="kenney"
-
 [display]
 
 window/size/viewport_width=1920
@@ -44,6 +40,10 @@ project/assembly_name="Ultravibe"
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/com.gnosisgames.gnosisengine/plugin.cfg", "res://addons/com.gnosisgames.gnosisengine/controller_icons/plugin.cfg")
+
+[gnosis]
+
+input_glyphs/preset="kenney"
 
 [gui]
 
