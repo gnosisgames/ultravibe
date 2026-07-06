@@ -1,9 +1,13 @@
 # Unity-to-Godot Parity Ledger
 
 This folder tracks mechanics parity between the Unity source of truth
-(`01_unity/ultravibe`) and the Godot port (`ultravibe`).
+(`old_unity/ultravibe_unity`) and the Godot port (`ultravibe`).
 
-## Files
+## Primary handoff (Match-3)
+
+- **[ULTRAVIBE_MATCH3_PARITY_SPRINTS.md](ULTRAVIBE_MATCH3_PARITY_SPRINTS.md)** — gap analysis + sprint backlog (2026-07-06)
+
+## Legacy (Falling-block / Polyomino era)
 
 - [mechanics-ledger.md](mechanics-ledger.md) — system-by-system status
 - [invocations-ledger.md](invocations-ledger.md) — every `FallingBlock.*` function referenced by JSON data
