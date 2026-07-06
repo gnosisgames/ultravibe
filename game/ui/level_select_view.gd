@@ -275,12 +275,7 @@ func _refresh_shop() -> void:
 			continue
 		if _node_bool(offer, "purchased", false):
 			continue
-		_add_shop_offer_tile(
-			str(_node_str(offer, "sourceConfigId")),
-			str(_node_str(offer, "itemId")),
-			_node_int(offer, "price", 0),
-			i,
-		)
+		_add_shop_offer_tile(offer, i)
 		offer_count += 1
 	_attach_shop_reroll_card()
 	_refresh_shop_empty_state(offer_count == 0)
@@ -427,9 +422,12 @@ func _format_reroll_price(price: int, free_count: int, next_free: bool) -> Strin
 	return "$%d" % price
 
 
-func _add_shop_offer_tile(source: String, item_id: String, price: int, index: int) -> void:
+func _add_shop_offer_tile(offer: GnosisNode, index: int) -> void:
 	var eng := _engine()
-	var presentation := ShopCatalogUi.build_presentation(eng, source, item_id)
+	var source := str(_node_str(offer, "sourceConfigId"))
+	var item_id := str(_node_str(offer, "itemId"))
+	var price := _node_int(offer, "price", 0)
+	var presentation := ShopCatalogUi.build_shop_offer_presentation(eng, source, item_id, offer)
 	var card := ShopOfferCard.new()
 	card.configure(_font, presentation, price)
 	card.buy_pressed.connect(_on_shop_buy_pressed.bind(index))

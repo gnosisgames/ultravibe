@@ -14,7 +14,7 @@
           {
             "op": "add",
             "target": "score.pointsTotal",
-            "value": "60 * max(0, {ephemeral.boons.emptySlotsCount})"
+            "value": "40 * max(0, {ephemeral.boons.emptySlotsCount})"
           }
         ],
         "parameters": {}

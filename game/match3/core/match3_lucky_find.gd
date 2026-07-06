@@ -159,8 +159,11 @@ func resolve_refill_plan(
 		_mega_chain_pending = false
 	elif help_rate > 0.0 and rng.randf() < help_rate:
 		mode = "help"
-	elif hinder_rate > 0.0 and rng.randf() < hinder_rate:
-		mode = "hinder"
+	elif assist < 0.0:
+		if hinder_rate > 0.0 and rng.randf() < hinder_rate:
+			mode = "hinder"
+		else:
+			mode = "soft_hinder"
 	else:
 		return {"active": false, "assignments": {}, "depth_target": 0, "mode": "neutral"}
 
@@ -176,10 +179,17 @@ func resolve_refill_plan(
 			pending_force = true
 			_last_refill_marked_pending = true
 			return {"active": false, "assignments": {}, "depth_target": depth_target, "mode": mode}
-	else:
+	elif mode == "hinder":
 		assignments = _plan_hinder_assignments(gameplay, empty_cells)
 		if assignments.is_empty():
-			return {"active": false, "assignments": {}, "depth_target": 0, "mode": "neutral"}
+			assignments = _plan_soft_anti_match_assignments(gameplay, empty_cells)
+			mode = "soft_hinder"
+			_last_refill_mode = mode
+	else:
+		assignments = _plan_soft_anti_match_assignments(gameplay, empty_cells)
+
+	if assignments.is_empty():
+		return {"active": false, "assignments": {}, "depth_target": 0, "mode": "neutral"}
 
 	pending_force = false
 	_last_refill_succeeded = true
@@ -265,6 +275,55 @@ func _plan_single_cascade_assignments(gameplay: Match3Gameplay, empty_cells: Arr
 	return assignments
 
 
+func uses_anti_match_refills() -> bool:
+	return enabled and temporary_assist < 0.0
+
+
+func _plan_soft_anti_match_assignments(gameplay: Match3Gameplay, empty_cells: Array) -> Dictionary:
+	if empty_cells.is_empty():
+		return {}
+	var palette := gameplay.palette
+	if palette.is_empty():
+		return {}
+
+	var ordered := empty_cells.duplicate()
+	ordered.sort_custom(func(a, b) -> bool:
+		if a.x != b.x:
+			return a.x < b.x
+		return a.y < b.y
+	)
+
+	var assignments: Dictionary = {}
+	for cell in ordered:
+		var picked := _pick_color_for_cell(gameplay, cell, ordered, assignments, palette, false)
+		if picked.is_empty():
+			picked = _pick_least_matching_color(gameplay, cell, ordered, assignments, palette)
+		if picked.is_empty():
+			picked = palette[0]
+		assignments[_cell_key(cell)] = picked
+	return assignments
+
+
+func _pick_least_matching_color(
+	gameplay: Match3Gameplay,
+	cell: Dictionary,
+	ordered: Array,
+	assignments: Dictionary,
+	palette: PackedStringArray
+) -> String:
+	var best_id := ""
+	var best_score := 999
+	for item_id in palette:
+		var score := maxi(
+			_count_line_through_cell(gameplay, cell, item_id, ordered, assignments, true),
+			_count_line_through_cell(gameplay, cell, item_id, ordered, assignments, false)
+		)
+		if score < best_score:
+			best_score = score
+			best_id = item_id
+	return best_id
+
+
 func _plan_hinder_assignments(gameplay: Match3Gameplay, empty_cells: Array) -> Dictionary:
 	if empty_cells.is_empty():
 		return {}
@@ -282,6 +341,8 @@ func _plan_hinder_assignments(gameplay: Match3Gameplay, empty_cells: Array) -> D
 	var assignments: Dictionary = {}
 	for cell in ordered:
 		var picked := _pick_color_for_cell(gameplay, cell, ordered, assignments, palette, false)
+		if picked.is_empty():
+			picked = _pick_least_matching_color(gameplay, cell, ordered, assignments, palette)
 		if picked.is_empty():
 			picked = palette[0]
 		assignments[_cell_key(cell)] = picked

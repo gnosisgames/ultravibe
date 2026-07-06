@@ -14,6 +14,8 @@ const FOLDER_BY_CONFIG := {
 	"runUpgrades": "upgrades",
 }
 
+const FlavorsScript = preload("res://addons/com.gnosisgames.gnosisengine/services/gnosis_boon_flavors.gd")
+
 
 static func build_presentation(
 	engine: GnosisEngine,
@@ -51,6 +53,54 @@ static func build_presentation(
 		"icon_path": _resolve_icon_path(folder, trimmed_id, sprite_id),
 		"tags": ConsumableCatalogUiScript.parse_tags(engine, meta),
 	}
+
+
+## Catalog presentation plus rolled boon flavors from a shop offer node (if any).
+static func build_shop_offer_presentation(
+	engine: GnosisEngine,
+	source_config_id: String,
+	item_id: String,
+	offer: GnosisNode = GnosisNode.new(null),
+) -> Dictionary:
+	var presentation := build_presentation(engine, source_config_id, item_id)
+	if offer == null or not offer.is_valid():
+		return presentation
+	if source_config_id.strip_edges().to_lower() != "boons":
+		return presentation
+	var positive_id := _read_flavor_id(offer, FlavorsScript.POSITIVE_FLAVOR_ID_PROPERTY)
+	var negative_id := _read_flavor_id(offer, FlavorsScript.NEGATIVE_FLAVOR_ID_PROPERTY)
+	if not positive_id.is_empty():
+		presentation["positive_flavor_id"] = positive_id
+	if not negative_id.is_empty():
+		presentation["negative_flavor_id"] = negative_id
+	_append_flavor_tags(engine, presentation, positive_id, negative_id)
+	return presentation
+
+
+static func _read_flavor_id(node: GnosisNode, key: String) -> String:
+	var value := _meta_str(node, key).strip_edges()
+	if not value.is_empty():
+		return value
+	var props := node.get_node("properties")
+	return _meta_str(props, key).strip_edges()
+
+
+static func _append_flavor_tags(
+	engine: GnosisEngine,
+	presentation: Dictionary,
+	positive_id: String,
+	negative_id: String,
+) -> void:
+	var tags: Array = presentation.get("tags", [])
+	for flavor_id in [positive_id, negative_id]:
+		if flavor_id.is_empty():
+			continue
+		var loc_key := "flavor%sName" % flavor_id
+		var label := _localized(engine, loc_key, flavor_id)
+		if label.strip_edges().is_empty():
+			continue
+		tags.append({"type": "flavor", "label": label})
+	presentation["tags"] = tags
 
 
 static func _catalog_entry(engine: GnosisEngine, config_key: String, item_id: String) -> GnosisNode:

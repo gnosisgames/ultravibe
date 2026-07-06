@@ -59,7 +59,7 @@
   "boonEarlyAccessName": "Early Access",
   "boonEchoChamberDescription": "Adds <point>+80 points</point> if the move has two match-3",
   "boonEchoChamberName": "Echo Chamber",
-  "boonFirstbornDescription": "Adds <point>+60 Points</point> per empty Vibe slot (Currently <point>+${arg:scoreCalculationValue1} Points</point>)",
+  "boonFirstbornDescription": "Adds <point>+40 Points</point> per empty Vibe slot (Currently <point>+${arg:scoreCalculationValue1} Points</point>)",
   "boonFirstbornName": "Firstborn",
   "boonFourthWallDescription": "Adds <multi>+20 Multi</multi> on vertical or horizontal match-4",
   "boonFourthWallName": "Fourth Wall",

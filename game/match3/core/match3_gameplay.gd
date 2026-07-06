@@ -318,6 +318,7 @@ func _process_step(
 		if counts_for_score:
 			points = maxi(0, int(round(float(tile.point_for_item) * tile_points_contribution_scale)))
 			multi = maxi(0, int(round(float(tile.multi_for_item) * tile_multi_contribution_scale)))
+		var scores_this_tile := counts_for_score and not Models.item_type_disables_tile_score(tile.item_type_id)
 		current_match.contributions.append({
 			"at": coord.to_dict(),
 			"itemId": tile.item_id,
@@ -325,7 +326,7 @@ func _process_step(
 			"pointsAdded": points,
 			"multiAdded": multi,
 		})
-		if counts_for_score:
+		if scores_this_tile:
 			_move_points_accum += points
 			_move_multi_accum += multi
 			scoring_eligible += 1
@@ -337,7 +338,7 @@ func _process_step(
 			_move_multi_accum += int(floor_delta.get("multi", 0))
 		if _cell_floor_griefing_hook.is_valid():
 			_cell_floor_griefing_hook.call(tile, coord, current_match)
-		if _boon_resolve_item_destroyed_hook.is_valid():
+		if scores_this_tile and _boon_resolve_item_destroyed_hook.is_valid():
 			var boon_totals: Dictionary = _boon_resolve_item_destroyed_hook.call(
 				tile.item_id,
 				current_match,
@@ -536,7 +537,7 @@ func _refill_empty_slots(item_points: Dictionary) -> Models.MatchResult:
 		var key := "%d,%d" % [x, y]
 		var item_id := str(lucky_plan.get("assignments", {}).get(key, ""))
 		if item_id.is_empty():
-			item_id = _pick_neutral_item_id(x, y)
+			item_id = _pick_refill_item_id(x, y)
 		_set_item(x, y, item_id, Models.KIND_NORMAL, "plain", item_points)
 		var spawn := Models.TileSpawn.new()
 		spawn.at = Models.TileCoord.new(x, y)
@@ -563,6 +564,12 @@ func _fill_initial_board_items(item_points: Dictionary) -> void:
 				continue
 			var item_id := _pick_initial_item_id_avoiding_match(x, y)
 			_set_item(x, y, item_id, Models.KIND_NORMAL, "plain", item_points)
+
+
+func _pick_refill_item_id(x: int, y: int) -> String:
+	if _lucky_find != null and _lucky_find.uses_anti_match_refills():
+		return _pick_initial_item_id_avoiding_match(x, y)
+	return _pick_neutral_item_id(x, y)
 
 
 func _pick_neutral_item_id(x: int, y: int) -> String:

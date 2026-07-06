@@ -822,10 +822,11 @@ func _animate_destroy(
 				multi = _node_int(contrib, "multiAdded", 0)
 				item_type_id = _node_string(contrib, "itemTypeId", "plain")
 			if points <= 0 and multi <= 0:
-				points = int(node.get_meta("point_for_item", 0))
-				multi = int(node.get_meta("multi_for_item", 0))
 				if item_type_id == "plain":
 					item_type_id = str(node.get_meta("item_type_id", "plain"))
+				if not Match3ModelsScript.item_type_disables_tile_score(item_type_id):
+					points = int(node.get_meta("point_for_item", 0))
+					multi = int(node.get_meta("multi_for_item", 0))
 			score_popup_entries.append({
 				"anchor": anchor,
 				"points": points,
@@ -940,10 +941,11 @@ func _spawn_destroy_score_popups(node: Control, contrib: GnosisNode) -> void:
 		multi = _node_int(contrib, "multiAdded", 0)
 		item_type_id = _node_string(contrib, "itemTypeId", "plain")
 	if points <= 0 and multi <= 0:
-		points = int(node.get_meta("point_for_item", 0))
-		multi = int(node.get_meta("multi_for_item", 0))
 		if item_type_id == "plain":
 			item_type_id = str(node.get_meta("item_type_id", "plain"))
+		if not Match3ModelsScript.item_type_disables_tile_score(item_type_id):
+			points = int(node.get_meta("point_for_item", 0))
+			multi = int(node.get_meta("multi_for_item", 0))
 	_spawn_destroy_score_popups_at(
 		node.position + node.size * 0.5,
 		points,
@@ -1032,7 +1034,8 @@ func _make_item_node(item_id: String, item_type_id: String = "plain") -> Control
 		sprite.texture = _textures[item_id]
 	else:
 		sprite.modulate = ITEM_COLORS.get(item_id, Color.WHITE)
-	Match3ItemTypeVisualScript.apply(sprite, item_type_id)
+	sprite.set_meta("original_texture", sprite.texture)
+	Match3ItemTypeVisualScript.apply(sprite, item_type_id, sprite.texture)
 	wrap.add_child(sprite)
 	wrap.set_meta("item_id", item_id)
 	wrap.set_meta("item_type_id", item_type_id)
@@ -1260,7 +1263,12 @@ func _apply_item_type_visual(wrap: Control, item_type_id: String) -> void:
 	var type_id := item_type_id
 	if type_id.is_empty() or type_id == "plain":
 		type_id = str(wrap.get_meta("item_type_id", "plain"))
-	Match3ItemTypeVisualScript.apply(sprite, type_id)
+	var source_tex: Texture2D = null
+	if sprite.has_meta("original_texture"):
+		source_tex = sprite.get_meta("original_texture") as Texture2D
+	if source_tex == null:
+		source_tex = sprite.texture
+	Match3ItemTypeVisualScript.apply(sprite, type_id, source_tex)
 	wrap.set_meta("item_type_id", type_id)
 
 
@@ -1521,7 +1529,10 @@ func _preload_textures() -> void:
 	for item_id in ITEM_TEXTURES.keys():
 		var path: String = ITEM_TEXTURES[item_id]
 		if ResourceLoader.exists(path):
-			_textures[item_id] = load(path)
+			var tex: Texture2D = load(path)
+			_textures[item_id] = tex
+			if tex != null:
+				Match3ItemTypeVisualScript.greyscale_texture(tex)
 
 
 func _resolve_adapter() -> void:

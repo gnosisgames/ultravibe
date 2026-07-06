@@ -10,6 +10,7 @@ const Models = preload("res://game/match3/core/match3_models.gd")
 func _initialize() -> void:
 	print("--- Disable Color Block Test ---")
 	var ok := _test_disable_purple_block()
+	ok = _test_disabled_cold_tiles_skip_freeze_boon() and ok
 	print("--- Disable Color Block Test %s ---" % ("Passed" if ok else "FAILED"))
 	quit(0 if ok else 1)
 
@@ -118,4 +119,62 @@ func _test_disable_purple_block() -> bool:
 		return false
 
 	print("[OK] disable_purple_block marks purple disabled with zero score")
+	return true
+
+
+func _test_disabled_cold_tiles_skip_freeze_boon() -> bool:
+	var engine = _engine()
+	var match3 = engine.get_service("Match3")
+	var boon = engine.get_service("Boon")
+	var activate: GnosisNode = engine.store.create_object()
+	activate.set_key("boonId", "Freeze")
+	var activate_result = boon.invoke_function("ActivateBoon", activate)
+	if activate_result is GnosisFunctionResult and not activate_result.is_ok:
+		print("[FAIL] ActivateBoon Freeze: %s" % activate_result.error)
+		return false
+
+	var params: GnosisNode = engine.store.create_object()
+	params.set_key("effectId", "disable_blue_block")
+	var apply_result = match3.invoke_function("ApplyEffect", params)
+	if apply_result is GnosisFunctionResult and not apply_result.is_ok:
+		print("[FAIL] ApplyEffect disable_blue_block: %s" % apply_result.error)
+		return false
+
+	var gameplay = match3.get_gameplay()
+	gameplay.load_level(_layout_3x2(), 99999, 20, 6, {"purple": 10, "red": 10, "blue": 10})
+	match3.call("_sync_spawn_disabled_rules_to_board")
+
+	_setup_tile(gameplay, 0, 0, "blue")
+	_setup_tile(gameplay, 1, 0, "blue")
+	_setup_tile(gameplay, 2, 0, "blue")
+	_setup_tile(gameplay, 0, 1, "red")
+	_setup_tile(gameplay, 1, 1, "red")
+	_setup_tile(gameplay, 2, 1, "purple")
+	gameplay.set_tile_item_type(0, 0, "disabled", {"purple": 10, "red": 10, "blue": 10})
+	gameplay.set_tile_item_type(1, 0, "disabled", {"purple": 10, "red": 10, "blue": 10})
+	gameplay.set_tile_item_type(2, 0, "disabled", {"purple": 10, "red": 10, "blue": 10})
+
+	var results: Array = gameplay.process_move(
+		Models.TileCoord.new(0, 1),
+		Models.TileCoord.new(1, 1),
+		{"purple": 10, "red": 10, "blue": 10}
+	)
+	if results.is_empty():
+		print("[FAIL] expected move clearing disabled blue row")
+		return false
+	var scoring = Models.last_scoring_match_result(results)
+	if scoring == null:
+		print("[FAIL] missing scoring step for Freeze test")
+		return false
+	if scoring.move_points_so_far != 0:
+		print("[FAIL] disabled blue row scored points=%d" % scoring.move_points_so_far)
+		return false
+	for step in scoring.boon_resolve_steps if "boon_resolve_steps" in scoring else []:
+		if str(step.get("boonId", "")).to_lower() != "freeze":
+			continue
+		if int(step.get("multiDelta", 0)) != 0:
+			print("[FAIL] Freeze added multi=%d on disabled blue tiles" % int(step.get("multiDelta", 0)))
+			return false
+
+	print("[OK] disabled tiles skip item_destroyed boon hooks (Freeze)")
 	return true

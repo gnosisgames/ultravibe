@@ -17,7 +17,7 @@ func _process(_delta: float) -> bool:
 	if _done:
 		return true
 	_done = true
-	var ok := _check_planner() and _check_pity_curve() and _check_mega_chain()
+	var ok := _check_planner() and _check_pity_curve() and _check_mega_chain() and _check_negative_assist_refills()
 	print("--- Lucky Find Test %s ---" % ("Passed" if ok else "FAILED"))
 	quit(0 if ok else 1)
 	return true
@@ -134,4 +134,46 @@ func _check_mega_chain() -> bool:
 		return false
 
 	print("[SUCCESS] mega-chain forces extra lucky helps up to cap")
+	return true
+
+
+func _check_negative_assist_refills() -> bool:
+	var gameplay = load("res://game/match3/core/match3_gameplay.gd").new()
+	var layout = load("res://game/match3/core/match3_board_layout.gd").new()
+	var lucky_find = load("res://game/match3/core/match3_lucky_find.gd").new()
+	gameplay.configure_rng(99)
+	layout.width = 5
+	layout.height = 5
+	var points := {"orange": 10, "red": 10, "blue": 10}
+	gameplay.load_level(layout, 500, 5, 3, points)
+	gameplay.set_lucky_find(lucky_find)
+	lucky_find.configure(-50.0, 5.0, true)
+
+	for x in 3:
+		gameplay.get_tile(x, 2).item_id = "orange"
+	gameplay.get_tile(3, 2).item_id = ""
+	var empty_cells: Array = [{"x": 3, "y": 2}]
+	var rng: RandomNumberGenerator = gameplay.get_spawn_rng()
+
+	var saw_anti_match := false
+	for _i in 20:
+		gameplay.get_tile(3, 2).item_id = ""
+		var plan: Dictionary = lucky_find.resolve_refill_plan(gameplay, empty_cells, rng)
+		if not bool(plan.get("active", false)):
+			print("[FAIL] negative assist should always plan anti-match refills, got inactive")
+			return false
+		var mode := str(plan.get("mode", ""))
+		if mode != "hinder" and mode != "soft_hinder":
+			print("[FAIL] negative assist expected hinder/soft_hinder, got %s" % mode)
+			return false
+		var assigned := str(plan.get("assignments", {}).get("3,2", ""))
+		if assigned != "orange":
+			saw_anti_match = true
+	if not saw_anti_match:
+		print("[FAIL] negative assist should avoid completing an obvious match line")
+		return false
+	if not lucky_find.uses_anti_match_refills():
+		print("[FAIL] uses_anti_match_refills should be true at -50 assist")
+		return false
+	print("[SUCCESS] negative assist plans anti-match refills")
 	return true

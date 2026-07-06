@@ -22,6 +22,12 @@ const STATUS_LOSE_PANEL := 8
 
 const DEFAULT_ITEM_POINTS := 10
 const DEFAULT_ITEM_MULTI := 1
+const ITEM_TYPE_DISABLED := "disabled"
+
+
+static func item_type_disables_tile_score(item_type_id: String) -> bool:
+	return str(item_type_id).strip_edges().to_lower() == ITEM_TYPE_DISABLED
+
 
 class TileCoord:
 	var x: int

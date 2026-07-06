@@ -3,6 +3,8 @@ extends PanelContainer
 
 ## Shop row cell: large catalog icon filling the tile, plain price text below (no chrome).
 
+const BoonFlavorStickerScript = preload("res://game/ui/widgets/boon_flavor_sticker.gd")
+
 const TILE_WIDTH := 132.0
 const TILE_HEIGHT := 168.0
 const GOLD := Color(0.937255, 0.74902, 0.0156863, 1)
@@ -30,10 +32,17 @@ func configure(font: Font, presentation: Dictionary, price: int) -> void:
 	box.add_theme_constant_override("separation", 4)
 	add_child(box)
 
+	var icon_slot := Control.new()
+	icon_slot.name = "IconSlot"
+	icon_slot.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	icon_slot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	icon_slot.custom_minimum_size = Vector2(TILE_WIDTH, TILE_HEIGHT - 36.0)
+	icon_slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(icon_slot)
+
 	var icon := TextureRect.new()
-	icon.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	icon.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	icon.custom_minimum_size = Vector2(TILE_WIDTH, TILE_HEIGHT - 36.0)
+	icon.name = "Icon"
+	icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -42,7 +51,19 @@ func configure(font: Font, presentation: Dictionary, price: int) -> void:
 		icon.texture = load(icon_path)
 	else:
 		icon.modulate = Color(0.3, 0.34, 0.42)
-	box.add_child(icon)
+	icon_slot.add_child(icon)
+
+	var positive_id := str(presentation.get("positive_flavor_id", "")).strip_edges()
+	var negative_id := str(presentation.get("negative_flavor_id", "")).strip_edges()
+	if not positive_id.is_empty() or not negative_id.is_empty():
+		BoonFlavorStickerScript.apply_to_slot(
+			icon_slot,
+			{
+				"positive_flavor_id": positive_id,
+				"negative_flavor_id": negative_id,
+			},
+			icon_slot.custom_minimum_size.x,
+		)
 
 	var price_label := Label.new()
 	price_label.text = "$%d" % price

@@ -105,6 +105,10 @@ func begin_resolve_step(step, results: Array, points: int, multi: int, destroyed
 		maxi(0, destroyed_count),
 		results if results.size() > 0 else [step]
 	)
+	var score := _resolve_step_payload.get_node("score")
+	if score.is_valid():
+		score.set_key("pointsTotal", maxi(0, points))
+		score.set_key("multiTotal", maxi(1, multi))
 	_ensure_contribution_list(_resolve_step_payload, CONTRIBUTION_LIST_RESOLVE)
 
 
@@ -178,9 +182,16 @@ func apply_match_components(
 func apply_cell_floor_finalize_echo(floor_type_id: String, points: int, multi: int) -> Dictionary:
 	if _service.context == null or _service.context.store == null:
 		return {"points": points, "multi": multi}
-	var points_sv := SupportScript.scalable_from_int(points)
-	var multi_sv := SupportScript.scalable_from_int(maxi(1, multi))
+	var safe_points := maxi(0, points)
+	var safe_multi := maxi(1, multi)
+	var points_sv := SupportScript.scalable_from_int(safe_points)
+	var multi_sv := SupportScript.scalable_from_int(safe_multi)
 	var payload := _build_score_finalize_payload(points_sv, multi_sv, 0, [])
+	var score := payload.get_node("score")
+	if score.is_valid():
+		# Move totals are plain ints — scalable round-trip breaks values below ~1000.
+		score.set_key("pointsTotal", safe_points)
+		score.set_key("multiTotal", safe_multi)
 	_ensure_contribution_list(payload, CONTRIBUTION_LIST_FINALIZE)
 	EchoesScript.try_apply_after_cell_floor_finalize(
 		_service,
@@ -190,7 +201,7 @@ func apply_cell_floor_finalize_echo(floor_type_id: String, points: int, multi: i
 		CONTRIBUTION_LIST_FINALIZE
 	)
 	_pending_finalize_echo_steps.append_array(_copy_contribution_steps(payload, CONTRIBUTION_LIST_FINALIZE))
-	return _totals_from_payload(payload, points, multi)
+	return _totals_from_payload(payload, safe_points, safe_multi)
 
 
 func apply_resolve_step_cascade(
