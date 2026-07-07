@@ -47,7 +47,7 @@ func _print_probe() -> void:
 	var all := Bridge.get_all_mod_summaries(perm)
 	print("GML summaries: ", gml.size(), " -> ", gml)
 	print("All summaries: ", all.size(), " -> ", all)
-	var mods_view := root.find_child("ModsView", true, false) as UltravibeModsView
+	var mods_view = root.find_child("ModsView", true, false)
 	if mods_view:
 		print("ModsView found; visible before: ", mods_view.visible)
 		mods_view.visible = true

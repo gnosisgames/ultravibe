@@ -2,15 +2,40 @@
 	"name": "Example",
 	"namespace": "GnosisGames",
 	"version_number": "1.0.0",
-	"description": "Starter Godot Mod Loader mod — appears on the Mods screen.",
+	"description": "Reference Godot Mod Loader mod for the Ultravibe Mods screen — changelog, enable toggle, and configurable options.",
 	"website_url": "https://gnosisgames.eu",
 	"dependencies": [],
 	"extra": {
 		"godot": {
 			"authors": ["Gnosis Games"],
-			"tags": ["example"],
+			"tags": ["example", "demo"],
 			"compatible_mod_loader_version": ["7.0.1"],
-			"compatible_game_version": ["0.1.0"]
+			"compatible_game_version": ["0.1.0"],
+			"description_rich": "[font_size=30][b]1.0.0[/b][/font_size]  —  Initial showcase\n[color=#b8f0c8]•[/color] Mods screen integration with enable toggle\n[color=#b8f0c8]•[/color] Configurable luck-meter highlight and boost slider\n[color=#b8f0c8]•[/color] Startup log message toggle\n\n[font_size=30][b]0.9.0[/b][/font_size]  —  Internal beta\n[color=#b8f0c8]•[/color] Manifest + mod_main scaffold\n[color=#b8f0c8]•[/color] Basic load-order validation",
+			"config_schema": {
+				"title": "Example Mod",
+				"description": "Tweak how this sample mod behaves in-game.",
+				"type": "object",
+				"properties": {
+					"show_startup_message": {
+						"title": "Show startup log message",
+						"type": "boolean",
+						"default": true
+					},
+					"extra_luck_highlight": {
+						"title": "Highlight luck meter",
+						"type": "boolean",
+						"default": false
+					},
+					"luck_meter_boost": {
+						"title": "Luck meter boost",
+						"type": "number",
+						"default": 0.15,
+						"minimum": 0.0,
+						"maximum": 0.5
+					}
+				}
+			}
 		}
 	}
 }

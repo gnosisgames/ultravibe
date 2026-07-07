@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://game/ui/mods_view.gd" id="1"]
 [ext_resource type="FontFile" path="res://assets/fonts/Comic Lemon.otf" id="2"]
@@ -8,6 +8,8 @@
 [ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/scroll.png" id="7"]
 [ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/cog.png" id="8"]
 [ext_resource type="Script" path="res://game/ui/components/bbcode_effect_text_combine.gd" id="5"]
+[ext_resource type="PackedScene" path="res://game/ui/widgets/juicy_toggle.tscn" id="9"]
+[ext_resource type="PackedScene" path="res://game/ui/widgets/juicy_slider.tscn" id="10"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
 content_margin_left = 28.0
@@ -33,6 +35,13 @@ content_margin_left = 14.0
 content_margin_top = 8.0
 content_margin_right = 14.0
 content_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_divider"]
+bg_color = Color(0.478431, 0.478431, 0.709804, 0.95)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
 
 [node name="ModsView" type="Control"]
 layout_mode = 3
@@ -87,7 +96,7 @@ theme_override_styles/panel = SubResource("StyleBoxEmpty_tabbar")
 
 [node name="Tabs" type="HBoxContainer" parent="Center/Layout/TabBar"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 6
 alignment = 1
 
 [node name="BackButton" parent="Center/Layout/TabBar/Tabs" instance=ExtResource("3")]
@@ -207,6 +216,7 @@ horizontal_alignment = 1
 text = ""
 
 [node name="ListScroll" type="ScrollContainer" parent="Center/Layout/Card/Split/ListColumn"]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
@@ -226,10 +236,20 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 8
 
-[node name="Divider" type="VSeparator" parent="Center/Layout/Card/Split"]
+[node name="Divider" type="MarginContainer" parent="Center/Layout/Card/Split"]
 layout_mode = 2
-theme_override_constants/separation = 20
-theme_override_styles/separator = null
+size_flags_vertical = 3
+custom_minimum_size = Vector2(18, 0)
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 32
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 32
+
+[node name="Pill" type="PanelContainer" parent="Center/Layout/Card/Split/Divider"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_divider")
 
 [node name="DetailColumn" type="VBoxContainer" parent="Center/Layout/Card/Split"]
 unique_name_in_owner = true
@@ -255,7 +275,7 @@ size_flags_vertical = 3
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 12
+theme_override_constants/separation = 6
 
 [node name="DetailPrompt" type="Label" parent="Center/Layout/Card/Split/DetailColumn/MainScroll/Pages/InfoPage"]
 unique_name_in_owner = true
@@ -295,19 +315,51 @@ theme_override_fonts/font = ExtResource("2")
 theme_override_font_sizes/font_size = 28
 autowrap_mode = 3
 
+[node name="EnableRow" type="HBoxContainer" parent="Center/Layout/Card/Split/DetailColumn/MainScroll/Pages/InfoPage"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="EnableLabel" type="Label" parent="Center/Layout/Card/Split/DetailColumn/MainScroll/Pages/InfoPage/EnableRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2")
+theme_override_font_sizes/font_size = 28
+text = "ultravibe__mods__enable_mod"
+
+[node name="EnableToggle" parent="Center/Layout/Card/Split/DetailColumn/MainScroll/Pages/InfoPage/EnableRow" instance=ExtResource("9")]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="EnableHint" type="Label" parent="Center/Layout/Card/Split/DetailColumn/MainScroll/Pages/InfoPage"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.72, 0.78, 1)
+theme_override_fonts/font = ExtResource("2")
+theme_override_font_sizes/font_size = 20
+autowrap_mode = 3
+text = "ultravibe__mods__restart_hint"
+
 [node name="ChangelogPage" type="VBoxContainer" parent="Center/Layout/Card/Split/DetailColumn/MainScroll/Pages"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 12
+theme_override_constants/separation = 6
 
-[node name="ChangelogBody" type="Label" parent="Center/Layout/Card/Split/DetailColumn/MainScroll/Pages/ChangelogPage"]
+[node name="ChangelogBody" type="RichTextLabel" parent="Center/Layout/Card/Split/DetailColumn/MainScroll/Pages/ChangelogPage"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.92, 0.92, 0.96, 1)
-theme_override_fonts/font = ExtResource("2")
-theme_override_font_sizes/font_size = 26
+theme_override_colors/default_color = Color(0.92, 0.92, 0.96, 1)
+theme_override_fonts/normal_font = ExtResource("2")
+theme_override_font_sizes/normal_font_size = 26
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
 autowrap_mode = 3
 
 [node name="SettingsPage" type="VBoxContainer" parent="Center/Layout/Card/Split/DetailColumn/MainScroll/Pages"]
@@ -315,7 +367,26 @@ unique_name_in_owner = true
 visible = false
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 12
+theme_override_constants/separation = 6
+
+[node name="ModSettingsSection" type="VBoxContainer" parent="Center/Layout/Card/Split/DetailColumn/MainScroll/Pages/SettingsPage"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="ModSettingsTitle" type="Label" parent="Center/Layout/Card/Split/DetailColumn/MainScroll/Pages/SettingsPage/ModSettingsSection"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2")
+theme_override_font_sizes/font_size = 30
+text = "ultravibe__mods__mod_settings"
+
+[node name="ModSettingsList" type="VBoxContainer" parent="Center/Layout/Card/Split/DetailColumn/MainScroll/Pages/SettingsPage/ModSettingsSection"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 6
 
 [node name="SettingsBody" type="Label" parent="Center/Layout/Card/Split/DetailColumn/MainScroll/Pages/SettingsPage"]
 unique_name_in_owner = true
