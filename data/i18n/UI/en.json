@@ -70,7 +70,7 @@
   "ultravibe__ui__website": "Website",
   "ultravibe__ui__discord": "Discord",
   "ultravibe__ui__mods": "Mods",
-  "ultravibe__mods__empty": "No mods loaded.",
+  "ultravibe__mods__empty": "No mods found",
   "ultravibe__mods__count_one": "1 mod loaded",
   "ultravibe__mods__count_many": "%d mods loaded",
   "ultravibe__mods__source_gml": "Script mod (Godot Mod Loader)",

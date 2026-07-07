@@ -8,6 +8,7 @@ const BODY_FONT := preload("res://assets/fonts/Inter-Regular.ttf")
 const BODY_FONT_PATH := "res://assets/fonts/Inter-Regular.ttf"
 const ModListItemButtonScript := preload("res://game/ui/widgets/mod_list_item_button.gd")
 const UltravibeModSettingsBuilder := preload("res://game/ui/ultravibe_mod_settings_builder.gd")
+const EMPTY_ICON := "res://assets/icons/empty.png"
 
 func _ready() -> void:
 	i18n_prefix = "ultravibe__mods__"
@@ -63,3 +64,7 @@ func _navigate_back() -> void:
 			super._navigate_back()
 		else:
 			UltraGameUiNav.return_to_title(ui)
+
+
+func _empty_icon_path() -> String:
+	return EMPTY_ICON

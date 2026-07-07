@@ -5,12 +5,19 @@ set -euo pipefail
 run_godot_tests() {
 	local root="$1"
 	shift
+	local godot_extra_args=()
+	if [[ $# -gt 0 && "$1" == --* ]]; then
+		while [[ $# -gt 0 && "$1" == --* ]]; do
+			godot_extra_args+=("$1")
+			shift
+		done
+	fi
 	local failed=0
 	for t in "$@"; do
 		echo "==> $t"
 		local out
 		set +e
-		out=$("$GODOT" --path "$root" --headless --script "res://tests/${t}.gd" 2>&1 | sed -E 's/\x1b\[[0-9;]*m//g')
+		out=$("$GODOT" --path "$root" --headless "${godot_extra_args[@]}" --script "res://tests/${t}.gd" 2>&1 | sed -E 's/\x1b\[[0-9;]*m//g')
 		set -e
 		local tail_out
 		tail_out=$(printf '%s' "$out" | tail -30)

@@ -1,0 +1,27 @@
+{
+	"modId": "gnosis_demo",
+	"name": "Gnosis Demo Mod",
+	"description": "Adds Mod Drizzle (+20 points each move) to the boon catalog via data merge. Also demos Mods screen settings.",
+	"version": "1.0.0",
+	"minEngineVersion": "1.0.0",
+	"loadPriority": 300,
+	"dependencies": [],
+	"tags": ["demo", "example", "data"],
+	"changelog": "[font_size=30][b]1.1.0[/b][/font_size]  —  Real mod test\n[color=#b8f0c8]•[/color] Adds Mod Drizzle boon (+20 points per move)\n[color=#b8f0c8]•[/color] Merges via Data/persistent.json\n\n[font_size=30][b]1.0.0[/b][/font_size]  —  Mods UI demo\n[color=#b8f0c8]•[/color] Toggleable demo settings\n[color=#b8f0c8]•[/color] Changelog formatting preview\n\n[font_size=30][b]0.2.0[/b][/font_size]  —  Prototype\n[color=#b8f0c8]•[/color] Manifest-only listing",
+	"uiSettings": {
+		"title": "Gnosis Demo Mod",
+		"type": "object",
+		"properties": {
+			"merge_extra_gold": {
+				"title": "Bonus starting gold",
+				"type": "boolean",
+				"default": true
+			},
+			"verbose_logging": {
+				"title": "Verbose load logs",
+				"type": "boolean",
+				"default": false
+			}
+		}
+	}
+}

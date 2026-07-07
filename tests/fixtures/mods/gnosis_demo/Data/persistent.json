@@ -1,0 +1,49 @@
+{
+	"configuration": {
+		"boons": {
+			"ModDrizzle": {
+				"id": "ModDrizzle",
+				"properties": {
+					"gameplayTags": ["common"],
+					"onActivateInvocations": [],
+					"onDeactivateInvocations": [],
+					"scoreCalculations": [
+						{
+							"id": "mod_drizzle_points_finalize",
+							"phase": "finalize",
+							"outcomes": [
+								{
+									"op": "add",
+									"target": "score.pointsTotal",
+									"value": "20"
+								}
+							],
+							"parameters": {}
+						}
+					],
+					"flavorExceptions": {
+						"positive": [],
+						"negative": []
+					}
+				},
+				"metadata": {
+					"nameKey": "boonModDrizzleName",
+					"descriptionKey": "boonModDrizzleDescription",
+					"spriteId": "boonSlopSprite",
+					"tags": [
+						{
+							"tagType": "common",
+							"tagLocKey": "core__adjective__common"
+						}
+					]
+				}
+			}
+		},
+		"i18n": {
+			"en": {
+				"boonModDrizzleName": "Mod Drizzle",
+				"boonModDrizzleDescription": "Adds <point>+20 Points</point> at the end of each move. (Gnosis demo mod)"
+			}
+		}
+	}
+}
