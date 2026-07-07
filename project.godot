@@ -15,6 +15,7 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 [application]
 
 config/name="Ultravibe"
+config/version="0.1.0"
 config/tags=PackedStringArray("gnosis_games")
 run/main_scene="res://main.tscn"
 config/features=PackedStringArray("4.7")
@@ -22,6 +23,8 @@ config/icon="uid://xvm7mdy3ujcp"
 
 [autoload]
 
+ModLoaderStore="*res://addons/mod_loader/mod_loader_store.gd"
+ModLoader="*res://addons/mod_loader/mod_loader.gd"
 GnosisCursorManager="*res://addons/com.gnosisgames.gnosisengine/services/gnosis_cursor_manager.gd"
 ControllerIcons="*res://addons/com.gnosisgames.gnosisengine/controller_icons/ControllerIcons.gd"
 

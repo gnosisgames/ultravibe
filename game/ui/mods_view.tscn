@@ -1,0 +1,326 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://game/ui/mods_view.gd" id="1"]
+[ext_resource type="FontFile" path="res://assets/fonts/Comic Lemon.otf" id="2"]
+[ext_resource type="PackedScene" path="res://game/ui/widgets/rounded_square_btn.tscn" id="3"]
+[ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/back.png" id="4"]
+[ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/info.png" id="6"]
+[ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/scroll.png" id="7"]
+[ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/cog.png" id="8"]
+[ext_resource type="Script" path="res://game/ui/components/bbcode_effect_text_combine.gd" id="5"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+content_margin_left = 28.0
+content_margin_top = 24.0
+content_margin_right = 28.0
+content_margin_bottom = 24.0
+bg_color = Color(0.0980392, 0.156863, 0.227451, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.345098, 0.345098, 0.572549, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+shadow_color = Color(0.0784314, 0.137255, 0.227451, 1)
+shadow_size = 1
+shadow_offset = Vector2(4, 6)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_tabbar"]
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 14.0
+content_margin_bottom = 8.0
+
+[node name="ModsView" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+view_id = "mods"
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Layout" type="VBoxContainer" parent="Center"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Title" type="RichTextLabel" parent="Center/Layout"]
+layout_mode = 2
+focus_mode = 0
+custom_minimum_size = Vector2(0, 80)
+mouse_filter = 2
+theme_override_colors/default_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.345098, 0.345098, 0.572549, 1)
+theme_override_colors/font_shadow_color = Color(0.192157, 0.192157, 0.270588, 1)
+theme_override_constants/shadow_outline_size = 26
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 6
+theme_override_constants/outline_size = 26
+theme_override_fonts/normal_font = ExtResource("2")
+theme_override_font_sizes/normal_font_size = 62
+bbcode_enabled = true
+text = "[wave amp=40.0 freq=4.0 connected=1]MODS[/wave]"
+fit_content = true
+scroll_active = false
+horizontal_alignment = 1
+vertical_alignment = 1
+script = ExtResource("5")
+text_clean = "ultravibe__ui__mods"
+bbcode = "[wave amp=40.0 freq=4.0 connected=1]%s[/wave]"
+
+[node name="TabBar" type="PanelContainer" parent="Center/Layout"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_styles/panel = SubResource("StyleBoxEmpty_tabbar")
+
+[node name="Tabs" type="HBoxContainer" parent="Center/Layout/TabBar"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="BackButton" parent="Center/Layout/TabBar/Tabs" instance=ExtResource("3")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 76)
+layout_mode = 2
+theme_override_colors/icon_normal_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_focus_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_pressed_color = Color(1, 1, 1, 1)
+theme_override_constants/icon_max_width = 44
+tooltip_text = "core__verb__back"
+alignment = 1
+icon_alignment = 1
+vertical_icon_alignment = 1
+text = ""
+icon = ExtResource("4")
+expand_icon = true
+
+[node name="InfoTab" parent="Center/Layout/TabBar/Tabs" instance=ExtResource("3")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 76)
+layout_mode = 2
+toggle_mode = true
+button_pressed = true
+theme_override_colors/icon_normal_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_focus_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_pressed_color = Color(1, 1, 1, 1)
+theme_override_constants/icon_max_width = 44
+tooltip_text = "ultravibe__mods__tab__info"
+alignment = 1
+icon_alignment = 1
+vertical_icon_alignment = 1
+text = ""
+icon = ExtResource("6")
+expand_icon = true
+
+[node name="ChangelogTab" parent="Center/Layout/TabBar/Tabs" instance=ExtResource("3")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 76)
+layout_mode = 2
+toggle_mode = true
+theme_override_colors/icon_normal_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_focus_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_pressed_color = Color(1, 1, 1, 1)
+theme_override_constants/icon_max_width = 44
+tooltip_text = "ultravibe__mods__tab__changelog"
+alignment = 1
+icon_alignment = 1
+vertical_icon_alignment = 1
+text = ""
+icon = ExtResource("7")
+expand_icon = true
+
+[node name="SettingsTab" parent="Center/Layout/TabBar/Tabs" instance=ExtResource("3")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 76)
+layout_mode = 2
+toggle_mode = true
+theme_override_colors/icon_normal_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_focus_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_pressed_color = Color(1, 1, 1, 1)
+theme_override_constants/icon_max_width = 44
+tooltip_text = "ultravibe__mods__tab__settings"
+alignment = 1
+icon_alignment = 1
+vertical_icon_alignment = 1
+text = ""
+icon = ExtResource("8")
+expand_icon = true
+
+[node name="Card" type="PanelContainer" parent="Center/Layout"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(1240, 660)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="EmptyLabel" type="Label" parent="Center/Layout/Card"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2")
+theme_override_font_sizes/font_size = 28
+horizontal_alignment = 1
+vertical_alignment = 1
+text = "ultravibe__mods__empty"
+autowrap_mode = 3
+
+[node name="Split" type="HBoxContainer" parent="Center/Layout/Card"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 20
+
+[node name="ListColumn" type="VBoxContainer" parent="Center/Layout/Card/Split"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+size_flags_stretch_ratio = 1.0
+theme_override_constants/separation = 10
+
+[node name="CountLabel" type="Label" parent="Center/Layout/Card/Split/ListColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.85, 0.9, 1)
+theme_override_fonts/font = ExtResource("2")
+theme_override_font_sizes/font_size = 22
+horizontal_alignment = 1
+text = ""
+
+[node name="ListScroll" type="ScrollContainer" parent="Center/Layout/Card/Split/ListColumn"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 1
+
+[node name="ListMargin" type="MarginContainer" parent="Center/Layout/Card/Split/ListColumn/ListScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 4
+
+[node name="ModsList" type="VBoxContainer" parent="Center/Layout/Card/Split/ListColumn/ListScroll/ListMargin"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="Divider" type="VSeparator" parent="Center/Layout/Card/Split"]
+layout_mode = 2
+theme_override_constants/separation = 20
+theme_override_styles/separator = null
+
+[node name="DetailColumn" type="VBoxContainer" parent="Center/Layout/Card/Split"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+size_flags_stretch_ratio = 3.0
+
+[node name="MainScroll" type="ScrollContainer" parent="Center/Layout/Card/Split/DetailColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 1
+
+[node name="Pages" type="VBoxContainer" parent="Center/Layout/Card/Split/DetailColumn/MainScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="InfoPage" type="VBoxContainer" parent="Center/Layout/Card/Split/DetailColumn/MainScroll/Pages"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="DetailPrompt" type="Label" parent="Center/Layout/Card/Split/DetailColumn/MainScroll/Pages/InfoPage"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.75, 0.82, 1)
+theme_override_fonts/font = ExtResource("2")
+theme_override_font_sizes/font_size = 28
+horizontal_alignment = 1
+vertical_alignment = 1
+text = "ultravibe__mods__select_prompt"
+autowrap_mode = 3
+
+[node name="DetailName" type="Label" parent="Center/Layout/Card/Split/DetailColumn/MainScroll/Pages/InfoPage"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2")
+theme_override_font_sizes/font_size = 42
+autowrap_mode = 3
+
+[node name="DetailMeta" type="Label" parent="Center/Layout/Card/Split/DetailColumn/MainScroll/Pages/InfoPage"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.85, 0.9, 1)
+theme_override_fonts/font = ExtResource("2")
+theme_override_font_sizes/font_size = 24
+autowrap_mode = 3
+
+[node name="DetailDescription" type="Label" parent="Center/Layout/Card/Split/DetailColumn/MainScroll/Pages/InfoPage"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.92, 0.92, 0.96, 1)
+theme_override_fonts/font = ExtResource("2")
+theme_override_font_sizes/font_size = 28
+autowrap_mode = 3
+
+[node name="ChangelogPage" type="VBoxContainer" parent="Center/Layout/Card/Split/DetailColumn/MainScroll/Pages"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="ChangelogBody" type="Label" parent="Center/Layout/Card/Split/DetailColumn/MainScroll/Pages/ChangelogPage"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.92, 0.92, 0.96, 1)
+theme_override_fonts/font = ExtResource("2")
+theme_override_font_sizes/font_size = 26
+autowrap_mode = 3
+
+[node name="SettingsPage" type="VBoxContainer" parent="Center/Layout/Card/Split/DetailColumn/MainScroll/Pages"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="SettingsBody" type="Label" parent="Center/Layout/Card/Split/DetailColumn/MainScroll/Pages/SettingsPage"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.92, 0.92, 0.96, 1)
+theme_override_fonts/font = ExtResource("2")
+theme_override_font_sizes/font_size = 26
+autowrap_mode = 3

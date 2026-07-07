@@ -113,7 +113,7 @@ func _add_flag_row(flag_id: String, entry: GnosisNode) -> void:
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.add_theme_font_override("font", UI_FONT)
 	label.add_theme_font_size_override("font_size", 22)
-	label.add_theme_color_override("font_color", Color(0.992157, 0.894118, 0.72549))
+	label.add_theme_color_override("font_color", Color(1, 1, 1, 1))
 	row.add_child(label)
 
 	var toggle := preload("res://game/ui/widgets/juicy_toggle.tscn").instantiate() as JuicyToggle

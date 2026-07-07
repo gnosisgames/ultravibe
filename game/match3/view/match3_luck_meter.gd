@@ -6,9 +6,9 @@ extends Control
 
 const LuckyFindScript = preload("res://game/match3/core/match3_lucky_find.gd")
 
-const OUTLINE := Color(0.992157, 0.894118, 0.72549, 1.0)
+const OUTLINE := Color(1, 1, 1, 1)
 const SHADOW := Color(0.078431, 0.137255, 0.227451, 0.85)
-const ARROW_FILL := Color(0.992157, 0.894118, 0.72549, 1.0)
+const ARROW_FILL := Color(1, 1, 1, 1)
 const ARROW_OUTLINE := Color(0.078431, 0.137255, 0.227451, 1.0)
 const ARROW_DIM := Color(0.5, 0.56, 0.66, 1.0)
 

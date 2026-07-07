@@ -15,6 +15,7 @@
 [ext_resource type="PackedScene" path="res://game/ui/game_over_view.tscn" id="14"]
 [ext_resource type="PackedScene" path="res://game/ui/play_view.tscn" id="15"]
 [ext_resource type="PackedScene" path="res://game/ui/credits_view.tscn" id="18"]
+[ext_resource type="PackedScene" path="res://game/ui/mods_view.tscn" id="24"]
 [ext_resource type="Script" uid="uid://hcqpddv85bnw" path="res://game/ui/gameplay_view.gd" id="19"]
 [ext_resource type="PackedScene" path="res://game/ui/reward_view.tscn" id="20"]
 [ext_resource type="PackedScene" path="res://game/ui/shop_view.tscn" id="21"]
@@ -137,6 +138,9 @@ visible = false
 visible = false
 
 [node name="CreditsView" parent="UI" unique_id=471705893 instance=ExtResource("18")]
+visible = false
+
+[node name="ModsView" parent="UI" instance=ExtResource("24")]
 visible = false
 
 [node name="CRTLayer" type="CanvasLayer" parent="." unique_id=1553969876]

@@ -1,0 +1,16 @@
+{
+	"name": "Example",
+	"namespace": "GnosisGames",
+	"version_number": "1.0.0",
+	"description": "Starter Godot Mod Loader mod — appears on the Mods screen.",
+	"website_url": "https://gnosisgames.eu",
+	"dependencies": [],
+	"extra": {
+		"godot": {
+			"authors": ["Gnosis Games"],
+			"tags": ["example"],
+			"compatible_mod_loader_version": ["7.0.1"],
+			"compatible_game_version": ["0.1.0"]
+		}
+	}
+}

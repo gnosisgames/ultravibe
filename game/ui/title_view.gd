@@ -10,6 +10,7 @@ extends GnosisUIElementView
 @onready var _settings_button: Button = %SettingsButton
 @onready var _quit_button: Button = %QuitButton
 @onready var _btn_container: Container = $Center/Menu/BtnContainers
+@onready var _mods_button: Button = %ModsButton
 @onready var _web_button: Button = %WebButton
 @onready var _discord_button: Button = %DiscordButton
 @onready var _credits_button: Button = %CreditsButton
@@ -39,6 +40,7 @@ func _ready() -> void:
 	_collection_button.pressed.connect(_on_collection_pressed)
 	_settings_button.pressed.connect(_on_settings_pressed)
 	_quit_button.pressed.connect(_on_quit_pressed)
+	_mods_button.pressed.connect(_on_mods_pressed)
 	_web_button.pressed.connect(_on_web_pressed)
 	_discord_button.pressed.connect(_on_discord_pressed)
 	_credits_button.pressed.connect(_on_credits_pressed)
@@ -93,6 +95,9 @@ func _on_continue_pressed() -> void:
 	var ui := _game_ui()
 	if ui:
 		UltraGameUiNav.transition_to_gameplay(ui, _host.engine.store, "title", "slide_up")
+
+func _on_mods_pressed() -> void:
+	_navigate("mods", "slide_left")
 
 func _on_collection_pressed() -> void:
 	_navigate("collection", "slide_right")

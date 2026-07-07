@@ -5,7 +5,7 @@ extends Button
 ## outline (thicker + glowing when selected), drop shadow, and a button-style
 ## scale pop on hover/focus. Routes SFX/haptics through UltraUiFx.
 
-const OUTLINE_ON := Color(0.992157, 0.894118, 0.72549, 1.0)
+const OUTLINE_ON := Color(1, 1, 1, 1)
 const OUTLINE_HOVER := Color(0.6, 0.78, 1.0, 1.0)
 const OUTLINE_IDLE := Color(0.207843, 0.262745, 0.380392, 1.0)
 

@@ -22,7 +22,7 @@ const MINMAX_INTERVALS_TO_SKIP := 3
 const COLOR_NORMAL := Color(0.333333, 0.854902, 0.4, 1.0)
 const COLOR_WARNING := Color(0.925490, 0.878431, 0.345098, 1.0)
 const COLOR_CRITICAL := Color(0.976471, 0.356863, 0.356863, 1.0)
-const COLOR_CREAM := Color(0.992157, 0.894118, 0.72549, 1.0)
+const COLOR_CREAM := Color(1, 1, 1, 1)
 const COLOR_RENDER := Color(0.654902, 0.431373, 0.819608, 1.0)
 
 var _engine: GnosisEngine = null

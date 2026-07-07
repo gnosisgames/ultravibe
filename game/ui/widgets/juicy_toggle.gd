@@ -5,8 +5,8 @@ extends Button
 
 const OFF_BG := Color(0.164706, 0.207843, 0.313725, 1.0)
 const ON_BG := Color(0.345098, 0.345098, 0.572549, 1.0)
-const OUTLINE := Color(0.992157, 0.894118, 0.72549, 1.0)
-const KNOB := Color(0.992157, 0.894118, 0.72549, 1.0)
+const OUTLINE := Color(1, 1, 1, 1)
+const KNOB := Color(1, 1, 1, 1)
 const KNOB_DARK := Color(0.078431, 0.137255, 0.227451, 1.0)
 const SHADOW := Color(0.078431, 0.137255, 0.227451, 0.85)
 

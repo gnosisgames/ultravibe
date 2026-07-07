@@ -3,7 +3,7 @@ extends RefCounted
 
 ## Shared Ultravibe blue UI palette.
 
-const CREAM := Color("fde4b9")
+const CREAM := Color(1, 1, 1, 1)
 const NAVY_SHADOW := Color("313145")
 const DARK_BLUE_BASE := Color("2a3550")
 const BLUE_ACCENT := Color("3f80d6")

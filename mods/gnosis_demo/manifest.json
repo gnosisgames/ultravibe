@@ -1,0 +1,10 @@
+{
+	"modId": "gnosis_demo",
+	"name": "Gnosis Demo Mod",
+	"description": "Example Gnosis data mod — listed on the Mods screen only.",
+	"version": "1.0.0",
+	"minEngineVersion": "1.0.0",
+	"loadPriority": 300,
+	"dependencies": [],
+	"tags": ["demo", "example"]
+}

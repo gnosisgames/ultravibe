@@ -11,9 +11,9 @@ extends HSlider
 
 const TRACK_COLOR := Color(0.137255, 0.196078, 0.282353, 1.0)
 const FILL_COLOR := Color(0.345098, 0.345098, 0.572549, 1.0)
-const FILL_OUTLINE := Color(0.992157, 0.894118, 0.72549, 1.0)
+const FILL_OUTLINE := Color(1, 1, 1, 1)
 const SHADOW_COLOR := Color(0.078431, 0.137255, 0.227451, 0.85)
-const KNOB_COLOR := Color(0.992157, 0.894118, 0.72549, 1.0)
+const KNOB_COLOR := Color(1, 1, 1, 1)
 const KNOB_OUTLINE := Color(0.078431, 0.137255, 0.227451, 1.0)
 
 @export var show_value: bool = true:

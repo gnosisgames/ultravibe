@@ -8,9 +8,9 @@ extends OptionButton
 const BG := Color(0.164706, 0.207843, 0.313725, 1.0)
 const BG_HOVER := Color(0.345098, 0.345098, 0.572549, 1.0)
 const BG_PRESSED := Color(0.184314, 0.388235, 0.65098, 1.0)
-const OUTLINE := Color(0.992157, 0.894118, 0.72549, 1.0)
+const OUTLINE := Color(1, 1, 1, 1)
 const OUTLINE_IDLE := Color(0.32, 0.5, 0.69, 1.0)
-const CREAM := Color(0.992157, 0.894118, 0.72549, 1.0)
+const CREAM := Color(1, 1, 1, 1)
 const POPUP_BG := Color(0.0980392, 0.156863, 0.227451, 1.0)
 const FONT := preload("res://assets/fonts/Comic Lemon.otf")
 

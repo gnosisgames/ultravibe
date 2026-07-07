@@ -1,0 +1,8 @@
+
+	{
+		"test_mod_a_config": {
+			"enabled": true,
+			"multiplier": 1.5
+		}
+	}
+	
