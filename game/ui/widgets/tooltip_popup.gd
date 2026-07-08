@@ -3,7 +3,7 @@ class_name TooltipPopup
 extends PanelContainer
 
 ## Shared tooltip popup for the whole app. The visual skin (dark navy panel,
-## blue border, cream body card, white title) and the semantic accent palette
+## blue border, white body card, white title) and the semantic accent palette
 ## live here so every tooltip — collection, reward slots, and any future
 ## screen / sibling game — looks identical. Consumers should call
 ## `set_content()` rather than styling the popup themselves.
@@ -108,7 +108,7 @@ func _ready() -> void:
 		position = -size + diff
 
 ## Applies the canonical app-wide tooltip skin. Idempotent and safe to call
-## more than once. Builds the outer panel, the cream body card, and the white
+## more than once. Builds the outer panel, the white body card, and the white
 ## title label that sits above the body.
 func apply_standard_skin() -> void:
 	if description == null:
@@ -136,11 +136,9 @@ func apply_standard_skin() -> void:
 	add_theme_stylebox_override("panel", root_clear)
 
 	var body := StyleBoxFlat.new()
-	body.bg_color = Color(0.972549, 0.956863, 0.921569)
+	body.bg_color = Color.WHITE
 	body.set_content_margin_all(12.0)
-	body.corner_radius_top_right = 10
-	body.corner_radius_bottom_right = 10
-	body.corner_radius_bottom_left = 10
+	body.set_corner_radius_all(10)
 	description.add_theme_stylebox_override("normal", body)
 	description.add_theme_color_override("default_color", Color(0.227451, 0.243137, 0.317647))
 	description.bbcode_enabled = true
@@ -232,7 +230,7 @@ func set_tags(tags: Array) -> void:
 		_chips_wrap.visible = shown > 0
 
 
-## Action rows rendered below the cream body card (Unity GnosisTooltip.SetActionChips).
+## Action rows rendered below the white body card (Unity GnosisTooltip.SetActionChips).
 func set_actions(actions: Array) -> void:
 	_ensure_actions_row()
 	if _actions_row == null:
