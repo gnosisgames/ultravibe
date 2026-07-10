@@ -1,0 +1,18 @@
+{
+  "ultravibe__achievement__first_match__name": "First Spark",
+  "ultravibe__achievement__first_match__description": "Make your first match.",
+  "ultravibe__achievement__first_level__name": "Level Up",
+  "ultravibe__achievement__first_level__description": "Clear your first level.",
+  "ultravibe__achievement__first_boss__name": "Boss Breaker",
+  "ultravibe__achievement__first_boss__description": "Defeat a boss for the first time.",
+  "ultravibe__achievement__combo_chain__name": "Chain Reaction",
+  "ultravibe__achievement__combo_chain__description": "Reach a combo chain of five or more.",
+  "ultravibe__achievement__collection_scout__name": "Collection Scout",
+  "ultravibe__achievement__collection_scout__description": "Discover fifteen entries in the Collection.",
+  "ultravibe__achievement__gem_rain__name": "Gem Rain",
+  "ultravibe__achievement__gem_rain__description": "Trigger a gem rain during a run.",
+  "ultravibe__achievement__perfect_board__name": "Clean Sweep",
+  "ultravibe__achievement__perfect_board__description": "Clear every tile on the board in one level.",
+  "ultravibe__achievement__vibe_master__name": "Vibe Master",
+  "ultravibe__achievement__vibe_master__description": "Max out the vibe meter in a single run."
+}

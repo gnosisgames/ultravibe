@@ -7,9 +7,12 @@ extends GnosisUIElementView
 @onready var _play_button: Button = %PlayButton
 @onready var _continue_button: Button = %ContinueButton
 @onready var _collection_button: Button = %CollectionButton
+@onready var _profiles_button: Button = %ProfilesButton
+@onready var _achievements_button: Button = %AchievementsButton
 @onready var _settings_button: Button = %SettingsButton
 @onready var _quit_button: Button = %QuitButton
 @onready var _btn_container: Container = $Center/Menu/BtnContainers
+@onready var _footer_tools: Container = $FooterTools
 @onready var _mods_button: Button = %ModsButton
 @onready var _web_button: Button = %WebButton
 @onready var _discord_button: Button = %DiscordButton
@@ -21,7 +24,23 @@ func set_view_visible(is_visible: bool) -> void:
 	super.set_view_visible(is_visible)
 	if is_visible:
 		_ensure_menu_buttons_visible()
+		_ensure_footer_buttons_visible()
+		_play_footer_entrance()
 		_refresh_continue_button()
+
+func _ensure_footer_buttons_visible() -> void:
+	if _footer_tools == null:
+		return
+	for child in _footer_tools.get_children():
+		if child is Control:
+			var c := child as Control
+			c.scale = Vector2.ONE
+			c.modulate.a = 1.0
+
+func _play_footer_entrance() -> void:
+	var tween := _footer_tools.get_meta("container_tween", null) as ContainerTween
+	if tween:
+		tween.appear()
 
 func _ensure_menu_buttons_visible() -> void:
 	if _btn_container == null:
@@ -38,6 +57,10 @@ func _ready() -> void:
 	if _continue_button:
 		_continue_button.pressed.connect(_on_continue_pressed)
 	_collection_button.pressed.connect(_on_collection_pressed)
+	if _profiles_button:
+		_profiles_button.pressed.connect(_on_profiles_pressed)
+	if _achievements_button:
+		_achievements_button.pressed.connect(_on_achievements_pressed)
 	_settings_button.pressed.connect(_on_settings_pressed)
 	_quit_button.pressed.connect(_on_quit_pressed)
 	_mods_button.pressed.connect(_on_mods_pressed)
@@ -101,6 +124,20 @@ func _on_mods_pressed() -> void:
 
 func _on_collection_pressed() -> void:
 	_navigate("collection", "slide_right")
+
+func _on_profiles_pressed() -> void:
+	if _host == null:
+		return
+	var ui := _game_ui()
+	if ui and _host.engine:
+		UltraGameUiNav.go_to_play_profiles(ui, _host.engine.store, "title", "slide_left")
+
+func _on_achievements_pressed() -> void:
+	if _host == null:
+		return
+	var ui := _game_ui()
+	if ui and _host.engine:
+		UltraGameUiNav.go_to_achievements(ui, _host.engine.store, "title", "slide_left")
 
 func _on_settings_pressed() -> void:
 	_navigate("settings", "slide_left")

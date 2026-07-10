@@ -1,0 +1,12 @@
+{
+  "achievements": [
+    { "id": "first_match", "path": "first_match.json" },
+    { "id": "first_level", "path": "first_level.json" },
+    { "id": "first_boss", "path": "first_boss.json" },
+    { "id": "combo_chain", "path": "combo_chain.json" },
+    { "id": "collection_scout", "path": "collection_scout.json" },
+    { "id": "gem_rain", "path": "gem_rain.json" },
+    { "id": "perfect_board", "path": "perfect_board.json" },
+    { "id": "vibe_master", "path": "vibe_master.json" }
+  ]
+}

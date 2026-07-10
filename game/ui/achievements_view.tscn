@@ -1,0 +1,132 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://game/ui/achievements_view.gd" id="1"]
+[ext_resource type="PackedScene" path="res://game/ui/widgets/rounded_square_btn.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://game/ui/widgets/tooltip_popup.tscn" id="3"]
+[ext_resource type="Script" path="res://game/ui/components/bbcode_effect_text_combine.gd" id="4"]
+[ext_resource type="FontFile" path="res://assets/fonts/Comic Lemon.otf" id="5"]
+[ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/back.png" id="6"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+content_margin_left = 36.0
+content_margin_top = 30.0
+content_margin_right = 36.0
+content_margin_bottom = 30.0
+bg_color = Color(0.0980392, 0.156863, 0.227451, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.345098, 0.345098, 0.572549, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+shadow_color = Color(0.0784314, 0.137255, 0.227451, 1)
+shadow_size = 1
+shadow_offset = Vector2(4, 6)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_tabbar"]
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 14.0
+content_margin_bottom = 8.0
+
+[node name="AchievementsView" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+view_id = "achievements"
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Layout" type="VBoxContainer" parent="Center"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Title" type="RichTextLabel" parent="Center/Layout"]
+layout_mode = 2
+focus_mode = 0
+custom_minimum_size = Vector2(0, 80)
+mouse_filter = 2
+theme_override_colors/default_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.345098, 0.345098, 0.572549, 1)
+theme_override_colors/font_shadow_color = Color(0.192157, 0.192157, 0.270588, 1)
+theme_override_constants/shadow_outline_size = 26
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 6
+theme_override_constants/outline_size = 26
+theme_override_fonts/normal_font = ExtResource("5")
+theme_override_font_sizes/normal_font_size = 62
+bbcode_enabled = true
+text = "[wave amp=40.0 freq=4.0 connected=1]ACHIEVEMENTS[/wave]"
+fit_content = true
+scroll_active = false
+horizontal_alignment = 1
+vertical_alignment = 1
+script = ExtResource("4")
+text_clean = "ultravibe__ui__achievements"
+bbcode = "[wave amp=40.0 freq=4.0 connected=1]%s[/wave]"
+
+[node name="TabBar" type="PanelContainer" parent="Center/Layout"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_styles/panel = SubResource("StyleBoxEmpty_tabbar")
+
+[node name="Tabs" type="HBoxContainer" parent="Center/Layout/TabBar"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="BackButton" parent="Center/Layout/TabBar/Tabs" instance=ExtResource("2")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 76)
+layout_mode = 2
+theme_override_colors/icon_normal_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_focus_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_pressed_color = Color(1, 1, 1, 1)
+theme_override_constants/icon_max_width = 44
+tooltip_text = "core__verb__back"
+alignment = 1
+icon_alignment = 1
+vertical_icon_alignment = 1
+text = ""
+icon = ExtResource("6")
+expand_icon = true
+
+[node name="Card" type="PanelContainer" parent="Center/Layout"]
+custom_minimum_size = Vector2(1240, 660)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="Content" type="MarginContainer" parent="Center/Layout/Card"]
+layout_mode = 2
+
+[node name="Scroll" type="ScrollContainer" parent="Center/Layout/Card/Content"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+follow_focus = true
+
+[node name="Grid" type="HFlowContainer" parent="Center/Layout/Card/Content/Scroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 14
+theme_override_constants/v_separation = 14
+alignment = 0
+
+[node name="Tooltip" parent="." instance=ExtResource("3")]
+unique_name_in_owner = true
+z_index = 50

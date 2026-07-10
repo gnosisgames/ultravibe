@@ -12,6 +12,7 @@
     { "id": "itemTypes", "path": "Data/ItemTypes/index", "kind": "indexed" },
     { "id": "match3Effects", "path": "Data/Match3Effects/index", "kind": "indexed" },
     { "id": "match3CellFloorTypes", "path": "Data/Match3CellFloorTypes/index", "kind": "indexed" },
+    { "id": "achievements", "path": "Data/Achievements/index", "kind": "indexed" },
     { "id": "filters", "path": "Data/Filters/index", "kind": "object" },
     { "id": "availableLanguages", "path": "Data/availableLanguages", "kind": "object" }
   ]

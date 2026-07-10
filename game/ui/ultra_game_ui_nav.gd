@@ -100,8 +100,24 @@ static func pop_menu_back(
 		ui.invoke_function("PopView", params)
 		return
 	var current := ui.get_base_view_id().strip_edges().to_lower()
-	if current == "settings" or current == "collection":
+	if current == "settings" or current == "collection" or current == "achievements":
 		transition_between(ui, store, current, "gameplay", transition_id)
 		ui.initialize_navigation_state("gameplay")
 	else:
 		return_to_title(ui)
+
+static func go_to_play_profiles(
+	ui: GnosisGameUIService,
+	store: GnosisStore,
+	from_view_id: String = "title",
+	transition_id: String = "slide_left"
+) -> void:
+	transition_between(ui, store, from_view_id, "play", transition_id)
+
+static func go_to_achievements(
+	ui: GnosisGameUIService,
+	store: GnosisStore,
+	from_view_id: String = "title",
+	transition_id: String = "slide_left"
+) -> void:
+	transition_between(ui, store, from_view_id, "achievements", transition_id)
