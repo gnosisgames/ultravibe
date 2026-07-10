@@ -31,7 +31,8 @@ static func transition_to_gameplay(
 	ui: GnosisGameUIService,
 	store: GnosisStore,
 	from_view_id: String = "",
-	transition_id: String = "slide_up"
+	transition_id: String = "slide_up",
+	record_new_run: bool = false
 ) -> void:
 	if ui == null or store == null:
 		return
@@ -44,6 +45,18 @@ static func transition_to_gameplay(
 	params.set_key("outDuration", DEFAULT_DURATION)
 	ui.invoke_function("RequestTransition", params)
 	ui.initialize_navigation_state("gameplay")
+	_record_run_activity(ui, record_new_run)
+
+static func _record_run_activity(ui: GnosisGameUIService, record_new_run: bool) -> void:
+	if ui == null or ui.context == null or ui.context.engine == null:
+		return
+	var profile := ui.context.engine.get_service("Profile") as GnosisProfileService
+	if profile == null:
+		return
+	if record_new_run:
+		profile.increment_active_runs()
+	else:
+		profile.touch_last_played()
 
 ## Animates between two full-screen views via RequestTransition (no stack change).
 static func transition_between(
@@ -83,8 +96,8 @@ static func push_from_gameplay(
 	ui.invoke_function("PushView", params)
 
 
-## Standard Back for settings / collection: pop the stack, or return to gameplay
-## when opened via set_base_view (no history), else title.
+## Standard Back for settings / collection: pop the stack, or return to title
+## when the stack is empty (menus opened via transition, not pause push).
 static func pop_menu_back(
 	ui: GnosisGameUIService,
 	store: GnosisStore,
@@ -99,10 +112,11 @@ static func pop_menu_back(
 		params.set_key("outDuration", DEFAULT_DURATION)
 		ui.invoke_function("PopView", params)
 		return
-	var current := ui.get_base_view_id().strip_edges().to_lower()
-	if current == "settings" or current == "collection" or current == "achievements":
-		transition_between(ui, store, current, "gameplay", transition_id)
-		ui.initialize_navigation_state("gameplay")
+	var base_view := ui.get_base_view_id().strip_edges().to_lower()
+	if base_view == "settings" or base_view == "collection" or base_view == "achievements" or base_view == "profiles" or base_view == "play":
+		transition_between(ui, store, base_view, "title", transition_id)
+		ui.initialize_navigation_state("title")
+		ui.set_base_view("title")
 	else:
 		return_to_title(ui)
 
@@ -112,7 +126,15 @@ static func go_to_play_profiles(
 	from_view_id: String = "title",
 	transition_id: String = "slide_left"
 ) -> void:
-	transition_between(ui, store, from_view_id, "play", transition_id)
+	transition_between(ui, store, from_view_id, "profiles", transition_id)
+
+static func go_to_profiles(
+	ui: GnosisGameUIService,
+	store: GnosisStore,
+	from_view_id: String = "title",
+	transition_id: String = "slide_left"
+) -> void:
+	go_to_play_profiles(ui, store, from_view_id, transition_id)
 
 static func go_to_achievements(
 	ui: GnosisGameUIService,
@@ -120,4 +142,13 @@ static func go_to_achievements(
 	from_view_id: String = "title",
 	transition_id: String = "slide_left"
 ) -> void:
-	transition_between(ui, store, from_view_id, "achievements", transition_id)
+	if ui == null or store == null:
+		return
+	var params: GnosisNode = store.create_object()
+	params.set_key("viewId", "achievements")
+	if not from_view_id.strip_edges().is_empty():
+		params.set_key("currentViewId", from_view_id.strip_edges())
+	params.set_key("transitionId", transition_id)
+	params.set_key("inDuration", DEFAULT_DURATION)
+	params.set_key("outDuration", DEFAULT_DURATION)
+	ui.invoke_function("PushView", params)

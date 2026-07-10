@@ -72,6 +72,8 @@
   "ultravibe__ui__mods": "Mods",
   "ultravibe__ui__profiles": "Profiles",
   "ultravibe__ui__achievements": "Achievements",
+  "ultravibe__profiles__stat_achievements": "Achievements earned",
+  "ultravibe__profiles__stat_collection": "Collection discovered",
   "ultravibe__achievement__secret__name": "???",
   "ultravibe__achievement__secret__description": "Keep playing to uncover this achievement.",
   "ultravibe__mods__empty": "No mods found",

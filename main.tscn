@@ -21,6 +21,7 @@
 [ext_resource type="PackedScene" path="res://game/ui/shop_view.tscn" id="21"]
 [ext_resource type="PackedScene" path="res://game/ui/level_select_view.tscn" id="22"]
 [ext_resource type="PackedScene" path="res://game/ui/achievements_view.tscn" id="25"]
+[ext_resource type="PackedScene" path="res://game/ui/profiles_view.tscn" id="26"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_backdrop"]
 bg_color = Color(0.08, 0.13, 0.19, 0.82)
@@ -145,6 +146,9 @@ visible = false
 visible = false
 
 [node name="AchievementsView" parent="UI" instance=ExtResource("25")]
+visible = false
+
+[node name="ProfilesView" parent="UI" instance=ExtResource("26")]
 visible = false
 
 [node name="CRTLayer" type="CanvasLayer" parent="." unique_id=1553969876]

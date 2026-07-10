@@ -160,7 +160,7 @@ func _start_run() -> void:
 		_host.resync_match3_board_view()
 	var ui := _game_ui()
 	if ui and eng:
-		UltraGameUiNav.transition_to_gameplay(ui, eng.store, "play", "slide_up")
+		UltraGameUiNav.transition_to_gameplay(ui, eng.store, "play", "slide_up", true)
 
 func _copy_game_flags_to_ephemeral(fb_node: GnosisNode) -> void:
 	var eng := _engine()

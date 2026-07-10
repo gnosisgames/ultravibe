@@ -1,0 +1,395 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://game/ui/profiles_view.gd" id="1"]
+[ext_resource type="PackedScene" path="res://game/ui/widgets/rounded_square_btn.tscn" id="2"]
+[ext_resource type="Script" path="res://game/ui/components/bbcode_effect_text_combine.gd" id="3"]
+[ext_resource type="FontFile" path="res://assets/fonts/Comic Lemon.otf" id="4"]
+[ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/back.png" id="5"]
+[ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/checkmark.png" id="6"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+content_margin_left = 32.0
+content_margin_top = 32.0
+content_margin_right = 32.0
+content_margin_bottom = 32.0
+bg_color = Color(0.0980392, 0.156863, 0.227451, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.247059, 0.501961, 0.839216, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+shadow_color = Color(0.0784314, 0.137255, 0.227451, 1)
+shadow_size = 1
+shadow_offset = Vector2(4, 6)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxFlat_tabbar"]
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 14.0
+content_margin_bottom = 8.0
+
+[node name="ProfilesView" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+script = ExtResource("1")
+view_id = "profiles"
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Layout" type="VBoxContainer" parent="Center"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Title" type="RichTextLabel" parent="Center/Layout"]
+layout_mode = 2
+focus_mode = 0
+custom_minimum_size = Vector2(0, 80)
+mouse_filter = 2
+theme_override_colors/default_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.42, 0.22, 0.62, 1)
+theme_override_colors/font_shadow_color = Color(0.08, 0.04, 0.12, 1)
+theme_override_constants/shadow_outline_size = 26
+theme_override_constants/shadow_offset_x = 3
+theme_override_constants/shadow_offset_y = 6
+theme_override_constants/outline_size = 26
+theme_override_fonts/normal_font = ExtResource("4")
+theme_override_font_sizes/normal_font_size = 62
+bbcode_enabled = true
+text = "[wave amp=40.0 freq=4.0 connected=1]PROFILES[/wave]"
+fit_content = true
+scroll_active = false
+horizontal_alignment = 1
+vertical_alignment = 1
+script = ExtResource("3")
+text_clean = "core__noun__profile__many"
+bbcode = "[wave amp=40.0 freq=4.0 connected=1]%s[/wave]"
+
+[node name="TabBar" type="PanelContainer" parent="Center/Layout"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_tabbar")
+
+[node name="Tabs" type="HBoxContainer" parent="Center/Layout/TabBar"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="BackButton" parent="Center/Layout/TabBar/Tabs" instance=ExtResource("2")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 76)
+layout_mode = 2
+theme_override_colors/icon_normal_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_focus_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_pressed_color = Color(0.92, 0.96, 0.88, 1)
+theme_override_constants/icon_max_width = 44
+tooltip_text = "core__verb__back"
+alignment = 1
+icon_alignment = 1
+vertical_icon_alignment = 1
+text = ""
+icon = ExtResource("5")
+expand_icon = true
+
+[node name="SlotTab1" parent="Center/Layout/TabBar/Tabs" instance=ExtResource("2")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 76)
+layout_mode = 2
+toggle_mode = true
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_focus_color = Color(1, 1, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 42
+alignment = 1
+text = "1"
+scale_w_width = false
+
+[node name="SlotTab2" parent="Center/Layout/TabBar/Tabs" instance=ExtResource("2")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 76)
+layout_mode = 2
+toggle_mode = true
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_focus_color = Color(1, 1, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 42
+alignment = 1
+text = "2"
+scale_w_width = false
+
+[node name="SlotTab3" parent="Center/Layout/TabBar/Tabs" instance=ExtResource("2")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 76)
+layout_mode = 2
+toggle_mode = true
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_focus_color = Color(1, 1, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 42
+alignment = 1
+text = "3"
+scale_w_width = false
+
+[node name="Card" type="PanelContainer" parent="Center/Layout"]
+custom_minimum_size = Vector2(1240, 660)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="Content" type="HBoxContainer" parent="Center/Layout/Card"]
+layout_mode = 2
+theme_override_constants/separation = 40
+alignment = 0
+
+[node name="StatsPanel" type="PanelContainer" parent="Center/Layout/Card/Content"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.35
+
+[node name="StatsMargin" type="MarginContainer" parent="Center/Layout/Card/Content/StatsPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 24
+
+[node name="StatsVBox" type="VBoxContainer" parent="Center/Layout/Card/Content/StatsPanel/StatsMargin"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="ProfileNameRow" type="HBoxContainer" parent="Center/Layout/Card/Content/StatsPanel/StatsMargin/StatsVBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="ProfileName" type="Label" parent="Center/Layout/Card/Content/StatsPanel/StatsMargin/StatsVBox/ProfileNameRow"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4")
+theme_override_font_sizes/font_size = 36
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "Profile 1"
+
+[node name="ProfileActiveCheck" type="TextureRect" parent="Center/Layout/Card/Content/StatsPanel/StatsMargin/StatsVBox/ProfileNameRow"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+custom_minimum_size = Vector2(34, 34)
+mouse_filter = 2
+texture = ExtResource("6")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ActiveBadge" type="Label" parent="Center/Layout/Card/Content/StatsPanel/StatsMargin/StatsVBox"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(0.95, 0.82, 0.18, 1)
+text = "core__profiles__active_badge"
+
+[node name="StatsGrid" type="VBoxContainer" parent="Center/Layout/Card/Content/StatsPanel/StatsMargin/StatsVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="StatRuns" type="HBoxContainer" parent="Center/Layout/Card/Content/StatsPanel/StatsMargin/StatsVBox/StatsGrid"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Center/Layout/Card/Content/StatsPanel/StatsMargin/StatsVBox/StatsGrid/StatRuns"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("4")
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.85, 0.9, 0.95, 1)
+text = "core__profiles__stat_runs"
+
+[node name="StatRunsValue" type="Label" parent="Center/Layout/Card/Content/StatsPanel/StatsMargin/StatsVBox/StatsGrid/StatRuns"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4")
+theme_override_font_sizes/font_size = 28
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "0"
+horizontal_alignment = 2
+
+[node name="StatPlaytime" type="HBoxContainer" parent="Center/Layout/Card/Content/StatsPanel/StatsMargin/StatsVBox/StatsGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Center/Layout/Card/Content/StatsPanel/StatsMargin/StatsVBox/StatsGrid/StatPlaytime"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("4")
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.85, 0.9, 0.95, 1)
+text = "core__profiles__stat_playtime"
+
+[node name="StatPlaytimeValue" type="Label" parent="Center/Layout/Card/Content/StatsPanel/StatsMargin/StatsVBox/StatsGrid/StatPlaytime"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4")
+theme_override_font_sizes/font_size = 28
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "< 1m"
+horizontal_alignment = 2
+
+[node name="StatLastPlayed" type="HBoxContainer" parent="Center/Layout/Card/Content/StatsPanel/StatsMargin/StatsVBox/StatsGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Center/Layout/Card/Content/StatsPanel/StatsMargin/StatsVBox/StatsGrid/StatLastPlayed"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("4")
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.85, 0.9, 0.95, 1)
+text = "core__profiles__stat_last_played"
+
+[node name="StatLastPlayedValue" type="Label" parent="Center/Layout/Card/Content/StatsPanel/StatsMargin/StatsVBox/StatsGrid/StatLastPlayed"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4")
+theme_override_font_sizes/font_size = 28
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "Never"
+horizontal_alignment = 2
+
+[node name="StatRunActive" type="HBoxContainer" parent="Center/Layout/Card/Content/StatsPanel/StatsMargin/StatsVBox/StatsGrid"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Center/Layout/Card/Content/StatsPanel/StatsMargin/StatsVBox/StatsGrid/StatRunActive"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("4")
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.85, 0.9, 0.95, 1)
+text = "core__profiles__stat_run_active"
+
+[node name="StatRunActiveValue" type="Label" parent="Center/Layout/Card/Content/StatsPanel/StatsMargin/StatsVBox/StatsGrid/StatRunActive"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4")
+theme_override_font_sizes/font_size = 28
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "No"
+horizontal_alignment = 2
+
+[node name="StatAchievements" type="HBoxContainer" parent="Center/Layout/Card/Content/StatsPanel/StatsMargin/StatsVBox/StatsGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Center/Layout/Card/Content/StatsPanel/StatsMargin/StatsVBox/StatsGrid/StatAchievements"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("4")
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.85, 0.9, 0.95, 1)
+text = "core__profiles__stat_achievements"
+
+[node name="StatAchievementsValue" type="Label" parent="Center/Layout/Card/Content/StatsPanel/StatsMargin/StatsVBox/StatsGrid/StatAchievements"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4")
+theme_override_font_sizes/font_size = 28
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "0"
+horizontal_alignment = 2
+
+[node name="StatExtraA" type="HBoxContainer" parent="Center/Layout/Card/Content/StatsPanel/StatsMargin/StatsVBox/StatsGrid"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Center/Layout/Card/Content/StatsPanel/StatsMargin/StatsVBox/StatsGrid/StatExtraA"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("4")
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.85, 0.9, 0.95, 1)
+text = ""
+
+[node name="StatExtraAValue" type="Label" parent="Center/Layout/Card/Content/StatsPanel/StatsMargin/StatsVBox/StatsGrid/StatExtraA"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4")
+theme_override_font_sizes/font_size = 28
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "0"
+horizontal_alignment = 2
+
+[node name="StatExtraB" type="HBoxContainer" parent="Center/Layout/Card/Content/StatsPanel/StatsMargin/StatsVBox/StatsGrid"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Center/Layout/Card/Content/StatsPanel/StatsMargin/StatsVBox/StatsGrid/StatExtraB"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("4")
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.85, 0.9, 0.95, 1)
+text = "ultravibe__profiles__stat_collection"
+
+[node name="StatExtraBValue" type="Label" parent="Center/Layout/Card/Content/StatsPanel/StatsMargin/StatsVBox/StatsGrid/StatExtraB"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_fonts/font = ExtResource("4")
+theme_override_font_sizes/font_size = 28
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "0"
+horizontal_alignment = 2
+
+[node name="ActionsDivider" type="ColorRect" parent="Center/Layout/Card/Content"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(4, 0)
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+color = Color(0.42, 0.22, 0.62, 1)
+
+[node name="Actions" type="VBoxContainer" parent="Center/Layout/Card/Content"]
+layout_mode = 2
+custom_minimum_size = Vector2(320, 0)
+size_flags_horizontal = 3
+theme_override_constants/separation = 18
+alignment = 0
+
+[node name="LoadButton" parent="Center/Layout/Card/Content/Actions" instance=ExtResource("2")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(320, 76)
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+text = "core__profiles__load"
+accent = true
+hover_animate = false
+scale_w_width = false
+
+[node name="ResetButton" parent="Center/Layout/Card/Content/Actions" instance=ExtResource("2")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(320, 76)
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+text = "core__profiles__reset"
+destructive = true
+hover_animate = false
+scale_w_width = false
