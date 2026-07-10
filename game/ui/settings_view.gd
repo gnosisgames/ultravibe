@@ -20,6 +20,8 @@ const CATEGORY_LABELS := {
 	"console": "ultravibe__settings__category__console",
 }
 const HAPTICS_ENABLED_KEY := "haptic.hapticsEnabled"
+const GnosisAccessibilitySettings = preload("res://addons/com.gnosisgames.gnosisengine/adapters/godot/widgets/gnosis_accessibility_settings.gd")
+const READABLE_FONT_ENABLED_KEY := GnosisAccessibilitySettings.READABLE_FONT_ENABLED_KEY
 const GAME_SPEED_KEY := "settings.gameSpeed"
 const LOG_LEVEL_KEY := "settings.logLevel"
 const SHOW_FPS_KEY := "settings.showFps"
@@ -100,6 +102,7 @@ func _input_bindings() -> Dictionary:
 @onready var _show_device_info_toggle: JuicyToggle = %ShowDeviceInfoToggle
 @onready var _enable_console_toggle: JuicyToggle = %EnableConsoleToggle
 @onready var _vibration_toggle: JuicyToggle = %VibrationToggle
+@onready var _readable_font_toggle: JuicyToggle = %ReadableFontToggle
 @onready var _game_speed_option: OptionButton = %GameSpeedOption
 @onready var _flag_grid: GridContainer = %FlagGrid
 @onready var _keyboard_grid: GridContainer = %KeyboardGrid
@@ -143,6 +146,7 @@ func _ready() -> void:
 	if not Input.joy_connection_changed.is_connected(_on_joy_connection_changed):
 		Input.joy_connection_changed.connect(_on_joy_connection_changed)
 	_vibration_toggle.toggled.connect(_on_vibration_toggled)
+	_readable_font_toggle.toggled.connect(_on_readable_font_toggled)
 	_game_speed_option.item_selected.connect(_on_game_speed_selected)
 	_log_level_option.item_selected.connect(_on_log_level_selected)
 	_scanlines_slider.value_changed.connect(func(v): _set_setting_slider(SCANLINES_KEY, v))
@@ -362,6 +366,7 @@ func _sync_from_services() -> void:
 	_refresh_option.select(clampi(_read_setting_int(REFRESH_RATE_INDEX_KEY, 0), 0, max(0, _refresh_option.item_count - 1)))
 	_monitor_option.select(clampi(_read_setting_int(DISPLAY_INDEX_KEY, 0), 0, max(0, _monitor_option.item_count - 1)))
 	_vibration_toggle.set_pressed_silent(_read_haptics_enabled())
+	_readable_font_toggle.set_pressed_silent(_read_readable_font_enabled())
 	_game_speed_option.select(_read_game_speed_index())
 	_log_level_option.select(_read_log_level_index())
 	_show_fps_toggle.set_pressed_silent(_read_setting_bool(SHOW_FPS_KEY, false))
@@ -415,6 +420,16 @@ func _update_framerate_cap_interaction(vsync_on: bool) -> void:
 
 func _on_vibration_toggled(enabled: bool) -> void:
 	_set_haptics_enabled(enabled)
+
+func _read_readable_font_enabled() -> bool:
+	return GnosisAccessibilitySettings.readable_font_enabled(_engine(), false)
+
+func _set_readable_font_enabled(enabled: bool) -> void:
+	_set_setting_bool(READABLE_FONT_ENABLED_KEY, enabled)
+	GnosisAccessibilitySettings.apply_ui_fonts(get_tree(), _engine())
+
+func _on_readable_font_toggled(enabled: bool) -> void:
+	_set_readable_font_enabled(enabled)
 
 func _read_game_speed_index() -> int:
 	var speed := _read_setting_int(GAME_SPEED_KEY, 1)

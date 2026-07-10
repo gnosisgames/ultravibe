@@ -219,7 +219,8 @@
       "hapticsEnabled": true
     },
     "accessibility": {
-      "lightFlashesEnabled": true
+      "lightFlashesEnabled": true,
+      "readableFontEnabled": false
     },
     "currentSaveId": "MySave1",
     "lastSaveId": "MySave1",
