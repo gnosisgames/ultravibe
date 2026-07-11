@@ -139,6 +139,15 @@ static func default_gamepad_button(action_name: String) -> int:
 	var spec: Dictionary = BINDINGS.get(action_name, {})
 	return int(spec.get("gamepadButton", -1))
 
+## UI-category actions must bind to every connected gamepad (pause, menus, etc.).
+static func gamepad_binding_all_devices(action_name: String) -> bool:
+	if UI_NAV_GAMEPAD_BINDINGS.has(action_name):
+		return true
+	var spec: Dictionary = BINDINGS.get(action_name, {})
+	if bool(spec.get("gamepadAllDevices", false)):
+		return true
+	return str(spec.get("category", "")) == "ui"
+
 static func axis_negative_action(base: String) -> String:
 	return "%s_neg" % base
 
@@ -164,9 +173,9 @@ static func ensure_input_map() -> void:
 			_apply_gamepad_axis(action_name, int(spec.gamepadAxis))
 		var pad := int(spec.get("gamepadButton", -1))
 		if pad >= 0:
-			_apply_gamepad_button(action_name, pad)
+			_apply_gamepad_button(action_name, pad, gamepad_binding_all_devices(action_name))
 		for extra_pad in spec.get("extraGamepadButtons", []):
-			_apply_gamepad_button(action_name, int(extra_pad))
+			_apply_gamepad_button(action_name, int(extra_pad), gamepad_binding_all_devices(action_name))
 		if spec.has("mouseButton"):
 			_apply_mouse_button(action_name, int(spec.mouseButton))
 		var neg_keys: Array = spec.get("axisNegativeKeys", [])
