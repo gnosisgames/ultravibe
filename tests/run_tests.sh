@@ -4,7 +4,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 # shellcheck source=/dev/null
-source "$ROOT/../scripts/resolve_godot.sh"
+source "$ROOT/../assets/scripts/shell/resolve_godot.sh"
 # shellcheck source=/dev/null
 source "$(dirname "$0")/_test_runner.sh"
 

@@ -43,7 +43,7 @@ func _run() -> bool:
 		return false
 	if not _check_dynamic_round_reward_lines():
 		return false
-	if not _check_placeholder_sidebar_removed():
+	if not _check_placeholder_sidebar_present():
 		return false
 	print("[SUCCESS] presentation HUD parity verified")
 	return true
@@ -181,16 +181,25 @@ func _check_dynamic_round_reward_lines() -> bool:
 	return true
 
 
-func _check_placeholder_sidebar_removed() -> bool:
+func _check_placeholder_sidebar_present() -> bool:
 	var hud_scene := load("res://game/match3/view/match3_hud.tscn") as PackedScene
 	var hud := hud_scene.instantiate()
 	var placeholder := hud.find_child("PlaceholderButton", true, false)
-	if placeholder != null:
-		print("[FAIL] PlaceholderButton still present in match3_hud sidebar")
+	if placeholder == null:
+		print("[FAIL] PlaceholderButton missing from match3_hud sidebar")
+		return false
+	if not placeholder.disabled:
+		print("[FAIL] PlaceholderButton should stay disabled")
+		return false
+	if placeholder.focus_mode != Control.FOCUS_NONE:
+		print("[FAIL] PlaceholderButton should not be focusable")
+		return false
+	if placeholder.mouse_filter != Control.MOUSE_FILTER_IGNORE:
+		print("[FAIL] PlaceholderButton should ignore mouse input")
 		return false
 	var restart := hud.find_child("RestartHoldButton", true, false)
 	if restart == null:
 		print("[FAIL] RestartHoldButton missing from sidebar")
 		return false
-	print("[OK] sidebar placeholder removed; quick restart wired on RestartHoldButton")
+	print("[OK] sidebar placeholder present; quick restart wired on RestartHoldButton")
 	return true

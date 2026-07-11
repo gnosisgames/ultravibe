@@ -15,36 +15,48 @@ const UltraAchievementProgress = preload("res://game/ui/ultra_achievement_progre
 @onready var _quit_button: Button = %QuitButton
 @onready var _btn_container: Container = $Center/Menu/BtnContainers
 @onready var _footer_tools: Container = $FooterTools
+@onready var _footer_links: Container = $FooterLinks
 @onready var _mods_button: Button = %ModsButton
 @onready var _web_button: Button = %WebButton
 @onready var _discord_button: Button = %DiscordButton
 @onready var _credits_button: Button = %CreditsButton
 
 var _host: GnosisGodotEngine = null
+var _played_footer_entrance := false
 var _achievements_counter: Label = null
 
 func set_view_visible(is_visible: bool) -> void:
 	super.set_view_visible(is_visible)
 	if is_visible:
 		_ensure_menu_buttons_visible()
-		_ensure_footer_buttons_visible()
-		_play_footer_entrance()
+		if not _played_footer_entrance:
+			_play_footer_entrance()
+			_played_footer_entrance = true
+		else:
+			_ensure_footer_buttons_visible()
 		_refresh_continue_button()
 		_refresh_achievement_counter()
 
 func _ensure_footer_buttons_visible() -> void:
-	if _footer_tools == null:
+	_reset_footer_children_visible(_footer_tools)
+	_reset_footer_children_visible(_footer_links)
+
+func _reset_footer_children_visible(container: Container) -> void:
+	if container == null:
 		return
-	for child in _footer_tools.get_children():
+	for child in container.get_children():
 		if child is Control:
 			var c := child as Control
 			c.scale = Vector2.ONE
 			c.modulate.a = 1.0
 
 func _play_footer_entrance() -> void:
-	var tween := _footer_tools.get_meta("container_tween", null) as ContainerTween
-	if tween:
-		tween.appear()
+	for container in [_footer_tools, _footer_links]:
+		if container == null:
+			continue
+		var tween := container.get_meta("container_tween", null) as ContainerTween
+		if tween:
+			tween.appear()
 
 func _ensure_menu_buttons_visible() -> void:
 	if _btn_container == null:

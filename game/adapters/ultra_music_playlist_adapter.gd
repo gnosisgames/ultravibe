@@ -2,9 +2,8 @@ class_name UltraMusicPlaylistAdapter
 extends GnosisAdapter
 
 ## Port of Unity Ultravibe's UnityAudioAdapter playlist behaviour:
-## - "normal": 10 run themes, random-unique shuffle, cycle forever
-## - "boss": 3 boss themes, random pick then loop that track until the encounter ends
-## Switches on run start, boss encounter start/end, and game over (boss playlist after delay).
+## - "normal": 2 run themes (gameMusic1/2), random-unique shuffle, cycle forever
+## Switches on Match-3 run start.
 
 const PLAYLISTS_PATH := "res://data/music_playlists.json"
 const PLAYLIST_NORMAL := "normal"
@@ -258,7 +257,7 @@ func _kill_fade_tween() -> void:
 func _resolve_clip(clip_id: String) -> AudioStream:
 	if _asset_registry:
 		return _asset_registry.get_audio_clip(clip_id)
-	return load("res://assets/audio/music/normal/theme_1.ogg") as AudioStream
+	return load("res://assets/audio/music/unity/gameMusicSfx1.mp3") as AudioStream
 
 func _boss_encounter_active() -> bool:
 	if not engine or not engine.context:

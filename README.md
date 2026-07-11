@@ -31,7 +31,7 @@ git submodule update --remote --merge addons/com.gnosisgames.gnosisengine
 ## Run
 
 ```bash
-source ../scripts/resolve_godot.sh   # finds Godot_mono.app on this Mac
+source ../assets/scripts/shell/resolve_godot.sh   # finds Godot_mono.app on this Mac
 "$GODOT" --path .
 ```
 
@@ -40,7 +40,7 @@ Controls: A/D move, Z/X rotate, S soft drop, Space hard drop.
 ## Tests
 
 ```bash
-source ../scripts/resolve_godot.sh
+source ../assets/scripts/shell/resolve_godot.sh
 ./tests/run_tests.sh
 ```
 
@@ -63,7 +63,7 @@ See **[../AGENTS.md](../AGENTS.md)** for full agent/workspace docs.
 Presets: `export_presets.cfg`. Docs: **[docs/EXPORT.md](docs/EXPORT.md)**. Shared templates: **`../templates/godot-export/`**.
 
 ```bash
-source ../scripts/resolve_godot.sh
+source ../assets/scripts/shell/resolve_godot.sh
 ./tools/export_build.sh macOS              # one platform
 ./tools/export_all_local.sh                # all presets this Mac can build
 ```

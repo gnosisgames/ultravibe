@@ -5,25 +5,8 @@
       "playOrder": "random_unique",
       "playMode": "forever",
       "songs": [
-        "theme1",
-        "theme2",
-        "theme3",
-        "theme4",
-        "theme5",
-        "theme6",
-        "theme7",
-        "theme8",
-        "theme9",
-        "theme10"
-      ]
-    },
-    "boss": {
-      "playOrder": "random_unique",
-      "playMode": "loop_current",
-      "songs": [
-        "boss_theme1",
-        "boss_theme2",
-        "boss_theme3"
+        "gameMusic1",
+        "gameMusic2"
       ]
     }
   }

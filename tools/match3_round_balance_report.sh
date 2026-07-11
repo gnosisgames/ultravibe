@@ -4,7 +4,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 # shellcheck source=/dev/null
-source "$ROOT/../scripts/resolve_godot.sh"
+source "$ROOT/../assets/scripts/shell/resolve_godot.sh"
 
 export MATCH3_SCORE_MAX_LEVEL="${MATCH3_SCORE_MAX_LEVEL:-1}"
 export MATCH3_CASCADE_YIELD="${MATCH3_CASCADE_YIELD:-0.55}"

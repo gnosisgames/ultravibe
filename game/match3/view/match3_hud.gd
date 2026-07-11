@@ -697,34 +697,38 @@ func _layout_sidebar_width() -> void:
 func _layout_action_buttons() -> void:
 	if _buttons_grid == null:
 		return
+	# Always budget from the sidebar slot, not ButtonsSection.size.y — that node is
+	# SIZE_EXPAND_FILL and reports the inflated fill height (8a44c7a regression).
+	var grid_height := _estimate_buttons_area_height()
+	if grid_height <= 8.0:
+		return
 	var cols := maxi(_buttons_grid.columns, 1)
 	var rows := ceili(float(_buttons_grid.get_child_count()) / float(cols))
 	var h_sep := _buttons_grid.get_theme_constant("h_separation")
 	var v_sep := _buttons_grid.get_theme_constant("v_separation")
+	var row_height := floorf((grid_height - v_sep * float(rows - 1)) / float(rows))
 	var grid_width := _buttons_grid.size.x
 	if grid_width <= 8.0 and _buttons_section != null:
 		grid_width = _buttons_section.size.x
 	if grid_width <= 8.0:
 		grid_width = get_sidebar_width() - SIDEBAR_MARGIN_H
-	if grid_width <= 8.0:
-		return
-	var cell_width := floorf((grid_width - h_sep * float(cols - 1)) / float(cols))
-	var btn_size := minf(ACTION_BUTTON_SIZE, cell_width)
-	btn_size = maxf(btn_size, 64.0)
-	var grid_height := btn_size * float(rows) + v_sep * float(rows - 1)
-	_buttons_grid.custom_minimum_size = Vector2(0.0, grid_height)
+	if grid_width > 8.0:
+		var cell_width := floorf((grid_width - h_sep * float(cols - 1)) / float(cols))
+		row_height = minf(row_height, cell_width)
+	row_height = clampf(row_height, 40.0, ACTION_BUTTON_SIZE)
+	_buttons_grid.custom_minimum_size = Vector2.ZERO
 	if _buttons_section != null:
-		_buttons_section.size_flags_vertical = Control.SIZE_SHRINK_END
+		_buttons_section.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	for child in _buttons_grid.get_children():
 		if child is Control:
 			var ctrl := child as Control
-			var target_min := Vector2(btn_size, btn_size)
+			var target_min := Vector2(0, row_height)
 			if not ctrl.custom_minimum_size.is_equal_approx(target_min):
 				ctrl.custom_minimum_size = target_min
 			ctrl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			ctrl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			ctrl.size_flags_vertical = Control.SIZE_EXPAND_FILL
 			if ctrl is Button:
-				var icon_max := int(minf(ACTION_ICON_MAX, btn_size * 0.6))
+				var icon_max := int(minf(ACTION_ICON_MAX, row_height * 0.6))
 				ctrl.add_theme_constant_override("icon_max_width", icon_max)
 
 
@@ -733,26 +737,29 @@ func _estimate_buttons_area_height() -> float:
 	var sidebar := get_node_or_null("Sidebar") as Control
 	if layout == null or sidebar == null:
 		return 0.0
-	var available := layout.size.y
-	if available <= 0.0:
-		available = sidebar.size.y
-		available -= sidebar.get_theme_constant("margin_top")
-		available -= sidebar.get_theme_constant("margin_bottom")
-	if available <= 0.0:
+	var budget := sidebar.size.y
+	if budget <= 0.0:
+		budget = size.y
+	budget -= sidebar.get_theme_constant("margin_top")
+	budget -= sidebar.get_theme_constant("margin_bottom")
+	if budget <= 0.0:
 		return 0.0
 	for section_name in ["BossSection", "ScoreSection", "StatsSection"]:
 		var section := layout.get_node_or_null(section_name) as Control
-		if section == null:
+		if section == null or not section.visible:
 			continue
-		var section_h := section.size.y
+		var section_h := section.get_combined_minimum_size().y
 		if section_h <= 0.0:
-			section_h = section.get_combined_minimum_size().y
-		available -= section_h
+			section_h = section.size.y
+		budget -= section_h
 	if layout is VBoxContainer:
-		var child_count := layout.get_child_count() - 1
-		if child_count > 0:
-			available -= float(child_count) * float((layout as VBoxContainer).get_theme_constant("separation"))
-	return maxf(0.0, available)
+		var visible_children := 0
+		for child in layout.get_children():
+			if child is Control and (child as Control).visible:
+				visible_children += 1
+		if visible_children > 1:
+			budget -= float(visible_children - 1) * float((layout as VBoxContainer).get_theme_constant("separation"))
+	return maxf(0.0, budget)
 
 
 func _layout_left_rail() -> void:

@@ -7,28 +7,28 @@ func _ui_font() -> Font:
 	return UI_FONT
 
 func _panel_bg_color() -> Color:
-	return Color(0.071, 0.063, 0.122, 0.97)
+	return Color(0.0980392, 0.156863, 0.227451, 1)
 
 func _panel_border_color() -> Color:
-	return Color(0.42, 0.22, 0.62, 1.0)
+	return Color(0.345098, 0.345098, 0.572549, 1)
 
 func _panel_shadow_color() -> Color:
-	return Color(0.08, 0.04, 0.12, 1.0)
+	return Color(0.0784314, 0.137255, 0.227451, 1)
 
 func _stats_panel_bg_color() -> Color:
-	return Color(0.08, 0.05, 0.12, 0.98)
+	return _panel_bg_color()
 
 func _tab_idle_color() -> Color:
-	return Color(0.34, 0.20, 0.52, 1.0)
+	return Color(0.345098, 0.345098, 0.572549, 1)
 
 func _tab_border_color() -> Color:
-	return Color(0.14, 0.08, 0.22, 1.0)
+	return Color(0.180392, 0.160784, 0.321569, 1)
 
 func _title_outline_color() -> Color:
-	return Color(0.42, 0.22, 0.62, 1.0)
+	return Color(0.345098, 0.345098, 0.572549, 1)
 
 func _title_shadow_color() -> Color:
-	return Color(0.08, 0.04, 0.12, 1.0)
+	return Color(0.192157, 0.192157, 0.270588, 1)
 
 func _muted_label_color() -> Color:
 	return Color(0.85, 0.9, 0.95, 1.0)
@@ -46,10 +46,10 @@ func _apply_panel_theme(force: bool = false) -> void:
 
 func _build_card_panel_style() -> StyleBoxFlat:
 	var box := StyleBoxFlat.new()
-	box.content_margin_left = 32.0
-	box.content_margin_top = 32.0
-	box.content_margin_right = 32.0
-	box.content_margin_bottom = 32.0
+	box.content_margin_left = 36.0
+	box.content_margin_top = 30.0
+	box.content_margin_right = 36.0
+	box.content_margin_bottom = 30.0
 	box.bg_color = _panel_bg_color()
 	box.border_color = _panel_border_color()
 	box.shadow_color = _panel_shadow_color()

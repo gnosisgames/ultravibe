@@ -24,6 +24,6 @@ Open the title screen **Mods** view to see the mod listed. Start a run and check
 
 ```bash
 cd ultravibe
-source ../scripts/resolve_godot.sh
+source ../assets/scripts/shell/resolve_godot.sh
 ./tests/run_tests_mods.sh
 ```

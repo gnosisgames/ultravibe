@@ -4,7 +4,7 @@ extends SceneTree
 ## Base scores only — cascade + cascade-assist comfort lives in match3_round_balance_report.gd.
 ##
 ## Run from ultravibe/:
-##   ../scripts/resolve_godot.sh && "$GODOT" --path . --headless --script res://tools/match3_item_score_report.gd
+##   ../assets/scripts/shell/resolve_godot.sh && "$GODOT" --path . --headless --script res://tools/match3_item_score_report.gd
 ## Optional env: MATCH3_SCORE_MAX_LEVEL=3 (default 5)
 
 const MATCH_SIZES := [3, 4, 5]

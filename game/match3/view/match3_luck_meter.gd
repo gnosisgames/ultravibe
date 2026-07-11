@@ -23,9 +23,9 @@ const _GRAD_STOPS: Array = [
 	{"t": 1.0, "color": Color(0.32, 0.86, 0.60)},
 ]
 
-const TRACK_HEIGHT_MIN := 22.0
-const TRACK_HEIGHT_MAX := 28.0
-const ARROW_ZONE_MIN := 14.0
+const TRACK_HEIGHT_MIN := 18.0
+const TRACK_HEIGHT_MAX := 22.0
+const ARROW_ZONE_MIN := 11.0
 const TRACK_BORDER_WIDTH := 2
 const TRACK_BORDER_COLOR := Color(1.0, 1.0, 1.0, 1.0)
 const TRACK_CORNER_RADIUS := 6.0
@@ -41,7 +41,7 @@ var _fill_texture_key := Vector3i(-1, -1, -1)
 
 
 func _ready() -> void:
-	custom_minimum_size = Vector2(96, 58)
+	custom_minimum_size = Vector2(96, 34)
 	mouse_filter = MOUSE_FILTER_IGNORE
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	_invalidate_fill_texture()
@@ -145,8 +145,8 @@ func _set_pulse(value: float) -> void:
 func _layout_metrics() -> Dictionary:
 	var pad_x := 4.0
 	var arrow_zone := maxf(ARROW_ZONE_MIN, size.y * 0.19)
-	var gap := 5.0
-	var track_h := clampf(size.y - arrow_zone - gap - 8.0, TRACK_HEIGHT_MIN, TRACK_HEIGHT_MAX)
+	var gap := 4.0
+	var track_h := clampf(size.y - arrow_zone - gap - 2.0, TRACK_HEIGHT_MIN, TRACK_HEIGHT_MAX)
 	var track_y := arrow_zone + gap
 	var track_x0 := pad_x
 	var track_w := maxf(size.x - pad_x * 2.0, 8.0)

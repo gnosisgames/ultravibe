@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://game/ui/title_view.gd" id="1"]
 [ext_resource type="Texture2D" path="res://assets/logos/ultravibe_logo.png" id="3"]
@@ -10,6 +10,8 @@
 [ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/wrench.png" id="9"]
 [ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/crown.png" id="10"]
 [ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/achievement.png" id="11"]
+[ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/cog.png" id="12"]
+[ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/book.png" id="13"]
 
 [node name="TitleView" type="Control"]
 layout_mode = 3
@@ -53,7 +55,7 @@ delay_between_elements = 0.08
 [node name="ContinueButton" parent="Center/Menu/BtnContainers" instance=ExtResource("4")]
 unique_name_in_owner = true
 visible = false
-custom_minimum_size = Vector2(420, 58)
+custom_minimum_size = Vector2(420, 76)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_focus_color = Color(1, 1, 1, 1)
@@ -64,7 +66,7 @@ text = "core__verb__continue"
 
 [node name="PlayButton" parent="Center/Menu/BtnContainers" instance=ExtResource("4")]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(420, 58)
+custom_minimum_size = Vector2(420, 76)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_focus_color = Color(1, 1, 1, 1)
@@ -73,31 +75,9 @@ theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
 theme_override_colors/font_hover_pressed_color = Color(1, 1, 1, 1)
 text = "core__verb__play"
 
-[node name="CollectionButton" parent="Center/Menu/BtnContainers" instance=ExtResource("4")]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(420, 58)
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_focus_color = Color(1, 1, 1, 1)
-theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
-theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
-theme_override_colors/font_hover_pressed_color = Color(1, 1, 1, 1)
-text = "ultravibe__ui__collection"
-
-[node name="SettingsButton" parent="Center/Menu/BtnContainers" instance=ExtResource("4")]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(420, 58)
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_focus_color = Color(1, 1, 1, 1)
-theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
-theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
-theme_override_colors/font_hover_pressed_color = Color(1, 1, 1, 1)
-text = "core__noun__settings"
-
 [node name="QuitButton" parent="Center/Menu/BtnContainers" instance=ExtResource("4")]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(420, 58)
+custom_minimum_size = Vector2(420, 76)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_focus_color = Color(1, 1, 1, 1)
@@ -113,30 +93,13 @@ anchor_top = 1.0
 anchor_bottom = 1.0
 offset_left = 32.0
 offset_top = -108.0
-offset_right = 344.0
+offset_right = 452.0
 offset_bottom = -32.0
 grow_vertical = 0
 theme_override_constants/separation = 12
 script = ExtResource("5")
 delay_appear = 0.35
 delay_between_elements = 0.08
-
-[node name="ProfilesButton" parent="FooterTools" instance=ExtResource("4")]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(96, 76)
-layout_mode = 2
-theme_override_colors/icon_normal_color = Color(1, 1, 1, 1)
-theme_override_colors/icon_focus_color = Color(1, 1, 1, 1)
-theme_override_colors/icon_hover_color = Color(1, 1, 1, 1)
-theme_override_colors/icon_pressed_color = Color(1, 1, 1, 1)
-theme_override_constants/icon_max_width = 44
-tooltip_text = "ultravibe__ui__profiles"
-alignment = 1
-icon_alignment = 1
-vertical_icon_alignment = 1
-text = ""
-icon = ExtResource("10")
-expand_icon = true
 
 [node name="AchievementsButton" parent="FooterTools" instance=ExtResource("4")]
 unique_name_in_owner = true
@@ -153,6 +116,23 @@ icon_alignment = 1
 vertical_icon_alignment = 1
 text = ""
 icon = ExtResource("11")
+expand_icon = true
+
+[node name="ProfilesButton" parent="FooterTools" instance=ExtResource("4")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 76)
+layout_mode = 2
+theme_override_colors/icon_normal_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_focus_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_pressed_color = Color(1, 1, 1, 1)
+theme_override_constants/icon_max_width = 44
+tooltip_text = "ultravibe__ui__profiles"
+alignment = 1
+icon_alignment = 1
+vertical_icon_alignment = 1
+text = ""
+icon = ExtResource("10")
 expand_icon = true
 
 [node name="ModsButton" parent="FooterTools" instance=ExtResource("4")]
@@ -172,23 +152,7 @@ text = ""
 icon = ExtResource("9")
 expand_icon = true
 
-[node name="FooterLinks" type="HBoxContainer" parent="."]
-layout_mode = 1
-anchors_preset = 3
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -344.0
-offset_top = -108.0
-offset_right = -32.0
-offset_bottom = -32.0
-grow_horizontal = 0
-grow_vertical = 0
-theme_override_constants/separation = 12
-alignment = 2
-
-[node name="WebButton" parent="FooterLinks" instance=ExtResource("4")]
+[node name="SettingsButton" parent="FooterTools" instance=ExtResource("4")]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(96, 76)
 layout_mode = 2
@@ -197,12 +161,65 @@ theme_override_colors/icon_focus_color = Color(1, 1, 1, 1)
 theme_override_colors/icon_hover_color = Color(1, 1, 1, 1)
 theme_override_colors/icon_pressed_color = Color(1, 1, 1, 1)
 theme_override_constants/icon_max_width = 44
-tooltip_text = "ultravibe__ui__website"
+tooltip_text = "core__noun__settings"
 alignment = 1
 icon_alignment = 1
 vertical_icon_alignment = 1
 text = ""
-icon = ExtResource("6")
+icon = ExtResource("12")
+expand_icon = true
+
+[node name="FooterLinks" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -452.0
+offset_top = -108.0
+offset_right = -32.0
+offset_bottom = -32.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_constants/separation = 12
+alignment = 2
+script = ExtResource("5")
+delay_appear = 0.35
+delay_between_elements = 0.08
+
+[node name="CollectionButton" parent="FooterLinks" instance=ExtResource("4")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 76)
+layout_mode = 2
+theme_override_colors/icon_normal_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_focus_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_pressed_color = Color(1, 1, 1, 1)
+theme_override_constants/icon_max_width = 44
+tooltip_text = "ultravibe__ui__collection"
+alignment = 1
+icon_alignment = 1
+vertical_icon_alignment = 1
+text = ""
+icon = ExtResource("13")
+expand_icon = true
+
+[node name="CreditsButton" parent="FooterLinks" instance=ExtResource("4")]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(96, 76)
+layout_mode = 2
+theme_override_colors/icon_normal_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_focus_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/icon_pressed_color = Color(1, 1, 1, 1)
+theme_override_constants/icon_max_width = 44
+tooltip_text = "core__noun__credits"
+alignment = 1
+icon_alignment = 1
+vertical_icon_alignment = 1
+text = ""
+icon = ExtResource("8")
 expand_icon = true
 
 [node name="DiscordButton" parent="FooterLinks" instance=ExtResource("4")]
@@ -222,7 +239,7 @@ text = ""
 icon = ExtResource("7")
 expand_icon = true
 
-[node name="CreditsButton" parent="FooterLinks" instance=ExtResource("4")]
+[node name="WebButton" parent="FooterLinks" instance=ExtResource("4")]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(96, 76)
 layout_mode = 2
@@ -231,10 +248,10 @@ theme_override_colors/icon_focus_color = Color(1, 1, 1, 1)
 theme_override_colors/icon_hover_color = Color(1, 1, 1, 1)
 theme_override_colors/icon_pressed_color = Color(1, 1, 1, 1)
 theme_override_constants/icon_max_width = 44
-tooltip_text = "core__noun__credits"
+tooltip_text = "ultravibe__ui__website"
 alignment = 1
 icon_alignment = 1
 vertical_icon_alignment = 1
 text = ""
-icon = ExtResource("8")
+icon = ExtResource("6")
 expand_icon = true

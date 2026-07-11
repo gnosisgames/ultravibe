@@ -12,6 +12,7 @@ const UI_SHADOW := Color(0.08, 0.04, 0.12, 1.0)
 const UI_FOCUS_BORDER := Color(0.180392, 0.160784, 0.321569, 1.0)
 
 @export var hover_animate: bool = true
+@export var interactive: bool = true
 @export var destructive: bool = false
 @export var accent: bool = false
 ## When true, keep scene-authored style overrides (e.g. gameplay HUD shuffle pink).
@@ -34,6 +35,18 @@ var width_full_rot: float = 128.0
 
 func _ready() -> void:
 	if Engine.is_editor_hint():
+		return
+	if not interactive:
+		focus_mode = FOCUS_NONE
+		mouse_filter = MOUSE_FILTER_IGNORE
+		hover_animate = false
+		tooltip_text = ""
+		if has_node("%TooltipPopup"):
+			var popup: TooltipPopup = %TooltipPopup
+			popup.active = false
+			popup.appear_auto = false
+			popup.appear_when_disabled = false
+		_apply_variant_styles()
 		return
 	focus_mode = FOCUS_ALL
 	icon_texturerect.visible = show_icon

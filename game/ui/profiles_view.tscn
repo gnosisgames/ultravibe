@@ -61,8 +61,8 @@ focus_mode = 0
 custom_minimum_size = Vector2(0, 80)
 mouse_filter = 2
 theme_override_colors/default_color = Color(1, 1, 1, 1)
-theme_override_colors/font_outline_color = Color(0.42, 0.22, 0.62, 1)
-theme_override_colors/font_shadow_color = Color(0.08, 0.04, 0.12, 1)
+theme_override_colors/font_outline_color = Color(0.345098, 0.345098, 0.572549, 1)
+theme_override_colors/font_shadow_color = Color(0.192157, 0.192157, 0.270588, 1)
 theme_override_constants/shadow_outline_size = 26
 theme_override_constants/shadow_offset_x = 3
 theme_override_constants/shadow_offset_y = 6
@@ -363,7 +363,7 @@ custom_minimum_size = Vector2(4, 0)
 layout_mode = 2
 size_flags_vertical = 3
 mouse_filter = 2
-color = Color(0.42, 0.22, 0.62, 1)
+color = Color(0.345098, 0.345098, 0.572549, 1)
 
 [node name="Actions" type="VBoxContainer" parent="Center/Layout/Card/Content"]
 layout_mode = 2

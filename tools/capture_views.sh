@@ -4,7 +4,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 # shellcheck source=/dev/null
-source "$ROOT/../scripts/resolve_godot.sh"
+source "$ROOT/../assets/scripts/shell/resolve_godot.sh"
 
 mkdir -p "$ROOT/screenshots"
 echo "Capturing to $ROOT/screenshots/_capture_*.png ..."
