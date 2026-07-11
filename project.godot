@@ -19,6 +19,9 @@ config/version="0.1.0"
 config/tags=PackedStringArray("gnosis_games")
 run/main_scene="res://main.tscn"
 config/features=PackedStringArray("4.7")
+boot_splash/bg_color=Color(0.109804, 0.105882, 0.105882, 1)
+boot_splash/use_filter=false
+boot_splash/image="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Logos/gnosis_boot_splash.png"
 config/icon="uid://xvm7mdy3ujcp"
 
 [autoload]

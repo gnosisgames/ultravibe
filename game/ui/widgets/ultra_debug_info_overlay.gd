@@ -101,6 +101,9 @@ func _sample_fps() -> void:
 func _refresh() -> void:
 	if _rich == null:
 		return
+	if _is_splash_active():
+		_rich.visible = false
+		return
 	var blocks: PackedStringArray = []
 	if _flag(SHOW_FPS_KEY):
 		blocks.append(_fps_block())
@@ -145,6 +148,15 @@ func _flag(path: String) -> bool:
 		return false
 	var node := _engine.state.root.get_node(path)
 	return bool(node.value) if node.is_valid() and node.value != null else false
+
+
+func _is_splash_active() -> bool:
+	if _engine == null:
+		return false
+	var ui := _engine.get_service("GameUI") as GnosisGameUIService
+	if ui == null:
+		return false
+	return ui.get_base_view_id().strip_edges().to_lower() == "splash"
 
 ## Mirrors the Unity GnosisDeviceInfo readout as closely as Godot's APIs allow.
 ## (Godot does not expose shader model or total VRAM, so those are omitted.)

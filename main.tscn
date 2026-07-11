@@ -22,6 +22,7 @@
 [ext_resource type="PackedScene" path="res://game/ui/level_select_view.tscn" id="22"]
 [ext_resource type="PackedScene" path="res://game/ui/achievements_view.tscn" id="25"]
 [ext_resource type="PackedScene" path="res://game/ui/profiles_view.tscn" id="26"]
+[ext_resource type="PackedScene" path="res://addons/com.gnosisgames.gnosisengine/adapters/godot/views/gnosis_splash_view.tscn" id="27"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_backdrop"]
 bg_color = Color(0.08, 0.13, 0.19, 0.82)
@@ -63,7 +64,7 @@ shader_parameter/vignette_opacity = 0.35
 
 [node name="Ultravibe" type="Node" unique_id=1048292381]
 script = ExtResource("1")
-startup_view_id = "title"
+startup_view_id = "splash"
 
 [node name="Background" parent="." unique_id=1547908006 instance=ExtResource("8")]
 
@@ -113,7 +114,11 @@ layout_mode = 1
 [node name="EngineDebugPanel" parent="UI" unique_id=253038882 instance=ExtResource("4")]
 visible = false
 
+[node name="SplashView" parent="UI" instance=ExtResource("27")]
+visible = false
+
 [node name="TitleView" parent="UI" unique_id=1991399643 instance=ExtResource("5")]
+visible = false
 
 [node name="SettingsView" parent="UI" unique_id=920900561 instance=ExtResource("6")]
 visible = false
