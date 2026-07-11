@@ -44,23 +44,21 @@ func _get_extra_stat_b(profile: Dictionary, is_active: bool) -> Dictionary:
 	}
 
 func _can_reset_profile(profile: Dictionary) -> bool:
-	return _achievement_count(profile, _is_profile_active(profile)) > 0 or _collection_count(profile, _is_profile_active(profile)) > 0
+	var is_active: bool = (
+		_profile_svc != null
+		and str(profile.get("id", "")) == str(_profile_svc.get_active_profile_id())
+	)
+	var persistent := _persistent_branch(profile, is_active)
+	var achievement_count := 0
+	var eng := _engine()
+	if eng:
+		var achievement_svc = eng.get_service("Achievement")
+		if achievement_svc:
+			achievement_count = achievement_svc.count_earned_in_persistent(persistent)
+	return achievement_count > 0 or _collection_count(profile, is_active) > 0
 
 func _reset_profile(_profile: Dictionary) -> void:
 	super._reset_profile(_profile)
-
-func _is_profile_active(profile: Dictionary) -> bool:
-	if _profile_svc == null:
-		return false
-	return str(profile.get("id", "")) == _profile_svc.get_active_profile_id()
-
-func _achievement_count(profile: Dictionary, is_active: bool) -> int:
-	var persistent := _persistent_branch(profile, is_active)
-	var achievements: Variant = persistent.get("achievements", {})
-	if not achievements is Dictionary:
-		return 0
-	var earned: Variant = achievements.get("earned", {})
-	return earned.size() if earned is Dictionary else 0
 
 func _collection_count(profile: Dictionary, is_active: bool) -> int:
 	var persistent := _persistent_branch(profile, is_active)

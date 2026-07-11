@@ -7,18 +7,30 @@ const ROOT_KEY := "achievements"
 const EARNED_KEY := "earned"
 
 static func grant(context: GnosisContext, achievement_id: String) -> void:
-	if context == null or context.state == null or context.store == null:
+	if context == null:
 		return
 	var clean_id := achievement_id.strip_edges()
 	if clean_id.is_empty():
+		return
+	if context.engine != null:
+		var svc = context.engine.get_service("Achievement")
+		if svc != null and svc.has_method("grant"):
+			svc.grant(clean_id)
+			return
+	if context.state == null or context.store == null:
 		return
 	var earned := ensure_earned_root(context)
 	earned.set_node(clean_id, true)
 
 static func is_earned(context: GnosisContext, achievement_id: String) -> bool:
-	if achievement_id.strip_edges().is_empty():
+	var clean_id := achievement_id.strip_edges()
+	if clean_id.is_empty():
 		return false
-	return earned_ids(context).has(achievement_id.strip_edges())
+	if context != null and context.engine != null:
+		var svc = context.engine.get_service("Achievement")
+		if svc != null and svc.has_method("is_earned"):
+			return svc.is_earned(clean_id)
+	return earned_ids(context).has(clean_id)
 
 static func earned_ids(context: GnosisContext) -> Dictionary:
 	var result := {}

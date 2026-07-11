@@ -1,7 +1,7 @@
 class_name UltravibeAchievementsView
 extends GnosisUIElementView
 
-const AchievementsStore = preload("res://game/services/ultravibe_achievements.gd")
+const UltraAchievementProgress = preload("res://game/ui/ultra_achievement_progress.gd")
 
 ## Achievement gallery (viewId "achievements"). Flow-wrapped trophy tiles with focus
 ## tooltips; earned vs locked uses opacity, hidden entries show a "?" glyph.
@@ -22,6 +22,7 @@ const OPACITY_HIDDEN_IDLE := 0.34
 const OPACITY_HIDDEN_FOCUS := 0.52
 
 @onready var _back_button: Button = %BackButton
+@onready var _tab_bar: PanelContainer = $Center/Layout/TabBar
 @onready var _grid: HFlowContainer = %Grid
 @onready var _card: PanelContainer = $Center/Layout/Card
 @onready var _tooltip: TooltipPopup = %Tooltip
@@ -29,6 +30,7 @@ const OPACITY_HIDDEN_FOCUS := 0.52
 var _host: GnosisGodotEngine = null
 var _active_tile: Control = null
 var _tooltip_show_generation := 0
+var _counter_label: Label = null
 
 func _ready() -> void:
 	add_to_group("gnosis_ui_view")
@@ -36,11 +38,13 @@ func _ready() -> void:
 	if _tooltip:
 		_tooltip.scale = Vector2.ZERO
 		_tooltip.visible = false
+	_ensure_progress_counter()
 	call_deferred("_resolve_host")
 
 func set_view_visible(is_visible: bool) -> void:
 	super.set_view_visible(is_visible)
 	if is_visible:
+		_refresh_progress_counter()
 		_populate_grid()
 		call_deferred("_focus_back_button")
 	else:
@@ -57,7 +61,31 @@ func _resolve_host() -> void:
 			_host = node as GnosisGodotEngine
 			break
 		node = node.get_parent()
+	_refresh_progress_counter()
 	_populate_grid()
+
+func _achievement_service():
+	var eng := _engine()
+	return eng.get_service("Achievement") if eng else null
+
+func _ensure_progress_counter() -> void:
+	if _counter_label != null or _tab_bar == null:
+		return
+	var tabs := _tab_bar.get_node_or_null("Tabs")
+	if tabs == null:
+		return
+	_counter_label = Label.new()
+	_counter_label.name = "AchievementCounter"
+	_counter_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_counter_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_counter_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	UltraAchievementProgress.apply_gallery_style(_counter_label)
+	tabs.add_child(_counter_label)
+
+func _refresh_progress_counter() -> void:
+	if _counter_label == null:
+		return
+	_counter_label.text = UltraAchievementProgress.label(_achievement_service())
 
 func _engine() -> GnosisEngine:
 	return _host.engine if _host else null
@@ -65,10 +93,6 @@ func _engine() -> GnosisEngine:
 func _game_ui() -> GnosisGameUIService:
 	var eng := _engine()
 	return eng.get_service("GameUI") as GnosisGameUIService if eng else null
-
-func _context() -> GnosisContext:
-	var eng := _engine()
-	return eng.context if eng else null
 
 func _catalog() -> GnosisNode:
 	var eng := _engine()
@@ -87,13 +111,13 @@ func _populate_grid() -> void:
 	var catalog := _catalog()
 	if not catalog.is_valid() or catalog.get_type() != GnosisValueType.OBJECT:
 		return
-	var context := _context()
 	for key in catalog.get_keys():
 		var entry := catalog.get_node(key)
 		if not entry.is_valid():
 			continue
 		var achievement_id := str(key)
-		var earned: bool = context != null and AchievementsStore.is_earned(context, achievement_id)
+		var achievements = _achievement_service()
+		var earned: bool = achievements != null and achievements.is_earned(achievement_id)
 		_add_tile(achievement_id, entry, earned)
 
 func _add_tile(achievement_id: String, entry: GnosisNode, earned: bool) -> void:

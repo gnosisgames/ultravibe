@@ -14,8 +14,11 @@ const UltraMusicPlaylistAdapterScript = preload("res://game/adapters/ultra_music
 const UltraDebugInfoOverlayScript = preload("res://game/ui/widgets/ultra_debug_info_overlay.gd")
 const UltraDisplaySettingsScript = preload("res://game/ultra_display_settings.gd")
 const TranslationBridgeScript = preload("res://addons/com.gnosisgames.gnosisengine/adapters/godot/gnosis_godot_translation_bridge.gd")
+const UltraAchievementTrackerScript = preload("res://game/adapters/ultra_achievement_tracker.gd")
+const UltraAchievementToastOverlayScript = preload("res://game/ui/ultra_achievement_toast_overlay.gd")
 
 var _match3_adapter = null
+var _achievement_tracker = null
 var _feedback_audio_adapter: FeedbackAudioAdapter = null
 var _music_playlist_adapter: UltraMusicPlaylistAdapter = null
 var _debug_info_overlay: UltraDebugInfoOverlay = null
@@ -52,6 +55,7 @@ func _register(config: GnosisEngineConfig, id: String, lifetime: int, file_name:
 
 func _wire_adapters() -> void:
 	super._wire_adapters()
+	_achievement_tracker = _find_or_create_adapter(UltraAchievementTrackerScript, "AchievementTracker")
 	_match3_adapter = _find_or_create_adapter(Match3PlayAdapterScript, "Match3PlayAdapter")
 	_feedback_audio_adapter = _find_or_create_adapter(FeedbackAudioAdapterScript, "FeedbackAudioAdapter") as FeedbackAudioAdapter
 	_music_playlist_adapter = _find_or_create_adapter(UltraMusicPlaylistAdapterScript, "MusicPlaylistAdapter") as UltraMusicPlaylistAdapter
@@ -64,6 +68,23 @@ func _wire_adapters() -> void:
 	_bind_music_playlist_adapter()
 	_bind_hud()
 	_configure_gameplay_input()
+	if _achievement_tracker:
+		_achievement_tracker.bind_engine(engine)
+	_replace_achievement_toast_overlay()
+
+func _replace_achievement_toast_overlay() -> void:
+	var container := get_node_or_null("Adapters")
+	if container == null:
+		return
+	var existing = container.get_node_or_null("AchievementToastOverlay")
+	if existing:
+		container.remove_child(existing)
+		existing.free()
+	var toast := UltraAchievementToastOverlayScript.new()
+	toast.name = "AchievementToastOverlay"
+	container.add_child(toast)
+	if engine:
+		toast.bind_engine(engine)
 
 func _configure_gameplay_input() -> void:
 	var input := get_adapter(GnosisGodotInputAdapter) as GnosisGodotInputAdapter

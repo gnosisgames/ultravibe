@@ -1,6 +1,8 @@
 class_name UltravibeTitleView
 extends GnosisUIElementView
 
+const UltraAchievementProgress = preload("res://game/ui/ultra_achievement_progress.gd")
+
 ## Main menu / title screen. Ported from the Unity TitleView prefab (viewId "title"):
 ## logo + menu buttons that drive the GameUI navigation state.
 
@@ -19,6 +21,7 @@ extends GnosisUIElementView
 @onready var _credits_button: Button = %CreditsButton
 
 var _host: GnosisGodotEngine = null
+var _achievements_counter: Label = null
 
 func set_view_visible(is_visible: bool) -> void:
 	super.set_view_visible(is_visible)
@@ -27,6 +30,7 @@ func set_view_visible(is_visible: bool) -> void:
 		_ensure_footer_buttons_visible()
 		_play_footer_entrance()
 		_refresh_continue_button()
+		_refresh_achievement_counter()
 
 func _ensure_footer_buttons_visible() -> void:
 	if _footer_tools == null:
@@ -61,6 +65,7 @@ func _ready() -> void:
 		_profiles_button.pressed.connect(_on_profiles_pressed)
 	if _achievements_button:
 		_achievements_button.pressed.connect(_on_achievements_pressed)
+		_achievements_counter = _create_achievement_counter_badge(_achievements_button)
 	_settings_button.pressed.connect(_on_settings_pressed)
 	_quit_button.pressed.connect(_on_quit_pressed)
 	_mods_button.pressed.connect(_on_mods_pressed)
@@ -74,8 +79,39 @@ func _resolve_host() -> void:
 	while node:
 		if node is GnosisGodotEngine:
 			_host = node as GnosisGodotEngine
+			_refresh_achievement_counter()
 			return
 		node = node.get_parent()
+
+func _achievement_service():
+	if _host and _host.engine:
+		return _host.engine.get_service("Achievement")
+	return null
+
+func _refresh_achievement_counter() -> void:
+	if _achievements_counter == null:
+		return
+	_achievements_counter.text = UltraAchievementProgress.label(_achievement_service())
+
+func _create_achievement_counter_badge(button: Button) -> Label:
+	var button_size := button.custom_minimum_size
+	if button_size == Vector2.ZERO:
+		button_size = Vector2(96, 76)
+
+	var label := Label.new()
+	label.name = "AchievementCounter"
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+	label.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+	label.offset_left = -button_size.x * 0.5
+	label.offset_top = -26.0
+	label.offset_right = button_size.x * 0.5
+	label.offset_bottom = -4.0
+	label.z_index = 1
+	UltraAchievementProgress.apply_title_style(label)
+	button.add_child(label)
+	return label
 
 func _game_ui() -> GnosisGameUIService:
 	if _host and _host.engine:
