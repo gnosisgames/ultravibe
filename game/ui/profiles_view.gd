@@ -30,6 +30,35 @@ func _title_outline_color() -> Color:
 func _title_shadow_color() -> Color:
 	return Color(0.08, 0.04, 0.12, 1.0)
 
+func _muted_label_color() -> Color:
+	return Color(0.85, 0.9, 0.95, 1.0)
+
+func _apply_panel_theme(force: bool = false) -> void:
+	if not force and _panel_theme_id == "ultravibe":
+		return
+	_panel_theme_id = "ultravibe"
+	if _card_panel:
+		_card_panel.add_theme_stylebox_override("panel", _build_card_panel_style())
+	if _stats_panel:
+		_stats_panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+	if _actions_divider:
+		_actions_divider.color = _panel_border_color()
+
+func _build_card_panel_style() -> StyleBoxFlat:
+	var box := StyleBoxFlat.new()
+	box.content_margin_left = 32.0
+	box.content_margin_top = 32.0
+	box.content_margin_right = 32.0
+	box.content_margin_bottom = 32.0
+	box.bg_color = _panel_bg_color()
+	box.border_color = _panel_border_color()
+	box.shadow_color = _panel_shadow_color()
+	box.set_border_width_all(4)
+	box.set_corner_radius_all(20)
+	box.shadow_size = 1
+	box.shadow_offset = Vector2(4, 6)
+	return box
+
 func _achievements_stat_enabled(_profile: Dictionary, _is_active: bool) -> bool:
 	return true
 

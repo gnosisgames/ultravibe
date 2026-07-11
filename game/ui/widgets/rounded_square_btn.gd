@@ -2,14 +2,20 @@
 class_name RoundedSquareBtn
 extends Button
 
-const ThemeUiScript := preload("res://addons/com.gnosisgames.gnosisengine/adapters/godot/widgets/gnosis_theme_ui.gd")
-
 signal hovered()
 signal unhovered()
+
+## Ultravibe menu purple — scene/tscn styles use these; never synced from gameplay theme.
+const UI_NORMAL := Color(0.345098, 0.345098, 0.572549, 1.0)
+const UI_PRESSED := Color(0.278431, 0.278431, 0.439216, 1.0)
+const UI_SHADOW := Color(0.08, 0.04, 0.12, 1.0)
+const UI_FOCUS_BORDER := Color(0.180392, 0.160784, 0.321569, 1.0)
 
 @export var hover_animate: bool = true
 @export var destructive: bool = false
 @export var accent: bool = false
+## When true, keep scene-authored style overrides (e.g. gameplay HUD shuffle pink).
+@export var use_fixed_styles: bool = false
 @export var text_tooltip: String = "":
 	set(new_text):
 		text_tooltip = new_text
@@ -21,7 +27,6 @@ signal unhovered()
 var tween: Tween
 var silent: bool = false
 var width_full_rot: float = 128.0
-var _theme_id: String = "__unset__"
 
 @onready var icon_texturerect: TextureRect = $Icon
 @onready var rich_text_label: RichTextLabel = $RichTextLabel
@@ -37,7 +42,7 @@ func _ready() -> void:
 	focus_exited.connect(unhover)
 	mouse_entered.connect(grab_focus)
 	mouse_exited.connect(release_focus)
-	_apply_theme_styles(true)
+	_apply_variant_styles()
 
 
 func _notification(what: int) -> void:
@@ -46,11 +51,6 @@ func _notification(what: int) -> void:
 	if what == NOTIFICATION_DISABLED:
 		_reset_hover_visual(true)
 
-
-func _process(_delta: float) -> void:
-	if Engine.is_editor_hint():
-		return
-	_apply_theme_styles()
 
 func grab_focus_silent() -> void:
 	silent = true
@@ -113,32 +113,18 @@ func _on_pressed() -> void:
 		UltraUiFx.play_ui_sfx(self, UltraUiFx.CLIP_PRESSED)
 
 
-func _apply_theme_styles(force: bool = false) -> void:
-	var theme_service = ThemeUiScript.resolve_theme_service(self)
-	var theme_id: String = str(theme_service.get_current_theme_id()) if theme_service else ""
-	if not force and theme_id == _theme_id and not destructive and not accent:
+func _apply_variant_styles() -> void:
+	if use_fixed_styles:
 		return
-	_theme_id = theme_id
-
 	if destructive:
 		_apply_destructive_theme_styles()
-		return
-	if accent:
-		_apply_accent_theme_styles(theme_service)
-		return
+	elif accent:
+		_apply_accent_theme_styles()
 
-	var bg := ThemeUiScript.button_normal_bg(theme_service, theme_id)
-	var neon := ThemeUiScript.button_active_color(theme_service)
-	var shadow := ThemeUiScript.button_shadow_color(theme_service)
-	var normal_border := ThemeUiScript.button_normal_border_color(theme_service, theme_id)
-	var focus_border := neon.lightened(0.45)
-	var normal_border_width := 2 if normal_border.a > 0.0 else 0
 
-	add_theme_stylebox_override("normal", _build_style(bg, shadow, normal_border_width, normal_border))
-	add_theme_stylebox_override("pressed", _build_style(neon, shadow))
-	add_theme_stylebox_override("hover", _build_style(neon, shadow))
-	add_theme_stylebox_override("disabled", _build_style(bg.darkened(0.28), shadow.darkened(0.22)))
-	add_theme_stylebox_override("focus", _build_style(neon, shadow, 4, focus_border))
+## Engine profiles view refreshes tab chrome after clearing overrides.
+func _apply_theme_styles(_force: bool = false) -> void:
+	_apply_variant_styles()
 
 
 func _apply_destructive_theme_styles() -> void:
@@ -170,22 +156,19 @@ func _apply_destructive_theme_styles() -> void:
 	add_theme_color_override("icon_disabled_color", Color(0.55, 0.55, 0.55, 1))
 
 
-func _apply_accent_theme_styles(theme_service) -> void:
-	var neon := ThemeUiScript.button_active_color(theme_service)
-	var shadow := ThemeUiScript.button_shadow_color(theme_service)
-	var normal := neon.darkened(0.10)
-	var hover := neon.lightened(0.10)
-	var pressed := neon.darkened(0.24)
-	var border := neon.lightened(0.22)
-	var focus_border := Color.WHITE.lerp(neon, 0.4).lightened(0.15)
+func _apply_accent_theme_styles() -> void:
+	var normal := UI_NORMAL
+	var hover := UI_PRESSED.lightened(0.08)
+	var pressed := UI_PRESSED
+	var shadow := UI_SHADOW
+	var border := UI_FOCUS_BORDER
+	var focus_border := Color.WHITE.lerp(UI_NORMAL, 0.35).lightened(0.12)
 	add_theme_stylebox_override("normal", _build_style(normal, shadow, 2, border))
 	add_theme_stylebox_override("hover", _build_style(hover, shadow, 2, border.lightened(0.1)))
 	add_theme_stylebox_override("pressed", _build_style(pressed, shadow, 2, border.darkened(0.06)))
-	var status_bg := ThemeUiScript.tray_bg_color(theme_service).lightened(0.10)
-	var status_border := border.darkened(0.42)
 	add_theme_stylebox_override(
 		"disabled",
-		_build_style(status_bg, shadow.darkened(0.28), 2, status_border)
+		_build_style(normal.darkened(0.28), shadow.darkened(0.22), 2, border.darkened(0.25))
 	)
 	add_theme_stylebox_override("focus", _build_style(hover, shadow, 3, focus_border))
 	var label := Color.WHITE

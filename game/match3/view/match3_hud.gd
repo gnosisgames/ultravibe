@@ -18,14 +18,16 @@ const ConsumableDbgScript = preload("res://game/match3/debug/match3_consumable_d
 const UltraGameUiNav = preload("res://game/ui/ultra_game_ui_nav.gd")
 ## Boss letter token font — mirrors the collection view boss tokens.
 const TOKEN_FONT_PATH := "res://assets/fonts/PolygonParty-3KXM.ttf"
-const TOKEN_DEFAULT_BG := Color(0.0980392, 0.156863, 0.227451)
+const HUD_PURPLE_NORMAL := Color(0.345098, 0.345098, 0.572549, 1)
+const HUD_PURPLE_DARK := Color(0.180392, 0.160784, 0.321569, 1)
+const TOKEN_DEFAULT_BG := HUD_PURPLE_DARK
 const SCORE_LANE_POP_PANEL_PEAK := 1.17
 const SCORE_LANE_POP_LABEL_PEAK := 1.26
 const SCORE_LANE_POP_FLASH := Color(1.28, 1.28, 1.28, 1.0)
 ## Total score label tints — zero blends into the dark inner panel; non-zero uses
 ## the outer score section purple (read from the section style / theme).
-const SCORE_PANEL_BG_COLOR := Color(0.156863, 0.196078, 0.290196, 1)
-const SCORE_SECTION_COLOR_FALLBACK := Color(0.415686, 0.415686, 0.658824, 1)
+const SCORE_PANEL_BG_COLOR := HUD_PURPLE_DARK
+const SCORE_SECTION_COLOR_FALLBACK := HUD_PURPLE_NORMAL
 
 ## Group used by subscreen overlays (shop / level select / reward) to find this
 ## HUD and query the shared content frame.
@@ -287,6 +289,7 @@ func _apply_level_meta(meta: Dictionary) -> void:
 	var bg := _parse_color(str(meta.get("backgroundColor", "")), TOKEN_DEFAULT_BG)
 	var fg := _parse_color(str(meta.get("textColor", "")), Color.WHITE)
 	if _level_token:
+		_level_token.visible = true
 		_level_token.text = letter
 		_level_token.add_theme_color_override("font_color", fg)
 	if _level_token_panel:
@@ -694,27 +697,35 @@ func _layout_sidebar_width() -> void:
 func _layout_action_buttons() -> void:
 	if _buttons_grid == null:
 		return
-	var grid_height := _buttons_grid.size.y
-	if _buttons_section != null and _buttons_section.size.y > 0.0:
-		grid_height = _buttons_section.size.y
-	if grid_height <= 8.0:
-		grid_height = _estimate_buttons_area_height()
-	if grid_height <= 8.0:
-		return
 	var cols := maxi(_buttons_grid.columns, 1)
 	var rows := ceili(float(_buttons_grid.get_child_count()) / float(cols))
+	var h_sep := _buttons_grid.get_theme_constant("h_separation")
 	var v_sep := _buttons_grid.get_theme_constant("v_separation")
-	var row_height := floorf((grid_height - v_sep * float(rows - 1)) / float(rows))
-	row_height = maxf(row_height, 48.0)
-	_buttons_grid.custom_minimum_size = Vector2.ZERO
+	var grid_width := _buttons_grid.size.x
+	if grid_width <= 8.0 and _buttons_section != null:
+		grid_width = _buttons_section.size.x
+	if grid_width <= 8.0:
+		grid_width = get_sidebar_width() - SIDEBAR_MARGIN_H
+	if grid_width <= 8.0:
+		return
+	var cell_width := floorf((grid_width - h_sep * float(cols - 1)) / float(cols))
+	var btn_size := minf(ACTION_BUTTON_SIZE, cell_width)
+	btn_size = maxf(btn_size, 64.0)
+	var grid_height := btn_size * float(rows) + v_sep * float(rows - 1)
+	_buttons_grid.custom_minimum_size = Vector2(0.0, grid_height)
+	if _buttons_section != null:
+		_buttons_section.size_flags_vertical = Control.SIZE_SHRINK_END
 	for child in _buttons_grid.get_children():
 		if child is Control:
 			var ctrl := child as Control
-			var target_min := Vector2(0, row_height)
+			var target_min := Vector2(btn_size, btn_size)
 			if not ctrl.custom_minimum_size.is_equal_approx(target_min):
 				ctrl.custom_minimum_size = target_min
 			ctrl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			ctrl.size_flags_vertical = Control.SIZE_EXPAND_FILL
+			ctrl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			if ctrl is Button:
+				var icon_max := int(minf(ACTION_ICON_MAX, btn_size * 0.6))
+				ctrl.add_theme_constant_override("icon_max_width", icon_max)
 
 
 func _estimate_buttons_area_height() -> float:

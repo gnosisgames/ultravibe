@@ -1140,6 +1140,7 @@ func get_active_level_meta() -> Dictionary:
 		"nameKey": "",
 		"descriptionKey": "",
 		"startingLetter": "",
+		"spriteId": "",
 		"backgroundColor": "",
 		"textColor": "",
 		"rewardAmount": 0,
@@ -1159,6 +1160,7 @@ func get_active_level_meta() -> Dictionary:
 	result["nameKey"] = _node_str(meta, "nameKey")
 	result["descriptionKey"] = _node_str(meta, "descriptionKey")
 	result["startingLetter"] = _node_str(meta, "startingLetter")
+	result["spriteId"] = _node_str(meta, "spriteId")
 	result["backgroundColor"] = _node_str(meta, "backgroundColor")
 	result["textColor"] = _node_str(meta, "textColor")
 	result["rewardAmount"] = _node_int(props, "rewardAmount", 0)

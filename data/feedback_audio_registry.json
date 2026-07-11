@@ -7,6 +7,7 @@
   "hammer": { "clip": "hammer", "volume": 1.0, "pitch": 1.0 },
   "gum": { "clip": "poof", "volume": 0.95, "pitch": 1.0 },
   "trophy": { "clip": "achievement_unlocked", "volume": 0.9, "pitch": 1.0 },
+  "achievement_unlock": { "clip": "achievement_unlocked", "volume": 0.9, "pitch": 1.0 },
   "axe": { "clip": "axe", "volume": 1.0, "pitch": 1.0 },
   "luckyBlock": { "clip": "dice", "volume": 1.0, "pitch": 1.05 }
 }

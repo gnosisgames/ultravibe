@@ -30,7 +30,15 @@
       "reward.skip": "#CC99FF",
       "reward.boss": "#E63333",
       "text.main": "#FFFFFF",
-      "primary.on": "#FFFFFF"
+      "primary.on": "#FFFFFF",
+      "uiChromeMode": "static",
+      "ui.panel.bg": "#585892",
+      "ui.panel.border": "#585892",
+      "ui.panel.shadow": "#140A1F",
+      "ui.button.normal": "#585892",
+      "ui.button.active": "#474670",
+      "ui.button.shadow": "#140A1F",
+      "ui.button.border": "#2E2952"
     },
     "language": "en",
     "collection": {
