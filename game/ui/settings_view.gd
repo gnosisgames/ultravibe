@@ -47,6 +47,9 @@ const FRAMERATE_CAP_KEY := "settings.framerateCap"
 const RESOLUTION_INDEX_KEY := "settings.resolutionIndex"
 const DISPLAY_INDEX_KEY := "settings.displayIndex"
 const REFRESH_RATE_INDEX_KEY := "settings.refreshRateIndex"
+const MUTE_ON_FOCUS_LOST_KEY := "settings.muteOnFocusLost"
+const ON_LOST_FOCUS_KEY := "settings.onLostFocus"
+const DEFAULT_ON_LOST_FOCUS_INDEX := 0
 const WINDOW_MODE_LABELS := {
 	"WindowModeWindowed": "WindowModeWindowed",
 	"WindowModeExclusiveFullScreen": "WindowModeExclusiveFullScreen",
@@ -69,6 +72,8 @@ func _input_bindings() -> Dictionary:
 @onready var _music_slider: HSlider = %MusicSlider
 @onready var _sfx_slider: HSlider = %SfxSlider
 @onready var _ui_slider: HSlider = %UiSlider
+@onready var _mute_on_focus_lost_toggle: JuicyToggle = %MuteOnFocusLostToggle
+@onready var _on_lost_focus_option: OptionButton = %OnLostFocusOption
 @onready var _scanlines_slider: HSlider = %ScanlinesSlider
 @onready var _vignette_slider: HSlider = %VignetteSlider
 @onready var _crt_filter_toggle: JuicyToggle = %CrtFilterToggle
@@ -102,6 +107,8 @@ func _input_bindings() -> Dictionary:
 @onready var _show_device_info_toggle: JuicyToggle = %ShowDeviceInfoToggle
 @onready var _enable_console_toggle: JuicyToggle = %EnableConsoleToggle
 @onready var _vibration_toggle: JuicyToggle = %VibrationToggle
+@onready var _light_flashes_toggle: JuicyToggle = %LightFlashesToggle
+@onready var _screen_shake_toggle: JuicyToggle = %ScreenShakeToggle
 @onready var _readable_font_toggle: JuicyToggle = %ReadableFontToggle
 @onready var _game_speed_option: OptionButton = %GameSpeedOption
 @onready var _flag_grid: GridContainer = %FlagGrid
@@ -132,6 +139,8 @@ func _ready() -> void:
 	_music_slider.value_changed.connect(_on_music_changed)
 	_sfx_slider.value_changed.connect(_on_sfx_changed)
 	_ui_slider.value_changed.connect(_on_ui_changed)
+	_mute_on_focus_lost_toggle.toggled.connect(func(on): _set_setting_bool(MUTE_ON_FOCUS_LOST_KEY, on))
+	_on_lost_focus_option.item_selected.connect(func(i): _set_setting_dropdown(ON_LOST_FOCUS_KEY, i))
 	_back_button.pressed.connect(_on_back_pressed)
 	_audio_tab.pressed.connect(func(): _show_tab("audio"))
 	_input_tab.pressed.connect(func(): _show_tab("controls"))
@@ -146,6 +155,8 @@ func _ready() -> void:
 	if not Input.joy_connection_changed.is_connected(_on_joy_connection_changed):
 		Input.joy_connection_changed.connect(_on_joy_connection_changed)
 	_vibration_toggle.toggled.connect(_on_vibration_toggled)
+	_light_flashes_toggle.toggled.connect(_on_light_flashes_toggled)
+	_screen_shake_toggle.toggled.connect(_on_screen_shake_toggled)
 	_readable_font_toggle.toggled.connect(_on_readable_font_toggled)
 	_game_speed_option.item_selected.connect(_on_game_speed_selected)
 	_log_level_option.item_selected.connect(_on_log_level_selected)
@@ -252,6 +263,7 @@ func _populate_options() -> void:
 	_populate_input_bindings()
 	_populate_log_levels()
 	_populate_game_speed_options()
+	_populate_on_lost_focus_options()
 	_populate_video_options()
 
 ## Video dropdown contents come from the settings option lists, which
@@ -305,6 +317,17 @@ func _populate_log_levels() -> void:
 	for label in LOG_LEVEL_LABELS:
 		_log_level_option.add_item(tr(label))
 
+func _populate_on_lost_focus_options() -> void:
+	_on_lost_focus_option.clear()
+	var options := _settings_list("onLostFocusOptions")
+	if options.is_valid() and options.get_type() == GnosisValueType.LIST and options.get_count() > 0:
+		for i in range(options.get_count()):
+			_on_lost_focus_option.add_item(tr(str(options.get_node(i).value)))
+	else:
+		_on_lost_focus_option.add_item(tr("core__settings__onLostFocus__doNothing"))
+		_on_lost_focus_option.add_item(tr("core__settings__onLostFocus__pause"))
+		_on_lost_focus_option.add_item(tr("core__settings__onLostFocus__pauseNoInputs"))
+
 func _populate_languages() -> void:
 	for b in _flag_buttons:
 		b.queue_free()
@@ -354,6 +377,7 @@ func _sync_from_services() -> void:
 	_sync_input_bindings()
 	_populate_video_options()
 	_populate_game_speed_options()
+	_populate_on_lost_focus_options()
 	_scanlines_slider.value = _read_setting_float(SCANLINES_KEY, 0.0)
 	_vignette_slider.value = _read_setting_float(VIGNETTE_INTENSITY_KEY, 0.0)
 	_crt_filter_toggle.set_pressed_silent(_read_setting_bool(CRT_FILTER_ENABLED_KEY, false))
@@ -365,7 +389,11 @@ func _sync_from_services() -> void:
 	_resolution_option.select(clampi(_read_setting_int(RESOLUTION_INDEX_KEY, 0), 0, max(0, _resolution_option.item_count - 1)))
 	_refresh_option.select(clampi(_read_setting_int(REFRESH_RATE_INDEX_KEY, 0), 0, max(0, _refresh_option.item_count - 1)))
 	_monitor_option.select(clampi(_read_setting_int(DISPLAY_INDEX_KEY, 0), 0, max(0, _monitor_option.item_count - 1)))
+	_mute_on_focus_lost_toggle.set_pressed_silent(_read_setting_bool(MUTE_ON_FOCUS_LOST_KEY, false))
+	_on_lost_focus_option.select(clampi(_read_setting_int(ON_LOST_FOCUS_KEY, DEFAULT_ON_LOST_FOCUS_INDEX), 0, max(0, _on_lost_focus_option.item_count - 1)))
 	_vibration_toggle.set_pressed_silent(_read_haptics_enabled())
+	_light_flashes_toggle.set_pressed_silent(_read_light_flashes_enabled())
+	_screen_shake_toggle.set_pressed_silent(_read_screen_shake_enabled())
 	_readable_font_toggle.set_pressed_silent(_read_readable_font_enabled())
 	_game_speed_option.select(_read_game_speed_index())
 	_log_level_option.select(_read_log_level_index())
@@ -420,6 +448,24 @@ func _update_framerate_cap_interaction(vsync_on: bool) -> void:
 
 func _on_vibration_toggled(enabled: bool) -> void:
 	_set_haptics_enabled(enabled)
+
+func _read_light_flashes_enabled() -> bool:
+	return UltraAccessibilitySettings.light_flashes_enabled(_engine(), true)
+
+func _set_light_flashes_enabled(enabled: bool) -> void:
+	_set_setting_bool(GnosisAccessibilitySettings.LIGHT_FLASHES_ENABLED_KEY, enabled)
+
+func _on_light_flashes_toggled(enabled: bool) -> void:
+	_set_light_flashes_enabled(enabled)
+
+func _read_screen_shake_enabled() -> bool:
+	return UltraAccessibilitySettings.screen_shake_enabled(_engine(), true)
+
+func _set_screen_shake_enabled(enabled: bool) -> void:
+	_set_setting_bool(GnosisAccessibilitySettings.SCREEN_SHAKE_ENABLED_KEY, enabled)
+
+func _on_screen_shake_toggled(enabled: bool) -> void:
+	_set_screen_shake_enabled(enabled)
 
 func _read_readable_font_enabled() -> bool:
 	return GnosisAccessibilitySettings.readable_font_enabled(_engine(), false)

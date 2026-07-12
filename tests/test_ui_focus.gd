@@ -48,12 +48,6 @@ func _run() -> bool:
 	else:
 		print("[SUCCESS] gameplay releases UI focus")
 
-	var pause_params := engine.store.create_object()
-	pause_params.set_key("viewId", "pause")
-	pause_params.set_key("overlayStateId", "open")
-	ui.invoke_function("PushViewAdditive", pause_params)
-	ok = _expect_focus("ResumeButton", "pause overlay") and ok
-
 	return ok
 
 func _expect_focus(expected_name: String, label: String) -> bool:

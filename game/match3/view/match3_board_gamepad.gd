@@ -3,6 +3,8 @@ extends RefCounted
 
 ## Gamepad board focus navigation and select-then-swap (Unity Match3Dispatcher.Gamepad parity).
 
+const GameInputActions = preload("res://game/input/game_input_actions.gd")
+
 const AXIS_THRESHOLD := 0.55
 const AXIS_REPEAT_DELAY := 0.22
 const AXIS_REPEAT_INTERVAL := 0.22
@@ -54,6 +56,7 @@ func process(delta: float, dispatcher) -> void:
 	if not _focus_valid:
 		initialize_from_board(dispatcher)
 		return
+	_release_ui_focus()
 	_handle_axis_navigation(delta, dispatcher)
 	if Input.is_action_just_pressed("MatchSelect"):
 		if _select_requires_release:
@@ -93,8 +96,8 @@ func on_swap_invalid() -> void:
 
 
 func _handle_axis_navigation(delta: float, dispatcher) -> void:
-	var h := Input.get_action_strength("MoveHorizontal") - Input.get_action_strength("MoveHorizontal", true)
-	var v := Input.get_action_strength("MoveVertical") - Input.get_action_strength("MoveVertical", true)
+	var h := GameInputActions.get_axis_value("MoveHorizontal")
+	var v := GameInputActions.get_axis_value("MoveVertical")
 	if _tile_selected:
 		if absf(h) >= AXIS_THRESHOLD:
 			var sign := 1 if h > 0.0 else -1
@@ -210,3 +213,11 @@ func _is_playable(dispatcher, cell: Vector2i) -> bool:
 
 func _has_active_gamepad() -> bool:
 	return Input.get_connected_joypads().size() > 0
+
+
+func _release_ui_focus() -> void:
+	var tree := Engine.get_main_loop()
+	if tree is SceneTree:
+		var vp := (tree as SceneTree).root.get_viewport() if (tree as SceneTree).root else null
+		if vp and vp.gui_get_focus_owner():
+			vp.gui_release_focus()

@@ -148,10 +148,11 @@ func _refresh_continue_button() -> void:
 		return
 	var has_save := GnosisRunSave.has_continuable_save()
 	_continue_button.visible = has_save
-	if has_save:
-		_continue_button.call_deferred("grab_focus")
-	elif _play_button:
-		_play_button.call_deferred("grab_focus")
+
+func get_preferred_focus_control() -> Control:
+	if _continue_button and _continue_button.visible:
+		return _continue_button
+	return _play_button
 
 func _on_continue_pressed() -> void:
 	if _host == null or _host.engine == null:

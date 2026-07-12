@@ -113,6 +113,13 @@
         "ultravibe__settings__gameSpeed__3x",
         "ultravibe__settings__gameSpeed__4x"
       ],
+      "muteOnFocusLost": false,
+      "onLostFocus": 0,
+      "onLostFocusOptions": [
+        "core__settings__onLostFocus__doNothing",
+        "core__settings__onLostFocus__pause",
+        "core__settings__onLostFocus__pauseNoInputs"
+      ],
       "hasSeenOnboarding": false,
       "crtIntensity": 0,
       "vignetteIntensity": 0,
@@ -228,6 +235,7 @@
     },
     "accessibility": {
       "lightFlashesEnabled": true,
+      "screenShakeEnabled": true,
       "readableFontEnabled": false
     },
     "currentSaveId": "MySave1",

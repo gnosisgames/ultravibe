@@ -4,7 +4,7 @@ extends RefCounted
 ## Ultravibe build identity. Bump VERSION here for releases; the platform
 ## suffix is appended automatically (D = desktop, A = Android, I = iOS, W = Web).
 
-const VERSION := "0.8.0"
+const VERSION := "0.7.0"
 
 static func display_version() -> String:
 	return "%s-%s" % [VERSION, _platform_suffix()]

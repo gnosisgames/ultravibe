@@ -122,33 +122,39 @@ theme_override_fonts/normal_font = ExtResource("2")
 theme_override_font_sizes/normal_font_size = 28
 bbcode_enabled = true
 text = "[center]
-[color=#fddec8][font_size=40]DEVELOPER[/font_size][/color]
+[color=#3f80d6][font_size=40]DEVELOPER[/font_size][/color]
 [color=#ffffff]Gnosis Games[/color]
 
 [font_size=20] [/font_size]
 
-[color=#fddec8][font_size=40]MUSIC[/font_size][/color]
+[color=#3f80d6][font_size=40]PUBLISHER[/font_size][/color]
+[color=#ffffff]Gnosis Games[/color]
+
+[font_size=20] [/font_size]
+
+[color=#3f80d6][font_size=40]MUSIC[/font_size][/color]
 [color=#ffffff]Miguel Angel
 Incompetech by Kevin MacLeod[/color]
 
 [font_size=20] [/font_size]
 
-[color=#fddec8][font_size=40]SPRITES[/font_size][/color]
+[color=#3f80d6][font_size=40]SPRITES[/font_size][/color]
 [color=#ffffff]Flaticon
 Kenney
 Gnosis Games[/color]
 
 [font_size=20] [/font_size]
 
-[color=#fddec8][font_size=40]TOOLS & SOFTWARE[/font_size][/color]
-[color=#ffffff]Godot
+[color=#3f80d6][font_size=40]TOOLS & SOFTWARE[/font_size][/color]
+[color=#ffffff]Godot Engine
 Procreate
+DaVinci Resolve
 Local Send
 Discord[/color]
 
 [font_size=20] [/font_size]
 
-[color=#fddec8][font_size=40]SPECIAL THANKS[/font_size][/color]
+[color=#3f80d6][font_size=40]SPECIAL THANKS[/font_size][/color]
 [color=#ffffff]All Playtesters and Supporters![/color]
 [/center]"
 fit_content = true

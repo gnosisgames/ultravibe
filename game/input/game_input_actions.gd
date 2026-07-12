@@ -11,14 +11,20 @@ const BINDINGS := {
 	"MoveHorizontal": {
 		"label": "ultravibe__input__moveHorizontal",
 		"category": "gameplay",
+		"gamepadAllDevices": true,
 		"gamepadAxis": JOY_AXIS_LEFT_X,
+		"axisNegativeGamepadButtons": [JOY_BUTTON_DPAD_LEFT],
+		"axisPositiveGamepadButtons": [JOY_BUTTON_DPAD_RIGHT],
 		"axisNegativeKeys": [KEY_A, KEY_LEFT],
 		"axisPositiveKeys": [KEY_D, KEY_RIGHT],
 	},
 	"MoveVertical": {
 		"label": "ultravibe__input__moveVertical",
 		"category": "gameplay",
+		"gamepadAllDevices": true,
 		"gamepadAxis": JOY_AXIS_LEFT_Y,
+		"axisNegativeGamepadButtons": [JOY_BUTTON_DPAD_UP],
+		"axisPositiveGamepadButtons": [JOY_BUTTON_DPAD_DOWN],
 		"axisNegativeKeys": [KEY_W, KEY_UP],
 		"axisPositiveKeys": [KEY_S, KEY_DOWN],
 	},
@@ -30,6 +36,7 @@ const BINDINGS := {
 	"Shuffle": {
 		"label": "ultravibe__input__shuffle",
 		"category": "gameplay",
+		"gamepadAllDevices": true,
 		"keycode": KEY_Q,
 		"physicalKeycode": KEY_Q,
 		"gamepadButton": JOY_BUTTON_Y,
@@ -37,11 +44,13 @@ const BINDINGS := {
 	"MatchSelect": {
 		"label": "ultravibe__input__matchSelect",
 		"category": "gameplay",
+		"gamepadAllDevices": true,
 		"gamepadButton": JOY_BUTTON_A,
 	},
 	"MatchCancel": {
 		"label": "ultravibe__input__matchCancel",
 		"category": "gameplay",
+		"gamepadAllDevices": true,
 		"gamepadButton": JOY_BUTTON_B,
 	},
 	"UIHorizontal": {
@@ -170,7 +179,8 @@ static func ensure_input_map() -> void:
 			InputMap.add_action(action_name)
 		_apply_default_keyboard(action_name, spec)
 		if spec.has("gamepadAxis"):
-			_apply_gamepad_axis(action_name, int(spec.gamepadAxis))
+			_apply_gamepad_axis_pair(action_name, int(spec.gamepadAxis), gamepad_binding_all_devices(action_name))
+			_strip_legacy_base_axis_bindings(action_name)
 		var pad := int(spec.get("gamepadButton", -1))
 		if pad >= 0:
 			_apply_gamepad_button(action_name, pad, gamepad_binding_all_devices(action_name))
@@ -182,6 +192,10 @@ static func ensure_input_map() -> void:
 		var pos_keys: Array = spec.get("axisPositiveKeys", [])
 		if not neg_keys.is_empty() or not pos_keys.is_empty():
 			_apply_axis_keyboard_pair(action_name, neg_keys, pos_keys)
+		for button_index in spec.get("axisNegativeGamepadButtons", []):
+			_apply_gamepad_button(axis_negative_action(action_name), int(button_index), gamepad_binding_all_devices(action_name))
+		for button_index in spec.get("axisPositiveGamepadButtons", []):
+			_apply_gamepad_button(axis_positive_action(action_name), int(button_index), gamepad_binding_all_devices(action_name))
 	ensure_ui_navigation_gamepad_bindings()
 
 static func ensure_ui_navigation_gamepad_bindings() -> void:
@@ -238,13 +252,37 @@ static func _has_keyboard_binding(action_name: String, keycode: int, physical: i
 				return true
 	return false
 
-static func _apply_gamepad_axis(action_name: String, axis: int) -> void:
+static func _strip_legacy_base_axis_bindings(base_action: String) -> void:
+	if not InputMap.has_action(base_action):
+		return
+	for existing in InputMap.action_get_events(base_action):
+		if existing is InputEventJoypadMotion:
+			InputMap.action_erase_event(base_action, existing)
+
+
+static func _apply_gamepad_axis_pair(base_action: String, axis: int, all_devices: bool) -> void:
+	var neg_name := axis_negative_action(base_action)
+	var pos_name := axis_positive_action(base_action)
+	for companion in [neg_name, pos_name]:
+		if not InputMap.has_action(companion):
+			InputMap.add_action(companion)
+	_apply_gamepad_axis_direction(neg_name, axis, -1.0, all_devices)
+	_apply_gamepad_axis_direction(pos_name, axis, 1.0, all_devices)
+
+
+static func _apply_gamepad_axis_direction(action_name: String, axis: int, axis_value: float, all_devices: bool) -> void:
+	var wanted_device := -1 if all_devices else 0
 	for existing in InputMap.action_get_events(action_name):
-		if existing is InputEventJoypadMotion and (existing as InputEventJoypadMotion).axis == axis:
-			return
+		if existing is InputEventJoypadMotion:
+			var motion := existing as InputEventJoypadMotion
+			if motion.axis == axis and is_equal_approx(motion.axis_value, axis_value):
+				if motion.device == wanted_device:
+					return
+				InputMap.action_erase_event(action_name, existing)
 	var event := InputEventJoypadMotion.new()
 	event.axis = axis
-	event.axis_value = 1.0
+	event.axis_value = axis_value
+	event.device = wanted_device
 	InputMap.action_add_event(action_name, event)
 
 static func _apply_gamepad_button(action_name: String, button_index: int, all_devices: bool = false) -> void:

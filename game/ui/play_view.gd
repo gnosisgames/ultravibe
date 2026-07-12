@@ -32,13 +32,17 @@ func set_view_visible(is_visible: bool) -> void:
 		_sync_from_settings()
 		call_deferred("_focus_default_control")
 
+func get_preferred_focus_control() -> Control:
+	if _current_tab == "setup" and _play_button and not _play_button.disabled:
+		return _play_button
+	if _back_button and not _back_button.disabled:
+		return _back_button
+	return null
+
 func _focus_default_control() -> void:
-	if not is_visible_in_tree():
-		return
-	if _current_tab == "setup" and _play_button:
-		_play_button.grab_focus()
-	elif _back_button:
-		_back_button.grab_focus()
+	var target := get_preferred_focus_control()
+	if target and is_visible_in_tree():
+		target.grab_focus()
 
 func _resolve_host() -> void:
 	var node: Node = self
@@ -200,15 +204,10 @@ func _localized(key: String, fallback: String) -> String:
 
 func _on_back_pressed() -> void:
 	var ui := _game_ui()
-	if ui and _engine():
-		if ui.get_navigation_history_count() > 0:
-			var params := _engine().store.create_object()
-			params.set_key("transitionId", "slide_down")
-			params.set_key("inDuration", 0.35)
-			params.set_key("outDuration", 0.35)
-			ui.invoke_function("PopView", params)
-		else:
-			UltraGameUiNav.return_to_title(ui)
+	var eng := _engine()
+	if ui == null or eng == null:
+		return
+	UltraGameUiNav.pop_menu_back(ui, eng.store, "slide_down")
 
 func _meta_str(node: GnosisNode, key: String) -> String:
 	var n := node.get_node(key)

@@ -16,6 +16,7 @@ const Match3LuckMeterScript = preload("res://game/match3/view/match3_luck_meter.
 const SupportScript = preload("res://game/match3/boons/match3_boon_support.gd")
 const ConsumableDbgScript = preload("res://game/match3/debug/match3_consumable_debug.gd")
 const UltraGameUiNav = preload("res://game/ui/ultra_game_ui_nav.gd")
+const GameInputActions = preload("res://game/input/game_input_actions.gd")
 ## Boss letter token font — mirrors the collection view boss tokens.
 const TOKEN_FONT_PATH := "res://assets/fonts/PolygonParty-3KXM.ttf"
 const HUD_PURPLE_NORMAL := Color(0.345098, 0.345098, 0.572549, 1)
@@ -32,6 +33,7 @@ const SCORE_SECTION_COLOR_FALLBACK := HUD_PURPLE_NORMAL
 ## Group used by subscreen overlays (shop / level select / reward) to find this
 ## HUD and query the shared content frame.
 const HUD_GROUP := "match3_hud"
+const LEFT_CARD_BRIDGE_TOLERANCE := 240.0
 const HUD_TOOLTIP_CANVAS_LAYER := 8
 ## Uniform gap between the content frame and the sidebars (and between cards).
 const FRAME_GAP := 32.0
@@ -79,6 +81,7 @@ signal content_frame_changed
 @onready var _settings_button: Button = %SettingsButton
 @onready var _wiki_button: Button = %WikiButton
 @onready var _shuffle_button: Button = %ShuffleButton
+@onready var _restart_hold_button: Button = %RestartHoldButton
 @onready var _boss_section: PanelContainer = %BossSection
 @onready var _boons_bar: PanelContainer = %BoonsBar
 @onready var _boons_row: Match3HudBoonsRow = %BoonsRow
@@ -99,6 +102,7 @@ var _frame_dirty_pending := false
 @onready var _board_host: Control = %BoardHost
 
 var _service = null
+var _planning_focus_bridge_controls: Array[Control] = []
 var _last_inventory_count_signature := ""
 var _last_upgrade_rail_signature := ""
 var _boon_juice_subscription: RefCounted = null
@@ -110,6 +114,7 @@ var _display_last_match_score := 0
 var _score_display_tween: Tween = null
 var _score_escalation = null
 var _hud_tooltip_layer: CanvasLayer = null
+var _planning_overlay_active := false
 
 
 func _ready() -> void:
@@ -129,10 +134,12 @@ func _ready() -> void:
 		_wiki_button.pressed.connect(_on_wiki_pressed)
 	if _shuffle_button:
 		_shuffle_button.pressed.connect(_on_shuffle_pressed)
+	set_process_input(true)
 	_score_escalation = Match3HudScoreEscalationScript.new()
 	_score_escalation.name = "ScoreEscalation"
 	add_child(_score_escalation)
 	call_deferred("_setup_score_escalation")
+	call_deferred("_wire_sidebar_grid_neighbors")
 	if _boss_section:
 		_boss_section.resized.connect(_schedule_frame_dirty)
 	if _score_section:
@@ -188,6 +195,7 @@ func get_hud_tooltip_layer() -> CanvasLayer:
 ## While the planning overlay (shop + level cards) is open, the boons strip sits
 ## under the same screen region and must not steal hover / click from it.
 func set_planning_overlay_active(active: bool) -> void:
+	_planning_overlay_active = active
 	var filter := Control.MOUSE_FILTER_IGNORE if active else Control.MOUSE_FILTER_STOP
 	if _boons_bar:
 		_boons_bar.mouse_filter = filter
@@ -197,6 +205,226 @@ func set_planning_overlay_active(active: bool) -> void:
 		_consumables_bar.mouse_filter = filter
 	if _consumables_column:
 		_consumables_column.mouse_filter = filter
+	if not active:
+		clear_planning_focus_neighbors()
+
+
+func get_sidebar_shuffle_button() -> Button:
+	return _shuffle_button
+
+
+func get_sidebar_restart_button() -> Button:
+	return _restart_hold_button
+
+
+func _input(event: InputEvent) -> void:
+	if not _planning_overlay_active:
+		return
+	if not _is_planning_nav_right(event):
+		return
+	var focus_owner := get_viewport().gui_get_focus_owner() as Control
+	if focus_owner == null or not _is_sidebar_action_control(focus_owner):
+		return
+	var bridge := _find_planning_bridge_focus_target()
+	if bridge:
+		bridge.grab_focus()
+		get_viewport().set_input_as_handled()
+
+
+func _is_planning_nav_right(event: InputEvent) -> bool:
+	return event.is_action_pressed("ui_right") \
+		or event.is_action_pressed(GameInputActions.axis_positive_action("UIHorizontal"))
+
+
+func _is_sidebar_action_control(control: Control) -> bool:
+	for btn in get_sidebar_action_buttons():
+		if control == btn:
+			return true
+	return false
+
+
+func _find_planning_bridge_focus_target() -> Control:
+	for node in get_tree().get_nodes_in_group("gnosis_ui_view"):
+		if node == self or not is_instance_valid(node):
+			continue
+		if not node.is_visible_in_tree():
+			continue
+		if node.has_method("get_sidebar_bridge_focus_target"):
+			var target: Variant = node.call("get_sidebar_bridge_focus_target")
+			if target is Control and _is_valid_bridge_target(target as Control):
+				return target as Control
+	return null
+
+
+func _is_valid_bridge_target(control: Control) -> bool:
+	if control == null or not is_instance_valid(control):
+		return false
+	if not control.is_visible_in_tree() or control.focus_mode == Control.FOCUS_NONE:
+		return false
+	if control is BaseButton and (control as BaseButton).disabled:
+		return false
+	return true
+
+
+func get_sidebar_action_buttons() -> Array[Button]:
+	var buttons: Array[Button] = []
+	if _buttons_grid == null:
+		return buttons
+	for child in _buttons_grid.get_children():
+		if child is Button:
+			var btn := child as Button
+			if btn.focus_mode != Control.FOCUS_NONE and btn.is_visible_in_tree():
+				buttons.append(btn)
+	return buttons
+
+
+## Links planning-overlay controls (level cards, shop) to the left sidebar grid so
+## gamepad left/right can reach shuffle / restart / home while level select is open.
+func wire_planning_focus_neighbors(planning_controls: Array[Control]) -> void:
+	clear_planning_focus_neighbors()
+	_wire_sidebar_grid_neighbors()
+	if planning_controls.is_empty() or _shuffle_button == null:
+		return
+	var bridge_controls := _leftmost_card_planning_controls(planning_controls)
+	if bridge_controls.is_empty():
+		return
+	var bridge_target := _left_edge_bridge_control(bridge_controls)
+	if bridge_target:
+		_link_focus_neighbor(bridge_target, "left", _shuffle_button)
+		_planning_focus_bridge_controls.append(bridge_target)
+		_link_focus_neighbor(_shuffle_button, "right", bridge_target)
+	if _restart_hold_button and bridge_target:
+		var restart_target := _nearest_planning_by_y(_restart_hold_button, bridge_controls)
+		if restart_target and restart_target != bridge_target:
+			_link_focus_neighbor(_restart_hold_button, "right", restart_target)
+
+
+func clear_planning_focus_neighbors() -> void:
+	for plan in _planning_focus_bridge_controls:
+		if is_instance_valid(plan):
+			plan.focus_neighbor_left = NodePath()
+	_planning_focus_bridge_controls.clear()
+	for btn in get_sidebar_action_buttons():
+		btn.focus_neighbor_right = NodePath()
+	_wire_sidebar_grid_neighbors()
+
+
+func _wire_sidebar_grid_neighbors() -> void:
+	if _wiki_button == null or _shuffle_button == null or _home_button == null \
+			or _settings_button == null or _restart_hold_button == null:
+		return
+	# 3x2 grid (middle-top cell is a non-focusable placeholder):
+	#   Wiki | — | Shuffle
+	#   Home | Settings | Restart
+	_link_focus_neighbor(_wiki_button, "right", _shuffle_button)
+	_link_focus_neighbor(_wiki_button, "bottom", _home_button)
+	_trap_focus_neighbor(_wiki_button, "top")
+	_link_focus_neighbor(_shuffle_button, "left", _wiki_button)
+	_link_focus_neighbor(_shuffle_button, "bottom", _restart_hold_button)
+	_trap_focus_neighbor(_shuffle_button, "top")
+	_link_focus_neighbor(_home_button, "top", _wiki_button)
+	_link_focus_neighbor(_home_button, "right", _settings_button)
+	_trap_focus_neighbor(_home_button, "bottom")
+	_trap_focus_neighbor(_home_button, "left")
+	_trap_focus_neighbor(_wiki_button, "left")
+	_link_focus_neighbor(_settings_button, "left", _home_button)
+	_link_focus_neighbor(_settings_button, "right", _restart_hold_button)
+	_link_focus_neighbor(_settings_button, "top", _wiki_button)
+	_link_focus_neighbor(_restart_hold_button, "left", _settings_button)
+	_link_focus_neighbor(_restart_hold_button, "top", _shuffle_button)
+	_trap_focus_neighbor(_restart_hold_button, "bottom")
+
+
+func _link_focus_neighbor(from: Control, side: String, to: Control) -> void:
+	if from == null or to == null or not is_instance_valid(from) or not is_instance_valid(to):
+		return
+	if not from.is_visible_in_tree() or not to.is_visible_in_tree():
+		return
+	var path := from.get_path_to(to)
+	if path.is_empty() or from.get_node_or_null(path) != to:
+		return
+	match side:
+		"left":
+			from.focus_neighbor_left = path
+		"right":
+			from.focus_neighbor_right = path
+		"top":
+			from.focus_neighbor_top = path
+		"bottom":
+			from.focus_neighbor_bottom = path
+
+
+func _trap_focus_neighbor(control: Control, side: String) -> void:
+	if control == null or not is_instance_valid(control):
+		return
+	_link_focus_neighbor(control, side, control)
+
+
+func _leftmost_card_planning_controls(planning_controls: Array[Control]) -> Array[Control]:
+	var min_x := INF
+	for plan in planning_controls:
+		if not _is_planning_focusable(plan):
+			continue
+		min_x = minf(min_x, plan.get_global_rect().position.x)
+	if min_x == INF:
+		return []
+	var bridge: Array[Control] = []
+	for plan in planning_controls:
+		if not _is_planning_focusable(plan):
+			continue
+		if plan.get_global_rect().position.x <= min_x + LEFT_CARD_BRIDGE_TOLERANCE:
+			bridge.append(plan)
+	return bridge
+
+
+func _left_edge_bridge_control(bridge_controls: Array[Control]) -> Control:
+	if bridge_controls.is_empty():
+		return null
+	var min_x := INF
+	for plan in bridge_controls:
+		if not _is_planning_focusable(plan):
+			continue
+		min_x = minf(min_x, plan.get_global_rect().position.x)
+	if min_x == INF:
+		return null
+	for plan in bridge_controls:
+		if plan is Button and plan.name == "LevelPlayButton" and not (plan as Button).disabled:
+			if plan.get_global_rect().position.x <= min_x + 12.0:
+				return plan
+	for plan in bridge_controls:
+		if not _is_planning_focusable(plan):
+			continue
+		if plan.get_global_rect().position.x <= min_x + 12.0:
+			return plan
+	return null
+
+
+func _primary_planning_bridge_target(bridge_controls: Array[Control]) -> Control:
+	return _left_edge_bridge_control(bridge_controls)
+
+
+func _nearest_planning_by_y(anchor: Control, planning_controls: Array[Control]) -> Control:
+	var anchor_center := anchor.get_global_rect().get_center()
+	var best: Control = null
+	var best_score := INF
+	for plan in planning_controls:
+		if not _is_planning_focusable(plan):
+			continue
+		var score := anchor_center.distance_squared_to(plan.get_global_rect().get_center())
+		if score < best_score:
+			best_score = score
+			best = plan
+	return best
+
+
+func _is_planning_focusable(control: Control) -> bool:
+	if control == null or not is_instance_valid(control):
+		return false
+	if not control.is_visible_in_tree() or control.focus_mode == Control.FOCUS_NONE:
+		return false
+	if control is BaseButton and (control as BaseButton).disabled:
+		return false
+	return true
 
 
 func bind_service(service) -> void:
@@ -730,6 +958,7 @@ func _layout_action_buttons() -> void:
 			if ctrl is Button:
 				var icon_max := int(minf(ACTION_ICON_MAX, row_height * 0.6))
 				ctrl.add_theme_constant_override("icon_max_width", icon_max)
+	call_deferred("_wire_sidebar_grid_neighbors")
 
 
 func _estimate_buttons_area_height() -> float:

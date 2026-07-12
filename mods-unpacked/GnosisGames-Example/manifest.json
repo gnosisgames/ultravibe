@@ -10,7 +10,7 @@
 			"authors": ["Gnosis Games"],
 			"tags": ["example", "demo"],
 			"compatible_mod_loader_version": ["7.0.1"],
-			"compatible_game_version": ["0.1.0"],
+			"compatible_game_version": ["0.7.0"],
 			"description_rich": "[font_size=30][b]1.0.0[/b][/font_size]  —  Initial showcase\n[color=#b8f0c8]•[/color] Mods screen integration with enable toggle\n[color=#b8f0c8]•[/color] Configurable luck-meter highlight and boost slider\n[color=#b8f0c8]•[/color] Startup log message toggle\n\n[font_size=30][b]0.9.0[/b][/font_size]  —  Internal beta\n[color=#b8f0c8]•[/color] Manifest + mod_main scaffold\n[color=#b8f0c8]•[/color] Basic load-order validation",
 			"config_schema": {
 				"title": "Example Mod",

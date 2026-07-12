@@ -108,6 +108,7 @@ func _configure_gameplay_input() -> void:
 		2: "P2",
 		3: "P3",
 	}
+	input.enable_global_pause_toggle = false
 
 func _bind_match3_adapter() -> void:
 	var svc := engine.get_service("Match3") if engine else null

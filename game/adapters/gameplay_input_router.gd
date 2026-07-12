@@ -1,7 +1,7 @@
 class_name UltravibeGameplayInputRouter
 extends Node
 
-## Match-3 uses board drag input on Match3Dispatcher; this router only gates pause.
+## Match-3 uses board drag input on Match3Dispatcher; this router gates cancel during overlays.
 
 var _host: GnosisGodotEngine = null
 var _subscriptions: Array = []
@@ -46,8 +46,6 @@ func _gameplay_live() -> bool:
 	if ui == null:
 		return false
 	if ui.get_base_view_id().strip_edges().to_lower() != "gameplay":
-		return false
-	if not ui.get_active_overlay_state_for_view("pause").is_empty():
 		return false
 	if not ui.get_active_overlay_state_for_view("game_over").is_empty():
 		return false

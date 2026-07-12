@@ -8,8 +8,6 @@
 [ext_resource type="PackedScene" path="res://game/ui/ultravibe_background.tscn" id="8"]
 [ext_resource type="Shader" uid="uid://b52xmda6e8l3l" path="res://assets/ui/crt.gdshader" id="9"]
 [ext_resource type="PackedScene" path="res://game/ui/collection_view.tscn" id="10"]
-[ext_resource type="PackedScene" path="res://game/ui/pause_view.tscn" id="11"]
-[ext_resource type="Script" uid="uid://bc05u1kvx2obs" path="res://game/adapters/gameplay_pause_bridge.gd" id="12"]
 [ext_resource type="Script" uid="uid://ce16v2mw01rav" path="res://game/adapters/gameplay_input_router.gd" id="13"]
 [ext_resource type="Script" path="res://game/adapters/gameplay_hold_restart_bridge.gd" id="23"]
 [ext_resource type="PackedScene" path="res://game/ui/game_over_view.tscn" id="14"]
@@ -23,6 +21,7 @@
 [ext_resource type="PackedScene" path="res://game/ui/achievements_view.tscn" id="25"]
 [ext_resource type="PackedScene" path="res://game/ui/profiles_view.tscn" id="26"]
 [ext_resource type="PackedScene" path="res://addons/com.gnosisgames.gnosisengine/adapters/godot/views/gnosis_splash_view.tscn" id="27"]
+[ext_resource type="Script" path="res://game/adapters/window_focus_bridge.gd" id="28"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_backdrop"]
 bg_color = Color(0.08, 0.13, 0.19, 0.82)
@@ -70,8 +69,8 @@ startup_view_id = "splash"
 
 [node name="Adapters" type="Node" parent="." unique_id=1934726117]
 
-[node name="GameplayPauseBridge" type="Node" parent="Adapters" unique_id=1489410630]
-script = ExtResource("12")
+[node name="WindowFocusBridge" type="Node" parent="Adapters"]
+script = ExtResource("28")
 
 [node name="GameplayInputRouter" type="Node" parent="Adapters" unique_id=237626129]
 script = ExtResource("13")
@@ -127,9 +126,6 @@ visible = false
 visible = false
 
 [node name="PlayView" parent="UI" unique_id=24072373 instance=ExtResource("15")]
-visible = false
-
-[node name="PauseView" parent="UI" unique_id=1869686917 instance=ExtResource("11")]
 visible = false
 
 [node name="GameOverView" parent="UI" unique_id=125485956 instance=ExtResource("14")]

@@ -11,6 +11,8 @@ const ConsumableCatalogUi = preload("res://game/ui/consumable_catalog_ui.gd")
 const ShopCatalogUi = preload("res://game/ui/shop_catalog_ui.gd")
 const ShopOfferCard = preload("res://game/ui/widgets/shop_offer_card.gd")
 const ShopRerollCard = preload("res://game/ui/widgets/shop_reroll_card.gd")
+const JuicyButton = preload("res://game/ui/widgets/juicy_button.gd")
+const GameInputActions = preload("res://game/input/game_input_actions.gd")
 
 const PANEL_BG := Color(0.415686, 0.415686, 0.658824, 1)
 const PANEL_SHADOW := Color(0.0784314, 0.137255, 0.227451, 1)
@@ -93,6 +95,7 @@ func _ready() -> void:
 		_cards.alignment = BoxContainer.ALIGNMENT_CENTER
 	_ensure_shop_reroll_card()
 	_build_tooltip()
+	set_process_input(true)
 	call_deferred("_resolve_host")
 
 
@@ -160,11 +163,320 @@ func set_view_visible(is_visible: bool) -> void:
 		_refresh()
 		_ensure_tooltip_ready("view_visible")
 		_set_planning_overlay_active(true)
+		call_deferred("_focus_planning_control")
 	else:
 		_set_planning_overlay_active(false)
+		_clear_sidebar_focus_neighbors()
 		_hide_consumable_tooltip()
 		_stop_shop_empty_animation()
 		SubscreenFrame.disconnect_changes(self, _apply_frame)
+
+
+func get_preferred_focus_control() -> Control:
+	return _find_planning_focus_target()
+
+
+func get_sidebar_bridge_focus_target() -> Control:
+	if _cards == null:
+		return null
+	for wrapper in _cards.get_children():
+		if not _is_leftmost_card_wrapper(wrapper):
+			continue
+		var play := wrapper.find_child("LevelPlayButton", true, false) as Button
+		if _is_planning_focusable(play):
+			return play
+		var skip := wrapper.find_child("LevelSkipButton", true, false) as Button
+		if _is_planning_focusable(skip):
+			return skip
+		var challenge := wrapper.find_child("LevelChallengeButton", true, false) as Button
+		if _is_planning_focusable(challenge):
+			return challenge
+	return _find_planning_focus_target()
+
+
+func _focus_planning_control() -> void:
+	if not is_visible_in_tree():
+		return
+	_wire_sidebar_focus_neighbors()
+	var target := get_preferred_focus_control()
+	if target:
+		target.grab_focus()
+
+
+func _wire_sidebar_focus_neighbors() -> void:
+	if not is_visible_in_tree() or _region == null:
+		return
+	var hud := get_tree().get_first_node_in_group(SubscreenFrame.HUD_GROUP)
+	if hud == null or not hud.has_method("wire_planning_focus_neighbors"):
+		return
+	var controls := _collect_region_focus_controls()
+	hud.wire_planning_focus_neighbors(controls)
+	_wire_card_button_neighbors(hud)
+
+
+func _wire_card_button_neighbors(hud: Node) -> void:
+	if _cards == null:
+		return
+	for wrapper in _cards.get_children():
+		_reset_card_button_neighbors(wrapper)
+		var play := wrapper.find_child("LevelPlayButton", true, false) as Button
+		var skip := wrapper.find_child("LevelSkipButton", true, false) as Button
+		var challenge := wrapper.find_child("LevelChallengeButton", true, false) as Button
+		if skip and play and _is_planning_focusable(play):
+			_link_card_neighbor(skip, "left", play)
+		if challenge and skip and _is_planning_focusable(skip):
+			_link_card_neighbor(challenge, "left", skip)
+		if play and skip and _is_planning_focusable(play) and _is_planning_focusable(skip):
+			_link_card_neighbor(play, "right", skip)
+		if skip and challenge and _is_planning_focusable(skip) and _is_planning_focusable(challenge):
+			_link_card_neighbor(skip, "right", challenge)
+
+
+func _reset_card_button_neighbors(wrapper: Node) -> void:
+	for button_name in ["LevelPlayButton", "LevelSkipButton", "LevelChallengeButton"]:
+		var btn := wrapper.find_child(button_name, true, false) as Button
+		if btn:
+			btn.focus_neighbor_left = NodePath()
+			btn.focus_neighbor_right = NodePath()
+
+
+func _link_card_neighbor(from: Control, side: String, to: Control) -> void:
+	if from == null or to == null or not is_instance_valid(from) or not is_instance_valid(to):
+		return
+	if not from.is_visible_in_tree() or not to.is_visible_in_tree():
+		return
+	var path := from.get_path_to(to)
+	if path.is_empty() or from.get_node_or_null(path) != to:
+		return
+	match side:
+		"left":
+			from.focus_neighbor_left = path
+		"right":
+			from.focus_neighbor_right = path
+		"top":
+			from.focus_neighbor_top = path
+		"bottom":
+			from.focus_neighbor_bottom = path
+
+
+func _is_planning_focusable(control: Control) -> bool:
+	if control == null or not is_instance_valid(control):
+		return false
+	if not control.is_visible_in_tree() or control.focus_mode == Control.FOCUS_NONE:
+		return false
+	if control is BaseButton and (control as BaseButton).disabled:
+		return false
+	return true
+
+
+func _is_leftmost_card_wrapper(wrapper: Node) -> bool:
+	if _cards == null or wrapper == null:
+		return false
+	var min_x := INF
+	for sibling in _cards.get_children():
+		if sibling is Control:
+			min_x = minf(min_x, (sibling as Control).get_global_rect().position.x)
+	if min_x == INF:
+		return false
+	return wrapper is Control and absf((wrapper as Control).get_global_rect().position.x - min_x) <= 4.0
+
+
+func _input(event: InputEvent) -> void:
+	if not is_visible_in_tree():
+		return
+	if _is_planning_nav_left(event):
+		if _handle_planning_ui_left():
+			get_viewport().set_input_as_handled()
+	elif _is_planning_nav_right(event):
+		if _handle_planning_ui_right():
+			get_viewport().set_input_as_handled()
+
+
+func _is_planning_nav_left(event: InputEvent) -> bool:
+	return event.is_action_pressed("ui_left") \
+		or event.is_action_pressed(GameInputActions.axis_negative_action("UIHorizontal"))
+
+
+func _is_planning_nav_right(event: InputEvent) -> bool:
+	return event.is_action_pressed("ui_right") \
+		or event.is_action_pressed(GameInputActions.axis_positive_action("UIHorizontal"))
+
+
+func _handle_planning_ui_left() -> bool:
+	var focus_owner := get_viewport().gui_get_focus_owner() as Control
+	if focus_owner == null:
+		return false
+	match focus_owner.name:
+		"LevelPlayButton":
+			if _has_focusable_card_to_left(focus_owner):
+				return false
+			_focus_shuffle()
+			return true
+		"LevelSkipButton":
+			var play := _find_card_action_button(focus_owner, "LevelPlayButton")
+			if _is_planning_focusable(play):
+				play.grab_focus()
+			else:
+				_focus_shuffle()
+			return true
+		"LevelChallengeButton":
+			var skip := _find_card_action_button(focus_owner, "LevelSkipButton")
+			if _is_planning_focusable(skip):
+				skip.grab_focus()
+			else:
+				var play := _find_card_action_button(focus_owner, "LevelPlayButton")
+				if _is_planning_focusable(play):
+					play.grab_focus()
+				else:
+					_focus_shuffle()
+			return true
+	if _is_leftmost_card_focus(focus_owner) and not _has_focusable_card_to_left(focus_owner):
+		_focus_shuffle()
+		return true
+	return false
+
+
+func _handle_planning_ui_right() -> bool:
+	var focus_owner := get_viewport().gui_get_focus_owner() as Control
+	if focus_owner == null:
+		return false
+	if focus_owner.name not in ["LevelPlayButton", "LevelSkipButton", "LevelChallengeButton"]:
+		return false
+	match focus_owner.name:
+		"LevelPlayButton":
+			if _has_focusable_card_to_left(focus_owner):
+				return false
+			var skip := _find_card_action_button(focus_owner, "LevelSkipButton")
+			if _is_planning_focusable(skip):
+				skip.grab_focus()
+				return true
+		"LevelSkipButton":
+			var challenge := _find_card_action_button(focus_owner, "LevelChallengeButton")
+			if _is_planning_focusable(challenge):
+				challenge.grab_focus()
+				return true
+	return false
+
+
+func _find_card_action_button(from: Control, button_name: String) -> Button:
+	var node: Node = from
+	while node and node != self:
+		if node.get_parent() == _cards:
+			return node.find_child(button_name, true, false) as Button
+		node = node.get_parent()
+	return null
+
+
+func _focus_shuffle() -> void:
+	var shuffle := _find_shuffle_button()
+	if shuffle and shuffle.focus_mode != Control.FOCUS_NONE:
+		shuffle.grab_focus()
+
+
+func _has_focusable_card_to_left(control: Control) -> bool:
+	var wrapper := _card_wrapper_for(control)
+	if wrapper == null or _cards == null:
+		return false
+	var my_x := (wrapper as Control).get_global_rect().position.x
+	for sibling in _cards.get_children():
+		if sibling == wrapper or not (sibling is Control):
+			continue
+		if (sibling as Control).get_global_rect().position.x >= my_x - 1.0:
+			continue
+		if _card_has_focusable_actions(sibling):
+			return true
+	return false
+
+
+func _card_wrapper_for(control: Control) -> Node:
+	var node: Node = control
+	while node and node != self:
+		if node.get_parent() == _cards:
+			return node
+		node = node.get_parent()
+	return null
+
+
+func _card_has_focusable_actions(wrapper: Node) -> bool:
+	for button_name in ["LevelPlayButton", "LevelSkipButton", "LevelChallengeButton"]:
+		var btn := wrapper.find_child(button_name, true, false) as Button
+		if _is_planning_focusable(btn):
+			return true
+	return false
+
+
+func _is_leftmost_card_focus(control: Control) -> bool:
+	if _cards == null:
+		return false
+	var min_x := INF
+	for wrapper in _cards.get_children():
+		if wrapper is Control:
+			min_x = minf(min_x, (wrapper as Control).get_global_rect().position.x)
+	if min_x == INF:
+		return false
+	var node: Node = control
+	while node and node != self:
+		if node.get_parent() == _cards and node is Control:
+			return absf((node as Control).get_global_rect().position.x - min_x) <= 4.0
+		node = node.get_parent()
+	return false
+
+
+func _find_shuffle_button() -> Button:
+	var hud := get_tree().get_first_node_in_group(SubscreenFrame.HUD_GROUP)
+	if hud and hud.has_method("get_sidebar_shuffle_button"):
+		return hud.call("get_sidebar_shuffle_button") as Button
+	return null
+
+
+func _clear_sidebar_focus_neighbors() -> void:
+	var hud := get_tree().get_first_node_in_group(SubscreenFrame.HUD_GROUP) if is_inside_tree() else null
+	if hud and hud.has_method("clear_planning_focus_neighbors"):
+		hud.clear_planning_focus_neighbors()
+
+
+func _collect_region_focus_controls() -> Array[Control]:
+	var controls: Array[Control] = []
+	_gather_focus_controls(_region, controls)
+	return controls
+
+
+func _gather_focus_controls(node: Node, out: Array[Control]) -> void:
+	if node is Control:
+		var control := node as Control
+		if control.focus_mode != Control.FOCUS_NONE and control.is_visible_in_tree():
+			if not (control is BaseButton and (control as BaseButton).disabled):
+				out.append(control)
+	for child in node.get_children():
+		_gather_focus_controls(child, out)
+
+
+func _find_planning_focus_target() -> Control:
+	if _cards:
+		for wrapper in _cards.get_children():
+			var named := wrapper.find_child("LevelPlayButton", true, false) as Button
+			if named and not named.disabled:
+				return named
+			var btn := _find_first_enabled_button(wrapper)
+			if btn:
+				return btn
+	if _shop_reroll_card and _shop_reroll_card.visible:
+		var reroll_btn := _find_first_enabled_button(_shop_reroll_card)
+		if reroll_btn:
+			return reroll_btn
+	return null
+
+
+func _find_first_enabled_button(node: Node) -> Button:
+	if node is Button:
+		var btn := node as Button
+		if btn.is_visible_in_tree() and not btn.disabled and btn.focus_mode != Control.FOCUS_NONE:
+			return btn
+	for child in node.get_children():
+		var found := _find_first_enabled_button(child)
+		if found:
+			return found
+	return null
 
 
 func _set_planning_overlay_active(active: bool) -> void:
@@ -176,6 +488,8 @@ func _set_planning_overlay_active(active: bool) -> void:
 
 func _apply_frame() -> void:
 	SubscreenFrame.apply_planning(self, _region)
+	if is_visible_in_tree():
+		call_deferred("_wire_sidebar_focus_neighbors")
 
 func _resolve_host() -> void:
 	var node: Node = self
@@ -232,6 +546,8 @@ func _refresh() -> void:
 		_cards.add_child(wrapper)
 	if not card_wrappers.is_empty():
 		call_deferred("_equalize_card_heights", card_wrappers)
+	else:
+		call_deferred("_wire_sidebar_focus_neighbors")
 
 
 func _refresh_shop() -> void:
@@ -437,7 +753,13 @@ func _add_shop_offer_tile(offer: GnosisNode, index: int) -> void:
 		_show_consumable_tooltip(anchor, presentation, "shop")
 	)
 	anchor.mouse_exited.connect(func() -> void:
-		call_deferred("_hide_consumable_tooltip_if_mouse_left", anchor)
+		call_deferred("_hide_consumable_tooltip_if_anchor_inactive", anchor)
+	)
+	anchor.focus_entered.connect(func() -> void:
+		_show_consumable_tooltip(anchor, presentation, "shop")
+	)
+	anchor.focus_exited.connect(func() -> void:
+		call_deferred("_hide_consumable_tooltip_if_anchor_inactive", anchor)
 	)
 	_shop_offers.add_child(card)
 
@@ -590,6 +912,7 @@ func _equalize_card_heights(wrappers: Array) -> void:
 			maxf(wrapper.custom_minimum_size.x, CARD_MIN_WIDTH),
 			max_h
 		)
+	call_deferred("_wire_sidebar_focus_neighbors")
 
 func _title_label(text: String) -> Label:
 	var label := Label.new()
@@ -687,7 +1010,9 @@ func _reward_consumable_side(preview: Dictionary) -> Control:
 
 func _consumable_reward_button(icon_path: String, preview: Dictionary) -> Button:
 	var icon_size := float(REWARD_ICON_SIZE)
-	var btn := Button.new()
+	var btn := JuicyButton.new()
+	btn.hover_animate = true
+	btn.scale_w_width = false
 	btn.clip_contents = false
 	btn.custom_minimum_size = Vector2(icon_size, icon_size)
 	btn.z_index = 2
@@ -709,11 +1034,16 @@ func _consumable_reward_button(icon_path: String, preview: Dictionary) -> Button
 	btn.add_child(icon)
 
 	btn.mouse_entered.connect(func() -> void:
-		btn.grab_focus()
 		_show_consumable_tooltip(btn, preview, "reward")
 	)
 	btn.mouse_exited.connect(func() -> void:
-		call_deferred("_hide_consumable_tooltip_if_mouse_left", btn)
+		call_deferred("_hide_consumable_tooltip_if_anchor_inactive", btn)
+	)
+	btn.focus_entered.connect(func() -> void:
+		_show_consumable_tooltip(btn, preview, "reward")
+	)
+	btn.focus_exited.connect(func() -> void:
+		call_deferred("_hide_consumable_tooltip_if_anchor_inactive", btn)
 	)
 	return btn
 
@@ -878,10 +1208,12 @@ func _position_consumable_tooltip(anchor: Control) -> void:
 	TooltipPopup.position_at_anchor(_tooltip, anchor, TooltipPopup.PIVOT_SIDE.TOP, 12.0)
 
 
-func _hide_consumable_tooltip_if_mouse_left(btn: Control) -> void:
-	if _tooltip_anchor != btn:
+func _hide_consumable_tooltip_if_anchor_inactive(anchor: Control) -> void:
+	if _tooltip_anchor != anchor:
 		return
-	if btn.get_global_rect().has_point(btn.get_global_mouse_position()):
+	if anchor.has_focus():
+		return
+	if anchor.get_global_rect().has_point(anchor.get_global_mouse_position()):
 		return
 	_hide_consumable_tooltip()
 
@@ -895,20 +1227,36 @@ func _buttons_row(is_current: bool, skippable: bool, double_down_mult: int) -> C
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_theme_constant_override("separation", 10)
+	if not is_current:
+		for _i in 3:
+			row.add_child(_action_button_placeholder())
+		return row
 
-	var play := _action_button(PLAY_ICON, "", BTN_BLUE, is_current)
+	var play := _action_button(PLAY_ICON, "", BTN_BLUE, true)
+	play.name = "LevelPlayButton"
 	play.pressed.connect(_on_play_pressed)
 	row.add_child(_action_button_slot(play))
 
-	var skip := _action_button(SKIP_ICON, "", BTN_YELLOW, is_current and skippable)
+	var skip := _action_button(SKIP_ICON, "", BTN_YELLOW, skippable)
+	skip.name = "LevelSkipButton"
 	skip.pressed.connect(_on_skip_pressed)
 	row.add_child(_action_button_slot(skip))
 
 	var mult := maxi(1, double_down_mult if double_down_mult > 0 else DEFAULT_DOUBLE_DOWN_MULT)
-	var challenge := _action_button(SKULL_ICON, "", BTN_RED, is_current)
+	var challenge := _action_button(SKULL_ICON, "", BTN_RED, true)
+	challenge.name = "LevelChallengeButton"
 	challenge.pressed.connect(_on_double_down_pressed)
 	row.add_child(_action_button_slot(challenge, "x%d" % mult))
 	return row
+
+
+func _action_button_placeholder() -> Control:
+	var slot := Control.new()
+	slot.custom_minimum_size = ACTION_BTN_SIZE
+	slot.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	slot.focus_mode = Control.FOCUS_NONE
+	return slot
 
 
 func _action_button_slot(btn: Button, overlay_label: String = "") -> Control:

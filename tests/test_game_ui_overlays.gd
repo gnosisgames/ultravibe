@@ -23,20 +23,20 @@ func _process(_delta: float) -> bool:
 	ui.initialize_navigation_state("gameplay")
 	ui.set_base_view("gameplay")
 
-	var pause_params := store.create_object()
-	pause_params.set_key("viewId", "pause")
-	pause_params.set_key("overlayStateId", "open")
-	var push: GnosisFunctionResult = ui.invoke_function("PushViewAdditive", pause_params)
+	var level_params := store.create_object()
+	level_params.set_key("viewId", "level_select")
+	level_params.set_key("overlayStateId", "open")
+	var push: GnosisFunctionResult = ui.invoke_function("PushViewAdditive", level_params)
 	if not push.is_ok:
 		push_error("PushViewAdditive failed")
 		quit(1)
 		return true
-	if ui.get_active_overlay_state_for_view("pause") != "open":
-		push_error("Pause overlay not open")
+	if ui.get_active_overlay_state_for_view("level_select") != "open":
+		push_error("Level select overlay not open")
 		quit(1)
 		return true
 
-	ui.try_set_view_overlay_state("pause", "")
+	ui.try_set_view_overlay_state("level_select", "")
 
 	var enqueue_params := store.create_object()
 	enqueue_params.set_key("title", "RETURN TO TITLE?")

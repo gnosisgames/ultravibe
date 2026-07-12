@@ -50,11 +50,24 @@ func set_view_visible(is_visible: bool) -> void:
 			_arm_action_cooldown()
 			_start_reward_presentation()
 		_sync_reward_scroll()
+		call_deferred("_focus_continue_button")
 	else:
 		_presenting = false
 		_presentation_gen += 1
 		_cancel_action_cooldown()
 		SubscreenFrame.disconnect_changes(self, _apply_frame)
+
+func get_preferred_focus_control() -> Control:
+	if _continue_button and not _continue_button.disabled:
+		return _continue_button
+	return null
+
+func _focus_continue_button() -> void:
+	if not is_visible_in_tree():
+		return
+	var target := get_preferred_focus_control()
+	if target:
+		target.grab_focus()
 
 func _apply_frame() -> void:
 	# Extend to HUD bottom (same line as sidebar buttons + consumables bar).
@@ -80,6 +93,8 @@ func _on_action_cooldown_finished() -> void:
 func _set_continue_enabled(enabled: bool) -> void:
 	if _continue_button:
 		_continue_button.disabled = not enabled
+	if enabled:
+		call_deferred("_focus_continue_button")
 
 func _actions_blocked() -> bool:
 	if _action_cooldown_timer != null:
