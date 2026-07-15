@@ -9,6 +9,7 @@ const RoundedSquareBtnScene = preload("res://game/ui/widgets/rounded_square_btn.
 const TooltipPopupScene = preload("res://game/ui/widgets/tooltip_popup.tscn")
 const ConsumableCatalogUi = preload("res://game/ui/consumable_catalog_ui.gd")
 const ShopCatalogUi = preload("res://game/ui/shop_catalog_ui.gd")
+const ShopTooltipUi = preload("res://game/ui/shop_tooltip_ui.gd")
 const ShopOfferCard = preload("res://game/ui/widgets/shop_offer_card.gd")
 const ShopRerollCard = preload("res://game/ui/widgets/shop_reroll_card.gd")
 const JuicyButton = preload("res://game/ui/widgets/juicy_button.gd")
@@ -17,7 +18,7 @@ const GameInputActions = preload("res://game/input/game_input_actions.gd")
 const PANEL_BG := Color(0.415686, 0.415686, 0.658824, 1)
 const PANEL_SHADOW := Color(0.0784314, 0.137255, 0.227451, 1)
 const PANEL_RADIUS := 27
-const PILL_DARK := Color(0.156863, 0.196078, 0.290196, 1)
+const PILL_DARK := UltraUiPalette.PILL_DARK
 const PILL_WHITE := Color(0.929412, 0.941176, 0.972549, 1)
 const PILL_TEXT_DARK := Color(0.156863, 0.196078, 0.290196, 1)
 const BTN_BLUE := Color(0.196078, 0.45098, 0.85098, 1)
@@ -93,6 +94,8 @@ func _ready() -> void:
 		_region.mouse_filter = Control.MOUSE_FILTER_STOP
 	if _cards:
 		_cards.alignment = BoxContainer.ALIGNMENT_CENTER
+	if _shop_offers:
+		_shop_offers.clip_contents = false
 	_ensure_shop_reroll_card()
 	_build_tooltip()
 	set_process_input(true)
@@ -744,23 +747,11 @@ func _add_shop_offer_tile(offer: GnosisNode, index: int) -> void:
 	var item_id := str(_node_str(offer, "itemId"))
 	var price := _node_int(offer, "price", 0)
 	var presentation := ShopCatalogUi.build_shop_offer_presentation(eng, source, item_id, offer)
+	var buy_actions := ShopTooltipUi.build_buy_actions(eng, price)
 	var card := ShopOfferCard.new()
 	card.configure(_font, presentation, price)
 	card.buy_pressed.connect(_on_shop_buy_pressed.bind(index))
-	var anchor := card.get_tooltip_anchor()
-	anchor.mouse_entered.connect(func() -> void:
-		anchor.grab_focus()
-		_show_consumable_tooltip(anchor, presentation, "shop")
-	)
-	anchor.mouse_exited.connect(func() -> void:
-		call_deferred("_hide_consumable_tooltip_if_anchor_inactive", anchor)
-	)
-	anchor.focus_entered.connect(func() -> void:
-		_show_consumable_tooltip(anchor, presentation, "shop")
-	)
-	anchor.focus_exited.connect(func() -> void:
-		call_deferred("_hide_consumable_tooltip_if_anchor_inactive", anchor)
-	)
+	_bind_planning_tooltip(card.get_tooltip_anchor(), presentation, "shop", buy_actions)
 	_shop_offers.add_child(card)
 
 
@@ -1037,13 +1028,15 @@ func _consumable_reward_button(icon_path: String, preview: Dictionary) -> Button
 		_show_consumable_tooltip(btn, preview, "reward")
 	)
 	btn.mouse_exited.connect(func() -> void:
-		call_deferred("_hide_consumable_tooltip_if_anchor_inactive", btn)
+		if btn.has_focus():
+			btn.release_focus()
+		_hide_tooltip_for_anchor(btn)
 	)
 	btn.focus_entered.connect(func() -> void:
 		_show_consumable_tooltip(btn, preview, "reward")
 	)
 	btn.focus_exited.connect(func() -> void:
-		call_deferred("_hide_consumable_tooltip_if_anchor_inactive", btn)
+		_hide_tooltip_for_anchor(btn)
 	)
 	return btn
 
@@ -1160,7 +1153,36 @@ func _ensure_tooltip_ready(_reason: String = "") -> void:
 	_build_tooltip()
 
 
-func _show_consumable_tooltip(anchor: Control, preview: Dictionary, source: String = "") -> void:
+func _bind_planning_tooltip(
+	anchor: Control,
+	preview: Dictionary,
+	source: String,
+	actions: Array = []
+) -> void:
+	if anchor == null:
+		return
+	anchor.mouse_entered.connect(func() -> void:
+		_show_consumable_tooltip(anchor, preview, source, actions)
+	)
+	anchor.mouse_exited.connect(func() -> void:
+		if anchor.has_focus():
+			anchor.release_focus()
+		_hide_tooltip_for_anchor(anchor)
+	)
+	anchor.focus_entered.connect(func() -> void:
+		_show_consumable_tooltip(anchor, preview, source, actions)
+	)
+	anchor.focus_exited.connect(func() -> void:
+		_hide_tooltip_for_anchor(anchor)
+	)
+
+
+func _show_consumable_tooltip(
+	anchor: Control,
+	preview: Dictionary,
+	source: String = "",
+	actions: Array = []
+) -> void:
 	_ensure_tooltip_ready("show:%s" % source)
 	if _tooltip == null or not is_instance_valid(_tooltip):
 		_warn_tooltip("show skipped (%s): tooltip missing" % source)
@@ -1177,13 +1199,19 @@ func _show_consumable_tooltip(anchor: Control, preview: Dictionary, source: Stri
 		var fallback_key := "ultravibe__collection__noDescription"
 		var fallback := tr(fallback_key)
 		description = fallback if fallback != fallback_key else title
+	if _tooltip_anchor != null and _tooltip_anchor != anchor and _tooltip != null and is_instance_valid(_tooltip):
+		if _tooltip.tween_tooltip and _tooltip.tween_tooltip.is_running():
+			_tooltip.tween_tooltip.kill()
+		_tooltip.visible = false
+		_tooltip.scale = Vector2.ZERO
 	_tooltip_anchor = anchor
 	_tooltip.visible = true
 	_tooltip.set_content(
 		title,
 		description,
 		REWARD_TOOLTIP_WIDTH,
-		preview.get("tags", [])
+		preview.get("tags", []),
+		actions,
 	)
 	_tooltip.reset_size()
 	_position_consumable_tooltip(anchor)
@@ -1208,20 +1236,21 @@ func _position_consumable_tooltip(anchor: Control) -> void:
 	TooltipPopup.position_at_anchor(_tooltip, anchor, TooltipPopup.PIVOT_SIDE.TOP, 12.0)
 
 
-func _hide_consumable_tooltip_if_anchor_inactive(anchor: Control) -> void:
+func _hide_tooltip_for_anchor(anchor: Control) -> void:
+	if anchor == null or not is_instance_valid(anchor):
+		return
 	if _tooltip_anchor != anchor:
-		return
-	if anchor.has_focus():
-		return
-	if anchor.get_global_rect().has_point(anchor.get_global_mouse_position()):
 		return
 	_hide_consumable_tooltip()
 
 
 func _hide_consumable_tooltip() -> void:
 	_tooltip_anchor = null
-	if _tooltip:
-		_tooltip.disappear()
+	if _tooltip == null or not is_instance_valid(_tooltip):
+		return
+	if _tooltip.tween_tooltip and _tooltip.tween_tooltip.is_running():
+		_tooltip.tween_tooltip.kill()
+	_tooltip.disappear()
 
 func _buttons_row(is_current: bool, skippable: bool, double_down_mult: int) -> Control:
 	var row := HBoxContainer.new()
@@ -1403,16 +1432,7 @@ func _rounded_style(bg: Color, radius: int, margin_v: int, margin_h: int = -1) -
 
 
 func _reward_panel_style() -> StyleBoxFlat:
-	var box := _rounded_style(
-		PILL_DARK,
-		LevelCardBadge.BADGE_RADIUS,
-		REWARD_PAD_V,
-		LevelCardBadge.BADGE_PAD_H
-	)
-	box.shadow_color = PANEL_SHADOW
-	box.shadow_size = 1
-	box.shadow_offset = Vector2(3, 4)
-	return box
+	return UltraUiPalette.stat_pill_style(REWARD_PAD_V)
 
 
 func _reward_panel_height() -> float:

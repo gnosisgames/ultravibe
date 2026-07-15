@@ -20,6 +20,17 @@ const FLOOR_TRIGGER_JUICE_FALLBACK := 0.39
 const FLOOR_TRIGGER_JUICE_MIN := 0.08
 const FLOOR_FLOAT_STAGGER_FALLBACK := 0.075
 const FLOOR_FLOAT_STAGGER_MIN := 0.02
+const INTER_STEP_DELAY_FALLBACK := 0.1
+const INTER_STEP_DELAY_MIN := 0.02
+const POST_SPAWN_DESTROY_DELAY_FALLBACK := 0.35
+const POST_SPAWN_DESTROY_DELAY_MIN := 0.06
+const FLOOR_POP_AFTER_DESTROY_DELAY_FALLBACK := 0.16
+const FLOOR_POP_AFTER_DESTROY_DELAY_MIN := 0.03
+const DESTROY_STEP_PAUSE_FALLBACK := 0.3
+const DESTROY_STEP_PAUSE_MIN := 0.05
+const CELL_FLOOR_FINALIZE_POP_FALLBACK := 0.68
+const CELL_FLOOR_FINALIZE_HOLD_FALLBACK := 0.33
+const CELL_FLOOR_FINALIZE_GAP_FALLBACK := 0.3
 
 
 static func consumable_use_pop_duration(service) -> float:
@@ -67,6 +78,69 @@ static func floor_float_pop_stagger_seconds(service) -> float:
 		"floorFloatPopStaggerSeconds",
 		FLOOR_FLOAT_STAGGER_FALLBACK,
 		FLOOR_FLOAT_STAGGER_MIN
+	)
+
+
+static func inter_step_delay_seconds(service) -> float:
+	return _read_scaled_duration(
+		service,
+		"interStepDelaySeconds",
+		INTER_STEP_DELAY_FALLBACK,
+		INTER_STEP_DELAY_MIN
+	)
+
+
+static func post_spawn_to_next_destroy_delay_seconds(service) -> float:
+	return _read_scaled_duration(
+		service,
+		"postSpawnToNextDestroyDelaySeconds",
+		POST_SPAWN_DESTROY_DELAY_FALLBACK,
+		POST_SPAWN_DESTROY_DELAY_MIN
+	)
+
+
+static func floor_pop_after_destroy_delay_seconds(service) -> float:
+	return _read_scaled_duration(
+		service,
+		"floorPopAfterDestroyDelaySeconds",
+		FLOOR_POP_AFTER_DESTROY_DELAY_FALLBACK,
+		FLOOR_POP_AFTER_DESTROY_DELAY_MIN
+	)
+
+
+static func destroy_step_pause_seconds(service) -> float:
+	return _read_scaled_duration(
+		service,
+		"destroyStepPauseSeconds",
+		DESTROY_STEP_PAUSE_FALLBACK,
+		DESTROY_STEP_PAUSE_MIN
+	)
+
+
+static func cell_floor_finalize_pop_seconds(service) -> float:
+	return _read_scaled_duration(
+		service,
+		"cellFloorFinalizePopDurationSeconds",
+		CELL_FLOOR_FINALIZE_POP_FALLBACK,
+		0.08
+	)
+
+
+static func cell_floor_finalize_hold_seconds(service) -> float:
+	return _read_scaled_duration(
+		service,
+		"cellFloorFinalizeHoldDurationSeconds",
+		CELL_FLOOR_FINALIZE_HOLD_FALLBACK,
+		0.04
+	)
+
+
+static func cell_floor_finalize_gap_seconds(service) -> float:
+	return _read_scaled_duration(
+		service,
+		"cellFloorFinalizeGapSeconds",
+		CELL_FLOOR_FINALIZE_GAP_FALLBACK,
+		0.02
 	)
 
 

@@ -108,7 +108,7 @@ static func _play_trigger_juice(host: Node, slot: Control) -> void:
 	slot.set_meta(&"sway_paused", true)
 	if slot.size.x > 1.0 and slot.size.y > 1.0:
 		slot.pivot_offset = slot.size * 0.5
-	var twist_peak := deg_to_rad(randf_range(-MAX_TWIST_DEG, MAX_TWIST_DEG))
+	var twist_peak_deg := randf_range(-MAX_TWIST_DEG, MAX_TWIST_DEG)
 	var tw := host.create_tween()
 	tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	var juice_sec := Match3GameSpeedScript.scale_duration(
@@ -122,7 +122,7 @@ static func _play_trigger_juice(host: Node, slot: Control) -> void:
 				return
 			var wave := sin(PI * t)
 			slot.scale = Vector2.ONE * (1.0 + SCALE_BUMP * wave)
-			slot.rotation = twist_peak * wave,
+			slot.rotation_degrees = twist_peak_deg * wave,
 		0.0,
 		1.0,
 		juice_sec,
@@ -131,7 +131,6 @@ static func _play_trigger_juice(host: Node, slot: Control) -> void:
 		func() -> void:
 			if is_instance_valid(slot):
 				slot.scale = Vector2.ONE
-				slot.rotation = 0.0
 				slot.set_meta(&"sway_paused", false)
 	)
 

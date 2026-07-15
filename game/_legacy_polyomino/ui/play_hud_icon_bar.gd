@@ -470,6 +470,19 @@ func _hide_tooltip() -> void:
 	if _tooltip:
 		_tooltip.disappear()
 
+
+func _refresh_parent_hud() -> void:
+	var node: Node = self
+	while node:
+		var script_path := str(node.get_script().resource_path) if node.get_script() else ""
+		if script_path.ends_with("match3_hud.gd") and node.has_method("refresh_from_service"):
+			node.refresh_from_service(_service)
+			return
+		if script_path.ends_with("match3_dispatcher.gd") and node.has_method("refresh_hud"):
+			node.refresh_hud()
+			return
+		node = node.get_parent()
+
 # --- Data ---
 
 func _ephemeral() -> GnosisNode:

@@ -22,6 +22,7 @@
 [ext_resource type="PackedScene" path="res://game/ui/profiles_view.tscn" id="26"]
 [ext_resource type="PackedScene" path="res://addons/com.gnosisgames.gnosisengine/adapters/godot/views/gnosis_splash_view.tscn" id="27"]
 [ext_resource type="Script" path="res://game/adapters/window_focus_bridge.gd" id="28"]
+[ext_resource type="Script" path="res://game/adapters/gameplay_pause_bridge.gd" id="29"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_backdrop"]
 bg_color = Color(0.08, 0.13, 0.19, 0.82)
@@ -68,6 +69,9 @@ startup_view_id = "splash"
 [node name="Background" parent="." unique_id=1547908006 instance=ExtResource("8")]
 
 [node name="Adapters" type="Node" parent="." unique_id=1934726117]
+
+[node name="GameplayPauseBridge" type="Node" parent="Adapters"]
+script = ExtResource("29")
 
 [node name="WindowFocusBridge" type="Node" parent="Adapters"]
 script = ExtResource("28")

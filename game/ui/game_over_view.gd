@@ -23,17 +23,25 @@ const ACTION_COOLDOWN_SEC := 1.0
 @onready var _seed_value: Label = %SeedValue
 @onready var _endless_button: Button = %EndlessButton
 @onready var _restart_button: Button = %RestartButton
+@onready var _unlock_button: Button = %UnlockButton
+@onready var _restore_button: Button = %RestoreButton
 @onready var _home_button: Button = %HomeButton
 @onready var _card: PanelContainer = $Center/Card
 
 var _host: GnosisGodotEngine = null
 var _actions_ready_at := 0.0
 var _action_cooldown_timer: SceneTreeTimer = null
+var _store_busy := false
+var _store_signals_wired := false
 
 func _ready() -> void:
 	add_to_group("gnosis_ui_view")
 	_endless_button.pressed.connect(_on_endless_pressed)
 	_restart_button.pressed.connect(_on_restart_pressed)
+	if _unlock_button:
+		_unlock_button.pressed.connect(_on_unlock_pressed)
+	if _restore_button:
+		_restore_button.pressed.connect(_on_restore_pressed)
 	_home_button.pressed.connect(_on_title_pressed)
 	_set_action_buttons_enabled(false)
 	call_deferred("_resolve_host")
@@ -58,6 +66,8 @@ func set_view_visible(is_visible: bool) -> void:
 		_play_card_intro()
 		_arm_action_cooldown()
 		_refresh()
+		_refresh_trial_store_actions()
+		call_deferred("_wire_store_signals")
 	else:
 		_cancel_action_cooldown()
 
@@ -78,12 +88,17 @@ func _on_action_cooldown_finished() -> void:
 	_set_action_buttons_enabled(true)
 
 func _set_action_buttons_enabled(enabled: bool) -> void:
+	var allow := enabled and not _store_busy
 	if _endless_button:
-		_endless_button.disabled = not enabled
+		_endless_button.disabled = not allow
 	if _restart_button:
-		_restart_button.disabled = not enabled
+		_restart_button.disabled = not allow
 	if _home_button:
-		_home_button.disabled = not enabled
+		_home_button.disabled = not allow
+	if _unlock_button:
+		_unlock_button.disabled = not allow or not _should_show_trial_store_actions()
+	if _restore_button:
+		_restore_button.disabled = not allow or not _should_show_trial_store_actions()
 
 func _actions_blocked() -> bool:
 	if _action_cooldown_timer != null:
@@ -215,3 +230,96 @@ func _on_title_pressed() -> void:
 	# overlay state doesn't linger into the next run.
 	ui.invoke_function("PopView", eng.store.create_object())
 	UltraGameUiNav.return_to_title(ui, eng)
+
+
+func _edition() -> GnosisEditionService:
+	var eng := _engine()
+	return eng.get_service("Edition") as GnosisEditionService if eng else null
+
+
+func _should_show_trial_store_actions() -> bool:
+	var edition := _edition()
+	return edition != null and edition.should_apply_trial_policy()
+
+
+func _refresh_trial_store_actions() -> void:
+	var show := _should_show_trial_store_actions()
+	if _unlock_button:
+		_unlock_button.visible = show
+	if _restore_button:
+		_restore_button.visible = show
+
+
+func _wire_store_signals() -> void:
+	if _store_signals_wired or _host == null:
+		return
+	var store_host := GnosisEditionStoreHost.find_from(_host)
+	if store_host:
+		if not store_host.purchase_flow_finished.is_connected(_on_store_purchase_flow_finished):
+			store_host.purchase_flow_finished.connect(_on_store_purchase_flow_finished)
+		if not store_host.entitlement_granted.is_connected(_on_store_entitlement_granted):
+			store_host.entitlement_granted.connect(_on_store_entitlement_granted)
+	var edition := _edition()
+	if edition:
+		if not edition.access_tier_changed.is_connected(_on_access_tier_changed):
+			edition.access_tier_changed.connect(_on_access_tier_changed)
+		if not edition.purchase_succeeded.is_connected(_on_purchase_succeeded):
+			edition.purchase_succeeded.connect(_on_purchase_succeeded)
+		if not edition.purchase_failed.is_connected(_on_purchase_failed):
+			edition.purchase_failed.connect(_on_purchase_failed)
+	_store_signals_wired = true
+
+
+func _set_store_busy(busy: bool) -> void:
+	_store_busy = busy
+	_set_action_buttons_enabled(_actions_ready_at <= 0.0 and _action_cooldown_timer == null)
+
+
+func _on_unlock_pressed() -> void:
+	if _actions_blocked() or _store_busy:
+		return
+	var edition := _edition()
+	if edition == null:
+		return
+	_set_store_busy(true)
+	var result: int = edition.try_purchase_full_game()
+	if result != GnosisStoreBridge.PurchaseResult.PENDING:
+		_set_store_busy(false)
+
+
+func _on_restore_pressed() -> void:
+	if _actions_blocked() or _store_busy:
+		return
+	var edition := _edition()
+	if edition == null:
+		return
+	_set_store_busy(true)
+	var result: int = edition.try_restore_purchases()
+	if result != GnosisStoreBridge.PurchaseResult.PENDING:
+		_set_store_busy(false)
+
+
+func _on_store_purchase_flow_finished(success: bool, _reason: String) -> void:
+	_set_store_busy(false)
+	if success:
+		_on_store_entitlement_granted()
+
+
+func _on_store_entitlement_granted() -> void:
+	var edition := _edition()
+	if edition:
+		edition.try_restore_purchases()
+	_refresh_trial_store_actions()
+
+
+func _on_access_tier_changed(_is_full_access: bool) -> void:
+	_refresh_trial_store_actions()
+
+
+func _on_purchase_succeeded(_product_id: String) -> void:
+	_set_store_busy(false)
+	_refresh_trial_store_actions()
+
+
+func _on_purchase_failed(_reason: String) -> void:
+	_set_store_busy(false)

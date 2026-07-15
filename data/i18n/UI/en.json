@@ -8,6 +8,8 @@
   "ultravibe__ui__runSummary": "Run Summary",
   "ultravibe__ui__objective": "Objective",
   "ultravibe__ui__playAgain": "Play Again",
+  "ultravibe__ui__unlockFullGame": "Unlock full game",
+  "ultravibe__ui__restorePurchases": "Restore purchases",
   "ultravibe__settings__tab__video": "Video",
   "ultravibe__settings__tab__accessibility": "Accessibility",
   "ultravibe__settings__tab__keyboardMouse": "Keyboard & Mouse",
@@ -117,5 +119,8 @@
   "ultravibe__input__uiSecondaryHorizontal": "UI Secondary Horizontal",
   "ultravibe__input__uiSecondaryVertical": "UI Secondary Vertical",
   "ultravibe__input__uiTabSwitch": "UI Tab Switch",
-  "ultravibe__input__uiBuy": "UI Buy"
+  "ultravibe__input__uiBuy": "UI Buy",
+  "ultravibe__edition__trialEnded": "Trial run ended. Unlock the full game to keep playing.",
+  "ultravibe__edition__purchaseFailed": "Purchase could not be completed. Try again.",
+  "ultravibe__edition__purchaseRestored": "Full game unlocked!"
 }

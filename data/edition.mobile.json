@@ -1,0 +1,10 @@
+{
+  "edition_id": "mobile",
+  "distribution": "mobile",
+  "catalogs": {},
+  "store": {
+    "product_id_android": "ultravibe_full_unlock",
+    "product_id_ios": "com.gnosisgames.ultravibe.full",
+    "purchase_option_id_android": ""
+  }
+}

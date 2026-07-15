@@ -4,6 +4,7 @@ extends PanelContainer
 ## Shop row cell: large catalog icon filling the tile, plain price text below (no chrome).
 
 const BoonFlavorStickerScript = preload("res://game/ui/widgets/boon_flavor_sticker.gd")
+const JuicyFocus = preload("res://game/ui/widgets/juicy_focus.gd")
 
 const TILE_WIDTH := 132.0
 const TILE_HEIGHT := 168.0
@@ -21,6 +22,7 @@ func _init() -> void:
 	focus_mode = Control.FOCUS_ALL
 	mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+	JuicyFocus.wire(self, true, true, TILE_WIDTH, false, true, true)
 
 
 func configure(font: Font, presentation: Dictionary, price: int) -> void:
@@ -80,14 +82,28 @@ func get_tooltip_anchor() -> Control:
 	return self
 
 
+func _shortcut_input(event: InputEvent) -> void:
+	if not has_focus() or event.is_echo():
+		return
+	if _is_confirm_buy_event(event):
+		_trigger_buy()
+		accept_event()
+
+
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton
 		if mb.button_index == MOUSE_BUTTON_LEFT and mb.pressed:
-			buy_pressed.emit()
+			_trigger_buy()
 			accept_event()
-	elif event is InputEventKey:
-		var key := event as InputEventKey
-		if key.pressed and (key.keycode == KEY_ENTER or key.keycode == KEY_KP_ENTER or key.keycode == KEY_SPACE):
-			buy_pressed.emit()
-			accept_event()
+
+
+func _is_confirm_buy_event(event: InputEvent) -> bool:
+	return event.is_action_pressed("ui_accept") \
+		or event.is_action_pressed("UISubmit") \
+		or event.is_action_pressed("UIBuy")
+
+
+func _trigger_buy() -> void:
+	JuicyFocus.play_pressed(self)
+	buy_pressed.emit()

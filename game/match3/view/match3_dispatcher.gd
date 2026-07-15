@@ -45,9 +45,7 @@ const ITEM_TEXTURES := {
 const MOVE_DURATION := 0.3
 const DESTROY_DURATION := 0.2
 const STEP_PAUSE := 0.3
-const INTER_STEP_DELAY := 0.0
 const POST_MOVE_INPUT_BUFFER_SEC := 0.15
-const FLOOR_FINALIZE_STEP_PAUSE_SEC := 0.18
 const CELL_GAP_RATIO := 0.06
 const ITEM_INSET_RATIO := 0.0
 const MIN_DRAG_PX := 24.0
@@ -85,12 +83,18 @@ var _drag_node: Control = null
 var _drag_rest_pos: Vector2 = Vector2.ZERO
 var _drag_rest_z: int = 0
 var _hover_cell: Vector2i = Vector2i(-1, -1)
+var _board_float_layer: CanvasLayer = null
+var _floor_flash_started_ms_by_key: Dictionary = {}
 
 
 func _ready() -> void:
 	add_to_group(GROUP)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	clip_contents = false
+	_board_float_layer = CanvasLayer.new()
+	_board_float_layer.name = "BoardFloatLayer"
+	_board_float_layer.layer = 40
+	add_child(_board_float_layer)
 	_preload_textures()
 	_init_sfx_pool()
 	resized.connect(_update_layout)
@@ -100,6 +104,10 @@ func _ready() -> void:
 
 func is_busy() -> bool:
 	return _busy
+
+
+func get_board_float_layer() -> CanvasLayer:
+	return _board_float_layer
 
 
 func bind_service(service) -> void:
@@ -279,8 +287,12 @@ func _run_move_sequence_body(payload: GnosisNode) -> void:
 			if is_last:
 				await _play_finalize_playback_for_move(payload)
 			await _play_hud_metrics_for_cascade_step(step, i, step_count, payload)
-			if INTER_STEP_DELAY > 0.0:
-				await _wait(INTER_STEP_DELAY)
+			if not is_last:
+				var inter_delay := _resolve_inter_step_delay_seconds()
+				if _step_has_spawns(step) and _step_has_matched(steps.get_node(i + 1)):
+					inter_delay += _resolve_post_spawn_to_next_destroy_delay_seconds()
+				if inter_delay > 0.0:
+					await _wait_unscaled(inter_delay)
 	await _finish_move_hud_metrics(payload)
 
 
@@ -436,15 +448,16 @@ func _animate_finalize_playback_steps(steps: GnosisNode) -> void:
 				display = Match3ScoreFloatingDisplayText.build_multi_add(multi_delta)
 			if not display.is_empty():
 				var anchor := _item_position(x, y) + cell_size * 0.5
-				BoardFloatJuiceScript.spawn_labeled_popup(
+				await BoardFloatJuiceScript.spawn_labeled_popup_and_wait(
 					self,
 					anchor,
 					display,
-					BoardFloatJuiceScript.COLOR_MULTI,
-					0.0
+					BoardFloatJuiceScript.COLOR_MULTI
 				)
-			await _apply_hud_metrics_from_step_node(step, i, steps.get_count())
-			await _wait_unscaled(_resolve_boon_finalize_gap_seconds())
+			_apply_boon_step_hud_metrics_instant(step, i, steps.get_count())
+			await _wait_unscaled(_resolve_cell_floor_finalize_hold_seconds())
+			if i < steps.get_count() - 1:
+				await _wait_unscaled(_resolve_cell_floor_finalize_gap_seconds())
 		elif (
 			kind == FinalizePlaybackScript.KIND_BOON_SCORE
 			or kind == FinalizePlaybackScript.KIND_BOON_ECHO
@@ -471,7 +484,7 @@ func _begin_move_hud_metrics(payload: GnosisNode) -> void:
 
 func _play_hud_metrics_for_cascade_step(step: GnosisNode, step_index: int, step_count: int, _payload: GnosisNode) -> void:
 	var hud = _find_hud()
-	if hud == null or not hud.has_method("play_step_metrics_display"):
+	if hud == null:
 		return
 	var points := _node_int(step, "movePointsSoFar", 0)
 	var multi := maxi(1, _node_int(step, "moveMultiSoFar", 1))
@@ -481,7 +494,11 @@ func _play_hud_metrics_for_cascade_step(step: GnosisNode, step_index: int, step_
 	if not is_last and points_added <= 0 and multi_added <= 0:
 		return
 	_play_hud_score_pop_juice(step_index, step_count)
-	await hud.play_step_metrics_display(points, multi, _resolve_score_step_count_duration())
+	# Apply instantly so counters pump with board float text (Unity feel).
+	if hud.has_method("apply_step_metrics_display"):
+		hud.apply_step_metrics_display(points, multi)
+	elif hud.has_method("play_step_metrics_display"):
+		hud.play_step_metrics_display(points, multi, 0.0)
 
 
 func _finish_move_hud_metrics(payload: GnosisNode) -> void:
@@ -523,6 +540,10 @@ func _finalize_step_count(payload: GnosisNode) -> int:
 
 
 func _apply_hud_metrics_from_step_node(step: GnosisNode, step_index: int = 0, step_count: int = 1) -> void:
+	_apply_boon_step_hud_metrics_instant(step, step_index, step_count)
+
+
+func _apply_boon_step_hud_metrics_instant(step: GnosisNode, step_index: int = 0, step_count: int = 1) -> void:
 	if step == null or not step.is_valid():
 		return
 	var points_node := step.get_node("stepPoints")
@@ -530,14 +551,17 @@ func _apply_hud_metrics_from_step_node(step: GnosisNode, step_index: int = 0, st
 	if not points_node.is_valid() and not multi_node.is_valid():
 		return
 	var hud = _find_hud()
-	if hud == null or not hud.has_method("play_step_metrics_display"):
+	if hud == null:
 		return
 	var points := _node_int(step, "stepPoints", -1)
 	var multi := _node_int(step, "stepMulti", -1)
 	if points < 0:
 		return
+	if hud.has_method("apply_step_metrics_display"):
+		hud.apply_step_metrics_display(points, maxi(1, multi))
+	elif hud.has_method("play_step_metrics_display"):
+		hud.play_step_metrics_display(points, maxi(1, multi), 0.0)
 	_play_hud_score_pop_juice(step_index, step_count)
-	await hud.play_step_metrics_display(points, maxi(1, multi), _resolve_score_step_count_duration())
 
 
 func _play_hud_score_pop_juice(step_index: int, step_count: int) -> void:
@@ -611,9 +635,57 @@ func _resolve_destroy_duration() -> float:
 
 
 func _resolve_floor_finalize_step_pause_seconds() -> float:
+	return _resolve_cell_floor_finalize_gap_seconds()
+
+
+func _resolve_cell_floor_finalize_hold_seconds() -> float:
+	if _service != null:
+		return Match3AnimationTuningScript.cell_floor_finalize_hold_seconds(_service)
+	return _scale_pres(0.33, 0.04)
+
+
+func _resolve_cell_floor_finalize_gap_seconds() -> float:
+	if _service != null:
+		return Match3AnimationTuningScript.cell_floor_finalize_gap_seconds(_service)
+	return _scale_pres(0.3, 0.02)
+
+
+func _resolve_float_pop_stagger_seconds() -> float:
 	if _service != null:
 		return Match3AnimationTuningScript.floor_float_pop_stagger_seconds(_service)
-	return _scale_pres(FLOOR_FINALIZE_STEP_PAUSE_SEC, 0.02)
+	return _scale_pres(0.075, 0.02)
+
+
+func _resolve_inter_step_delay_seconds() -> float:
+	if _service != null:
+		return Match3AnimationTuningScript.inter_step_delay_seconds(_service)
+	return _scale_pres(0.1, 0.02)
+
+
+func _resolve_post_spawn_to_next_destroy_delay_seconds() -> float:
+	if _service != null:
+		return Match3AnimationTuningScript.post_spawn_to_next_destroy_delay_seconds(_service)
+	return _scale_pres(0.35, 0.06)
+
+
+func _resolve_destroy_step_pause_seconds() -> float:
+	if _service != null:
+		return Match3AnimationTuningScript.destroy_step_pause_seconds(_service)
+	return _scale_pres(STEP_PAUSE, 0.05)
+
+
+func _step_has_spawns(step: GnosisNode) -> bool:
+	if step == null or not step.is_valid():
+		return false
+	var spawns := step.get_node("spawns")
+	return spawns.is_valid() and spawns.get_type() == GnosisValueType.LIST and spawns.get_count() > 0
+
+
+func _step_has_matched(step: GnosisNode) -> bool:
+	if step == null or not step.is_valid():
+		return false
+	var matched := step.get_node("matched")
+	return matched.is_valid() and matched.get_type() == GnosisValueType.LIST and matched.get_count() > 0
 
 
 func _resolve_floor_trigger_flash_seconds() -> float:
@@ -648,14 +720,15 @@ func _animate_cell_floor_finalize_steps(steps: GnosisNode) -> void:
 		if display.is_empty() and multi_delta > 0:
 			display = Match3ScoreFloatingDisplayText.build_multi_add(multi_delta)
 		if not display.is_empty():
-			BoardFloatJuiceScript.spawn_labeled_popup(
+			await BoardFloatJuiceScript.spawn_labeled_popup_and_wait(
 				self,
 				anchor,
 				display,
-				BoardFloatJuiceScript.COLOR_MULTI,
-				0.0
+				BoardFloatJuiceScript.COLOR_MULTI
 			)
-		await _wait_unscaled(_resolve_floor_finalize_step_pause_seconds())
+		await _wait_unscaled(_resolve_cell_floor_finalize_hold_seconds())
+		if i < steps.get_count() - 1:
+			await _wait_unscaled(_resolve_cell_floor_finalize_gap_seconds())
 
 
 func _animate_boon_resolve_steps(steps: GnosisNode, use_finalize_timing: bool = false) -> void:
@@ -686,28 +759,49 @@ func _animate_boon_resolve_steps(steps: GnosisNode, use_finalize_timing: bool = 
 			display = Match3ScoreFloatingDisplayText.build_multi_add(_node_int(resolve_step, "multiDelta", 0))
 		if display.is_empty() and _node_int(resolve_step, "pointsDelta", 0) != 0:
 			display = Match3ScoreFloatingDisplayText.build_points_add(_node_int(resolve_step, "pointsDelta", 0))
+		_apply_boon_step_hud_metrics_instant(resolve_step, i, steps.get_count())
 		if not display.is_empty():
 			if hud.has_method("play_boon_score_juice_on_slot"):
 				hud.call("play_boon_score_juice_on_slot", slot_index, kind, display)
-		await _apply_hud_metrics_from_step_node(resolve_step, i, steps.get_count())
 		if step_pause > 0.0:
 			await _wait_unscaled(step_pause)
 
 
 func _pulse_floor_cell(x: int, y: int) -> void:
-	var rect := _cell_rect(x, y)
-	var flash := ColorRect.new()
-	flash.color = Color(1.0, 0.92, 0.45, 0.55)
-	flash.position = rect.position
-	flash.size = rect.size
-	flash.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(flash)
-	var tw := create_tween()
-	tw.tween_property(flash, "modulate:a", 0.0, _resolve_floor_trigger_flash_seconds())
-	tw.finished.connect(func() -> void:
-		if is_instance_valid(flash):
-			flash.queue_free()
-	)
+	# Unity parity: a short "hit flash" on the floor modifier itself.
+	_begin_floor_flash(x, y)
+
+
+func _begin_floor_flash(x: int, y: int) -> void:
+	var key := _key(x, y)
+	_floor_flash_started_ms_by_key[key] = Time.get_ticks_msec()
+	queue_redraw()
+
+
+func _floor_flash_alpha_for_key(key: String, duration_sec: float) -> float:
+	if duration_sec <= 0.0:
+		return 0.0
+	if not _floor_flash_started_ms_by_key.has(key):
+		return 0.0
+	var started_ms := int(_floor_flash_started_ms_by_key.get(key, 0))
+	var elapsed := float(Time.get_ticks_msec() - started_ms) / 1000.0
+	var t := clampf(elapsed / duration_sec, 0.0, 1.0)
+	# bell curve: 0 -> peak -> 0
+	var bell := sin(PI * t)
+	return clampf(bell, 0.0, 1.0)
+
+
+func _prune_floor_flashes() -> void:
+	var dur := _resolve_floor_trigger_flash_seconds()
+	if dur <= 0.0:
+		_floor_flash_started_ms_by_key.clear()
+		return
+	var now_ms := Time.get_ticks_msec()
+	var max_age_ms := int(ceil(dur * 1000.0)) + 10
+	for key in _floor_flash_started_ms_by_key.keys():
+		var started_ms := int(_floor_flash_started_ms_by_key.get(key, 0))
+		if now_ms - started_ms > max_age_ms:
+			_floor_flash_started_ms_by_key.erase(key)
 
 
 func _await_active_swap() -> void:
@@ -846,22 +940,57 @@ func _animate_destroy(
 				node.queue_free()
 	)
 	await batch.finished
-	for entry in score_popup_entries:
-		_spawn_destroy_score_popups_at(
+	# Keep HUD counters in sync with the first visible score feedback (float pops).
+	if show_score and step != null and step.is_valid():
+		var hud = _find_hud()
+		if hud != null:
+			var step_points := _node_int(step, "movePointsSoFar", -1)
+			var step_multi := _node_int(step, "moveMultiSoFar", -1)
+			if step_points >= 0 and hud.has_method("apply_step_metrics_display"):
+				hud.apply_step_metrics_display(step_points, maxi(1, step_multi))
+			elif step_points >= 0 and hud.has_method("play_step_metrics_display"):
+				hud.play_step_metrics_display(step_points, maxi(1, step_multi), 0.0)
+			_play_hud_score_pop_juice(0, 1)
+	var stagger := _resolve_float_pop_stagger_seconds()
+	for i in score_popup_entries.size():
+		var entry: Dictionary = score_popup_entries[i]
+		var tile_delay := stagger * float(i) if stagger > 0.0 else 0.0
+		BoardFloatJuiceScript.spawn_destroy_gem_popups(
+			self,
 			entry["anchor"],
 			int(entry["points"]),
 			int(entry["multi"]),
 			str(entry["item_type_id"]),
+			tile_delay
 		)
-	for entry in floor_popup_entries:
-		var cell_key: String = str(entry.get("cell_key", ""))
-		if not cell_key.is_empty():
-			var parts := cell_key.split(",")
-			if parts.size() == 2:
-				_pulse_floor_cell(int(parts[0]), int(parts[1]))
-		_spawn_floor_bonus_popups_at(entry["anchor"], entry["pop"])
-	if STEP_PAUSE > 0.0:
-		await _wait(STEP_PAUSE)
+	# Beat separation: let base match pops "land" first, then show enhanced-floor bonuses
+	# as a distinct phase (less visual interleaving).
+	var base_read_pause := maxf(
+		_resolve_destroy_step_pause_seconds(),
+		BoardFloatJuiceScript.estimate_rise_popup_duration(self)
+	)
+	if base_read_pause > 0.0:
+		await _wait_unscaled(base_read_pause)
+	if not floor_popup_entries.is_empty():
+		var floor_delay := _resolve_floor_pop_after_destroy_delay_seconds()
+		if floor_delay > 0.0:
+			await _wait_unscaled(floor_delay)
+		for i in floor_popup_entries.size():
+			var entry: Dictionary = floor_popup_entries[i]
+			var cell_key: String = str(entry.get("cell_key", ""))
+			if not cell_key.is_empty():
+				var parts := cell_key.split(",")
+				if parts.size() == 2:
+					_pulse_floor_cell(int(parts[0]), int(parts[1]))
+			await BoardFloatJuiceScript.spawn_floor_pop_at_and_wait(self, entry["anchor"], entry["pop"])
+			if i < floor_popup_entries.size() - 1 and stagger > 0.0:
+				await _wait_unscaled(stagger)
+
+
+func _resolve_floor_pop_after_destroy_delay_seconds() -> float:
+	if _service != null:
+		return Match3AnimationTuningScript.floor_pop_after_destroy_delay_seconds(_service)
+	return _scale_pres(0.16, 0.03)
 
 func _build_contribution_lookup(contributions: GnosisNode) -> Dictionary:
 	var map: Dictionary = {}
@@ -907,7 +1036,7 @@ func _spawn_floor_bonus_popups_at(anchor: Vector2, pop: GnosisNode) -> void:
 	if points > 0:
 		BoardFloatJuiceScript.spawn_labeled_popup(
 			self,
-			anchor + Vector2(0, -18),
+			anchor + BoardFloatJuiceScript.STACK_POINTS_OFFSET,
 			Match3ScoreFloatingDisplayText.build_points_add(points),
 			BoardFloatJuiceScript.COLOR_POINTS,
 			0.08
@@ -915,7 +1044,7 @@ func _spawn_floor_bonus_popups_at(anchor: Vector2, pop: GnosisNode) -> void:
 	if multi > 0:
 		BoardFloatJuiceScript.spawn_labeled_popup(
 			self,
-			anchor + Vector2(0, 10),
+			anchor + BoardFloatJuiceScript.STACK_MULTI_OFFSET,
 			Match3ScoreFloatingDisplayText.build_multi_add(multi),
 			BoardFloatJuiceScript.COLOR_MULTI,
 			0.12
@@ -923,8 +1052,8 @@ func _spawn_floor_bonus_popups_at(anchor: Vector2, pop: GnosisNode) -> void:
 	if money > 0:
 		BoardFloatJuiceScript.spawn_labeled_popup(
 			self,
-			anchor,
-			Match3ScoreFloatingDisplayText.build_points_add(money),
+			anchor + BoardFloatJuiceScript.STACK_MONEY_OFFSET,
+			"+$%d" % money,
 			BoardFloatJuiceScript.COLOR_MONEY,
 			0.0
 		)
@@ -1160,10 +1289,17 @@ func _spawn_sparkles(wrap: Control) -> void:
 
 # --- SFX (templates/match3/scripts/audio.gd) --------------------------------
 
+const SFX_BUS := &"Sfx"
+
+func _resolve_sfx_bus() -> StringName:
+	return SFX_BUS if AudioServer.get_bus_index(SFX_BUS) >= 0 else &"Master"
+
+
 func _init_sfx_pool() -> void:
+	var bus := _resolve_sfx_bus()
 	for _i in 8:
 		var player := AudioStreamPlayer.new()
-		player.bus = &"Master"
+		player.bus = bus
 		player.volume_db = -10.0
 		add_child(player)
 		_sfx_players.append(player)
@@ -1323,6 +1459,10 @@ func _sync_cell_floors_from_service() -> void:
 
 
 func _draw() -> void:
+	var disable_floor_fx := false
+	if _service != null and _service.has_method("are_cell_floor_modifiers_disabled"):
+		disable_floor_fx = bool(_service.call("are_cell_floor_modifiers_disabled"))
+	var flash_dur := _resolve_floor_trigger_flash_seconds()
 	for cell in _cells:
 		var slot_type := int(cell.get("slotType", Match3ModelsScript.SLOT_ACTIVE))
 		if slot_type == Match3ModelsScript.SLOT_NONE:
@@ -1333,8 +1473,20 @@ func _draw() -> void:
 		if floor_type_id.is_empty():
 			continue
 		var floor_tex: Texture2D = Match3FloorSpritesScript.texture_for_floor_type(floor_type_id)
+		if (
+			floor_tex
+			and disable_floor_fx
+			and _service != null
+			and Match3CellFloorBoardScript.cell_floor_type_has_gameplay_tag(_service, floor_type_id, "enhanced")
+		):
+			floor_tex = Match3ItemTypeVisualScript.greyscale_texture(floor_tex)
 		if floor_tex:
 			_draw_floor_texture(rect, floor_tex)
+			# Trigger juice: flash white on activation (enhanced triggers + finalize steps).
+			var key := _key(int(cell.get("x", 0)), int(cell.get("y", 0)))
+			var flash_alpha := _floor_flash_alpha_for_key(key, flash_dur)
+			if flash_alpha > 0.001:
+				draw_texture_rect(floor_tex, rect, false, Color(1, 1, 1, flash_alpha * 0.75))
 	if _dragging and _drag_start_cell.x >= 0:
 		draw_rect(_cell_rect(_drag_start_cell.x, _drag_start_cell.y), Color(1, 1, 1, 0.45), false, 3.0)
 		if _hover_cell.x >= 0 and _hover_cell != _drag_start_cell:
@@ -1381,6 +1533,9 @@ func _input(event: InputEvent) -> void:
 
 
 func _process(delta: float) -> void:
+	if not _floor_flash_started_ms_by_key.is_empty():
+		_prune_floor_flashes()
+		queue_redraw()
 	if _dragging:
 		_update_drag_preview(get_local_mouse_position())
 	if _gamepad and not _dragging:

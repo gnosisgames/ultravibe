@@ -3,6 +3,8 @@ extends VBoxContainer
 
 ## Shuffle-style refresh control for the shop row: title, icon button, price below.
 
+const JuicyFocus = preload("res://game/ui/widgets/juicy_focus.gd")
+
 const REFRESH_ICON := "res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/refresh.png"
 const BUTTON_SIZE := Vector2(120, 120)
 const ICON_MAX := 72
@@ -61,7 +63,11 @@ func configure(font: Font, title: String, price_label: String, enabled: bool) ->
 	_button.add_theme_color_override("icon_pressed_color", WHITE)
 	_button.add_theme_color_override("icon_disabled_color", Color(0.78, 0.78, 0.82, 1))
 	_apply_button_styles(_button, enabled)
-	_button.pressed.connect(func() -> void: reroll_pressed.emit())
+	_button.pressed.connect(func() -> void:
+		JuicyFocus.play_pressed(_button)
+		reroll_pressed.emit()
+	)
+	JuicyFocus.wire(_button, enabled, enabled, BUTTON_SIZE.x, true, false)
 	add_child(_button)
 
 	var price := Label.new()

@@ -20,10 +20,20 @@ const UltraAchievementProgress = preload("res://game/ui/ultra_achievement_progre
 @onready var _web_button: Button = %WebButton
 @onready var _discord_button: Button = %DiscordButton
 @onready var _credits_button: Button = %CreditsButton
+@onready var _mascot_mount: Control = %MascotMount
+@onready var _mascot_backdrop: GameOverFlavorBackdrop = %FlavorBackdrop
+@onready var _mascot_icon: TextureRect = %MascotIcon
+
+const MASCOT_MOUNT_SIZE := Vector2(128, 128)
+const MASCOT_MOUNT_MARGIN := 32.0
+const MASCOT_PULSE_SCALE_MIN := 0.96
+const MASCOT_PULSE_SCALE_MAX := 1.04
+const MASCOT_PULSE_SPEED := 2.85
 
 var _host: GnosisGodotEngine = null
 var _played_footer_entrance := false
 var _achievements_counter: Label = null
+var _mascot_pulse_time := 0.0
 
 func set_view_visible(is_visible: bool) -> void:
 	super.set_view_visible(is_visible)
@@ -36,6 +46,18 @@ func set_view_visible(is_visible: bool) -> void:
 			_ensure_footer_buttons_visible()
 		_refresh_continue_button()
 		_refresh_achievement_counter()
+		call_deferred("_position_mascot_mount")
+		call_deferred("_start_mascot_flavor")
+	else:
+		_stop_mascot_flavor()
+
+func _process(delta: float) -> void:
+	if not is_visible_in_tree() or _mascot_icon == null:
+		return
+	_mascot_pulse_time += delta
+	var pulse := (sin(_mascot_pulse_time * MASCOT_PULSE_SPEED) + 1.0) * 0.5
+	_mascot_icon.scale = Vector2.ONE * lerpf(MASCOT_PULSE_SCALE_MIN, MASCOT_PULSE_SCALE_MAX, pulse)
+	_mascot_icon.pivot_offset = _mascot_icon.size * 0.5
 
 func _ensure_footer_buttons_visible() -> void:
 	_reset_footer_children_visible(_footer_tools)
@@ -86,12 +108,42 @@ func _ready() -> void:
 	_credits_button.pressed.connect(_on_credits_pressed)
 	call_deferred("_resolve_host")
 
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_RESIZED and is_visible_in_tree():
+		call_deferred("_position_mascot_mount")
+
+func _position_mascot_mount() -> void:
+	if _mascot_mount == null:
+		return
+	var offsets := GnosisViewportInsets.top_left_offsets(
+		get_viewport(),
+		_host.engine if _host else null,
+		MASCOT_MOUNT_MARGIN
+	)
+	_mascot_mount.position = Vector2(float(offsets.x), float(offsets.y))
+	_mascot_mount.size = MASCOT_MOUNT_SIZE
+
+func _start_mascot_flavor() -> void:
+	if not is_visible_in_tree():
+		return
+	_mascot_pulse_time = 0.0
+	if _mascot_backdrop:
+		_mascot_backdrop.start_effect()
+
+func _stop_mascot_flavor() -> void:
+	if _mascot_backdrop:
+		_mascot_backdrop.stop_effect()
+	if _mascot_icon:
+		_mascot_icon.scale = Vector2.ONE
+		_mascot_icon.position = Vector2.ZERO
+
 func _resolve_host() -> void:
 	var node: Node = self
 	while node:
 		if node is GnosisGodotEngine:
 			_host = node as GnosisGodotEngine
 			_refresh_achievement_counter()
+			call_deferred("_position_mascot_mount")
 			return
 		node = node.get_parent()
 

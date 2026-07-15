@@ -138,7 +138,7 @@ func apply_item_destroyed(
 		1 if is_cold else -1,
 		1 if is_warm else -1,
 		_step,
-		true
+		false
 	)
 	return _totals_from_payload(_resolve_step_payload, points, multi)
 

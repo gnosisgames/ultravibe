@@ -16,14 +16,35 @@ const UltraDisplaySettingsScript = preload("res://game/ultra_display_settings.gd
 const TranslationBridgeScript = preload("res://addons/com.gnosisgames.gnosisengine/adapters/godot/gnosis_godot_translation_bridge.gd")
 const UltraAchievementTrackerScript = preload("res://game/adapters/ultra_achievement_tracker.gd")
 const UltraAchievementToastOverlayScript = preload("res://game/ui/ultra_achievement_toast_overlay.gd")
+const UltraEditionPolicyScript = preload("res://game/ultra_edition_policy.gd")
+const UltraEditionRunPressureScript = preload("res://game/adapters/ultra_edition_run_pressure.gd")
 
 var _match3_adapter = null
+var _edition_run_pressure = null
 var _achievement_tracker = null
 var _feedback_audio_adapter: FeedbackAudioAdapter = null
 var _music_playlist_adapter: UltraMusicPlaylistAdapter = null
 var _debug_info_overlay: UltraDebugInfoOverlay = null
 var _display_settings: UltraDisplaySettings = null
 var _translation_bridge: GnosisGodotTranslationBridge = null
+
+func _ready() -> void:
+	super._ready()
+	if GnosisPlatform.is_mobile():
+		get_tree().quit_on_go_back = false
+	_wire_edition_services()
+
+func _wire_edition_services() -> void:
+	var edition := get_service("Edition") as GnosisEditionService
+	if edition == null:
+		return
+	edition.register_policy(UltraEditionPolicyScript.new())
+	if _edition_run_pressure == null:
+		_edition_run_pressure = UltraEditionRunPressureScript.new()
+		_edition_run_pressure.name = "EditionRunPressure"
+		add_child(_edition_run_pressure)
+	if engine:
+		_edition_run_pressure.bind_engine(engine)
 
 func _register_default_services(config: GnosisEngineConfig) -> void:
 	super._register_default_services(config)
@@ -127,6 +148,8 @@ func _rebind_transient_adapters() -> void:
 	_bind_match3_adapter()
 	_bind_music_playlist_adapter()
 	_bind_hud()
+	if _edition_run_pressure and engine:
+		_edition_run_pressure.bind_engine(engine)
 
 func continue_saved_run() -> bool:
 	if not engine:
@@ -152,6 +175,8 @@ func continue_saved_run() -> bool:
 	if config:
 		config.load_ephemeral_from_dictionary(saved_ephemeral)
 	_rebind_transient_adapters()
+	if _edition_run_pressure:
+		_edition_run_pressure.bind_engine(engine)
 	var m3 = engine.get_service("Match3")
 	if m3 and m3.has_method("resume_saved_run"):
 		m3.resume_saved_run(runtime_snapshot)

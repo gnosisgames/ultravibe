@@ -67,7 +67,7 @@ func _wire_subscriptions() -> void:
 		_on_match3_run_started,
 		0
 	))
-	_ensure_default_playlist_on_boot()
+	GnosisStartupAudio.defer_until_after_splash(engine, _ensure_default_playlist_on_boot)
 
 func _resolve_music_bus() -> String:
 	return music_bus_name if AudioServer.get_bus_index(music_bus_name) != -1 else "Master"

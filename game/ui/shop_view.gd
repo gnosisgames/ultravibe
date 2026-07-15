@@ -22,6 +22,8 @@ func _ready() -> void:
 	add_to_group("gnosis_ui_view")
 	_row_font = load("res://assets/fonts/Comic Lemon.otf")
 	_ensure_shop_reroll_card()
+	if _offers:
+		_offers.clip_contents = false
 	_continue_button.pressed.connect(_on_continue_pressed)
 	call_deferred("_resolve_host")
 

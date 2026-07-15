@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://game/ui/title_view.gd" id="1"]
 [ext_resource type="Texture2D" path="res://assets/logos/ultravibe_logo.png" id="3"]
@@ -12,6 +12,8 @@
 [ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/achievement.png" id="11"]
 [ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/cog.png" id="12"]
 [ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/book.png" id="13"]
+[ext_resource type="Texture2D" path="res://assets/icons/consumables/Vibemania.png" id="14"]
+[ext_resource type="Script" path="res://game/ui/components/game_over_flavor_backdrop.gd" id="15"]
 
 [node name="TitleView" type="Control"]
 layout_mode = 3
@@ -22,6 +24,37 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1")
 view_id = "title"
+
+[node name="MascotMount" type="Control" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 0
+offset_left = 32.0
+offset_top = 32.0
+offset_right = 160.0
+offset_bottom = 160.0
+mouse_filter = 2
+
+[node name="FlavorBackdrop" type="Control" parent="MascotMount"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("15")
+
+[node name="MascotIcon" type="TextureRect" parent="MascotMount"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 128.0
+offset_bottom = 128.0
+mouse_filter = 2
+texture = ExtResource("14")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="Center" type="CenterContainer" parent="."]
 layout_mode = 1

@@ -113,14 +113,14 @@ static func build_inventory_row_actions(
 		return actions
 	var cat := category.to_lower()
 	if cat == BOON_CATEGORY and can_sell_boon_entry(engine, entry):
-		actions.append(_make_sell_action(engine, entry))
+		actions.append(_make_sell_action(engine, entry, _match3_service_for_engine(engine)))
 	elif cat == CONSUMABLE_CATEGORY and can_sell_consumable_entry(engine, entry):
-		actions.append(_make_sell_action(engine, entry))
+		actions.append(_make_sell_action(engine, entry, _match3_service_for_engine(engine)))
 	return actions
 
 
-static func _make_sell_action(engine: GnosisEngine, entry: GnosisNode) -> Dictionary:
-	var sell_price := read_inventory_sell_price(entry)
+static func _make_sell_action(engine: GnosisEngine, entry: GnosisNode, service: GnosisService = null) -> Dictionary:
+	var sell_price := read_inventory_sell_price(entry, service)
 	var label := _localized(engine, SELL_LOC_KEY, "Sell $%d" % sell_price)
 	var localization := engine.get_service("Localization") as GnosisLocalizationService
 	if localization != null:
@@ -155,11 +155,20 @@ static func can_sell_inventory_entry(engine: GnosisEngine, entry: GnosisNode, ca
 	return false
 
 
-static func read_inventory_sell_price(entry: GnosisNode) -> int:
+static func read_inventory_sell_price(entry: GnosisNode, service: GnosisService = null) -> int:
 	if not entry.is_valid():
 		return 0
 	var props := entry.get_node("properties")
-	return maxi(0, _node_int(props, "sellPrice", 0))
+	var stored := maxi(0, _node_int(props, "sellPrice", 0))
+	if stored > 0:
+		return stored
+	if service == null:
+		return 0
+	var boon_id := SupportScript.read_boon_catalog_id_from_inventory_entry(entry)
+	var buy_price := SupportScript.resolve_boon_catalog_shop_buy_price(service, boon_id)
+	if buy_price > 0:
+		return maxi(1, buy_price / 2)
+	return 0
 
 
 static func try_sell_boon_entry(service: GnosisService, entry: GnosisNode) -> bool:
@@ -183,13 +192,13 @@ static func try_sell_boon_entry(service: GnosisService, entry: GnosisNode) -> bo
 	if buy_price > 0:
 		params.set_key("buyPrice", buy_price)
 	var result = service.call_service("Boon", "DeactivateBoon", params)
-	if result is GnosisFunctionResult and not (result as GnosisFunctionResult).is_ok:
+	if not _service_invoke_ok(result):
 		return false
 	var sale := service.context.store.create_object()
 	sale.set_key("sourceConfigId", BOON_CATEGORY)
 	sale.set_key("itemId", boon_id)
 	service.call_service("Match3Shop", "RecordInventorySale", sale)
-	SupportScript.publish_ephemeral_state(service)
+	_finalize_inventory_sale(service)
 	if service.has_method("sync_equipped_boon_match3_round_effects"):
 		service.call("sync_equipped_boon_match3_round_effects")
 	return true
@@ -206,13 +215,13 @@ static func try_sell_consumable_entry(service: GnosisService, entry: GnosisNode)
 	var params := service.context.store.create_object()
 	params.set_key("consumableId", consumable_id)
 	var result = service.call_service("Consumable", "RemoveConsumable", params)
-	if result is GnosisFunctionResult and not (result as GnosisFunctionResult).is_ok:
+	if not _service_invoke_ok(result):
 		return false
 	var sale := service.context.store.create_object()
 	sale.set_key("sourceConfigId", CONSUMABLE_CATEGORY)
 	sale.set_key("itemId", consumable_id)
 	service.call_service("Match3Shop", "RecordInventorySale", sale)
-	SupportScript.publish_ephemeral_state(service)
+	_finalize_inventory_sale(service)
 	return true
 
 
@@ -223,6 +232,26 @@ static func try_sell_inventory_entry(service: GnosisService, entry: GnosisNode, 
 		CONSUMABLE_CATEGORY:
 			return try_sell_consumable_entry(service, entry)
 	return false
+
+
+static func _finalize_inventory_sale(service: GnosisService) -> void:
+	if service == null:
+		return
+	if service.has_method("_commit_currency_snapshot"):
+		service.call("_commit_currency_snapshot")
+	SupportScript.publish_ephemeral_state(service)
+
+
+static func _service_invoke_ok(result: Variant) -> bool:
+	if result is GnosisFunctionResult:
+		return (result as GnosisFunctionResult).is_ok
+	return result != null
+
+
+static func _match3_service_for_engine(engine: GnosisEngine) -> GnosisService:
+	if engine == null:
+		return null
+	return engine.get_service("Match3") as GnosisService
 
 
 static func _tags_from_metadata(engine: GnosisEngine, meta: GnosisNode) -> Array:

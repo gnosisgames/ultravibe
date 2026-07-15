@@ -3,7 +3,19 @@
 _unity_staging/
 ultravibe_screenshot.png
 screenshots/
-builds/
-*.keystore
 .DS_Store
 **/.DS_Store
+
+# Export output
+builds/
+/android/
+
+# Generated at export time by apply_edition_manifest
+data/edition_build.json
+
+# Source icon packs / one-off asset drops
+assets/logos/*.zip
+
+# Local signing secrets (Godot also uses .godot/export_credentials.cfg)
+.secrets/
+*.keystore

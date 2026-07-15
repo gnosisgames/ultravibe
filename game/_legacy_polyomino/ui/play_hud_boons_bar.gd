@@ -71,6 +71,7 @@ func _try_handle_tooltip_action(action_id: String, entry: GnosisNode) -> bool:
 	if InventoryTooltipUiScript.try_sell_boon_entry(_service, entry):
 		UltraUiFx.play_ui_sfx(self, UltraUiFx.CLIP_PRESSED, -1.0)
 		_hide_tooltip()
+		_refresh_parent_hud()
 		force_refresh()
 		return true
 	return false
@@ -113,7 +114,16 @@ func _build_signature() -> String:
 	if list.is_valid() and list.get_type() == GnosisValueType.LIST:
 		for i in range(list.get_count()):
 			var entry := list.get_node(i)
-			parts.append("%s:%d" % [_resolve_item_id(entry), _node_int(entry, "currentCount", 1)])
+			var instance_id := _node_str(entry, "instanceId")
+			if instance_id.is_empty():
+				instance_id = str(i)
+			parts.append(
+				"%s@%s:%d" % [
+					_resolve_item_id(entry),
+					instance_id,
+					_node_int(entry, "currentCount", 1),
+				]
+			)
 			var props := entry.get_node("properties")
 			parts.append(
 				"+%s-%s" % [

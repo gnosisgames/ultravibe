@@ -6,24 +6,16 @@ extends PlayHudConsumablesBar
 
 const JuiceScript := preload("res://game/match3/view/match3_consumable_use_juice.gd")
 const ConsumableDbgScript := preload("res://game/match3/debug/match3_consumable_debug.gd")
+const ReorderDragScript = preload("res://game/match3/view/match3_hud_reorderable_drag.gd")
 const TOOLTIP_Z_INDEX := 4096
 ## ConsumablesBar panel style uses 24px horizontal content margins on each side.
 const PANEL_HORIZONTAL_INSET := 48.0
-const DRAG_THRESHOLD := 18.0
 
 var _defer_inventory_refresh := false
 var _juice_running := false
 var _bar_panel: PanelContainer = null
 var _last_layout_slot_size := -1.0
-var _pointer_down_index := -1
-var _pointer_start := Vector2.ZERO
-var _drag_active := false
-var _drag_from_index := -1
-var _drag_to_index := -1
-var _drag_slot: Control = null
-var _drag_rest_global_pos := Vector2.ZERO
-var _drag_rest_parent: Node = null
-var _drag_rest_index := -1
+var _reorder_drag: RefCounted
 var _float_host: Control = null
 var _controller_cycle_armed := true
 
@@ -76,6 +68,22 @@ func _ready() -> void:
 	float_offset = 0.0
 	slot_gap = 14.0
 	clip_contents = false
+	_reorder_drag = ReorderDragScript.new()
+	_reorder_drag.bind(
+		self,
+		ReorderDragScript.Axis.VERTICAL,
+		func() -> Array[Control]: return _slot_nodes,
+		_resolve_slot_size,
+		func() -> CanvasLayer:
+			var hud := _find_match3_hud()
+			return hud.get_hud_tooltip_layer() if hud else null,
+		func() -> Node: return _bar_panel if _bar_panel else self,
+		func() -> float: return float(slot_gap),
+		func() -> bool: return _reorder_idle_blocked(),
+		func() -> bool: return _pointer_owns_strip()
+	)
+	_reorder_drag.drag_began.connect(_on_reorder_drag_began)
+	_reorder_drag.drag_ended.connect(_on_reorder_drag_ended)
 	super._ready()
 	resized.connect(_on_slot_layout_dirty)
 	call_deferred("_resolve_bar_panel")
@@ -93,6 +101,15 @@ func _resolve_bar_panel() -> void:
 
 func _ensure_float_host() -> Control:
 	if _float_host and is_instance_valid(_float_host):
+		return _float_host
+	var hud := _find_match3_hud()
+	var layer: CanvasLayer = hud.get_hud_tooltip_layer() if hud else null
+	if layer:
+		_float_host = Control.new()
+		_float_host.name = "ConsumableFloatHost"
+		_float_host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_float_host.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		layer.add_child(_float_host)
 		return _float_host
 	var host: Node = _bar_panel if _bar_panel else self
 	_float_host = Control.new()
@@ -138,16 +155,16 @@ func _on_slot_layout_dirty() -> void:
 		return
 	_last_layout_slot_size = computed
 	slot_size = computed
-	if not _drag_active and not _juice_running:
+	if not _reorder_drag.is_drag_active() and not _juice_running:
 		force_refresh()
 
 
 func _refresh() -> void:
-	if _juice_running or _defer_inventory_refresh or _drag_active:
+	if _juice_running or _defer_inventory_refresh or _reorder_drag.is_drag_active():
 		ConsumableDbgScript.fatal(
 			"Column._refresh",
 			"BLOCKED direct slot rebuild during protected state juice=%s defer=%s drag=%s" % [
-				_juice_running, _defer_inventory_refresh, _drag_active
+				_juice_running, _defer_inventory_refresh, _reorder_drag.is_drag_active()
 			]
 		)
 		return
@@ -171,6 +188,7 @@ func _make_slot(index: int, details: Dictionary) -> Control:
 		var hit := slot.get_node_or_null("Hit") as Button
 		if hit:
 			hit.offset_bottom = w
+			_rewire_slot_hover(hit, slot)
 		var badge := slot.get_node_or_null("Count") as Label
 		if badge:
 			badge.offset_left = w - 28.0
@@ -201,9 +219,14 @@ func _cleanup_orphan_slots() -> void:
 func _is_protected_floating_slot(slot: Control) -> bool:
 	if slot == null or not is_instance_valid(slot):
 		return false
-	if slot == _drag_slot:
-		return true
 	if slot.has_meta(&"juice_rest_parent"):
+		return true
+	if slot.top_level:
+		return true
+	if _float_host and is_instance_valid(_float_host) and slot.get_parent() == _float_host:
+		return true
+	var parent := slot.get_parent()
+	if parent and str(parent.name) == "ReorderLayoutHost":
 		return true
 	return slot.z_index >= 200
 
@@ -219,8 +242,22 @@ func _clear_float_host() -> void:
 				child.queue_free()
 
 
-func _connect_slot_hit(hit: Button, index: int) -> void:
-	hit.gui_input.connect(_on_hit_gui_input.bind(index))
+func _connect_slot_hit(hit: Button, _index: int) -> void:
+	hit.gui_input.connect(_on_hit_gui_input_for.bind(hit))
+
+
+func _index_for_slot(slot: Control) -> int:
+	if slot == null:
+		return -1
+	return _slot_nodes.find(slot)
+
+
+func _on_hit_gui_input_for(event: InputEvent, hit: Button) -> void:
+	var slot := hit.get_parent() as Control
+	var index := _index_for_slot(slot)
+	if index < 0:
+		return
+	_on_hit_gui_input(event, index)
 
 
 func _on_hit_gui_input(event: InputEvent, index: int) -> void:
@@ -228,126 +265,82 @@ func _on_hit_gui_input(event: InputEvent, index: int) -> void:
 		if _try_sell_at_index(index):
 			get_viewport().set_input_as_handled()
 		return
-	if _is_reorder_blocked():
+	if _is_reorder_blocked() and not _reorder_drag.is_drag_active():
 		return
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if event.pressed:
-			_pointer_down_index = index
-			_pointer_start = event.global_position
-		elif _pointer_down_index == index:
-			if _drag_active:
-				_finish_drag_reorder()
-			else:
+			_reorder_drag.handle_press(index, event.global_position)
+		else:
+			var pending_click: bool = _reorder_drag.pointer_down_index() == index
+			if _reorder_drag.handle_release(index):
+				get_viewport().set_input_as_handled()
+			elif pending_click:
 				_on_slot_pressed(index)
-			_reset_drag_state()
-	elif event is InputEventMouseMotion and _pointer_down_index == index and not _drag_active:
-		if event.global_position.distance_to(_pointer_start) >= DRAG_THRESHOLD:
-			_begin_drag_reorder(index)
 
 
-func _is_reorder_blocked() -> bool:
-	if _juice_running or _defer_inventory_refresh or _drag_active:
+func _reorder_idle_blocked() -> bool:
+	if _juice_running or _defer_inventory_refresh:
 		return true
 	if _service and _service.has_method("is_consumable_use_presentation_active"):
 		return _service.is_consumable_use_presentation_active()
+	var hud := _find_match3_hud()
+	if hud != null and hud.is_gameplay_input_locked():
+		return true
 	return false
 
 
-func _begin_drag_reorder(index: int) -> void:
-	if index < 0 or index >= _slot_nodes.size():
+func _is_reorder_blocked() -> bool:
+	return _reorder_idle_blocked() or _reorder_drag.is_drag_active()
+
+
+func _process(delta: float) -> void:
+	_reorder_drag.process_idle(delta)
+	if _reorder_drag.has_orphan_layout_slots():
+		_reorder_drag.finalize_to_row(self)
+		_set_slots_interactive(true)
+	if _reorder_drag.is_drag_active():
 		return
+	if _gamepad_owns_strip():
+		_poll_consumable_controller_input()
+		return
+	super._process(delta)
+
+
+func _on_reorder_drag_began(_slot: Control, _index: int) -> void:
 	_hide_tooltip()
-	_drag_active = true
-	_drag_from_index = index
-	_drag_to_index = index
-	_drag_slot = _slot_nodes[index]
-	if _drag_slot == null or not is_instance_valid(_drag_slot):
-		_reset_drag_state()
-		return
-	_drag_rest_parent = _drag_slot.get_parent()
-	_drag_rest_index = _drag_slot.get_index()
-	_drag_rest_global_pos = _drag_slot.global_position
-	var overlay := _ensure_float_host()
-	if _drag_rest_parent:
-		_drag_rest_parent.remove_child(_drag_slot)
-	overlay.add_child(_drag_slot)
-	_drag_slot.top_level = false
-	_drag_slot.position = _float_local_pos(_drag_rest_global_pos)
-	_drag_slot.z_index = 220
-	_drag_slot.modulate = Color(1.05, 1.05, 1.05, 0.92)
 	_set_slots_interactive(false)
 	UltraUiFx.play_ui_sfx(self, UltraUiFx.CLIP_HOVER, -6.0)
 
 
-func _process(_delta: float) -> void:
-	super._process(_delta)
-	if not _drag_active or _drag_slot == null or not is_instance_valid(_drag_slot):
-		_poll_consumable_controller_input()
-		return
-	if not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
-		_finish_drag_reorder()
-		return
-	var mouse_pos := get_global_mouse_position()
-	var overlay := _ensure_float_host()
-	_drag_slot.position = _float_local_pos(mouse_pos) - _drag_slot.size * 0.5
-	_drag_to_index = _drop_index_at_global_y(mouse_pos.y)
-
-
-func _drop_index_at_global_y(global_y: float) -> int:
-	var best_index := _drag_from_index
-	var best_distance := INF
-	for i in range(_slot_nodes.size()):
-		var slot := _slot_nodes[i]
-		if slot == null or not is_instance_valid(slot):
-			continue
-		var rect := slot.get_global_rect()
-		var center_y := rect.position.y + rect.size.y * 0.5
-		var distance := absf(global_y - center_y)
-		if distance < best_distance:
-			best_distance = distance
-			best_index = i
-	return best_index
-
-
-func _finish_drag_reorder() -> void:
-	if not _drag_active:
-		return
-	var from_index := _drag_from_index
-	var to_index := _drag_to_index
-	_restore_drag_slot_visual()
-	_reset_drag_state()
-	if from_index >= 0 and to_index >= 0 and from_index != to_index:
+func _on_reorder_drag_ended(from_index: int, to_index: int, changed: bool) -> void:
+	_reorder_drag.finalize_to_row(self)
+	if changed:
 		_commit_reorder(from_index, to_index)
 		UltraUiFx.play_ui_sfx(self, UltraUiFx.CLIP_PRESSED, -5.0)
+	_set_slots_interactive(true)
+	_last_signature = "__unset__"
 	force_refresh()
 
 
-func _restore_drag_slot_visual() -> void:
-	if _drag_slot == null or not is_instance_valid(_drag_slot):
-		return
-	_drag_slot.top_level = false
-	_drag_slot.z_index = 0
-	_drag_slot.modulate = Color.WHITE
-	_drag_slot.scale = Vector2.ONE
-	_drag_slot.rotation = 0.0
-	if _drag_rest_parent and is_instance_valid(_drag_rest_parent):
-		if _drag_slot.get_parent():
-			_drag_slot.get_parent().remove_child(_drag_slot)
-		_drag_rest_parent.add_child(_drag_slot)
-		var insert_at := clampi(_drag_rest_index, 0, _drag_rest_parent.get_child_count())
-		_drag_rest_parent.move_child(_drag_slot, insert_at)
-		_drag_slot.position = _drag_rest_parent.get_global_transform().affine_inverse() * _drag_rest_global_pos
+func _rewire_slot_hover(hit: Button, slot: Control) -> void:
+	for conn in hit.mouse_entered.get_connections():
+		hit.mouse_entered.disconnect(conn["callable"])
+	hit.mouse_entered.connect(func() -> void:
+		var idx := _index_for_slot(slot)
+		if idx >= 0:
+			_on_slot_hovered(idx)
+	)
 
 
-func _reset_drag_state() -> void:
-	_drag_active = false
-	_pointer_down_index = -1
-	_drag_from_index = -1
-	_drag_to_index = -1
-	_drag_slot = null
-	_drag_rest_parent = null
-	_drag_rest_index = -1
-	_set_slots_interactive(true)
+func _pointer_owns_strip() -> bool:
+	var rect := _bar_panel.get_global_rect() if _bar_panel else get_global_rect()
+	return rect.has_point(get_global_mouse_position())
+
+
+func _gamepad_owns_strip() -> bool:
+	if Input.get_connected_joypads().is_empty():
+		return false
+	return not _pointer_owns_strip()
 
 
 func _consumable_ids_in_display_order() -> Array[String]:
@@ -400,19 +393,25 @@ func _slot_size_flags_vertical() -> int:
 	return Control.SIZE_SHRINK_CENTER
 
 
-func _slot_alpha(_index: int, _details: Dictionary) -> float:
+func _slot_alpha(index: int, details: Dictionary) -> float:
+	if _reorder_drag != null and _reorder_drag.is_drag_active():
+		return 1.0
+	if _gamepad_owns_strip():
+		return super._slot_alpha(index, details)
 	return 1.0
 
 
 func _extra_signature_parts() -> Array[String]:
-	return []
+	if _reorder_drag != null and _reorder_drag.is_drag_active():
+		return []
+	return super._extra_signature_parts()
 
 
 func _refresh_if_changed() -> void:
 	var signature := _build_signature()
 	if signature == _last_signature:
 		return
-	if _drag_active or _juice_running or _defer_inventory_refresh:
+	if _reorder_drag.is_drag_active() or _juice_running or _defer_inventory_refresh:
 		return
 	ConsumableDbgScript.phase(
 		"Column._refresh_if_changed",
@@ -429,14 +428,16 @@ func _refresh_if_changed() -> void:
 
 
 func _should_defer_inventory_refresh() -> bool:
-	return _defer_inventory_refresh or _juice_running or _drag_active
+	return _defer_inventory_refresh or _juice_running or _reorder_drag.is_drag_active()
 
 
 func force_refresh() -> void:
-	if _juice_running or _defer_inventory_refresh or _drag_active:
+	if _juice_running or _defer_inventory_refresh or _reorder_drag.is_drag_active():
 		ConsumableDbgScript.fatal(
 			"Column.force_refresh",
-			"BLOCKED during protected state juice=%s defer=%s drag=%s" % [_juice_running, _defer_inventory_refresh, _drag_active]
+			"BLOCKED during protected state juice=%s defer=%s drag=%s" % [
+				_juice_running, _defer_inventory_refresh, _reorder_drag.is_drag_active()
+			]
 		)
 		return
 	ConsumableDbgScript.phase("Column.force_refresh", "destroying %d slots via direct _refresh" % _slot_nodes.size(), _service, self)
@@ -445,7 +446,7 @@ func force_refresh() -> void:
 
 func _on_slot_pressed(index: int) -> void:
 	ConsumableDbgScript.phase("Column._on_slot_pressed", "index=%d" % index, _service, self)
-	if _drag_active:
+	if _reorder_drag.is_drag_active():
 		ConsumableDbgScript.warn("Column._on_slot_pressed", "ignored: drag_active")
 		return
 	if _juice_running or _should_defer_inventory_refresh():
@@ -550,13 +551,7 @@ func _service_invoke_ok(result: Variant) -> bool:
 
 
 func _refresh_parent_hud() -> void:
-	var node: Node = self
-	while node:
-		var script_path := str(node.get_script().resource_path) if node.get_script() else ""
-		if script_path.ends_with("match3_hud.gd") and node.has_method("refresh_from_service"):
-			node.refresh_from_service(_service)
-			return
-		node = node.get_parent()
+	super._refresh_parent_hud()
 
 
 func _reparent_slot_for_juice(slot: Control) -> void:
@@ -570,9 +565,9 @@ func _reparent_slot_for_juice(slot: Control) -> void:
 	if slot.get_parent():
 		slot.get_parent().remove_child(slot)
 	overlay.add_child(slot)
-	slot.top_level = false
-	slot.position = _float_local_pos(slot.get_meta("juice_rest_global_pos"))
-	slot.z_index = 200
+	slot.top_level = true
+	slot.z_index = ReorderDragScript.DRAG_FLOAT_Z_INDEX
+	slot.global_position = slot.get_meta("juice_rest_global_pos")
 
 
 func _restore_floating_slot(slot: Control) -> void:
@@ -614,6 +609,18 @@ func bind_service(service: GnosisService) -> void:
 	call_deferred("_on_slot_layout_dirty")
 
 
+func _on_slot_hovered(index: int) -> void:
+	if _gamepad_owns_strip():
+		return
+	super._on_slot_hovered(index)
+
+
+func _on_slot_unhovered() -> void:
+	if _gamepad_owns_strip():
+		return
+	super._on_slot_unhovered()
+
+
 func _position_tooltip(index: int) -> void:
 	if _tooltip == null or index < 0 or index >= _slot_nodes.size():
 		return
@@ -626,7 +633,7 @@ func _position_tooltip(index: int) -> void:
 
 
 func _poll_consumable_controller_input() -> void:
-	if not _consumable_input_allowed():
+	if not _gamepad_owns_strip() or not _consumable_input_allowed():
 		return
 	if Input.is_action_just_pressed("Consumable"):
 		_use_slot_at_index(_target_consumable_index())
@@ -635,20 +642,15 @@ func _poll_consumable_controller_input() -> void:
 
 
 func _consumable_input_allowed() -> bool:
-	if _juice_running or _drag_active or _defer_inventory_refresh:
+	if _juice_running or _reorder_drag.is_drag_active() or _defer_inventory_refresh:
 		return false
 	if _service and _service.has_method("is_consumable_use_presentation_active"):
 		if _service.is_consumable_use_presentation_active():
 			return false
-	var bar_rect := _bar_panel.get_global_rect() if _bar_panel else get_global_rect()
-	if bar_rect.has_point(get_global_mouse_position()):
-		return true
-	return not Input.get_connected_joypads().is_empty()
+	return true
 
 
 func _target_consumable_index() -> int:
-	if _tooltip_index >= 0 and _tooltip_index < _slot_nodes.size():
-		return _tooltip_index
 	if _service and _service.has_method("get_selected_consumable_slot"):
 		return _service.get_selected_consumable_slot()
 	return 0
@@ -670,7 +672,13 @@ func _poll_consumable_selection_axis() -> void:
 	var selected: int = _service.get_selected_consumable_slot()
 	var delta := -1 if vy > 0.0 else 1
 	var next: int = (selected + delta + count) % count
+	if next == selected:
+		return
+	_reorder_drag.cancel_pending()
+	_reorder_drag.ensure_row_layout(self)
 	_service.select_consumable_slot(next)
+	force_refresh()
+	call_deferred("_show_tooltip_for_slot", next)
 	UltraUiFx.play_ui_sfx(self, UltraUiFx.CLIP_HOVER, -8.0)
 
 

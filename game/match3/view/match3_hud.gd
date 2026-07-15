@@ -27,7 +27,7 @@ const SCORE_LANE_POP_LABEL_PEAK := 1.26
 const SCORE_LANE_POP_FLASH := Color(1.28, 1.28, 1.28, 1.0)
 ## Total score label tints — zero blends into the dark inner panel; non-zero uses
 ## the outer score section purple (read from the section style / theme).
-const SCORE_PANEL_BG_COLOR := HUD_PURPLE_DARK
+const SCORE_PANEL_BG_COLOR := UltraUiPalette.PILL_DARK
 const SCORE_SECTION_COLOR_FALLBACK := HUD_PURPLE_NORMAL
 
 ## Group used by subscreen overlays (shop / level select / reward) to find this
@@ -625,13 +625,8 @@ func _process(delta: float) -> void:
 	_refresh_inventory_counts_if_changed()
 
 
-func _refresh_gameplay_busy_spinner() -> void:
-	if _gameplay_busy_spinner == null:
-		return
-	_gameplay_busy_spinner.set_spinning(_is_gameplay_input_locked())
-
-
-func _is_gameplay_input_locked() -> bool:
+## True while cascades, score juice, or consumable presentation block board input (Unity inputLocked parity).
+func is_gameplay_input_locked() -> bool:
 	if _service == null or not _service.has_method("get_gameplay"):
 		return false
 	var gameplay = _service.get_gameplay()
@@ -644,6 +639,12 @@ func _is_gameplay_input_locked() -> bool:
 	if dispatcher != null and dispatcher.has_method("is_busy") and dispatcher.is_busy():
 		return true
 	return false
+
+
+func _refresh_gameplay_busy_spinner() -> void:
+	if _gameplay_busy_spinner == null:
+		return
+	_gameplay_busy_spinner.set_spinning(is_gameplay_input_locked())
 
 
 func _refresh_upgrade_rail_if_changed() -> void:
@@ -894,8 +895,6 @@ func _on_frame_dirty() -> void:
 				bar_size.x = frame.size.x
 			_boons_bar.position = bar_pos
 			_boons_bar.size = bar_size
-			if _boons_row and _boons_row.has_method("force_refresh"):
-				_boons_row.force_refresh()
 	if _consumables_bar and _score_section:
 		var panel := _get_sidebar_metrics_rect()
 		# Skip while the sidebar panel has not been laid out yet, otherwise we

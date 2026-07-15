@@ -33,6 +33,9 @@ const TARGET_BOSS_MULTIPLIER := 1.6
 const BOSS_MOVES_BONUS := 1
 const BASE_COLOR_LIMIT := 6
 const DEFAULT_BOARD_ID := "grid9x9_bm"
+## Dev-only: equip starter boons on new run so HUD drag/reorder can be tested immediately.
+const DEV_GRANT_STARTER_BOONS := true
+const DEV_STARTER_BOON_IDS: Array[String] = ["Brainrot", "Bro", "SigmaMale"]
 const BOARDS_INDEX_PATH := "res://data/Boards/index.json"
 const DEFAULT_ROUNDS_PER_FLOOR := 3
 const DEFAULT_SHUFFLES_PER_ROUND := 2
@@ -1171,6 +1174,21 @@ func is_board_input_allowed() -> bool:
 	return _gameplay.status == Models.STATUS_PLAYING
 
 
+## Ends the active run immediately (mobile trial time limit).
+func force_trial_run_end(reason: String = "") -> void:
+	if is_run_game_over():
+		return
+	if _gameplay.status != Models.STATUS_PLAYING:
+		return
+	_gameplay.status = Models.STATUS_LOSS
+	_record_round_end_unused_budget_statistics()
+	_apply_round_end_floor_boon_hooks()
+	_update_run_completion_state(false)
+	_gameplay.status = Models.STATUS_LOSE_PANEL
+	_publish_ephemeral_state()
+	_publish_status_changed()
+
+
 func handle_run_started() -> void:
 	_floor_bundle_plans.clear()
 	_ensure_run_ephemeral_defaults()
@@ -1178,10 +1196,27 @@ func handle_run_started() -> void:
 	var next_level := maxi(1, _node_int(m3, "nextLevel", 1))
 	_prepare_queued_round_preview(next_level)
 	_reapply_lucky_find_upgrade_bonuses()
+	_grant_dev_starter_boons()
 	_gameplay.status = Models.STATUS_LEVEL_SELECT_PANEL
 	refresh_planned_floor_preview()
 	_publish_ephemeral_state()
 	_publish_status_changed()
+
+
+func _grant_dev_starter_boons() -> void:
+	if not DEV_GRANT_STARTER_BOONS or not OS.is_debug_build():
+		return
+	if context == null or context.store == null:
+		return
+	if not SupportScript.get_active_boon_inventory_slot_rows(self).is_empty():
+		return
+	for boon_id in DEV_STARTER_BOON_IDS:
+		var activate := context.store.create_object()
+		activate.set_key("bucketId", "default")
+		activate.set_key("boonId", boon_id)
+		var result = call_service("Boon", "ActivateBoon", activate)
+		if result == null:
+			push_warning("Dev starter boon grant failed for '%s'." % boon_id)
 
 
 func _on_begin_level_requested(event: GnosisEvent) -> void:
@@ -3107,6 +3142,15 @@ func _ensure_match3_animation_defaults(m3: GnosisNode) -> void:
 	_set_animation_default(animation, "boonFinalizePopDurationSeconds", 0.45)
 	_set_animation_default(animation, "boonFinalizeHoldDurationSeconds", 0.22)
 	_set_animation_default(animation, "boonFinalizeGapSeconds", 0.2)
+	_set_animation_default(animation, "interStepDelaySeconds", 0.1)
+	_set_animation_default(animation, "destroyStepPauseSeconds", 0.3)
+	_set_animation_default(animation, "postSpawnToNextDestroyDelaySeconds", 0.35)
+	_set_animation_default(animation, "floorPopAfterDestroyDelaySeconds", 0.16)
+	_set_animation_default(animation, "floorModifierTriggerJuiceDurationSeconds", 0.39)
+	_set_animation_default(animation, "floorFloatPopStaggerSeconds", 0.075)
+	_set_animation_default(animation, "cellFloorFinalizePopDurationSeconds", 0.68)
+	_set_animation_default(animation, "cellFloorFinalizeHoldDurationSeconds", 0.33)
+	_set_animation_default(animation, "cellFloorFinalizeGapSeconds", 0.3)
 
 
 func _set_animation_default(animation: GnosisNode, key: String, value: float) -> void:

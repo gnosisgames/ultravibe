@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3]
+[gd_scene load_steps=21 format=3]
 
 [ext_resource type="Script" path="res://game/ui/game_over_view.gd" id="1"]
 [ext_resource type="Script" path="res://game/ui/components/auto_tween.gd" id="4"]
@@ -137,6 +137,80 @@ border_width_top = 4
 border_width_right = 4
 border_width_bottom = 4
 border_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+corner_detail = 8
+
+[sub_resource type="StyleBoxFlat" id="SB_unlock_n"]
+content_margin_left = 14.0
+content_margin_top = 14.0
+content_margin_right = 14.0
+content_margin_bottom = 14.0
+bg_color = Color(0.45098, 0.298039, 0.788235, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.92549, 0.847059, 1, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+corner_detail = 8
+shadow_color = Color(0.298039, 0.156863, 0.470588, 0.5)
+shadow_size = 1
+shadow_offset = Vector2(3, 5)
+
+[sub_resource type="StyleBoxFlat" id="SB_unlock_p"]
+content_margin_left = 14.0
+content_margin_top = 14.0
+content_margin_right = 14.0
+content_margin_bottom = 14.0
+bg_color = Color(0.368627, 0.235294, 0.65098, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.92549, 0.847059, 1, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+corner_detail = 8
+
+[sub_resource type="StyleBoxFlat" id="SB_restore_n"]
+content_margin_left = 14.0
+content_margin_top = 14.0
+content_margin_right = 14.0
+content_margin_bottom = 14.0
+bg_color = Color(0.219608, 0.45098, 0.819608, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.886275, 0.913725, 0.984314, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+corner_detail = 8
+shadow_color = Color(0.0784314, 0.137255, 0.227451, 0.5)
+shadow_size = 1
+shadow_offset = Vector2(3, 5)
+
+[sub_resource type="StyleBoxFlat" id="SB_restore_p"]
+content_margin_left = 14.0
+content_margin_top = 14.0
+content_margin_right = 14.0
+content_margin_bottom = 14.0
+bg_color = Color(0.176471, 0.376471, 0.690196, 1)
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.886275, 0.913725, 0.984314, 1)
 corner_radius_top_left = 16
 corner_radius_top_right = 16
 corner_radius_bottom_right = 16
@@ -507,6 +581,48 @@ theme_override_styles/hover = SubResource("SB_restart_n")
 theme_override_styles/pressed = SubResource("SB_restart_p")
 theme_override_styles/focus = SubResource("SB_restart_n")
 text = "core__verb__restart"
+
+[node name="UnlockButton" type="Button" parent="Center/Card/VBox/Buttons"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("7")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
+theme_override_colors/font_focus_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.298039, 0.156863, 0.470588, 1)
+theme_override_constants/outline_size = 10
+theme_override_fonts/font = ExtResource("6")
+theme_override_font_sizes/font_size = 28
+theme_override_styles/normal = SubResource("SB_unlock_n")
+theme_override_styles/hover = SubResource("SB_unlock_n")
+theme_override_styles/pressed = SubResource("SB_unlock_p")
+theme_override_styles/focus = SubResource("SB_unlock_n")
+text = "ultravibe__ui__unlockFullGame"
+
+[node name="RestoreButton" type="Button" parent="Center/Card/VBox/Buttons"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("7")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
+theme_override_colors/font_focus_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.0784314, 0.137255, 0.227451, 1)
+theme_override_constants/outline_size = 10
+theme_override_fonts/font = ExtResource("6")
+theme_override_font_sizes/font_size = 28
+theme_override_styles/normal = SubResource("SB_restore_n")
+theme_override_styles/hover = SubResource("SB_restore_n")
+theme_override_styles/pressed = SubResource("SB_restore_p")
+theme_override_styles/focus = SubResource("SB_restore_n")
+text = "ultravibe__ui__restorePurchases"
 
 [node name="HomeButton" type="Button" parent="Center/Card/VBox/Buttons"]
 unique_name_in_owner = true

@@ -75,6 +75,7 @@ func _try_handle_tooltip_action(action_id: String, entry: GnosisNode) -> bool:
 	if InventoryTooltipUiScript.try_sell_consumable_entry(_service, entry):
 		UltraUiFx.play_ui_sfx(self, UltraUiFx.CLIP_PRESSED, -1.0)
 		_hide_tooltip()
+		_refresh_parent_hud()
 		force_refresh()
 		return true
 	return false
