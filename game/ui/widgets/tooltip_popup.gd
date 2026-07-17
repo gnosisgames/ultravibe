@@ -94,7 +94,10 @@ func _ready() -> void:
 	grow_vertical = Control.GROW_DIRECTION_BEGIN
 	apply_standard_skin()
 	show()
-	scale = Vector2.ZERO
+	## Keep layout scale at identity; hide via 4.7 offset transform (visual-only).
+	scale = Vector2.ONE
+	offset_transform_enabled = true
+	offset_transform_scale = Vector2.ZERO
 	if appear_auto and target:
 		target.focus_entered.connect(appear)
 		target.focus_exited.connect(disappear)
@@ -499,16 +502,35 @@ func snap_to_content_size(max_bounds: Rect2 = Rect2()) -> Vector2:
 	size = natural
 	return natural
 
+const APPEAR_SLIDE_PX := 14.0
+
 func _set_pivot_point() -> void:
+	## Godot 4.7 offset transform: visual scale/slide that does not fight layout.
+	## Pivot ratio is the edge nearest the anchored item (not top-left).
+	offset_transform_enabled = true
+	offset_transform_pivot = Vector2.ZERO
 	match pivot_side:
 		PIVOT_SIDE.TOP:
-			pivot_offset = Vector2(size.x / 2.0, 0.0)
+			offset_transform_pivot_ratio = Vector2(0.5, 0.0)
 		PIVOT_SIDE.BOTTOM:
-			pivot_offset = Vector2(size.x / 2.0, size.y)
+			offset_transform_pivot_ratio = Vector2(0.5, 1.0)
 		PIVOT_SIDE.LEFT:
-			pivot_offset = Vector2(0.0, size.y / 2.0)
+			offset_transform_pivot_ratio = Vector2(0.0, 0.5)
 		PIVOT_SIDE.RIGHT:
-			pivot_offset = Vector2(size.x, size.y / 2.0)
+			offset_transform_pivot_ratio = Vector2(1.0, 0.5)
+
+func _slide_toward_anchor() -> Vector2:
+	match pivot_side:
+		PIVOT_SIDE.BOTTOM:
+			return Vector2(0.0, APPEAR_SLIDE_PX)
+		PIVOT_SIDE.TOP:
+			return Vector2(0.0, -APPEAR_SLIDE_PX)
+		PIVOT_SIDE.LEFT:
+			return Vector2(-APPEAR_SLIDE_PX, 0.0)
+		PIVOT_SIDE.RIGHT:
+			return Vector2(APPEAR_SLIDE_PX, 0.0)
+		_:
+			return Vector2(0.0, APPEAR_SLIDE_PX)
 
 func appear() -> void:
 	if not active:
@@ -523,9 +545,13 @@ func appear() -> void:
 	_set_pivot_point()
 	if tween_tooltip and tween_tooltip.is_running():
 		tween_tooltip.kill()
+	scale = Vector2.ONE
+	offset_transform_scale = Vector2.ZERO
+	offset_transform_position = _slide_toward_anchor()
 	tween_tooltip = create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
-	tween_tooltip.tween_property(self, "scale:x", 1.0, 0.2)
-	tween_tooltip.parallel().tween_property(self, "scale:y", 1.0, 0.15)
+	tween_tooltip.set_parallel(true)
+	tween_tooltip.tween_property(self, "offset_transform_scale", Vector2.ONE, 0.2)
+	tween_tooltip.tween_property(self, "offset_transform_position", Vector2.ZERO, 0.2)
 
 func disappear() -> void:
 	var has_body := description != null and not description.text.strip_edges().is_empty()
@@ -536,6 +562,8 @@ func disappear() -> void:
 	if tween_tooltip and tween_tooltip.is_running():
 		tween_tooltip.kill()
 	tween_tooltip = create_tween().set_ease(Tween.EASE_IN_OUT).set_trans(Tween.TRANS_CUBIC)
-	tween_tooltip.tween_property(self, "scale:x", 0.0, 0.25)
-	tween_tooltip.parallel().tween_property(self, "scale:y", 0.0, 0.2)
+	tween_tooltip.set_parallel(true)
+	tween_tooltip.tween_property(self, "offset_transform_scale", Vector2.ZERO, 0.22)
+	tween_tooltip.tween_property(self, "offset_transform_position", _slide_toward_anchor(), 0.22)
+	tween_tooltip.set_parallel(false)
 	tween_tooltip.tween_callback(func() -> void: visible = false)
