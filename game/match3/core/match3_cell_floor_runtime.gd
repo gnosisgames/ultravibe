@@ -110,7 +110,7 @@ func _apply_scoring_destroy_effect(
 			var currency_id := _node_str(effect, "currencyId", "money")
 			_add_currency(currency_id, amount)
 			if currency_id.to_lower() == "money":
-				_record_floor_pop(match_result, coord, 0, 0, amount)
+				_record_floor_pop(match_result, coord, 0, 0, amount, floor_type_id)
 			_play_type_sfx(_floor_type_row(floor_type_id), "addSfxClipId")
 			_record_lucky_successful_trigger(floor_type_id, match_result)
 			return out
@@ -119,7 +119,7 @@ func _apply_scoring_destroy_effect(
 			if amount == 0:
 				return out
 			out["points"] = amount
-			_record_floor_pop(match_result, coord, amount, 0, 0)
+			_record_floor_pop(match_result, coord, amount, 0, 0, floor_type_id)
 			_play_type_sfx(_floor_type_row(floor_type_id), "addSfxClipId")
 			_record_lucky_successful_trigger(floor_type_id, match_result)
 			return out
@@ -128,7 +128,7 @@ func _apply_scoring_destroy_effect(
 			if amount == 0:
 				return out
 			out["multi"] = amount
-			_record_floor_pop(match_result, coord, 0, amount, 0)
+			_record_floor_pop(match_result, coord, 0, amount, 0, floor_type_id)
 			_play_type_sfx(_floor_type_row(floor_type_id), "addSfxClipId")
 			_record_lucky_successful_trigger(floor_type_id, match_result)
 			return out
@@ -141,7 +141,7 @@ func _apply_scoring_destroy_effect(
 				if bonus == 0:
 					return out
 				out["multi"] = bonus
-				_record_floor_pop(match_result, coord, 0, bonus, 0)
+				_record_floor_pop(match_result, coord, 0, bonus, 0, floor_type_id)
 			else:
 				var move_multi_before := maxi(1, move_multi_accum)
 				var scaled := int(round(float(move_multi_before) * factor))
@@ -149,7 +149,7 @@ func _apply_scoring_destroy_effect(
 				if bonus == 0:
 					return out
 				out["multi"] = bonus
-				_record_floor_pop(match_result, coord, 0, bonus, 0)
+				_record_floor_pop(match_result, coord, 0, bonus, 0, floor_type_id)
 			_play_type_sfx(_floor_type_row(floor_type_id), "addSfxClipId")
 			_record_lucky_successful_trigger(floor_type_id, match_result)
 			return out
@@ -279,7 +279,8 @@ func _record_floor_pop(
 	coord: Models.TileCoord,
 	points: int,
 	multi: int,
-	money: int
+	money: int,
+	floor_type_id: String = ""
 ) -> void:
 	if points == 0 and multi == 0 and money == 0:
 		return
@@ -289,6 +290,7 @@ func _record_floor_pop(
 		"pointsDelta": points,
 		"multiDelta": multi,
 		"moneyDelta": money,
+		"floorTypeId": floor_type_id.strip_edges(),
 	})
 
 

@@ -6,14 +6,20 @@ extends VBoxContainer
 const TOOLTIP_SCENE := preload("res://game/ui/widgets/tooltip_popup.tscn")
 const UltraUiFx = preload("res://game/ui/widgets/ultra_ui_fx.gd")
 const Match3FloorSpritesScript = preload("res://game/match3/view/match3_floor_sprites.gd")
+const Match3GameSpeedScript = preload("res://game/match3/core/match3_game_speed.gd")
+const FloorTriggerFlashShader = preload("res://game/match3/view/match3_floor_trigger_flash.gdshader")
 const COUNT_FONT := preload("res://assets/fonts/Comic Lemon.otf")
 const COUNT_FONT_SIZE := 22
-const ROW_GAP := 6.0
+const ROW_GAP := Match3Hud.LEFT_RAIL_GAP
+const ICON_SCALE := 0.88
+const TRIGGER_PEAK_SCALE := 1.18
+const TRIGGER_JUICE_SEC := 0.42
 
 var _service: GnosisService = null
 var _tooltip: TooltipPopup = null
 var _row_nodes: Array[Control] = []
 var _last_signature := "__unset__"
+var _trigger_juice_tweens: Dictionary = {}
 
 
 func _ready() -> void:
@@ -21,10 +27,17 @@ func _ready() -> void:
 	add_theme_constant_override("separation", int(ROW_GAP))
 	alignment = BoxContainer.ALIGNMENT_CENTER
 	size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	size_flags_vertical = Control.SIZE_EXPAND_FILL
 	resized.connect(_on_rail_layout_changed)
 	_build_tooltip()
 	set_process(true)
+
+
+func apply_left_rail_pack(slot: float, gap: float) -> void:
+	add_theme_constant_override("separation", int(round(gap)))
+	# Slot size is read via _rail_icon_size; stash on meta for that path.
+	set_meta(&"left_rail_slot", slot)
+	set_meta(&"left_rail_gap", gap)
 
 
 func bind_service(service: GnosisService) -> void:
@@ -36,6 +49,18 @@ func bind_service(service: GnosisService) -> void:
 func force_refresh() -> void:
 	_last_signature = "__unset__"
 	_refresh()
+
+
+func play_trigger_juice(type_id: String) -> void:
+	var id := type_id.strip_edges()
+	if id.is_empty():
+		return
+	var row := _row_for_type_id(id)
+	if row == null or not is_instance_valid(row):
+		return
+	var icon := row.get_node_or_null("Icon") as Control
+	var target: Control = icon if icon else row
+	_play_trigger_juice_on_control(target, id.to_lower())
 
 
 func _process(_delta: float) -> void:
@@ -57,13 +82,17 @@ func _relayout_row_sizes() -> void:
 	var icon_size := _rail_icon_size()
 	if icon_size < 8.0:
 		return
+	var draw_size := icon_size * ICON_SCALE
 	for row in _row_nodes:
 		if not is_instance_valid(row):
 			continue
 		row.custom_minimum_size = Vector2(icon_size, icon_size)
+		var icon := row.get_node_or_null("Icon") as TextureRect
+		if icon:
+			icon.custom_minimum_size = Vector2(draw_size, draw_size)
 		for child in row.get_children():
 			if child is Label:
-				child.offset_left = -icon_size * 0.72
+				child.offset_left = -icon_size * 0.62
 				child.offset_top = -icon_size * 0.46
 
 
@@ -77,14 +106,22 @@ func _refresh_if_changed() -> void:
 
 func _refresh() -> void:
 	for row in _row_nodes:
-		if is_instance_valid(row):
-			row.queue_free()
+		if row != null and is_instance_valid(row):
+			var parent := row.get_parent()
+			if parent:
+				parent.remove_child(row)
+			row.free()
 	_row_nodes.clear()
+	for child in get_children():
+		if child is Control:
+			remove_child(child)
+			child.free()
 	_hide_tooltip()
 	var rows := _enhanced_pool_rows()
 	visible = not rows.is_empty()
 	for row_data in rows:
 		_row_nodes.append(_make_row(row_data))
+	call_deferred("_relayout_row_sizes")
 
 
 func _enhanced_pool_rows() -> Array[Dictionary]:
@@ -152,15 +189,18 @@ func _make_row(details: Dictionary) -> Control:
 	var row := Control.new()
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.custom_minimum_size = Vector2(icon_size, icon_size)
-	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	row.set_meta(&"floor_type_id", str(details.get("typeId", "")))
 
 	var icon := TextureRect.new()
+	icon.name = &"Icon"
 	icon.set_anchors_preset(Control.PRESET_FULL_RECT)
 	icon.offset_right = 0.0
 	icon.offset_bottom = 0.0
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	icon.custom_minimum_size = Vector2(icon_size * ICON_SCALE, icon_size * ICON_SCALE)
 	var tex: Texture2D = details.get("icon", null)
 	if tex:
 		icon.texture = tex
@@ -176,7 +216,7 @@ func _make_row(details: Dictionary) -> Control:
 	count.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	count.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
 	count.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-	count.offset_left = -icon_size * 0.72
+	count.offset_left = -icon_size * 0.62
 	count.offset_top = -icon_size * 0.46
 	count.offset_right = 4.0
 	count.offset_bottom = 0.0
@@ -206,7 +246,22 @@ func _make_row(details: Dictionary) -> Control:
 
 
 func _rail_icon_size() -> float:
-	return Match3Hud.left_rail_slot_extent_for(self)
+	var count := _enhanced_pool_rows().size()
+	if count <= 0:
+		count = maxi(_row_nodes.size(), 1)
+	var available_h := size.y
+	if available_h < 8.0:
+		var parent := get_parent() as Control
+		if parent and parent.size.y >= 8.0:
+			available_h = parent.size.y
+	var pack := Match3Hud.left_rail_pack_metrics(
+		Match3Hud.left_rail_slot_extent_for(self),
+		available_h,
+		count,
+		ROW_GAP
+	)
+	apply_left_rail_pack(pack.x, pack.y)
+	return pack.x
 
 
 func _on_rail_layout_changed() -> void:
@@ -218,6 +273,65 @@ func _build_signature() -> String:
 	for row in _enhanced_pool_rows():
 		parts.append("%s:%d" % [row.get("typeId", ""), int(row.get("count", 0))])
 	return "|".join(parts)
+
+
+func _row_for_type_id(type_id: String) -> Control:
+	var needle := type_id.strip_edges().to_lower()
+	if needle.is_empty():
+		return null
+	for row in _row_nodes:
+		if not is_instance_valid(row):
+			continue
+		var row_id := str(row.get_meta(&"floor_type_id", "")).strip_edges().to_lower()
+		if row_id == needle:
+			return row
+	return null
+
+
+func _play_trigger_juice_on_control(control: Control, tween_key: String) -> void:
+	if control == null or not is_instance_valid(control):
+		return
+	if _trigger_juice_tweens.has(tween_key):
+		var old: Tween = _trigger_juice_tweens[tween_key]
+		if old != null and old.is_running():
+			old.kill()
+	control.scale = Vector2.ONE
+	if control.size.x > 1.0 and control.size.y > 1.0:
+		control.pivot_offset = control.size * 0.5
+
+	var flash_mat: ShaderMaterial = null
+	if FloorTriggerFlashShader != null and control is TextureRect and (control as TextureRect).texture != null:
+		flash_mat = ShaderMaterial.new()
+		flash_mat.shader = FloorTriggerFlashShader
+		flash_mat.set_shader_parameter("flash", 0.0)
+		control.material = flash_mat
+
+	var engine := Match3GameSpeedScript.engine_from_node(self)
+	var juice_sec := Match3GameSpeedScript.scale_duration(engine, TRIGGER_JUICE_SEC, 0.18)
+	var tw := create_tween()
+	tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	_trigger_juice_tweens[tween_key] = tw
+	tw.tween_method(
+		func(t: float) -> void:
+			if not is_instance_valid(control):
+				return
+			var wave := sin(PI * clampf(t, 0.0, 1.0))
+			control.scale = Vector2.ONE * lerpf(1.0, TRIGGER_PEAK_SCALE, wave)
+			if flash_mat != null:
+				flash_mat.set_shader_parameter("flash", wave),
+		0.0,
+		1.0,
+		juice_sec
+	).set_trans(Tween.TRANS_LINEAR)
+	tw.finished.connect(
+		func() -> void:
+			if is_instance_valid(control):
+				control.scale = Vector2.ONE
+				if control.material == flash_mat:
+					control.material = null
+			if _trigger_juice_tweens.get(tween_key) == tw:
+				_trigger_juice_tweens.erase(tween_key)
+	)
 
 
 func _resolve_floor_sprite(type_id: String) -> Texture2D:

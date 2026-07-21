@@ -197,6 +197,9 @@ func _check_boss_reroll() -> bool:
 	var store := engine.store
 	var m3_eph := engine.state.root.get_node("Ephemeral").get_node("match3")
 	m3_eph.set_key("nextLevel", 3)
+	match3.refresh_planned_floor_preview()
+	var before_planned := _planned_boss_level_id(engine)
+	var before_active := str(match3.get_active_level_meta().get("id", ""))
 
 	var result = match3.invoke_function("RerollUpcomingBossRound", store.create_object())
 	if not (result is GnosisFunctionResult) or not result.is_ok:
@@ -210,8 +213,37 @@ func _check_boss_reroll() -> bool:
 	if new_profile.to_lower() == previous.to_lower() and _eligible_boss_count(3) > 1:
 		print("[FAIL] boss reroll did not pick alternate profile")
 		return false
+	var after_planned := _planned_boss_level_id(engine)
+	if after_planned.to_lower() != new_profile.to_lower():
+		print("[FAIL] plannedFloor boss card stale (planned=%s payload=%s)" % [after_planned, new_profile])
+		return false
+	var after_active := str(match3.get_active_level_meta().get("id", ""))
+	if after_active.to_lower() != new_profile.to_lower():
+		print("[FAIL] active level meta not synced for queued boss (active=%s want=%s was=%s)" % [
+			after_active, new_profile, before_active
+		])
+		return false
+	if before_planned.to_lower() == after_planned.to_lower() and _eligible_boss_count(3) > 1:
+		print("[FAIL] plannedFloor boss unchanged (%s)" % after_planned)
+		return false
 	print("[OK] upcoming boss reroll (%s -> %s)" % [previous, new_profile])
 	return true
+
+
+func _planned_boss_level_id(engine: GnosisEngine) -> String:
+	var planned := engine.state.root.get_node("Ephemeral").get_node("match3").get_node("plannedFloor")
+	if not planned.is_valid():
+		return ""
+	var rounds := planned.get_node("rounds")
+	if not rounds.is_valid() or rounds.get_type() != GnosisValueType.LIST:
+		return ""
+	for i in range(rounds.get_count()):
+		var row := rounds.get_node(i)
+		if not row.is_valid():
+			continue
+		if str(row.get_node("stageType").value).strip_edges().to_lower() == "boss":
+			return str(row.get_node("levelId").value).strip_edges()
+	return ""
 
 
 func _check_remove_upgrade() -> bool:

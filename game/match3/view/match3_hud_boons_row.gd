@@ -3,27 +3,33 @@ extends PlayHudBoonsBar
 
 ## Top-strip boon inventory (centered row). Count label is overlaid; icons fill bar
 ## height with vertical bleed (negative padding) so squares read large like Unity.
-## Drag/reorder follows JokerPoker card-holder layout (see match3_hud_reorderable_drag.gd).
-
-const SupportScript = preload("res://game/match3/boons/match3_boon_support.gd")
-const JuiceScript = preload("res://game/match3/boons/match3_boon_juice.gd")
-const ReorderDragScript = preload("res://game/match3/view/match3_hud_reorderable_drag.gd")
 
 const TOOLTIP_Z_INDEX := 4096
 
 const PANEL_HORIZONTAL_INSET := 16.0
+## Icons extend past the strip chrome top/bottom (matches BoonsRow anchor offsets in tscn).
 const VERTICAL_BLEED := 10.0
+## Slightly under full bleed so icons match Unity strip scale.
 const SIZE_FACTOR := 0.9
+## Unity GnosisUIElementReorderableItem idle sway defaults.
 const SWAY_ANGLE_DEG := 3.5
 const SWAY_HALF_CYCLE_SEC := 3.2
 const SWAY_ANGLE_VAR := 1.25
 const SWAY_TIMING_VAR := 0.4
+const DRAG_THRESHOLD := 18.0
 
 var _bar_panel: PanelContainer = null
 var _last_layout_slot_size := -1.0
-var _reorder_drag: RefCounted
-var _juice_running := false
-var _juice_guard_gen := 0
+var _pointer_down_index := -1
+var _pointer_start := Vector2.ZERO
+var _drag_active := false
+var _drag_from_index := -1
+var _drag_to_index := -1
+var _drag_slot: Control = null
+var _drag_rest_global_pos := Vector2.ZERO
+var _drag_rest_parent: Node = null
+var _drag_rest_index := -1
+var _float_host: Control = null
 
 
 func _tooltip_prefer_side() -> TooltipPopup.PIVOT_SIDE:
@@ -90,22 +96,6 @@ func _ready() -> void:
 	show_capacity_dots = false
 	float_offset = 0.0
 	slot_gap = 14.0
-	_reorder_drag = ReorderDragScript.new()
-	_reorder_drag.bind(
-		self,
-		ReorderDragScript.Axis.HORIZONTAL,
-		func() -> Array[Control]: return _slot_nodes,
-		_resolve_slot_size,
-		func() -> CanvasLayer:
-			var hud := _find_match3_hud()
-			return hud.get_hud_tooltip_layer() if hud else null,
-		func() -> Node: return _bar_panel if _bar_panel else self,
-		func() -> float: return float(slot_gap),
-		func() -> bool: return _is_inventory_reorder_blocked(),
-		func() -> bool: return _pointer_owns_strip()
-	)
-	_reorder_drag.drag_began.connect(_on_reorder_drag_began)
-	_reorder_drag.drag_ended.connect(_on_reorder_drag_ended)
 	super._ready()
 	resized.connect(_on_slot_layout_dirty)
 	call_deferred("_resolve_bar_panel")
@@ -124,9 +114,12 @@ func _resolve_bar_panel() -> void:
 
 
 func _compute_slot_size() -> float:
+	# BoonsRow uses ±VERTICAL_BLEED anchor offsets — row height is the square size.
 	var square := size.y
-	if square < 8.0 and _bar_panel:
-		square = _bar_panel.size.y + VERTICAL_BLEED * 2.0
+	if _bar_panel and _bar_panel.size.y >= 8.0:
+		var bar_square := _bar_panel.size.y + VERTICAL_BLEED * 2.0
+		if square < bar_square * 0.75:
+			square = bar_square
 	if square < 8.0:
 		return -1.0
 	if _bar_panel:
@@ -142,80 +135,43 @@ func _compute_slot_size() -> float:
 
 func _on_slot_layout_dirty() -> void:
 	var computed := _compute_slot_size()
-	if computed < 8.0 or is_equal_approx(computed, _last_layout_slot_size):
+	if computed < 8.0 or absf(computed - _last_layout_slot_size) < 0.5:
 		return
 	_last_layout_slot_size = computed
 	slot_size = computed
-	if _drag_blocked():
-		return
-	_relayout_boon_slots()
-
-
-func _relayout_boon_slots() -> void:
+	# Resize in place — force_refresh on layout freezes when resize oscillates.
 	_relayout_slot_sizes()
+
+
+func _relayout_slot_sizes() -> void:
 	var w := slot_size
 	if w < 8.0:
+		w = _compute_slot_size()
+	if w < 8.0:
 		return
+	slot_size = w
+	_last_layout_slot_size = w
 	for slot in _slot_nodes:
-		if slot == null or not is_instance_valid(slot):
+		if not is_instance_valid(slot):
 			continue
-		var badge := slot.get_node_or_null("Count") as Label
-		if badge:
-			badge.offset_left = w - 28.0
-			badge.offset_top = w - 20.0
-			badge.offset_right = w + 2.0
-			badge.offset_bottom = w + 2.0
-
-
-func _refresh_if_changed() -> void:
-	if _drag_blocked():
-		return
-	super._refresh_if_changed()
-
-
-func force_refresh() -> void:
-	if _drag_blocked():
-		return
-	super.force_refresh()
+		slot.custom_minimum_size = Vector2(w, w + float_offset)
+		slot.size = Vector2(w, w + float_offset)
+		var icon := slot.get_node_or_null("Icon") as TextureRect
+		if icon:
+			icon.custom_minimum_size = Vector2(w, w)
+		var hit := slot.get_node_or_null("Hit") as Button
+		if hit:
+			hit.offset_bottom = w
+	queue_sort()
+	queue_redraw()
 
 
 func _refresh() -> void:
-	if _drag_blocked():
-		return
 	var computed := _compute_slot_size()
 	if computed >= 8.0:
 		slot_size = computed
 		_last_layout_slot_size = computed
 	super._refresh()
-
-
-func _should_skip_live_refresh() -> bool:
-	return super._should_skip_live_refresh() or _drag_blocked()
-
-
-func play_scaling_up_juice(slot_index: int, score_kind: String) -> void:
-	_begin_juice_guard()
-	super.play_scaling_up_juice(slot_index, score_kind)
-
-
-func play_score_juice(slot_index: int, score_kind: String, display_text: String) -> void:
-	_begin_juice_guard()
-	super.play_score_juice(slot_index, score_kind, display_text)
-
-
-func _begin_juice_guard() -> void:
-	_juice_running = true
-	_juice_guard_gen += 1
-	var gen := _juice_guard_gen
-	var delay: float = JuiceScript.TRIGGER_JUICE_SEC + 0.08
-	get_tree().create_timer(delay).timeout.connect(
-		func() -> void:
-			if gen != _juice_guard_gen:
-				return
-			_juice_running = false
-			_refresh_if_changed(),
-		CONNECT_ONE_SHOT
-	)
 
 
 func _apply_bar_alignment() -> void:
@@ -279,7 +235,8 @@ func _make_slot(index: int, details: Dictionary) -> Control:
 			icon.offset_right = 0.0
 			icon.offset_bottom = 0.0
 			icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-			icon.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+			icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			icon.custom_minimum_size = Vector2(w, w)
 		var hit := slot.get_node_or_null("Hit") as Button
 		if hit:
 			hit.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -287,7 +244,6 @@ func _make_slot(index: int, details: Dictionary) -> Control:
 			hit.offset_top = 0.0
 			hit.offset_right = 0.0
 			hit.offset_bottom = 0.0
-			_rewire_slot_hover(hit, slot)
 		var badge := slot.get_node_or_null("Count") as Label
 		if badge:
 			badge.offset_left = w - 28.0
@@ -297,32 +253,20 @@ func _make_slot(index: int, details: Dictionary) -> Control:
 	return slot
 
 
-func _connect_slot_hit(hit: Button, _index: int) -> void:
-	hit.gui_input.connect(_on_hit_gui_input_for.bind(hit))
+func _ensure_float_host() -> Control:
+	if _float_host and is_instance_valid(_float_host):
+		return _float_host
+	var host: Node = _bar_panel if _bar_panel else self
+	_float_host = Control.new()
+	_float_host.name = "BoonFloatHost"
+	_float_host.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_float_host.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	host.add_child(_float_host)
+	return _float_host
 
 
-func _index_for_slot(slot: Control) -> int:
-	if slot == null:
-		return -1
-	return _slot_nodes.find(slot)
-
-
-func _on_hit_gui_input_for(event: InputEvent, hit: Button) -> void:
-	var slot := hit.get_parent() as Control
-	var index := _index_for_slot(slot)
-	if index < 0:
-		return
-	_on_hit_gui_input(event, index)
-
-
-func _rewire_slot_hover(hit: Button, slot: Control) -> void:
-	for conn in hit.mouse_entered.get_connections():
-		hit.mouse_entered.disconnect(conn["callable"])
-	hit.mouse_entered.connect(func() -> void:
-		var idx := _index_for_slot(slot)
-		if idx >= 0:
-			_on_slot_hovered(idx)
-	)
+func _connect_slot_hit(hit: Button, index: int) -> void:
+	hit.gui_input.connect(_on_hit_gui_input.bind(index))
 
 
 func _on_hit_gui_input(event: InputEvent, index: int) -> void:
@@ -330,80 +274,111 @@ func _on_hit_gui_input(event: InputEvent, index: int) -> void:
 		if _try_sell_at_index(index):
 			get_viewport().set_input_as_handled()
 		return
-	if _is_inventory_reorder_blocked() or _reorder_drag.is_drag_active():
+	if _is_reorder_blocked():
 		return
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if event.pressed:
-			_reorder_drag.handle_press(index, event.global_position)
-		elif _reorder_drag.handle_release(index):
-			get_viewport().set_input_as_handled()
-	elif event is InputEventMouseMotion:
-		pass
+			_pointer_down_index = index
+			_pointer_start = event.global_position
+		elif _pointer_down_index == index:
+			if _drag_active:
+				_finish_drag_reorder()
+			_reset_drag_state()
+	elif event is InputEventMouseMotion and _pointer_down_index == index and not _drag_active:
+		if event.global_position.distance_to(_pointer_start) >= DRAG_THRESHOLD:
+			_begin_drag_reorder(index)
 
 
-func _pointer_owns_strip() -> bool:
-	var rect := _bar_panel.get_global_rect() if _bar_panel else get_global_rect()
-	return rect.has_point(get_global_mouse_position())
+func _is_reorder_blocked() -> bool:
+	return _drag_active
+
+
+func _begin_drag_reorder(index: int) -> void:
+	if index < 0 or index >= _slot_nodes.size():
+		return
+	_hide_tooltip()
+	_drag_active = true
+	_drag_from_index = index
+	_drag_to_index = index
+	_drag_slot = _slot_nodes[index]
+	if _drag_slot == null or not is_instance_valid(_drag_slot):
+		_reset_drag_state()
+		return
+	_drag_rest_parent = _drag_slot.get_parent()
+	_drag_rest_index = _drag_slot.get_index()
+	_drag_rest_global_pos = _drag_slot.global_position
+	var overlay := _ensure_float_host()
+	if _drag_rest_parent:
+		_drag_rest_parent.remove_child(_drag_slot)
+	overlay.add_child(_drag_slot)
+	_drag_slot.position = overlay.get_global_transform().affine_inverse() * _drag_rest_global_pos
+	_drag_slot.z_index = 220
+	_set_slot_sway_paused(_drag_slot, true)
 
 
 func _process(delta: float) -> void:
-	_reorder_drag.process_idle(delta)
-	if _reorder_drag.has_orphan_layout_slots():
-		_reorder_drag.finalize_to_row(self)
-		_set_all_sway_paused(false)
-		_set_slots_interactive(true)
 	super._process(delta)
 	_tick_idle_sway()
+	if not _drag_active or _drag_slot == null or not is_instance_valid(_drag_slot):
+		return
+	if not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+		_finish_drag_reorder()
+		return
+	var mouse_pos := get_global_mouse_position()
+	var overlay := _ensure_float_host()
+	_drag_slot.position = overlay.get_global_transform().affine_inverse() * mouse_pos - _drag_slot.size * 0.5
+	_drag_to_index = _drop_index_at_global_x(mouse_pos.x)
 
 
-func _on_reorder_drag_began(_slot: Control, _index: int) -> void:
-	_hide_tooltip()
-	_set_all_sway_paused(true)
-	_set_slots_interactive(false)
-	UltraUiFx.play_ui_sfx(self, UltraUiFx.CLIP_HOVER, -6.0)
+func _drop_index_at_global_x(global_x: float) -> int:
+	var best_index := _drag_from_index
+	var best_distance := INF
+	for i in range(_slot_nodes.size()):
+		var slot := _slot_nodes[i]
+		if slot == null or not is_instance_valid(slot):
+			continue
+		var rect := slot.get_global_rect()
+		var center_x := rect.position.x + rect.size.x * 0.5
+		var distance := absf(global_x - center_x)
+		if distance < best_distance:
+			best_distance = distance
+			best_index = i
+	return best_index
 
 
-func _on_reorder_drag_ended(from_index: int, to_index: int, changed: bool) -> void:
-	_reorder_drag.finalize_to_row(self)
-	if changed:
-		if _commit_reorder(from_index, to_index):
-			_last_signature = _build_signature()
-			UltraUiFx.play_ui_sfx(self, UltraUiFx.CLIP_PRESSED, -5.0)
-		else:
-			force_refresh()
-	else:
-		_last_signature = "__unset__"
-	_set_all_sway_paused(false)
-	_set_slots_interactive(true)
+func _finish_drag_reorder() -> void:
+	if not _drag_active:
+		return
+	var from_index := _drag_from_index
+	var to_index := _drag_to_index
+	_restore_drag_slot_visual()
+	_reset_drag_state()
+	if from_index >= 0 and to_index >= 0 and from_index != to_index:
+		_commit_reorder(from_index, to_index)
 	force_refresh()
 
 
-func _drag_blocked() -> bool:
-	return (_reorder_drag != null and _reorder_drag.is_drag_active()) or _is_inventory_reorder_blocked()
+func _restore_drag_slot_visual() -> void:
+	if _drag_slot == null or not is_instance_valid(_drag_slot):
+		return
+	_set_slot_sway_paused(_drag_slot, false)
+	_drag_slot.z_index = 0
+	if _drag_rest_parent and is_instance_valid(_drag_rest_parent):
+		if _drag_slot.get_parent():
+			_drag_slot.get_parent().remove_child(_drag_slot)
+		_drag_rest_parent.add_child(_drag_slot)
+		var insert_at := clampi(_drag_rest_index, 0, _drag_rest_parent.get_child_count())
+		_drag_rest_parent.move_child(_drag_slot, insert_at)
 
 
-func _is_inventory_reorder_blocked() -> bool:
-	if _juice_running:
-		return true
-	var hud := _find_match3_hud()
-	if hud != null:
-		return hud.is_gameplay_input_locked()
-	return false
-
-
-func _set_all_sway_paused(paused: bool) -> void:
-	for slot in _slot_nodes:
-		_set_slot_sway_paused(slot, paused)
-
-
-func _set_slots_interactive(enabled: bool) -> void:
-	for slot in _slot_nodes:
-		if slot == null or not is_instance_valid(slot):
-			continue
-		for child in slot.get_children():
-			if child is Button:
-				child.disabled = not enabled
-				child.mouse_filter = Control.MOUSE_FILTER_STOP if enabled else Control.MOUSE_FILTER_IGNORE
+func _reset_drag_state() -> void:
+	_drag_active = false
+	_pointer_down_index = -1
+	_drag_from_index = -1
+	_drag_to_index = -1
+	_drag_slot = null
+	_drag_rest_parent = null
+	_drag_rest_index = -1
 
 
 func _set_slot_sway_paused(slot: Control, paused: bool) -> void:
@@ -413,43 +388,32 @@ func _set_slot_sway_paused(slot: Control, paused: bool) -> void:
 
 func _boon_instance_ids_in_display_order() -> Array[String]:
 	var ids: Array[String] = []
-	var rows := SupportScript.get_active_boon_inventory_slot_rows(_service)
-	for row in rows:
-		var instance_id := _node_str(row, "instanceId")
+	var list := _inventory_list()
+	if not list.is_valid() or list.get_type() != GnosisValueType.LIST:
+		return ids
+	for i in range(list.get_count()):
+		var entry := list.get_node(i)
+		var instance_id := _node_str(entry, "instanceId")
 		if instance_id.is_empty():
-			instance_id = SupportScript.read_boon_catalog_id_from_inventory_entry(row)
-		if instance_id.is_empty():
-			instance_id = _resolve_item_id(row)
+			instance_id = _resolve_item_id(entry)
 		if not instance_id.is_empty():
 			ids.append(instance_id)
 	return ids
 
 
-func _commit_reorder(from_index: int, to_index: int) -> bool:
+func _commit_reorder(from_index: int, to_index: int) -> void:
 	if _service == null or _service.context == null or _service.context.store == null:
-		return false
+		return
 	var ids := _boon_instance_ids_in_display_order()
 	if from_index < 0 or to_index < 0 or from_index >= ids.size() or to_index >= ids.size():
-		return false
+		return
 	var moved: String = ids[from_index]
 	ids.remove_at(from_index)
 	ids.insert(to_index, moved)
 	var params := _service.context.store.create_object()
 	params.set_key("bucketId", "default")
 	var id_list := _service.context.store.create_list()
-	for instance_id in ids:
-		id_list.add(instance_id)
+	for catalog_id in ids:
+		id_list.add(catalog_id)
 	params.set_node("boonInstanceIds", id_list)
-	var result = _service.call_service("Boon", "ReorderBoons", params)
-	if not _service_invoke_ok(result):
-		return false
-	SupportScript.publish_ephemeral_state(_service)
-	return true
-
-
-func _service_invoke_ok(result: Variant) -> bool:
-	if result is GnosisFunctionResult:
-		return result.is_ok
-	if result is GnosisNode:
-		return result.is_valid()
-	return false
+	_service.call_service("Boon", "ReorderBoons", params)

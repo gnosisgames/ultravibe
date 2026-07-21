@@ -16,7 +16,7 @@ corner_radius_top_left = 27
 corner_radius_top_right = 27
 corner_radius_bottom_right = 27
 corner_radius_bottom_left = 27
-shadow_color = Color(0.0784314, 0.137255, 0.227451, 1)
+shadow_color = Color(0.180392, 0.160784, 0.321569, 1)
 shadow_size = 1
 shadow_offset = Vector2(5, 7)
 
@@ -48,7 +48,7 @@ corner_radius_top_right = 16
 corner_radius_bottom_right = 16
 corner_radius_bottom_left = 16
 corner_detail = 8
-shadow_color = Color(0.0784314, 0.137255, 0.227451, 0.5)
+shadow_color = Color(0.180392, 0.160784, 0.321569, 0.5)
 shadow_size = 1
 shadow_offset = Vector2(3, 5)
 
@@ -196,7 +196,7 @@ corner_radius_top_right = 16
 corner_radius_bottom_right = 16
 corner_radius_bottom_left = 16
 corner_detail = 8
-shadow_color = Color(0.0784314, 0.137255, 0.227451, 0.5)
+shadow_color = Color(0.180392, 0.160784, 0.321569, 0.5)
 shadow_size = 1
 shadow_offset = Vector2(3, 5)
 
@@ -614,7 +614,7 @@ theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
 theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
 theme_override_colors/font_focus_color = Color(1, 1, 1, 1)
-theme_override_colors/font_outline_color = Color(0.0784314, 0.137255, 0.227451, 1)
+theme_override_colors/font_outline_color = Color(0.180392, 0.160784, 0.321569, 1)
 theme_override_constants/outline_size = 10
 theme_override_fonts/font = ExtResource("6")
 theme_override_font_sizes/font_size = 28

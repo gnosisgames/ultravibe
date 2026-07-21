@@ -13,7 +13,7 @@ func _panel_border_color() -> Color:
 	return Color(0.345098, 0.345098, 0.572549, 1)
 
 func _panel_shadow_color() -> Color:
-	return Color(0.0784314, 0.137255, 0.227451, 1)
+	return UltraUiPalette.PANEL_SHADOW
 
 func _stats_panel_bg_color() -> Color:
 	return _panel_bg_color()

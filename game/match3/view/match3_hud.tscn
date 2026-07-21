@@ -1,4 +1,4 @@
-[gd_scene load_steps=24 format=3]
+[gd_scene load_steps=32 format=3]
 
 [ext_resource type="Script" path="res://game/match3/view/match3_hud.gd" id="1"]
 [ext_resource type="Script" path="res://game/match3/view/match3_dispatcher.gd" id="2"]
@@ -29,7 +29,21 @@ corner_radius_top_left = 27
 corner_radius_top_right = 27
 corner_radius_bottom_right = 27
 corner_radius_bottom_left = 27
-shadow_color = Color(0.08, 0.04, 0.12, 1)
+shadow_color = Color(0.180392, 0.160784, 0.321569, 1)
+shadow_size = 1
+shadow_offset = Vector2(5, 7)
+
+[sub_resource type="StyleBoxFlat" id="SB_section_body"]
+content_margin_left = 12.0
+content_margin_top = 16.0
+content_margin_right = 12.0
+content_margin_bottom = 10.0
+bg_color = Color(0.345098, 0.345098, 0.572549, 1)
+corner_radius_top_left = 27
+corner_radius_top_right = 27
+corner_radius_bottom_right = 27
+corner_radius_bottom_left = 27
+shadow_color = Color(0.180392, 0.160784, 0.321569, 1)
 shadow_size = 1
 shadow_offset = Vector2(5, 7)
 
@@ -57,9 +71,9 @@ corner_radius_bottom_left = 27
 
 [sub_resource type="StyleBoxFlat" id="SB_rail_panel"]
 content_margin_left = 0.0
-content_margin_top = 12.0
+content_margin_top = 4.0
 content_margin_right = 0.0
-content_margin_bottom = 12.0
+content_margin_bottom = 4.0
 bg_color = Color(0, 0, 0, 0.15)
 corner_radius_top_left = 12
 corner_radius_top_right = 12
@@ -68,9 +82,9 @@ corner_radius_bottom_left = 12
 
 [sub_resource type="StyleBoxFlat" id="SB_dark"]
 content_margin_left = 12.0
-content_margin_top = 0.0
+content_margin_top = 5.0
 content_margin_right = 12.0
-content_margin_bottom = 0.0
+content_margin_bottom = 5.0
 bg_color = Color(0.156863, 0.196078, 0.290196, 1)
 corner_radius_top_left = 14
 corner_radius_top_right = 14
@@ -82,9 +96,9 @@ shadow_offset = Vector2(3, 4)
 
 [sub_resource type="StyleBoxFlat" id="SB_score_stack"]
 content_margin_left = 12.0
-content_margin_top = 0.0
+content_margin_top = 4.0
 content_margin_right = 12.0
-content_margin_bottom = 0.0
+content_margin_bottom = 4.0
 bg_color = Color(0.156863, 0.196078, 0.290196, 1)
 corner_radius_top_left = 14
 corner_radius_top_right = 14
@@ -95,7 +109,7 @@ shadow_size = 1
 shadow_offset = Vector2(3, 4)
 
 [sub_resource type="StyleBoxFlat" id="SB_token"]
-bg_color = Color(0.180392, 0.160784, 0.321569, 1)
+bg_color = Color(0.156863, 0.196078, 0.290196, 1)
 corner_radius_top_left = 21
 corner_radius_top_right = 21
 corner_radius_bottom_right = 21
@@ -207,47 +221,62 @@ grow_vertical = 2
 mouse_filter = 2
 theme_override_constants/separation = 8
 
-[node name="RunUpgradesSection" type="PanelContainer" parent="LeftRail"]
+[node name="RunUpgradesSection" type="Panel" parent="LeftRail"]
 layout_mode = 2
 size_flags_vertical = 3
 size_flags_stretch_ratio = 1.0
-clip_contents = false
+clip_contents = true
 theme_override_styles/panel = SubResource("SB_rail_panel")
 
 [node name="RunUpgradesColumn" type="VBoxContainer" parent="LeftRail/RunUpgradesSection"]
 unique_name_in_owner = true
-layout_mode = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 size_flags_horizontal = 3
-size_flags_vertical = 0
+size_flags_vertical = 3
 theme_override_constants/separation = 6
 script = ExtResource("11")
 
-[node name="EnhancedTilesSection" type="PanelContainer" parent="LeftRail"]
+[node name="EnhancedTilesSection" type="Panel" parent="LeftRail"]
 layout_mode = 2
 size_flags_vertical = 3
 size_flags_stretch_ratio = 1.0
-clip_contents = false
+clip_contents = true
 theme_override_styles/panel = SubResource("SB_rail_panel")
 
 [node name="EnhancedTilesColumn" type="VBoxContainer" parent="LeftRail/EnhancedTilesSection"]
 unique_name_in_owner = true
-layout_mode = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/separation = 6
 alignment = 1
 script = ExtResource("12")
 
-[node name="ItemUpgradesSection" type="PanelContainer" parent="LeftRail"]
+[node name="ItemUpgradesSection" type="Panel" parent="LeftRail"]
 layout_mode = 2
 size_flags_vertical = 3
 size_flags_stretch_ratio = 1.0
-clip_contents = false
+clip_contents = true
 theme_override_styles/panel = SubResource("SB_rail_panel")
 
 [node name="ItemUpgradesColumn" type="VBoxContainer" parent="LeftRail/ItemUpgradesSection"]
 unique_name_in_owner = true
-layout_mode = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/separation = 6
@@ -313,20 +342,32 @@ theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3")
 theme_override_font_sizes/font_size = 24
 text = "Will Slappington"
-autowrap_mode = 2
+clip_text = true
+text_overrun_behavior = 3
 
-[node name="LevelDesc" type="Label" parent="Sidebar/Layout/BossSection/CardLayout/Info"]
+[node name="DescClip" type="Control" parent="Sidebar/Layout/BossSection/CardLayout/Info"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+clip_contents = true
+mouse_filter = 2
+
+[node name="LevelDesc" type="Label" parent="Sidebar/Layout/BossSection/CardLayout/Info/DescClip"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 16
 text = "Lorem ipsum is simply dummy text."
 autowrap_mode = 3
-
-[node name="InfoGap" type="Control" parent="Sidebar/Layout/BossSection/CardLayout/Info"]
-layout_mode = 2
-size_flags_vertical = 3
-mouse_filter = 2
+clip_text = true
+vertical_alignment = 1
 
 [node name="ReqScoreRow" type="HBoxContainer" parent="Sidebar/Layout/BossSection/CardLayout/Info"]
 layout_mode = 2
@@ -352,15 +393,20 @@ horizontal_alignment = 2
 [node name="ScoreSection" type="PanelContainer" parent="Sidebar/Layout"]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_vertical = 0
-theme_override_styles/panel = SubResource("SB_section")
+size_flags_vertical = 3
+size_flags_stretch_ratio = 1.0
+theme_override_styles/panel = SubResource("SB_section_body")
 
 [node name="ScoreLayout" type="VBoxContainer" parent="Sidebar/Layout/ScoreSection"]
 layout_mode = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 14
 alignment = 1
 
-[node name="ScoreLabel" type="Label" parent="Sidebar/Layout/ScoreSection/ScoreLayout"]
+[node name="ScoreTop" type="VBoxContainer" parent="Sidebar/Layout/ScoreSection/ScoreLayout"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="ScoreLabel" type="Label" parent="Sidebar/Layout/ScoreSection/ScoreLayout/ScoreTop"]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_fonts/font = ExtResource("3")
@@ -368,16 +414,16 @@ theme_override_font_sizes/font_size = 21
 text = "match3__hud__label__score"
 horizontal_alignment = 1
 
-[node name="TotalPanel" type="PanelContainer" parent="Sidebar/Layout/ScoreSection/ScoreLayout"]
+[node name="TotalPanel" type="PanelContainer" parent="Sidebar/Layout/ScoreSection/ScoreLayout/ScoreTop"]
 layout_mode = 2
 theme_override_styles/panel = SubResource("SB_score_stack")
 
-[node name="ScoreStack" type="VBoxContainer" parent="Sidebar/Layout/ScoreSection/ScoreLayout/TotalPanel"]
+[node name="ScoreStack" type="VBoxContainer" parent="Sidebar/Layout/ScoreSection/ScoreLayout/ScoreTop/TotalPanel"]
 layout_mode = 2
 theme_override_constants/separation = 0
 alignment = 1
 
-[node name="TotalValue" type="Label" parent="Sidebar/Layout/ScoreSection/ScoreLayout/TotalPanel/ScoreStack"]
+[node name="TotalValue" type="Label" parent="Sidebar/Layout/ScoreSection/ScoreLayout/ScoreTop/TotalPanel/ScoreStack"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.156863, 0.196078, 0.290196, 1)
@@ -386,7 +432,7 @@ theme_override_font_sizes/font_size = 22
 text = "0"
 horizontal_alignment = 1
 
-[node name="LastMatchValue" type="Label" parent="Sidebar/Layout/ScoreSection/ScoreLayout/TotalPanel/ScoreStack"]
+[node name="LastMatchValue" type="Label" parent="Sidebar/Layout/ScoreSection/ScoreLayout/ScoreTop/TotalPanel/ScoreStack"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
@@ -463,12 +509,13 @@ horizontal_alignment = 1
 [node name="StatsSection" type="PanelContainer" parent="Sidebar/Layout"]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_vertical = 0
-theme_override_styles/panel = SubResource("SB_section")
+size_flags_vertical = 3
+size_flags_stretch_ratio = 1.0
+theme_override_styles/panel = SubResource("SB_section_body")
 
 [node name="StatsLayout" type="VBoxContainer" parent="Sidebar/Layout/StatsSection"]
 layout_mode = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = 14
 alignment = 1
 
 [node name="StatsGrid" type="GridContainer" parent="Sidebar/Layout/StatsSection/StatsLayout"]
@@ -480,7 +527,7 @@ columns = 2
 [node name="RoundCol" type="VBoxContainer" parent="Sidebar/Layout/StatsSection/StatsLayout/StatsGrid"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 0
+theme_override_constants/separation = 4
 
 [node name="RoundLabel" type="Label" parent="Sidebar/Layout/StatsSection/StatsLayout/StatsGrid/RoundCol"]
 layout_mode = 2
@@ -489,6 +536,7 @@ theme_override_fonts/font = ExtResource("3")
 theme_override_font_sizes/font_size = 21
 text = "match3__state__label__round"
 horizontal_alignment = 1
+clip_text = false
 
 [node name="RoundBox" type="PanelContainer" parent="Sidebar/Layout/StatsSection/StatsLayout/StatsGrid/RoundCol"]
 layout_mode = 2
@@ -502,11 +550,12 @@ theme_override_fonts/font = ExtResource("3")
 theme_override_font_sizes/font_size = 30
 text = "1"
 horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="MovesCol" type="VBoxContainer" parent="Sidebar/Layout/StatsSection/StatsLayout/StatsGrid"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 0
+theme_override_constants/separation = 4
 
 [node name="MovesLabel" type="Label" parent="Sidebar/Layout/StatsSection/StatsLayout/StatsGrid/MovesCol"]
 layout_mode = 2
@@ -515,10 +564,11 @@ theme_override_fonts/font = ExtResource("3")
 theme_override_font_sizes/font_size = 21
 text = "match3__hud__label__moves"
 horizontal_alignment = 1
+clip_text = false
 
 [node name="MovesBox" type="PanelContainer" parent="Sidebar/Layout/StatsSection/StatsLayout/StatsGrid/MovesCol"]
 layout_mode = 2
-clip_contents = true
+clip_contents = false
 theme_override_styles/panel = SubResource("SB_dark")
 
 [node name="MovesBoxLayer" type="HBoxContainer" parent="Sidebar/Layout/StatsSection/StatsLayout/StatsGrid/MovesCol/MovesBox"]
@@ -544,11 +594,12 @@ theme_override_fonts/font = ExtResource("3")
 theme_override_font_sizes/font_size = 30
 text = "0"
 horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="CyclesCol" type="VBoxContainer" parent="Sidebar/Layout/StatsSection/StatsLayout/StatsGrid"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 0
+theme_override_constants/separation = 4
 
 [node name="CyclesLabel" type="Label" parent="Sidebar/Layout/StatsSection/StatsLayout/StatsGrid/CyclesCol"]
 layout_mode = 2
@@ -557,6 +608,7 @@ theme_override_fonts/font = ExtResource("3")
 theme_override_font_sizes/font_size = 21
 text = "match3__hud__label__cycles"
 horizontal_alignment = 1
+clip_text = false
 
 [node name="CyclesBox" type="PanelContainer" parent="Sidebar/Layout/StatsSection/StatsLayout/StatsGrid/CyclesCol"]
 layout_mode = 2
@@ -570,11 +622,12 @@ theme_override_fonts/font = ExtResource("3")
 theme_override_font_sizes/font_size = 30
 text = "1/3"
 horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="MoneyCol" type="VBoxContainer" parent="Sidebar/Layout/StatsSection/StatsLayout/StatsGrid"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 0
+theme_override_constants/separation = 4
 
 [node name="MoneyLabel" type="Label" parent="Sidebar/Layout/StatsSection/StatsLayout/StatsGrid/MoneyCol"]
 layout_mode = 2
@@ -583,6 +636,7 @@ theme_override_fonts/font = ExtResource("3")
 theme_override_font_sizes/font_size = 21
 text = "match3__hud__label__money"
 horizontal_alignment = 1
+clip_text = false
 
 [node name="MoneyBox" type="PanelContainer" parent="Sidebar/Layout/StatsSection/StatsLayout/StatsGrid/MoneyCol"]
 layout_mode = 2
@@ -596,6 +650,7 @@ theme_override_fonts/font = ExtResource("3")
 theme_override_font_sizes/font_size = 30
 text = "$0"
 horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="LuckyFindCol" type="VBoxContainer" parent="Sidebar/Layout/StatsSection/StatsLayout"]
 layout_mode = 2
@@ -621,13 +676,13 @@ horizontal_alignment = 1
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 3
+size_flags_vertical = 8
 
 [node name="ButtonsGrid" type="GridContainer" parent="Sidebar/Layout/ButtonsSection"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 3
+size_flags_vertical = 0
 theme_override_constants/h_separation = 12
 theme_override_constants/v_separation = 12
 columns = 3
@@ -636,7 +691,7 @@ columns = 3
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 3
+size_flags_vertical = 4
 use_fixed_styles = true
 theme_override_colors/icon_normal_color = Color(1, 1, 1, 1)
 theme_override_colors/icon_focus_color = Color(1, 1, 1, 1)
@@ -655,7 +710,7 @@ unique_name_in_owner = true
 modulate = Color(1, 1, 1, 0.42)
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 3
+size_flags_vertical = 4
 use_fixed_styles = true
 interactive = false
 hover_animate = false
@@ -678,7 +733,7 @@ expand_icon = true
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 3
+size_flags_vertical = 4
 use_fixed_styles = true
 theme_override_colors/icon_normal_color = Color(1, 1, 1, 1)
 theme_override_colors/icon_focus_color = Color(1, 1, 1, 1)
@@ -717,7 +772,7 @@ vertical_alignment = 1
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 3
+size_flags_vertical = 4
 use_fixed_styles = true
 theme_override_colors/icon_normal_color = Color(1, 1, 1, 1)
 theme_override_colors/icon_focus_color = Color(1, 1, 1, 1)
@@ -735,7 +790,7 @@ expand_icon = true
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 3
+size_flags_vertical = 4
 use_fixed_styles = true
 theme_override_colors/icon_normal_color = Color(1, 1, 1, 1)
 theme_override_colors/icon_focus_color = Color(1, 1, 1, 1)
@@ -753,7 +808,7 @@ expand_icon = true
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_vertical = 3
+size_flags_vertical = 4
 use_fixed_styles = true
 theme_override_colors/icon_normal_color = Color(1, 1, 1, 1)
 theme_override_colors/icon_focus_color = Color(1, 1, 1, 1)

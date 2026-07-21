@@ -5,7 +5,7 @@ extends GnosisHoldRestartProgress
 
 const PANEL_BG := Color(0.345098, 0.345098, 0.572549, 1)
 const PANEL_BORDER := Color(0.180392, 0.160784, 0.321569, 1)
-const PANEL_SHADOW := Color(0.08, 0.04, 0.12, 1)
+const PANEL_SHADOW := PANEL_BORDER
 const TRACK_COLOR := Color(0.180392, 0.160784, 0.321569, 0.85)
 
 

@@ -75,7 +75,7 @@
     "currencies": {
       "money": {
         "currencyId": "money",
-        "currentValue": 3,
+        "currentValue": 1000,
         "min": 0,
         "max": 9999,
         "interestBaseCap": 25,

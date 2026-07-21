@@ -21,7 +21,11 @@ const Match3GameSpeedScript = preload("res://game/match3/core/match3_game_speed.
 const Match3AnimationTuningScript = preload("res://game/match3/view/match3_animation_tuning.gd")
 const UltraUiFx = preload("res://game/ui/widgets/ultra_ui_fx.gd")
 const ConsumableDbgScript = preload("res://game/match3/debug/match3_consumable_debug.gd")
+const FloorTriggerFlashShader = preload("res://game/match3/view/match3_floor_trigger_flash.gdshader")
 const Events = Match3EventsScript
+
+const FLOOR_TRIGGER_POP_PEAK := 1.18
+const FLOOR_TRIGGER_JUICE_SEC := 0.42
 
 const ITEM_COLORS := {
 	"orange": Color(0.98, 0.62, 0.15),
@@ -126,6 +130,12 @@ func refresh_hud() -> void:
 
 
 func _find_hud():
+	if is_inside_tree():
+		var tree := get_tree()
+		if tree != null:
+			var grouped := tree.get_first_node_in_group("match3_hud")
+			if grouped != null:
+				return grouped
 	var node: Node = self
 	while node:
 		if node.get_script() and str(node.get_script().resource_path).ends_with("match3_hud.gd"):
@@ -441,7 +451,7 @@ func _animate_finalize_playback_steps(steps: GnosisNode) -> void:
 			var y := _node_int(step, "y", -1)
 			if x < 0 or y < 0:
 				continue
-			_pulse_floor_cell(x, y)
+			_play_enhanced_floor_effect_juice(x, y, _node_string(step, "floorTypeId", ""))
 			var multi_delta := _node_int(step, "multiDelta", 0)
 			var display := _node_string(step, "multiDisplayText", "")
 			if display.is_empty() and multi_delta > 0:
@@ -507,6 +517,13 @@ func _finish_move_hud_metrics(payload: GnosisNode) -> void:
 		return
 	var current := _node_int(payload, "currentScore", 0)
 	var gain := _node_int(payload, "lastMoveScoreGain", 0)
+	if _is_winning_move_status():
+		# Keep points/multi/total + fire juice up through the reward panel.
+		if hud.has_method("hold_winning_score_celebration"):
+			hud.hold_winning_score_celebration(current, gain)
+		elif hud.has_method("finish_move_score_display"):
+			hud.finish_move_score_display(current)
+		return
 	if gain <= 0:
 		if hud.has_method("finish_move_score_display"):
 			hud.finish_move_score_display(current)
@@ -521,6 +538,19 @@ func _finish_move_hud_metrics(payload: GnosisNode) -> void:
 		)
 	elif hud.has_method("finish_move_score_display"):
 		hud.finish_move_score_display(current)
+
+
+func _is_winning_move_status() -> bool:
+	if _service == null or not _service.has_method("get_gameplay"):
+		return false
+	var gameplay = _service.get_gameplay()
+	if gameplay == null:
+		return false
+	if gameplay.status == Match3ModelsScript.STATUS_WIN \
+			or gameplay.status == Match3ModelsScript.STATUS_REWARD_PANEL:
+		return true
+	# Run-complete win routes to the game-over panel, but this move still beat target.
+	return gameplay.target_score > 0 and gameplay.current_score >= gameplay.target_score
 
 
 func _finalize_step_count(payload: GnosisNode) -> int:
@@ -714,7 +744,7 @@ func _animate_cell_floor_finalize_steps(steps: GnosisNode) -> void:
 		if x < 0 or y < 0:
 			continue
 		var anchor := _item_position(x, y) + cell_size * 0.5
-		_pulse_floor_cell(x, y)
+		_play_enhanced_floor_effect_juice(x, y, _node_string(step, "floorTypeId", ""))
 		var multi_delta := _node_int(step, "multiDelta", 0)
 		var display := _node_string(step, "multiDisplayText", "")
 		if display.is_empty() and multi_delta > 0:
@@ -770,6 +800,92 @@ func _animate_boon_resolve_steps(steps: GnosisNode, use_finalize_timing: bool = 
 func _pulse_floor_cell(x: int, y: int) -> void:
 	# Unity parity: a short "hit flash" on the floor modifier itself.
 	_begin_floor_flash(x, y)
+
+
+func _floor_type_id_at(x: int, y: int) -> String:
+	for cell in _cells:
+		if int(cell.get("x", -1)) == x and int(cell.get("y", -1)) == y:
+			return str(cell.get("cellFloorTypeId", "")).strip_edges()
+	return ""
+
+
+func _play_enhanced_floor_effect_juice(x: int, y: int, floor_type_id: String = "") -> void:
+	_pulse_floor_cell(x, y)
+	var type_id := floor_type_id.strip_edges()
+	if type_id.is_empty():
+		type_id = _floor_type_id_at(x, y)
+	_play_enhanced_floor_overlay_juice(x, y, type_id)
+	if type_id.is_empty():
+		return
+	var hud = _find_hud()
+	if hud != null and hud.has_method("play_enhanced_tile_trigger_juice"):
+		hud.play_enhanced_tile_trigger_juice(type_id)
+
+
+func _play_enhanced_floor_overlay_juice(x: int, y: int, floor_type_id: String) -> void:
+	if not is_inside_tree():
+		return
+	var rect := _cell_rect(x, y)
+	if rect.size.x <= 0.0 or rect.size.y <= 0.0:
+		return
+	var tex := Match3FloorSpritesScript.texture_for_floor_type(floor_type_id)
+	if tex == null:
+		return
+
+	var layer := Control.new()
+	layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.position = rect.position
+	layer.custom_minimum_size = rect.size
+	layer.size = rect.size
+	layer.z_index = 200
+	layer.clip_contents = false
+	layer.pivot_offset = rect.size * 0.5
+	layer.scale = Vector2.ONE
+	add_child(layer)
+
+	var icon := TextureRect.new()
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	icon.set_anchors_preset(Control.PRESET_FULL_RECT)
+	icon.offset_left = 0.0
+	icon.offset_top = 0.0
+	icon.offset_right = 0.0
+	icon.offset_bottom = 0.0
+	icon.texture = tex
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.pivot_offset = rect.size * 0.5
+	if FloorTriggerFlashShader != null:
+		var mat := ShaderMaterial.new()
+		mat.shader = FloorTriggerFlashShader
+		mat.set_shader_parameter("flash", 0.0)
+		icon.material = mat
+	layer.add_child(icon)
+
+	var juice_sec := Match3GameSpeedScript.scale_duration(
+		Match3GameSpeedScript.engine_from_node(self),
+		FLOOR_TRIGGER_JUICE_SEC,
+		0.18
+	)
+	var tw := create_tween()
+	tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	# Single smooth 0→1 envelope: sin(PI*t) peaks at mid, no BACK overshoot snap.
+	tw.tween_method(
+		func(t: float) -> void:
+			if not is_instance_valid(layer):
+				return
+			var wave := sin(PI * clampf(t, 0.0, 1.0))
+			layer.scale = Vector2.ONE * lerpf(1.0, FLOOR_TRIGGER_POP_PEAK, wave)
+			if is_instance_valid(icon) and icon.material is ShaderMaterial:
+				(icon.material as ShaderMaterial).set_shader_parameter("flash", wave),
+		0.0,
+		1.0,
+		juice_sec
+	).set_trans(Tween.TRANS_LINEAR)
+	tw.finished.connect(
+		func() -> void:
+			if is_instance_valid(layer):
+				layer.queue_free()
+	)
 
 
 func _begin_floor_flash(x: int, y: int) -> void:
@@ -963,12 +1079,9 @@ func _animate_destroy(
 			str(entry["item_type_id"]),
 			tile_delay
 		)
-	# Beat separation: let base match pops "land" first, then show enhanced-floor bonuses
-	# as a distinct phase (less visual interleaving).
-	var base_read_pause := maxf(
-		_resolve_destroy_step_pause_seconds(),
-		BoardFloatJuiceScript.estimate_rise_popup_duration(self)
-	)
+	# Let base match pops start reading, then continue — do not wait for the full
+	# float rise/fade lifetime or cascades stall between score text and gravity.
+	var base_read_pause := _resolve_destroy_step_pause_seconds()
 	if base_read_pause > 0.0:
 		await _wait_unscaled(base_read_pause)
 	if not floor_popup_entries.is_empty():
@@ -981,8 +1094,25 @@ func _animate_destroy(
 			if not cell_key.is_empty():
 				var parts := cell_key.split(",")
 				if parts.size() == 2:
-					_pulse_floor_cell(int(parts[0]), int(parts[1]))
-			await BoardFloatJuiceScript.spawn_floor_pop_at_and_wait(self, entry["anchor"], entry["pop"])
+					var pop: GnosisNode = entry.get("pop")
+					var pop_type_id := ""
+					if pop != null and pop.is_valid():
+						pop_type_id = _node_string(pop, "floorTypeId", "")
+					_play_enhanced_floor_effect_juice(int(parts[0]), int(parts[1]), pop_type_id)
+			# Fire floor float text, but only hold for the readable beat — cascade
+			# can continue while the popup finishes rising on its own.
+			BoardFloatJuiceScript.spawn_floor_pop_at(self, entry["anchor"], entry["pop"])
+			var floor_read := maxf(
+				FLOOR_TRIGGER_JUICE_SEC * 0.85,
+				_resolve_floor_pop_after_destroy_delay_seconds() + 0.12
+			)
+			await _wait_unscaled(
+				Match3GameSpeedScript.scale_duration(
+					Match3GameSpeedScript.engine_from_node(self),
+					floor_read,
+					0.12
+				)
+			)
 			if i < floor_popup_entries.size() - 1 and stagger > 0.0:
 				await _wait_unscaled(stagger)
 
@@ -1482,11 +1612,11 @@ func _draw() -> void:
 			floor_tex = Match3ItemTypeVisualScript.greyscale_texture(floor_tex)
 		if floor_tex:
 			_draw_floor_texture(rect, floor_tex)
-			# Trigger juice: flash white on activation (enhanced triggers + finalize steps).
+			# Soft under-gem flash only — visible pop/white wash lives in the overlay.
 			var key := _key(int(cell.get("x", 0)), int(cell.get("y", 0)))
 			var flash_alpha := _floor_flash_alpha_for_key(key, flash_dur)
 			if flash_alpha > 0.001:
-				draw_texture_rect(floor_tex, rect, false, Color(1, 1, 1, flash_alpha * 0.75))
+				_draw_floor_texture(rect, floor_tex, 1.0, Color(1, 1, 1, flash_alpha * 0.35))
 	if _dragging and _drag_start_cell.x >= 0:
 		draw_rect(_cell_rect(_drag_start_cell.x, _drag_start_cell.y), Color(1, 1, 1, 0.45), false, 3.0)
 		if _hover_cell.x >= 0 and _hover_cell != _drag_start_cell:
@@ -1727,11 +1857,11 @@ func _key(x: int, y: int) -> String:
 	return "%d,%d" % [x, y]
 
 
-func _draw_floor_texture(rect: Rect2, texture: Texture2D) -> void:
+func _draw_floor_texture(rect: Rect2, texture: Texture2D, scale_mult: float = 1.0, modulate: Color = Color.WHITE) -> void:
 	var tex_size := texture.get_size()
 	if tex_size.x <= 0.0 or tex_size.y <= 0.0:
 		return
 	var scale := minf(rect.size.x / tex_size.x, rect.size.y / tex_size.y)
-	var draw_size := tex_size * scale
+	var draw_size := tex_size * scale * maxf(0.01, scale_mult)
 	var pos := rect.position + (rect.size - draw_size) * 0.5
-	draw_texture_rect(texture, Rect2(pos, draw_size), false)
+	draw_texture_rect(texture, Rect2(pos, draw_size), false, modulate)

@@ -151,12 +151,45 @@ func _compute_slot_size() -> float:
 
 func _on_slot_layout_dirty() -> void:
 	var computed := _compute_slot_size()
-	if computed < 8.0 or is_equal_approx(computed, _last_layout_slot_size):
+	# 0.5px tolerance — float oscillation after rebuild was force_refresh looping.
+	if computed < 8.0 or absf(computed - _last_layout_slot_size) < 0.5:
 		return
 	_last_layout_slot_size = computed
 	slot_size = computed
-	if not _reorder_drag.is_drag_active() and not _juice_running:
-		force_refresh()
+	if _reorder_drag.is_drag_active() or _juice_running:
+		return
+	# Resize in place. Destroy/rebuild here freezes when resized ↔ refresh loops.
+	_relayout_slot_sizes()
+
+
+func _relayout_slot_sizes() -> void:
+	var w := slot_size
+	if w < 8.0:
+		w = _compute_slot_size()
+	if w < 8.0:
+		return
+	slot_size = w
+	_last_layout_slot_size = w
+	for slot in _slot_nodes:
+		if not is_instance_valid(slot):
+			continue
+		slot.custom_minimum_size = Vector2(w, w)
+		slot.size = Vector2(w, w)
+		var icon := slot.get_node_or_null("Icon") as TextureRect
+		if icon:
+			icon.custom_minimum_size = Vector2(w, w)
+			icon.offset_bottom = w
+		var hit := slot.get_node_or_null("Hit") as Button
+		if hit:
+			hit.offset_bottom = w
+		var badge := slot.get_node_or_null("Count") as Label
+		if badge:
+			badge.offset_left = w - 28.0
+			badge.offset_top = w - 20.0
+			badge.offset_right = w + 2.0
+			badge.offset_bottom = w + 2.0
+	queue_sort()
+	queue_redraw()
 
 
 func _refresh() -> void:
@@ -429,6 +462,16 @@ func _refresh_if_changed() -> void:
 
 func _should_defer_inventory_refresh() -> bool:
 	return _defer_inventory_refresh or _juice_running or _reorder_drag.is_drag_active()
+
+
+func sync_after_hud_layout() -> void:
+	if _reorder_drag != null and _reorder_drag.has_orphan_layout_slots():
+		_reorder_drag.finalize_to_row(self)
+		_set_slots_interactive(true)
+		force_refresh()
+		return
+	# Layout-only: never destroy slots here (resized ↔ force_refresh freeze loop).
+	_on_slot_layout_dirty()
 
 
 func force_refresh() -> void:

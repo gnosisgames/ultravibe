@@ -197,6 +197,7 @@ func _relayout_slot_sizes() -> void:
 		slot.custom_minimum_size = Vector2(cell_size, cell_size + float_offset)
 		var icon := slot.get_node_or_null("Icon") as TextureRect
 		if icon:
+			icon.custom_minimum_size = Vector2(cell_size, cell_size)
 			if _slot_icon_fills_cell():
 				icon.set_anchors_preset(Control.PRESET_FULL_RECT)
 				icon.offset_right = 0.0
@@ -221,6 +222,7 @@ func _relayout_slot_sizes() -> void:
 			badge.offset_right = badge_rect.end.x
 			badge.offset_bottom = badge_rect.end.y
 			badge.add_theme_font_size_override(&"font_size", _stack_badge_font_size())
+	queue_sort()
 	queue_redraw()
 
 func _refresh_if_changed() -> void:
@@ -231,10 +233,7 @@ func _refresh_if_changed() -> void:
 	_refresh()
 
 func _refresh() -> void:
-	for slot in _slot_nodes:
-		if is_instance_valid(slot):
-			slot.queue_free()
-	_slot_nodes.clear()
+	_free_slot_nodes_now()
 	_hide_tooltip()
 
 	var entries := _entries()
@@ -244,7 +243,24 @@ func _refresh() -> void:
 		_slot_nodes.append(slot)
 	if _tooltip and is_instance_valid(_tooltip):
 		_raise_tooltip()
+	call_deferred("_relayout_slot_sizes")
 	queue_redraw()
+
+
+func _free_slot_nodes_now() -> void:
+	# queue_free is deferred — rapid gameplay refresh_from_service stacked dozens of
+	# live Slot* children, inflated PanelContainers, and blew the left rail to 3x height.
+	for slot in _slot_nodes:
+		if slot != null and is_instance_valid(slot):
+			var parent := slot.get_parent()
+			if parent:
+				parent.remove_child(slot)
+			slot.free()
+	_slot_nodes.clear()
+	for child in get_children():
+		if child is Control and str(child.name).begins_with("Slot"):
+			remove_child(child)
+			child.free()
 
 
 func _raise_tooltip() -> void:
@@ -255,8 +271,10 @@ func _raise_tooltip() -> void:
 		parent.move_child(_tooltip, -1)
 
 func _notification(what: int) -> void:
-	# Redraw the capacity dots once the HBox has positioned the slots.
-	if what == NOTIFICATION_SORT_CHILDREN:
+	if what == NOTIFICATION_RESIZED:
+		_relayout_slot_sizes()
+	elif what == NOTIFICATION_SORT_CHILDREN:
+		# Redraw the capacity dots once the box has positioned the slots.
 		queue_redraw()
 
 func _draw() -> void:
@@ -323,6 +341,7 @@ func _make_slot(index: int, details: Dictionary) -> Control:
 		icon.offset_bottom = cell_size
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = _slot_icon_stretch_mode()
+	icon.custom_minimum_size = Vector2(cell_size, cell_size)
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	icon.modulate = Color(1, 1, 1, alpha)
 	var icon_path: String = details.get("icon_path", "")

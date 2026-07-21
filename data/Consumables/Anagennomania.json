@@ -3,6 +3,7 @@
   "properties": {
     "basePrice": 5,
     "offerChancePermille": 40,
+    "stopInvocationsOnFailure": true,
     "invocations": [
       {
         "service": "Audio",

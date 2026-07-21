@@ -14,9 +14,11 @@ const ShopOfferCard = preload("res://game/ui/widgets/shop_offer_card.gd")
 const ShopRerollCard = preload("res://game/ui/widgets/shop_reroll_card.gd")
 const JuicyButton = preload("res://game/ui/widgets/juicy_button.gd")
 const GameInputActions = preload("res://game/input/game_input_actions.gd")
+const Match3EventsScript = preload("res://game/match3/match3_events.gd")
+const ConsumableServiceScript = preload("res://addons/com.gnosisgames.gnosisengine/services/gnosis_consumable_service.gd")
 
 const PANEL_BG := Color(0.415686, 0.415686, 0.658824, 1)
-const PANEL_SHADOW := Color(0.0784314, 0.137255, 0.227451, 1)
+const PANEL_SHADOW := UltraUiPalette.PANEL_SHADOW
 const PANEL_RADIUS := 27
 const PILL_DARK := UltraUiPalette.PILL_DARK
 const PILL_WHITE := Color(0.929412, 0.941176, 0.972549, 1)
@@ -86,6 +88,9 @@ var _tooltip_layer: CanvasLayer = null
 var _tooltip: TooltipPopup = null
 var _tooltip_anchor: Control = null
 var _tooltip_build_pending := false
+var _planning_subscriptions: Array = []
+var _planning_refresh_pending := false
+
 
 func _ready() -> void:
 	add_to_group("gnosis_ui_view")
@@ -163,16 +168,80 @@ func set_view_visible(is_visible: bool) -> void:
 			parent.move_child(self, -1)
 		SubscreenFrame.connect_changes(self, _apply_frame)
 		_apply_frame()
+		_subscribe_planning_refresh()
 		_refresh()
 		_ensure_tooltip_ready("view_visible")
 		_set_planning_overlay_active(true)
 		call_deferred("_focus_planning_control")
 	else:
+		_unsubscribe_planning_refresh()
 		_set_planning_overlay_active(false)
 		_clear_sidebar_focus_neighbors()
 		_hide_consumable_tooltip()
 		_stop_shop_empty_animation()
 		SubscreenFrame.disconnect_changes(self, _apply_frame)
+
+
+func _subscribe_planning_refresh() -> void:
+	_unsubscribe_planning_refresh()
+	var eng := _engine()
+	if eng == null or eng.event_bus == null:
+		return
+	var bus := eng.event_bus
+	_planning_subscriptions.append(bus.subscribe(
+		Match3EventsScript.FACT_MATCH3_PLANNED_FLOOR_CHANGED,
+		_on_planning_data_changed,
+		0
+	))
+	# Boss reroll (and similar) often lands mid juice; rebuild cards when HUD unlocks.
+	_planning_subscriptions.append(bus.subscribe(
+		Match3EventsScript.FACT_MATCH3_CONSUMABLE_USE_PRESENTATION_ACTIVE,
+		_on_consumable_presentation_fact,
+		0
+	))
+	_planning_subscriptions.append(bus.subscribe(
+		ConsumableServiceScript.FACT_CONSUMABLE_USED,
+		_on_planning_data_changed,
+		0
+	))
+
+
+func _unsubscribe_planning_refresh() -> void:
+	for sub in _planning_subscriptions:
+		if sub != null and sub.has_method("dispose"):
+			sub.dispose()
+	_planning_subscriptions.clear()
+	_planning_refresh_pending = false
+
+
+func _on_consumable_presentation_fact(event: GnosisEvent) -> void:
+	if event == null or event.data == null or not event.data.is_valid():
+		return
+	var active := _node_bool(event.data, Match3EventsScript.PAYLOAD_CONSUMABLE_USE_PRESENTATION_ACTIVE, true)
+	if active:
+		return
+	_schedule_planning_refresh()
+
+
+func _on_planning_data_changed(_event: GnosisEvent = null) -> void:
+	_schedule_planning_refresh()
+
+
+func _schedule_planning_refresh() -> void:
+	if not is_visible_in_tree():
+		return
+	if _planning_refresh_pending:
+		return
+	_planning_refresh_pending = true
+	call_deferred("_flush_planning_refresh")
+
+
+func _flush_planning_refresh() -> void:
+	_planning_refresh_pending = false
+	if not is_visible_in_tree():
+		return
+	_refresh()
+	_refresh_hud()
 
 
 func get_preferred_focus_control() -> Control:
@@ -501,6 +570,8 @@ func _resolve_host() -> void:
 			_host = node as GnosisGodotEngine
 			break
 		node = node.get_parent()
+	if is_visible_in_tree():
+		_subscribe_planning_refresh()
 	_refresh()
 
 func _engine() -> GnosisEngine:

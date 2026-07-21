@@ -12,7 +12,7 @@
 [ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/achievement.png" id="11"]
 [ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/cog.png" id="12"]
 [ext_resource type="Texture2D" path="res://addons/com.gnosisgames.gnosisengine/assets/Sprites/Icons/White/book.png" id="13"]
-[ext_resource type="Texture2D" path="res://assets/icons/consumables/Vibemania.png" id="14"]
+[ext_resource type="Texture2D" path="res://assets/icons/boons/BrainLag.png" id="14"]
 [ext_resource type="Script" path="res://game/ui/components/game_over_flavor_backdrop.gd" id="15"]
 
 [node name="TitleView" type="Control"]

@@ -12,7 +12,7 @@ const EMPTY_ICON := "res://assets/icons/empty.png"
 
 const PANEL_BG := Color(0.0980392, 0.156863, 0.227451, 1)
 const PANEL_BORDER := Color(0.345098, 0.345098, 0.572549, 1)
-const PANEL_SHADOW := Color(0.0784314, 0.137255, 0.227451, 1)
+const PANEL_SHADOW := UltraUiPalette.PANEL_SHADOW
 const MUTED_TEXT := Color(0.85, 0.85, 0.9, 1)
 
 var _mods_card_theme_id: String = ""

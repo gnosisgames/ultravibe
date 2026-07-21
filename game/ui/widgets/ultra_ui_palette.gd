@@ -10,6 +10,9 @@ const BLUE_ACCENT := Color("3f80d6")
 const BLUE_HOVER := Color("5a97e6")
 const BLUE_PRESSED := Color("2f63ad")
 const BLUE_SHADOW := Color("14233a")
+## Matches RoundedSquareBtn hover/focus border — used for panel drop shadows.
+const PURPLE_DARK := Color(0.180392, 0.160784, 0.321569, 1)
+const PANEL_SHADOW := PURPLE_DARK
 const PANEL_BG := Color(0.1, 0.16, 0.23, 0.96)
 const PANEL_BORDER := Color("5180a0")
 const PILL_DARK := Color(0.156863, 0.196078, 0.290196, 1)

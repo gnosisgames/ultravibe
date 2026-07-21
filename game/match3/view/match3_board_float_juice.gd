@@ -148,6 +148,36 @@ static func spawn_floor_pop_at_and_wait(parent: Control, anchor: Vector2, pop: G
 		)
 
 
+## Non-blocking floor pop — cascade can continue while the float finishes rising.
+static func spawn_floor_pop_at(parent: Control, anchor: Vector2, pop: GnosisNode) -> void:
+	if parent == null or not is_instance_valid(parent) or pop == null or not pop.is_valid():
+		return
+	var points := _pop_int(pop, "pointsDelta", 0)
+	var multi := _pop_int(pop, "multiDelta", 0)
+	var money := _pop_int(pop, "moneyDelta", 0)
+	if points > 0:
+		spawn_labeled_popup(
+			parent,
+			anchor + STACK_POINTS_OFFSET,
+			DisplayTextScript.build_points_add(points),
+			COLOR_POINTS
+		)
+	if multi > 0:
+		spawn_labeled_popup(
+			parent,
+			anchor + STACK_MULTI_OFFSET,
+			DisplayTextScript.build_multi_add(multi),
+			COLOR_MULTI
+		)
+	if money > 0:
+		spawn_labeled_popup(
+			parent,
+			anchor + STACK_MONEY_OFFSET,
+			"+$%d" % money,
+			COLOR_MONEY
+		)
+
+
 static func estimate_rise_popup_duration(host: Node) -> float:
 	var engine := Match3GameSpeedScript.engine_from_node(host)
 	var fade_in := _scale_duration_for_engine(engine, FADE_IN_DURATION, 0.04)

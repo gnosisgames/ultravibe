@@ -302,6 +302,9 @@ func _finalize_overlay_dismiss() -> void:
 
 
 func refresh_hud_after_reward() -> void:
+	var hud = get_tree().get_first_node_in_group("match3_hud") if get_tree() else null
+	if hud != null and hud.has_method("clear_score_celebration"):
+		hud.clear_score_celebration()
 	if _dispatcher:
 		_dispatcher.refresh_hud()
 

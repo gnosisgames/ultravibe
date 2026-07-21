@@ -62,6 +62,8 @@ EXTENDED_TESTS=(
 	test_catalog_localization
 	test_catalog_sprite_paths
 	test_hud_kratomania_level_select
+	test_hud_kratomania_left_rail
+	test_hud_consumables_layout_no_rebuild_loop
 	test_level_select_floor_consumable_dispatcher
 )
 

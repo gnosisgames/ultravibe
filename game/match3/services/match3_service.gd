@@ -34,7 +34,7 @@ const BOSS_MOVES_BONUS := 1
 const BASE_COLOR_LIMIT := 6
 const DEFAULT_BOARD_ID := "grid9x9_bm"
 ## Dev-only: equip starter boons on new run so HUD drag/reorder can be tested immediately.
-const DEV_GRANT_STARTER_BOONS := true
+const DEV_GRANT_STARTER_BOONS := false
 const DEV_STARTER_BOON_IDS: Array[String] = ["Brainrot", "Bro", "SigmaMale"]
 const BOARDS_INDEX_PATH := "res://data/Boards/index.json"
 const DEFAULT_ROUNDS_PER_FLOOR := 3
@@ -1807,6 +1807,9 @@ func _reroll_upcoming_boss_round() -> GnosisFunctionResult:
 	new_boss["board_id"] = new_board_id
 	bundle["boss"] = new_boss
 	_floor_bundle_plans[floor_number] = bundle
+	# Queued boss: refresh active preview so HUD token / board meta track the new profile.
+	if anchor_round == boss_round:
+		_prepare_queued_round_preview(boss_round)
 	refresh_planned_floor_preview()
 	_publish_ephemeral_state()
 	var ok := context.store.create_object()
@@ -2912,6 +2915,9 @@ func _publish_move_resolved(a, b, success: bool, results: Array) -> void:
 				pop_node.set_key("pointsDelta", int(pop.get("pointsDelta", 0)))
 				pop_node.set_key("multiDelta", int(pop.get("multiDelta", 0)))
 				pop_node.set_key("moneyDelta", int(pop.get("moneyDelta", 0)))
+				var floor_type_id := str(pop.get("floorTypeId", "")).strip_edges()
+				if not floor_type_id.is_empty():
+					pop_node.set_key("floorTypeId", floor_type_id)
 				floor_pops.add(pop_node)
 			if floor_pops.get_count() > 0:
 				step.set_node("floorFloatPops", floor_pops)
@@ -3142,22 +3148,22 @@ func _ensure_match3_animation_defaults(m3: GnosisNode) -> void:
 	_set_animation_default(animation, "boonFinalizePopDurationSeconds", 0.45)
 	_set_animation_default(animation, "boonFinalizeHoldDurationSeconds", 0.22)
 	_set_animation_default(animation, "boonFinalizeGapSeconds", 0.2)
-	_set_animation_default(animation, "interStepDelaySeconds", 0.1)
-	_set_animation_default(animation, "destroyStepPauseSeconds", 0.3)
-	_set_animation_default(animation, "postSpawnToNextDestroyDelaySeconds", 0.35)
-	_set_animation_default(animation, "floorPopAfterDestroyDelaySeconds", 0.16)
-	_set_animation_default(animation, "floorModifierTriggerJuiceDurationSeconds", 0.39)
-	_set_animation_default(animation, "floorFloatPopStaggerSeconds", 0.075)
+	_set_animation_default(animation, "interStepDelaySeconds", 0.05, true)
+	_set_animation_default(animation, "destroyStepPauseSeconds", 0.14, true)
+	_set_animation_default(animation, "postSpawnToNextDestroyDelaySeconds", 0.16, true)
+	_set_animation_default(animation, "floorPopAfterDestroyDelaySeconds", 0.08, true)
+	_set_animation_default(animation, "floorModifierTriggerJuiceDurationSeconds", 0.45, true)
+	_set_animation_default(animation, "floorFloatPopStaggerSeconds", 0.06, true)
 	_set_animation_default(animation, "cellFloorFinalizePopDurationSeconds", 0.68)
 	_set_animation_default(animation, "cellFloorFinalizeHoldDurationSeconds", 0.33)
 	_set_animation_default(animation, "cellFloorFinalizeGapSeconds", 0.3)
 
 
-func _set_animation_default(animation: GnosisNode, key: String, value: float) -> void:
+func _set_animation_default(animation: GnosisNode, key: String, value: float, force: bool = false) -> void:
 	if not animation.is_valid():
 		return
 	var node := animation.get_node(key)
-	if node.is_valid() and node.value != null:
+	if not force and node.is_valid() and node.value != null:
 		return
 	animation.set_key(key, value)
 
@@ -3448,6 +3454,7 @@ func refresh_planned_floor_preview() -> void:
 	if context.engine:
 		var changed_paths: Array[String] = ["Ephemeral.match3"]
 		context.engine.commit("match3", changed_paths)
+	_publish_fact(Events.FACT_MATCH3_PLANNED_FLOOR_CHANGED, preview)
 
 
 func _level_meta_for_setup(setup: Dictionary) -> Dictionary:

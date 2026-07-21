@@ -21,7 +21,9 @@ const GameInputActions = preload("res://game/input/game_input_actions.gd")
 const TOKEN_FONT_PATH := "res://assets/fonts/PolygonParty-3KXM.ttf"
 const HUD_PURPLE_NORMAL := Color(0.345098, 0.345098, 0.572549, 1)
 const HUD_PURPLE_DARK := Color(0.180392, 0.160784, 0.321569, 1)
-const TOKEN_DEFAULT_BG := HUD_PURPLE_DARK
+## Same fill as MoneyBox / SB_dark — used for the letter token on normal rounds.
+const HUD_BOSS_CARD_NORMAL := Color(0.156863, 0.196078, 0.290196, 1)
+const TOKEN_DEFAULT_BG := HUD_BOSS_CARD_NORMAL
 const SCORE_LANE_POP_PANEL_PEAK := 1.17
 const SCORE_LANE_POP_LABEL_PEAK := 1.26
 const SCORE_LANE_POP_FLASH := Color(1.28, 1.28, 1.28, 1.0)
@@ -29,6 +31,9 @@ const SCORE_LANE_POP_FLASH := Color(1.28, 1.28, 1.28, 1.0)
 ## the outer score section purple (read from the section style / theme).
 const SCORE_PANEL_BG_COLOR := UltraUiPalette.PILL_DARK
 const SCORE_SECTION_COLOR_FALLBACK := HUD_PURPLE_NORMAL
+const BOSS_SECTION_HEIGHT := 164.0
+const LEVEL_DESC_FONT_MAX := 16
+const LEVEL_DESC_FONT_MIN := 10
 
 ## Group used by subscreen overlays (shop / level select / reward) to find this
 ## HUD and query the shared content frame.
@@ -40,10 +45,17 @@ const FRAME_GAP := 32.0
 ## Main sidebar action chrome (home / settings / wiki / shuffle).
 const ACTION_BUTTON_SIZE := 120
 const ACTION_BUTTON_GAP := 12
-const ACTION_ICON_MAX := 72
+const ACTION_ICON_MAX := 70
+const SIDEBAR_PANEL_GAP := 12
 const SIDEBAR_MARGIN_H := 48.0
 const LEFT_RAIL_WIDTH := 64.0
 const LEFT_RAIL_ICON_SIZE := LEFT_RAIL_WIDTH
+const LEFT_RAIL_GAP := 6.0
+const LEFT_RAIL_MIN_SLOT := 8.0
+## ConsumablesBar tscn offsets: offset_left=-212, offset_right=-32 → 180px wide.
+const CONSUMABLES_BAR_WIDTH := 180.0
+const CONSUMABLES_BAR_OFFSET_LEFT := -212.0
+const CONSUMABLES_BAR_OFFSET_RIGHT := -32.0
 
 
 static func left_rail_slot_extent_for(control: Control) -> float:
@@ -55,6 +67,42 @@ static func left_rail_slot_extent_for(control: Control) -> float:
 			return node.size.x
 		node = node.get_parent() as Control
 	return LEFT_RAIL_ICON_SIZE
+
+
+## Fit N square icons into a fixed rail-section height the same way consumables
+## fit an arbitrary bag: shrink icons first, then allow negative gap (overlap)
+## so children never demand more height than the section already has.
+static func left_rail_fit_slot_size_for_extent(width: float, height: float, count: int, gap: float = LEFT_RAIL_GAP) -> float:
+	return left_rail_pack_metrics(width, height, count, gap).x
+
+
+## Returns Vector2(slot_size, gap). Always satisfies:
+##   count*slot + (count-1)*gap <= height  (when height >= min slot)
+static func left_rail_pack_metrics(width: float, budget_h: float, count: int, preferred_gap: float = LEFT_RAIL_GAP) -> Vector2:
+	var w := maxf(width, LEFT_RAIL_MIN_SLOT)
+	var n := maxi(count, 1)
+	if n == 1 or budget_h < LEFT_RAIL_MIN_SLOT:
+		return Vector2(minf(w, maxf(budget_h, LEFT_RAIL_MIN_SLOT)), preferred_gap)
+	# Prefer preferred gap + shrunk icons (consumables pattern).
+	var by_height := (budget_h - preferred_gap * float(n - 1)) / float(n)
+	if by_height >= LEFT_RAIL_MIN_SLOT:
+		return Vector2(minf(w, by_height), preferred_gap)
+	# Too many for min-size + preferred gap: keep min icons, overlap as needed.
+	var slot := LEFT_RAIL_MIN_SLOT
+	var gap := (budget_h - slot * float(n)) / float(n - 1)
+	return Vector2(slot, gap)
+
+
+static func left_rail_fit_slot_size(control: Control, count: int, gap: float = LEFT_RAIL_GAP) -> float:
+	var width := left_rail_slot_extent_for(control)
+	var available_h := 0.0
+	if control != null:
+		available_h = control.size.y
+		if available_h < 8.0:
+			var parent := control.get_parent() as Control
+			if parent != null and parent.size.y >= 8.0:
+				available_h = parent.size.y
+	return left_rail_pack_metrics(width, available_h, count, gap).x
 
 ## Emitted whenever the content frame rect changes (sidebar relayout / resize) so
 ## overlays can re-align themselves to it.
@@ -115,6 +163,10 @@ var _score_display_tween: Tween = null
 var _score_escalation = null
 var _hud_tooltip_layer: CanvasLayer = null
 var _planning_overlay_active := false
+## Keep final move score + fire juice visible while the reward panel is open.
+var _hold_score_celebration := false
+var _level_desc_fit_pending := false
+var _level_desc_fit_retries := 0
 
 
 func _ready() -> void:
@@ -141,6 +193,7 @@ func _ready() -> void:
 	call_deferred("_setup_score_escalation")
 	call_deferred("_wire_sidebar_grid_neighbors")
 	if _boss_section:
+		_boss_section.custom_minimum_size = Vector2(_boss_section.custom_minimum_size.x, BOSS_SECTION_HEIGHT)
 		_boss_section.resized.connect(_schedule_frame_dirty)
 	if _score_section:
 		_score_section.resized.connect(_schedule_frame_dirty)
@@ -152,6 +205,12 @@ func _ready() -> void:
 		_boons_bar.resized.connect(_schedule_frame_dirty)
 	if _consumables_bar:
 		_consumables_bar.resized.connect(_schedule_frame_dirty)
+	if _boons_bar:
+		_boons_bar.z_index = 4
+	if _consumables_bar:
+		_consumables_bar.z_index = 4
+	if _left_rail:
+		_left_rail.z_index = 4
 	resized.connect(_schedule_frame_dirty)
 	set_process(true)
 	_schedule_frame_dirty()
@@ -430,6 +489,13 @@ func _is_planning_focusable(control: Control) -> bool:
 func bind_service(service) -> void:
 	_service = service
 	_subscribe_boon_juice(service)
+	_bind_inventory_bar_services(service)
+	_last_inventory_count_signature = ""
+	_last_upgrade_rail_signature = ""
+	refresh_from_service(service)
+
+
+func _bind_inventory_bar_services(service) -> void:
 	if _boons_row:
 		_boons_row.bind_service(service)
 	if _consumables_column:
@@ -440,14 +506,30 @@ func bind_service(service) -> void:
 		_enhanced_tiles_column.bind_service(service)
 	if _item_upgrades_column:
 		_item_upgrades_column.bind_service(service)
-	_last_inventory_count_signature = ""
-	_last_upgrade_rail_signature = ""
-	refresh_from_service(service)
+
+
+## Icon bars keep their own _service copy; refresh_from_service used to update only
+## the HUD, leaving bars on a stale transient Match3 instance after restart.
+func _ensure_inventory_bars_bound() -> void:
+	if _service == null:
+		return
+	for bar in [
+		_boons_row,
+		_consumables_column,
+		_run_upgrades_column,
+		_enhanced_tiles_column,
+		_item_upgrades_column,
+	]:
+		if bar == null:
+			continue
+		if bar.get("_service") != _service:
+			bar.bind_service(_service)
 
 
 func refresh_from_service(service = null) -> void:
 	if service:
 		_service = service
+	_ensure_inventory_bars_bound()
 	if _service != null and _service.has_method("is_consumable_use_presentation_active"):
 		if _service.is_consumable_use_presentation_active():
 			ConsumableDbgScript.phase("Hud.refresh_from_service", "SKIPPED (presentation active)", _service)
@@ -458,15 +540,18 @@ func refresh_from_service(service = null) -> void:
 		return
 	var gameplay = _service.get_gameplay()
 	var playing: bool = gameplay.status == Match3ModelsScript.STATUS_PLAYING
-	if not playing:
+	var celebrating := _should_hold_score_celebration(gameplay.status)
+	if not playing and not celebrating:
 		_clear_overlay_score_display()
 	if _total_value:
 		var total: int = 0
-		if playing:
+		if celebrating:
+			total = _display_total_score
+		elif playing:
 			total = _display_total_score if _move_metrics_active else gameplay.current_score
 		_set_total_value_display(total)
 	if _last_match_value:
-		if _move_metrics_active and playing:
+		if (_move_metrics_active and playing) or celebrating:
 			_update_last_match_label()
 		else:
 			_last_match_value.text = _format_score(0)
@@ -477,10 +562,14 @@ func refresh_from_service(service = null) -> void:
 	if _round_value:
 		_round_value.text = str(_service.get_current_round())
 	if _points_value:
-		var points: int = _display_step_points if _move_metrics_active else 0
+		var points: int = 0
+		if celebrating or _move_metrics_active:
+			points = _display_step_points
 		_points_value.text = str(points)
 	if _multi_value:
-		var multi: int = _display_step_multi if _move_metrics_active else 0
+		var multi: int = 0
+		if celebrating or _move_metrics_active:
+			multi = _display_step_multi
 		_multi_value.text = str(multi)
 	if _cycles_value:
 		_cycles_value.text = "%d/%d" % [_service.get_round_in_floor(), _service.get_rounds_per_floor()]
@@ -516,15 +605,73 @@ func _apply_level_meta(meta: Dictionary) -> void:
 		letter = "?"
 	var bg := _parse_color(str(meta.get("backgroundColor", "")), TOKEN_DEFAULT_BG)
 	var fg := _parse_color(str(meta.get("textColor", "")), Color.WHITE)
+	var is_boss := bool(meta.get("isBoss", false))
+	# Normal rounds: token uses the dark money fill; boss rounds keep catalog accents.
+	if not is_boss:
+		bg = HUD_BOSS_CARD_NORMAL
 	if _level_token:
 		_level_token.visible = true
 		_level_token.text = letter
 		_level_token.add_theme_color_override("font_color", fg)
 	if _level_token_panel:
-		var box := StyleBoxFlat.new()
-		box.bg_color = bg
-		box.set_corner_radius_all(14)
+		var box := _token_panel_style(bg)
 		_level_token_panel.add_theme_stylebox_override("panel", box)
+	_queue_fit_level_desc_font()
+
+
+func _token_panel_style(bg: Color) -> StyleBoxFlat:
+	var base := _level_token_panel.get_theme_stylebox("panel") if _level_token_panel else null
+	var box: StyleBoxFlat
+	if base is StyleBoxFlat:
+		box = (base as StyleBoxFlat).duplicate()
+	else:
+		box = StyleBoxFlat.new()
+		box.set_corner_radius_all(21)
+	box.bg_color = bg
+	return box
+
+
+func _queue_fit_level_desc_font() -> void:
+	if _level_desc_fit_pending:
+		return
+	_level_desc_fit_pending = true
+	_level_desc_fit_retries = 0
+	call_deferred("_fit_level_desc_font")
+
+
+func _fit_level_desc_font() -> void:
+	_level_desc_fit_pending = false
+	if _level_desc == null or not is_instance_valid(_level_desc):
+		return
+	var host := _level_desc.get_parent() as Control
+	if host == null or host.size.y < 8.0 or host.size.x < 8.0:
+		if is_inside_tree() and _level_desc_fit_retries < 8:
+			_level_desc_fit_retries += 1
+			_level_desc_fit_pending = true
+			call_deferred("_fit_level_desc_font")
+		return
+	_level_desc_fit_retries = 0
+	var max_h := host.size.y
+	var max_w := maxf(1.0, host.size.x)
+	var font: Font = _level_desc.get_theme_font("font")
+	if font == null and _level_name != null:
+		font = _level_name.get_theme_font("font")
+	if font == null:
+		# No measurable font yet — keep a safe default size and clip.
+		_level_desc.add_theme_font_size_override("font_size", LEVEL_DESC_FONT_MIN)
+		return
+	var chosen := LEVEL_DESC_FONT_MIN
+	for font_size in range(LEVEL_DESC_FONT_MAX, LEVEL_DESC_FONT_MIN - 1, -1):
+		var text_size := font.get_multiline_string_size(
+			_level_desc.text,
+			HORIZONTAL_ALIGNMENT_LEFT,
+			max_w,
+			font_size
+		)
+		if text_size.y <= max_h + 0.5:
+			chosen = font_size
+			break
+	_level_desc.add_theme_font_size_override("font_size", chosen)
 
 
 ## Compact score formatting (300000 -> "300K") matching the Unity HUD readout.
@@ -695,6 +842,9 @@ func _refresh_upgrade_rail() -> void:
 		_item_upgrades_column.force_refresh()
 	if _enhanced_tiles_column and _enhanced_tiles_column.has_method("force_refresh"):
 		_enhanced_tiles_column.force_refresh()
+	# force_refresh rebuilds slot mins; without re-equalize the thirds inflate and
+	# faces spill (planning overlay keeps looking fine because it frame-dirties).
+	_layout_left_rail()
 
 
 func _refresh_inventory_counts() -> void:
@@ -840,6 +990,94 @@ func _get_sidebar_metrics_rect() -> Rect2:
 	)
 
 
+func _global_rect_to_local(global_rect: Rect2) -> Rect2:
+	if global_rect.size == Vector2.ZERO:
+		return Rect2()
+	var to_local := get_global_transform().affine_inverse()
+	var pos: Vector2 = to_local * global_rect.position
+	var end: Vector2 = to_local * global_rect.end
+	return Rect2(pos, end - pos)
+
+
+func _global_y_to_local(global_y: float) -> float:
+	return (_global_point_to_local(Vector2(0.0, global_y))).y
+
+
+func _global_point_to_local(global_point: Vector2) -> Vector2:
+	return get_global_transform().affine_inverse() * global_point
+
+
+## Positions the consumable sidebar to match the planning frame height (shop + cards).
+func _layout_consumables_bar() -> void:
+	if _consumables_bar == null or _score_section == null:
+		return
+	var planning := _get_planning_frame_local_rect()
+	if planning.size.y <= 0.0:
+		return
+	var bar_local := Rect2(
+		size.x - FRAME_GAP - CONSUMABLES_BAR_WIDTH,
+		planning.position.y,
+		CONSUMABLES_BAR_WIDTH,
+		planning.size.y,
+	)
+	_consumables_bar.set_anchors_preset(Control.PRESET_TOP_LEFT, false)
+	_consumables_bar.anchor_right = 0.0
+	_consumables_bar.anchor_bottom = 0.0
+	if _consumables_column:
+		_consumables_column.custom_minimum_size = Vector2.ZERO
+	var layout := _consumables_column.get_parent() as Control if _consumables_column else null
+	if layout:
+		layout.custom_minimum_size = Vector2.ZERO
+	if not _consumables_bar.position.is_equal_approx(bar_local.position):
+		_consumables_bar.position = bar_local.position
+	if not _consumables_bar.size.is_equal_approx(bar_local.size):
+		_consumables_bar.size = bar_local.size
+
+
+func _layout_boons_bar() -> void:
+	if _boons_bar == null or _boss_section == null:
+		return
+	var frame := _get_content_frame_local_rect()
+	var boss := _global_rect_to_local(_boss_section.get_global_rect())
+	if frame.size.x <= 0.0 or boss.size.y <= 0.0:
+		return
+	var chrome := _boons_bar.get_node_or_null("BoonsChrome") as Control
+	if chrome:
+		chrome.custom_minimum_size = Vector2.ZERO
+	_boons_bar.set_anchors_preset(Control.PRESET_TOP_LEFT, false)
+	_boons_bar.anchor_right = 0.0
+	_boons_bar.anchor_bottom = 0.0
+	var bar_pos := Vector2(frame.position.x, boss.position.y)
+	var bar_size := Vector2(frame.size.x, boss.size.y)
+	if not _boons_bar.position.is_equal_approx(bar_pos):
+		_boons_bar.position = bar_pos
+	if not _boons_bar.size.is_equal_approx(bar_size):
+		_boons_bar.size = bar_size
+
+
+func _get_content_frame_local_rect() -> Rect2:
+	var panel := _global_rect_to_local(_get_sidebar_metrics_rect())
+	if panel.size == Vector2.ZERO:
+		return Rect2()
+	var left := panel.position.x + panel.size.x + FRAME_GAP
+	var top := panel.position.y
+	var bottom := panel.end.y
+	var right := size.x - FRAME_GAP - CONSUMABLES_BAR_WIDTH - FRAME_GAP
+	return Rect2(left, top, maxf(0.0, right - left), maxf(0.0, bottom - top))
+
+
+func _get_planning_frame_local_rect() -> Rect2:
+	var frame := _get_content_frame_local_rect()
+	if frame.size.x <= 0.0 or frame.size.y <= 0.0:
+		return frame
+	return Rect2(
+		frame.position.x,
+		frame.position.y,
+		frame.size.x,
+		maxf(0.0, size.y - FRAME_GAP - frame.position.y),
+	)
+
+
 ## Global rect of the shared subscreen content frame: spans the gap between the
 ## main sidebar panel and the consumable sidebar, with the height of the main
 ## sidebar panel. All subscreens (level select / reward) fill this.
@@ -850,9 +1088,7 @@ func get_content_frame_rect() -> Rect2:
 	var left := panel.position.x + panel.size.x + FRAME_GAP
 	var top := panel.position.y
 	var bottom := panel.end.y
-	var right := size.x - FRAME_GAP
-	if _consumables_bar:
-		right = _consumables_bar.get_global_rect().position.x - FRAME_GAP
+	var right := get_global_rect().end.x - FRAME_GAP - CONSUMABLES_BAR_WIDTH - FRAME_GAP
 	return Rect2(left, top, maxf(0.0, right - left), maxf(0.0, bottom - top))
 
 
@@ -863,8 +1099,13 @@ func get_planning_frame_rect() -> Rect2:
 	var frame := get_content_frame_rect()
 	if frame.size.x <= 0.0 or frame.size.y <= 0.0:
 		return frame
-	var bottom := size.y - FRAME_GAP
-	return Rect2(frame.position.x, frame.position.y, frame.size.x, maxf(0.0, bottom - frame.position.y))
+	var bottom_global := get_global_rect().end.y - FRAME_GAP
+	return Rect2(
+		frame.position.x,
+		frame.position.y,
+		frame.size.x,
+		maxf(0.0, bottom_global - frame.position.y),
+	)
 
 
 ## Play-field rect for the match-3 board: same horizontal bounds as
@@ -873,8 +1114,13 @@ func get_board_frame_rect() -> Rect2:
 	var frame := get_content_frame_rect()
 	if frame.size.x <= 0.0 or frame.size.y <= 0.0:
 		return frame
-	var bottom := size.y - FRAME_GAP
-	return Rect2(frame.position.x, frame.position.y, frame.size.x, maxf(0.0, bottom - frame.position.y))
+	var bottom_global := get_global_rect().end.y - FRAME_GAP
+	return Rect2(
+		frame.position.x,
+		frame.position.y,
+		frame.size.x,
+		maxf(0.0, bottom_global - frame.position.y),
+	)
 
 
 ## Keeps the boons strip and consumable sidebar aligned with the main sidebar
@@ -883,26 +1129,10 @@ func _on_frame_dirty() -> void:
 	_layout_left_rail()
 	_layout_sidebar_width()
 	_layout_action_buttons()
-	if _boss_section and _boons_bar:
-		var boss_rect := _boss_section.get_global_rect()
-		if boss_rect.size.y > 0.0:
-			var frame := get_content_frame_rect()
-			_boons_bar.set_anchors_preset(Control.PRESET_TOP_LEFT)
-			var bar_pos := Vector2(boss_rect.end.x + FRAME_GAP, boss_rect.position.y)
-			var bar_size := Vector2(_boons_bar.size.x, boss_rect.size.y)
-			if frame.size.x > 0.0:
-				bar_pos.x = frame.position.x
-				bar_size.x = frame.size.x
-			_boons_bar.position = bar_pos
-			_boons_bar.size = bar_size
 	if _consumables_bar and _score_section:
-		var panel := _get_sidebar_metrics_rect()
-		# Skip while the sidebar panel has not been laid out yet, otherwise we
-		# would collapse the consumable sidebar to zero height (it never recovers
-		# during PLAYING because nothing re-triggers a resize).
-		if panel.size.y > 0.0:
-			_consumables_bar.offset_top = panel.position.y
-			_consumables_bar.offset_bottom = -FRAME_GAP
+		_layout_consumables_bar()
+	if _boss_section and _boons_bar:
+		_layout_boons_bar()
 	# Keep the board area on the exact same rect the subscreen overlays use, so
 	# the board fills the level-select / reward region.
 	if _board_host:
@@ -911,7 +1141,86 @@ func _on_frame_dirty() -> void:
 			_board_host.set_anchors_preset(Control.PRESET_TOP_LEFT)
 			_board_host.position = frame.position
 			_board_host.size = frame.size
+	_ensure_inventory_bar_insets()
+	call_deferred("_sync_inventory_icon_bars")
 	content_frame_changed.emit()
+
+
+## PanelContainer children (BoonsChrome, ConsumablesColumn) collapse to 0x0 when the
+## bar uses manual position/size from _on_frame_dirty — counts still paint via sibling
+## labels, but icon TextureRects get zero layout and do not render in-game.
+func _panel_content_size(panel: PanelContainer) -> Vector2:
+	if panel == null:
+		return Vector2.ZERO
+	var style := panel.get_theme_stylebox(&"panel") as StyleBox
+	var width := panel.size.x
+	var height := panel.size.y
+	if style:
+		width -= style.get_margin(SIDE_LEFT) + style.get_margin(SIDE_RIGHT)
+		height -= style.get_margin(SIDE_TOP) + style.get_margin(SIDE_BOTTOM)
+	return Vector2(maxf(0.0, width), maxf(0.0, height))
+
+
+func _boons_bar_panel_vertical_inset() -> float:
+	if _boons_bar == null:
+		return 0.0
+	var style := _boons_bar.get_theme_stylebox(&"panel") as StyleBox
+	if style == null:
+		return 0.0
+	return style.get_margin(SIDE_TOP) + style.get_margin(SIDE_BOTTOM)
+
+
+func _boons_bar_panel_horizontal_inset() -> float:
+	if _boons_bar == null:
+		return 0.0
+	var style := _boons_bar.get_theme_stylebox(&"panel") as StyleBox
+	if style == null:
+		return 0.0
+	return style.get_margin(SIDE_LEFT) + style.get_margin(SIDE_RIGHT)
+
+
+func _ensure_inventory_bar_insets() -> void:
+	if _boons_bar and _boss_section and _boons_bar.size.x >= 8.0:
+		var chrome := _boons_bar.get_node_or_null("BoonsChrome") as Control
+		if chrome:
+			var frame := _get_content_frame_local_rect()
+			var strip_h := maxf(8.0, _boss_section.size.y)
+			var content_w := frame.size.x if frame.size.x > 8.0 else _panel_content_size(_boons_bar).x
+			var content := Vector2(
+				maxf(8.0, content_w - _boons_bar_panel_horizontal_inset()),
+				maxf(8.0, strip_h - _boons_bar_panel_vertical_inset()),
+			)
+			if content.x >= 8.0 and content.y >= 8.0:
+				chrome.custom_minimum_size = content
+				chrome.size = content
+
+
+## After manual bar/rail layout, rebuild or relayout icon slots so TextureRects
+## get non-zero rects (c14d7af dropped boons force_refresh; consumables reorder
+## can orphan slots under layout hosts until finalized).
+func _sync_inventory_icon_bars() -> void:
+	_ensure_inventory_bar_insets()
+	_fit_rail_section_column(_run_upgrades_column)
+	_fit_rail_section_column(_enhanced_tiles_column)
+	_fit_rail_section_column(_item_upgrades_column)
+	if _run_upgrades_column and _run_upgrades_column.has_method("_relayout_slot_sizes"):
+		_run_upgrades_column._relayout_slot_sizes()
+	if _item_upgrades_column and _item_upgrades_column.has_method("_relayout_slot_sizes"):
+		_item_upgrades_column._relayout_slot_sizes()
+	if _enhanced_tiles_column and _enhanced_tiles_column.has_method("_relayout_row_sizes"):
+		_enhanced_tiles_column._relayout_row_sizes()
+	var chrome := _boons_bar.get_node_or_null("BoonsChrome") as Control if _boons_bar else null
+	if _boons_row and chrome and chrome.size.x >= 8.0 and chrome.size.y >= 8.0:
+		# Layout-only — never force_refresh here (resized ↔ rebuild freeze loop).
+		if _boons_row.has_method("_relayout_slot_sizes"):
+			_boons_row._relayout_slot_sizes()
+		elif _boons_row.has_method("_on_slot_layout_dirty"):
+			_boons_row._on_slot_layout_dirty()
+	if _consumables_column and _consumables_column.size.x >= 8.0 and _consumables_column.size.y >= 8.0:
+		if _consumables_column.has_method("sync_after_hud_layout"):
+			_consumables_column.sync_after_hud_layout()
+		elif _consumables_column.has_method("_on_slot_layout_dirty"):
+			_consumables_column._on_slot_layout_dirty()
 
 
 func _layout_sidebar_width() -> void:
@@ -924,38 +1233,62 @@ func _layout_sidebar_width() -> void:
 func _layout_action_buttons() -> void:
 	if _buttons_grid == null:
 		return
-	# Always budget from the sidebar slot, not ButtonsSection.size.y — that node is
-	# SIZE_EXPAND_FILL and reports the inflated fill height (8a44c7a regression).
-	var grid_height := _estimate_buttons_area_height()
-	if grid_height <= 8.0:
-		return
+	# 1) Size action buttons as true squares from the sidebar cell width.
+	# 2) Score + stats share leftover height equally (centered content = even
+	#    top/bottom padding inside each panel). No empty flex gap above buttons.
 	var cols := maxi(_buttons_grid.columns, 1)
 	var rows := ceili(float(_buttons_grid.get_child_count()) / float(cols))
 	var h_sep := _buttons_grid.get_theme_constant("h_separation")
 	var v_sep := _buttons_grid.get_theme_constant("v_separation")
-	var row_height := floorf((grid_height - v_sep * float(rows - 1)) / float(rows))
 	var grid_width := _buttons_grid.size.x
 	if grid_width <= 8.0 and _buttons_section != null:
 		grid_width = _buttons_section.size.x
 	if grid_width <= 8.0:
 		grid_width = get_sidebar_width() - SIDEBAR_MARGIN_H
+	var side := float(ACTION_BUTTON_SIZE)
 	if grid_width > 8.0:
-		var cell_width := floorf((grid_width - h_sep * float(cols - 1)) / float(cols))
-		row_height = minf(row_height, cell_width)
-	row_height = clampf(row_height, 40.0, ACTION_BUTTON_SIZE)
-	_buttons_grid.custom_minimum_size = Vector2.ZERO
+		side = floorf((grid_width - h_sep * float(cols - 1)) / float(cols))
+	var grid_height := _estimate_buttons_area_height()
+	if grid_height > 8.0:
+		var height_fit := floorf((grid_height - v_sep * float(rows - 1)) / float(rows))
+		side = minf(side, height_fit)
+	side = clampf(side, 40.0, float(ACTION_BUTTON_SIZE))
+	var grid_min_h := side * float(rows) + v_sep * float(rows - 1)
+	_buttons_grid.custom_minimum_size = Vector2(0.0, grid_min_h)
 	if _buttons_section != null:
-		_buttons_section.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		_buttons_section.size_flags_vertical = Control.SIZE_SHRINK_END
+		_buttons_section.custom_minimum_size = Vector2(0.0, grid_min_h)
+	if _score_section:
+		_score_section.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		_score_section.size_flags_stretch_ratio = 1.0
+	if _stats_section:
+		_stats_section.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		_stats_section.size_flags_stretch_ratio = 1.0
+	var score_layout := _score_section.get_node_or_null("ScoreLayout") as VBoxContainer if _score_section else null
+	if score_layout:
+		score_layout.alignment = BoxContainer.ALIGNMENT_CENTER
+	var stats_layout := _stats_section.get_node_or_null("StatsLayout") as VBoxContainer if _stats_section else null
+	if stats_layout:
+		stats_layout.alignment = BoxContainer.ALIGNMENT_CENTER
+	var layout := get_node_or_null("Sidebar/Layout") as VBoxContainer
+	if layout:
+		layout.add_theme_constant_override("separation", SIDEBAR_PANEL_GAP)
+		var spacer := layout.get_node_or_null("SidebarFlexSpacer") as Control
+		if spacer:
+			# Legacy spacer from earlier layout — reclaim that dead gap.
+			spacer.visible = false
+			spacer.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+			spacer.custom_minimum_size = Vector2.ZERO
 	for child in _buttons_grid.get_children():
 		if child is Control:
 			var ctrl := child as Control
-			var target_min := Vector2(0, row_height)
+			var target_min := Vector2(side, side)
 			if not ctrl.custom_minimum_size.is_equal_approx(target_min):
 				ctrl.custom_minimum_size = target_min
 			ctrl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			ctrl.size_flags_vertical = Control.SIZE_EXPAND_FILL
+			ctrl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 			if ctrl is Button:
-				var icon_max := int(minf(ACTION_ICON_MAX, row_height * 0.6))
+				var icon_max := int(minf(ACTION_ICON_MAX, side * 0.58))
 				ctrl.add_theme_constant_override("icon_max_width", icon_max)
 	call_deferred("_wire_sidebar_grid_neighbors")
 
@@ -993,15 +1326,95 @@ func _estimate_buttons_area_height() -> float:
 func _layout_left_rail() -> void:
 	if _left_rail == null:
 		return
+	# Drop any spacer left over from the short-lived content-sized rail experiment.
+	var stale_spacer := _left_rail.get_node_or_null("RailSpacer")
+	if stale_spacer:
+		stale_spacer.queue_free()
 	_left_rail.set_anchors_preset(Control.PRESET_TOP_LEFT)
 	_left_rail.position = Vector2(FRAME_GAP, FRAME_GAP)
-	_left_rail.size = Vector2(LEFT_RAIL_WIDTH, maxf(0.0, size.y - FRAME_GAP * 2.0))
+	var rail_h := maxf(0.0, size.y - FRAME_GAP * 2.0)
+	# Lock height — PanelContainer children must not stretch the rail past the HUD.
+	_left_rail.clip_contents = true
+	_left_rail.custom_minimum_size = Vector2(LEFT_RAIL_WIDTH, rail_h)
+	_left_rail.size = Vector2(LEFT_RAIL_WIDTH, rail_h)
+	_equalize_left_rail_sections(rail_h)
+	_fit_rail_section_column(_run_upgrades_column)
+	_fit_rail_section_column(_enhanced_tiles_column)
+	_fit_rail_section_column(_item_upgrades_column)
 	if _run_upgrades_column and _run_upgrades_column.has_method("_relayout_slot_sizes"):
 		_run_upgrades_column._relayout_slot_sizes()
 	if _enhanced_tiles_column and _enhanced_tiles_column.has_method("_relayout_row_sizes"):
 		_enhanced_tiles_column._relayout_row_sizes()
 	if _item_upgrades_column and _item_upgrades_column.has_method("_relayout_slot_sizes"):
 		_item_upgrades_column._relayout_slot_sizes()
+	# Re-assert after fits — content mins can fight VBox for one layout pass.
+	_left_rail.custom_minimum_size = Vector2(LEFT_RAIL_WIDTH, rail_h)
+	_left_rail.size = Vector2(LEFT_RAIL_WIDTH, rail_h)
+
+
+func _equalize_left_rail_sections(rail_h: float) -> void:
+	if _left_rail == null:
+		return
+	var sections: Array[Control] = []
+	for child in _left_rail.get_children():
+		if child is Control and not str(child.name).begins_with("RailSpacer"):
+			sections.append(child as Control)
+	var n := sections.size()
+	if n <= 0:
+		return
+	var sep := float(_left_rail.get_theme_constant(&"separation"))
+	var section_h := maxf(8.0, (rail_h - sep * float(n - 1)) / float(n))
+	for section in sections:
+		section.visible = true
+		section.clip_contents = true
+		# Equal thirds of the locked rail. SHRINK_BEGIN collapsed empty panels and
+		# crammed item icons into a content-sized capsule — use EXPAND_FILL + fixed min.
+		section.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		section.size_flags_stretch_ratio = 1.0
+		section.custom_minimum_size = Vector2(LEFT_RAIL_WIDTH, section_h)
+		section.size = Vector2(LEFT_RAIL_WIDTH, section_h)
+		section.set_meta(&"left_rail_equal_h", section_h)
+
+
+func _fit_rail_section_column(column: Control) -> void:
+	if column == null:
+		return
+	var section := column.get_parent() as Control
+	if section == null:
+		return
+	section.visible = true
+	section.clip_contents = true
+	section.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	section.size_flags_stretch_ratio = 1.0
+	var section_h := section.size.y
+	if section.has_meta(&"left_rail_equal_h"):
+		section_h = float(section.get_meta(&"left_rail_equal_h"))
+		section.custom_minimum_size = Vector2(LEFT_RAIL_WIDTH, section_h)
+		section.size = Vector2(LEFT_RAIL_WIDTH, section_h)
+	var style := section.get_theme_stylebox(&"panel") as StyleBox
+	var inset := 0.0
+	if style:
+		inset = style.get_margin(SIDE_TOP) + style.get_margin(SIDE_BOTTOM)
+	var content := Vector2(LEFT_RAIL_WIDTH, maxf(8.0, section_h - inset))
+	column.visible = true
+	column.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	column.custom_minimum_size = Vector2(LEFT_RAIL_WIDTH, 0.0)
+	column.size = content
+	column.clip_contents = true
+	column.set_meta(&"left_rail_budget_h", content.y)
+	var count := 0
+	if column.has_method("_entries"):
+		count = int(column.call("_entries").size())
+	elif column.has_method("_enhanced_pool_rows"):
+		count = int(column.call("_enhanced_pool_rows").size())
+	var pack := left_rail_pack_metrics(content.x, content.y, maxi(count, 1), LEFT_RAIL_GAP)
+	if column.has_method("apply_left_rail_pack"):
+		column.apply_left_rail_pack(pack.x, pack.y)
+	if column.has_method("_relayout_slot_sizes"):
+		column.call("_relayout_slot_sizes")
+	elif column.has_method("_relayout_row_sizes"):
+		column.call("_relayout_row_sizes")
 
 
 func _subscribe_boon_juice(service) -> void:
@@ -1053,7 +1466,13 @@ func play_boon_score_juice_on_slot(slot_index: int, score_kind: String, display_
 	_boons_row.play_score_juice(slot_index, score_kind, display_text)
 
 
+func play_enhanced_tile_trigger_juice(type_id: String) -> void:
+	if _enhanced_tiles_column and _enhanced_tiles_column.has_method("play_trigger_juice"):
+		_enhanced_tiles_column.play_trigger_juice(type_id)
+
+
 func begin_move_score_display(pre_move_total: int) -> void:
+	_hold_score_celebration = false
 	_kill_score_display_tweens()
 	_move_metrics_active = true
 	_display_step_points = 0
@@ -1095,6 +1514,10 @@ func _update_score_escalation_visual() -> void:
 
 
 func finish_move_score_display(final_total: int) -> void:
+	if _hold_score_celebration:
+		_display_total_score = final_total
+		_apply_score_display_texts()
+		return
 	_kill_score_display_tweens()
 	_reset_last_match_label_transform()
 	_display_step_points = 0
@@ -1107,8 +1530,38 @@ func finish_move_score_display(final_total: int) -> void:
 	_apply_score_display_texts()
 
 
+## Keep the winning move's points/multi/total + fire juice while reward is open.
+func hold_winning_score_celebration(final_total: int, move_gain: int = -1) -> void:
+	_hold_score_celebration = true
+	_kill_score_display_tweens()
+	_reset_last_match_label_transform()
+	_display_total_score = maxi(0, final_total)
+	if move_gain > 0:
+		_display_last_match_score = move_gain
+	_move_metrics_active = true
+	_apply_score_display_texts()
+	_update_score_escalation_visual()
+
+
+func clear_score_celebration() -> void:
+	if not _hold_score_celebration and not _move_metrics_active:
+		return
+	_hold_score_celebration = false
+	_clear_overlay_score_display()
+	_apply_score_display_texts()
+
+
+func _should_hold_score_celebration(status: int) -> bool:
+	if not _hold_score_celebration:
+		return false
+	return status == Match3ModelsScript.STATUS_WIN \
+		or status == Match3ModelsScript.STATUS_REWARD_PANEL \
+		or status == Match3ModelsScript.STATUS_LOSE_PANEL
+
+
 ## Clears banked-score presentation when leaving gameplay (reward / shop / level select).
 func _clear_overlay_score_display() -> void:
+	_hold_score_celebration = false
 	_kill_score_display_tweens()
 	_reset_last_match_label_transform()
 	_move_metrics_active = false
@@ -1121,6 +1574,8 @@ func _clear_overlay_score_display() -> void:
 
 
 func cancel_move_score_display(final_total: int = -1) -> void:
+	if _hold_score_celebration:
+		return
 	_kill_score_display_tweens()
 	if final_total >= 0:
 		finish_move_score_display(final_total)
